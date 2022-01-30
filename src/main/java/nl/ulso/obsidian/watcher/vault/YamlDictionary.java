@@ -12,6 +12,7 @@ import java.util.*;
 
 import static java.lang.String.join;
 import static java.lang.System.lineSeparator;
+import static java.util.Collections.emptyList;
 import static java.util.Collections.emptyMap;
 import static java.util.Objects.requireNonNullElse;
 
@@ -36,7 +37,7 @@ class YamlDictionary
     private static final String DATE_FORMAT = "yyyy-MM-dd";
 
     private final Map<String, ?> map;
-    private final Map<String, Optional<Date>> dateCache;
+    private final Map<String, List<Date>> dateCache;
 
     YamlDictionary(List<String> lines)
     {
@@ -93,67 +94,80 @@ class YamlDictionary
     @Override
     public Date date(String property, Date defaultValue)
     {
-        if (dateCache.containsKey(property))
+        var dates = listOfDates(property);
+        if (dates.isEmpty())
         {
-            return dateCache.get(property).orElse(defaultValue);
-        }
-        String dateString = safeGet(property, String.class, null);
-        if (dateString == null)
-        {
-            dateCache.put(property, Optional.empty());
             return defaultValue;
         }
-        try
-        {
-            var date = new SimpleDateFormat(DATE_FORMAT).parse(dateString);
-            dateCache.put(property, Optional.of(date));
-            return date;
-        }
-        catch (ParseException e)
-        {
-            dateCache.put(property, Optional.empty());
-            return defaultValue;
-        }
+        return dates.get(0);
     }
 
     @Override
     public List<String> listOfStrings(String property)
     {
-        throw new IllegalStateException("Not yet implemented");
+        return safeGetList(property, String.class);
     }
 
     @Override
     public List<Integer> listOfIntegers(String property)
     {
-        throw new IllegalStateException("Not yet implemented");
+        return safeGetList(property, Integer.class);
     }
 
     @Override
     public List<Date> listOfDates(String property)
     {
-        throw new IllegalStateException("Not yet implemented");
+        if (dateCache.containsKey(property))
+        {
+            return dateCache.get(property);
+        }
+        var format = new SimpleDateFormat(DATE_FORMAT);
+        var dates = safeGetList(property, String.class).stream().map(string -> {
+            try
+            {
+                return format.parse(string);
+            }
+            catch (ParseException e)
+            {
+                return null;
+            }
+        }).filter(Objects::nonNull).toList();
+        dateCache.put(property, dates.isEmpty() ? emptyList() : dates);
+        return listOfDates(property);
     }
 
-    private <T> T safeGet(
-            String property, Class<? extends T> propertyClass, T defaultValue)
+    private <T> T safeGet(String property, Class<? extends T> propertyClass, T defaultValue)
+    {
+        var list = safeGetList(property, propertyClass);
+        if (list.isEmpty())
+        {
+            return defaultValue;
+        }
+        return propertyClass.cast(list.get(0));
+    }
+
+    @SuppressWarnings("unchecked")
+    private <T> List<T> safeGetList(String property, Class<? extends T> propertyClass)
     {
         Object value = map.get(property);
         if (value == null)
         {
-            return defaultValue;
+            return emptyList();
         }
-        if (value instanceof List<?> list)
+        if (!(value instanceof List))
         {
-            if (list.isEmpty())
-            {
-                return defaultValue;
-            }
-            value = list.get(0);
+            value = List.of(value);
         }
-        if (!propertyClass.isInstance(value))
+        List<?> list = (List<?>) value;
+        if (list.isEmpty())
         {
-            return defaultValue;
+            return emptyList();
         }
-        return propertyClass.cast(value);
+        var first = list.get(0);
+        if (!propertyClass.isInstance(first))
+        {
+            return emptyList();
+        }
+        return (List<T>) list;
     }
 }

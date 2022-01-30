@@ -2,7 +2,7 @@ package nl.ulso.obsidian.watcher.vault;
 
 import org.junit.jupiter.api.Test;
 
-import java.util.Collections;
+import java.util.*;
 
 import static java.util.stream.Collectors.toList;
 import static nl.ulso.obsidian.watcher.vault.Dictionary.yamlDictionary;
@@ -78,6 +78,7 @@ class YamlDictionaryTest
         assertThat(dictionary.integer("foo", -1)).isEqualTo(-1);
     }
 
+    @Test
     void validDate()
     {
         var dictionary = dictionary("date: 1976-11-30");
@@ -92,6 +93,38 @@ class YamlDictionaryTest
                 foo: [42, 84]
                 """);
         assertThat(dictionary.integer("foo", -1)).isEqualTo(42);
+    }
+
+    @Test
+    void integerListFromSingleValue()
+    {
+        var dictionary = dictionary("""
+                foo: 42
+                """);
+        List<Integer> list = dictionary.listOfIntegers("foo");
+        assertThat(list.size()).isEqualTo(1);
+        assertThat(list.get(0)).isEqualTo(42);
+    }
+
+    @Test
+    void stringListMissingValue()
+    {
+        var dictionary = dictionary("""
+                foo: 42
+                """);
+        List<Integer> list = dictionary.listOfIntegers("bar");
+        assertThat(list).isEmpty();
+    }
+
+    @Test
+    void dateListMultipleValues()
+    {
+        var dictionary = dictionary("""
+                dates: [1976-11-30, 1977-11-11, 2003-05-08]
+                """);
+        List<Date> list = dictionary.listOfDates("dates");
+        assertThat(list.size()).isEqualTo(3);
+
     }
 
     private Dictionary dictionary(String yaml)
