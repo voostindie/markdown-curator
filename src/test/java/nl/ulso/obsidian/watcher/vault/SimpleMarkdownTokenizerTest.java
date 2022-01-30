@@ -93,8 +93,6 @@ class SimpleMarkdownTokenizerTest
         {
             for (var token : tokens)
             {
-                System.out.println(token.lineIndex());
-                System.out.println(token.tokenType());
                 assertThat(token.tokenType()).isEqualTo(types[i]);
                 assertThat(token.lineIndex()).isEqualTo(i);
                 i++;
