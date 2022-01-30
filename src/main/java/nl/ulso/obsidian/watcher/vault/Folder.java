@@ -1,7 +1,9 @@
 package nl.ulso.obsidian.watcher.vault;
 
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+
+import static java.util.Collections.unmodifiableCollection;
 
 public class Folder
 {
@@ -32,14 +34,24 @@ public class Folder
         return name;
     }
 
-    Document document(String name)
+    public Collection<Folder> folders()
     {
-        return documents.get(name);
+        return unmodifiableCollection(folders.values());
     }
 
     Folder folder(String name)
     {
         return folders.get(name);
+    }
+
+    public Collection<Document> documents()
+    {
+        return unmodifiableCollection(documents.values());
+    }
+
+    Document document(String name)
+    {
+        return documents.get(name);
     }
 
     public void accept(Visitor visitor)

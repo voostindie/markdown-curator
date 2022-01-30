@@ -1,10 +1,15 @@
 package nl.ulso.obsidian.watcher.vault;
 
 import java.io.IOException;
+import java.util.Collection;
 
 public interface Vault
 {
     void accept(Visitor visitor);
+
+    Collection<Folder> folders();
+
+    Collection<Document> documents();
 
     /**
      * Watches the vault for changes and acts accordingly when it does. This method blocks:

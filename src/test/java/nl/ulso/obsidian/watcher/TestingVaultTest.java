@@ -1,8 +1,10 @@
 package nl.ulso.obsidian.watcher;
 
 import nl.ulso.obsidian.watcher.config.rabobank.RabobankVault;
+import nl.ulso.obsidian.watcher.vault.ElementCounter;
 import org.junit.jupiter.api.Test;
 
+import javax.swing.text.Element;
 import java.io.IOException;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -21,5 +23,8 @@ class TestingVaultTest
     {
         var vault = new RabobankVault();
         assertThat(vault.name()).endsWith("Rabobank");
+        var counter = new ElementCounter();
+        vault.accept(counter);
+        System.out.println(counter);
     }
 }
