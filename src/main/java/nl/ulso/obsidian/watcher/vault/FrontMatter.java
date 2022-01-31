@@ -6,6 +6,13 @@ import java.util.List;
 import static nl.ulso.obsidian.watcher.vault.Dictionary.emptyDictionary;
 import static nl.ulso.obsidian.watcher.vault.Dictionary.yamlDictionary;
 
+/**
+ * Represents the front matter section in a {@link Document}. A {@link Document} object
+ * <strong>always</strong> has such a section (as the first object in the list of fragments),
+ * even if the underlying document has none; in that case the front matter is empty.
+ * <p/>
+ * This class wraps a {@link Dictionary}. For ease of use it implements its interface as well.
+ */
 public final class FrontMatter
         extends LineContainer
         implements Fragment, Dictionary
