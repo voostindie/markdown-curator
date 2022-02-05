@@ -2,6 +2,7 @@ package nl.ulso.obsidian.watcher.vault;
 
 import java.util.*;
 
+import static java.util.Collections.unmodifiableList;
 import static java.util.Objects.requireNonNull;
 
 /**
@@ -9,14 +10,13 @@ import static java.util.Objects.requireNonNull;
  */
 abstract class FragmentContainer
         extends LineContainer
-        implements Iterable<Fragment>
 {
     private final List<Fragment> fragments;
 
     FragmentContainer(List<String> lines, List<Fragment> fragments)
     {
         super(lines);
-        this.fragments = Collections.unmodifiableList(requireNonNull(fragments));
+        this.fragments = unmodifiableList(requireNonNull(fragments));
     }
 
     public List<Fragment> fragments()
@@ -27,11 +27,5 @@ abstract class FragmentContainer
     Fragment fragment(int index)
     {
         return fragments.get(index);
-    }
-
-    @Override
-    public Iterator<Fragment> iterator()
-    {
-        return fragments.iterator();
     }
 }

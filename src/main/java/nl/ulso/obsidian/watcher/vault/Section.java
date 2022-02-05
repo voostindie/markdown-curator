@@ -1,15 +1,17 @@
 package nl.ulso.obsidian.watcher.vault;
 
-import java.util.List;
-import java.util.Set;
+import java.util.*;
+
+import static java.util.Objects.requireNonNull;
 
 public final class Section
         extends FragmentContainer
         implements Fragment
 {
+    // These characters are filtered out by Obsidian in anchors; reverse engineered!
     private final static Set<Character> INVALID_ANCHOR_CHARACTERS = Set.of(
-            '<', '>', ',', '.', ';', '[', ']', '!', '@', '#', '$', '%', '^', '&', '*',
-            '(', ')', '=', '+', '/', '?', '{', '}', '\\', '~', '`');
+            '<', '>', ',', '.', ';', '[', ']', '!', '@', '#', '$', '%', '^',
+            '&', '*', '(', ')', '=', '+', '/', '?', '{', '}', '\\', '~', '`');
 
     private final int level;
     private final String title;
@@ -18,19 +20,43 @@ public final class Section
     Section(int level, String title, List<String> lines, List<Fragment> fragments)
     {
         super(lines, fragments);
+        if (level < 0)
+        {
+            throw new IllegalArgumentException("Minimum level is 0");
+        }
         this.level = level;
-        this.title = title;
+        this.title = requireNonNull(title);
         this.anchor = createAnchor(title);
+    }
+
+    @Override
+    public boolean equals(Object o)
+    {
+        if (o instanceof Section section)
+        {
+            return Objects.equals(level, section.level)
+                    && Objects.equals(title, section.title)
+                    && Objects.equals(lines(), section.lines())
+                    && Objects.equals(fragments(), section.fragments());
+        }
+        return false;
+    }
+
+    @Override
+    public int hashCode()
+    {
+        return Objects.hash(level, title, lines(), fragments());
     }
 
     private String createAnchor(String title)
     {
         return title.chars().filter(Section::isValidAnchorCharacter)
                 .collect(StringBuilder::new, StringBuilder::appendCodePoint, StringBuilder::append)
-                .toString();
+                .toString()
+                .trim()
+                .replaceAll("\\s+"," ");
     }
 
-    // TODO: fix this method for Obsidian; this needs reverse engineering.
     private static boolean isValidAnchorCharacter(int c)
     {
         return !INVALID_ANCHOR_CHARACTERS.contains((char) c);

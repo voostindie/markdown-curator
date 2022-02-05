@@ -1,7 +1,6 @@
 package nl.ulso.obsidian.watcher.vault;
 
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 
 import static nl.ulso.obsidian.watcher.vault.Dictionary.emptyDictionary;
 import static nl.ulso.obsidian.watcher.vault.Dictionary.yamlDictionary;
@@ -30,6 +29,23 @@ public final class FrontMatter
         {
             dictionary = yamlDictionary(lines);
         }
+    }
+
+    @Override
+    public boolean equals(Object o)
+    {
+        if (o instanceof FrontMatter frontMatter)
+        {
+            return Objects.equals(dictionary, frontMatter.dictionary)
+                    && Objects.equals(lines(), frontMatter.lines());
+        }
+        return false;
+    }
+
+    @Override
+    public int hashCode()
+    {
+        return Objects.hash(dictionary, lines());
     }
 
     @Override

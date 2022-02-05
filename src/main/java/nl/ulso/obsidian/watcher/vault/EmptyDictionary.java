@@ -2,11 +2,22 @@ package nl.ulso.obsidian.watcher.vault;
 
 import java.util.*;
 
-class EmptyDictionary
+final class EmptyDictionary
         implements Dictionary
 {
-
     static Dictionary INSTANCE = new EmptyDictionary();
+
+    @Override
+    public boolean equals(Object o)
+    {
+        return o instanceof EmptyDictionary;
+    }
+
+    @Override
+    public int hashCode()
+    {
+        return 31;
+    }
 
     @Override
     public boolean isEmpty()

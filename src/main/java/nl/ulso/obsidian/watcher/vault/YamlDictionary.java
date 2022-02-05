@@ -29,7 +29,7 @@ import static java.util.Objects.requireNonNullElse;
  * </ul>
  * Dates are supported only in one format: {@value DATE_FORMAT}.
  */
-class YamlDictionary
+final class YamlDictionary
         implements Dictionary
 {
     private static final Logger LOGGER = LoggerFactory.getLogger(YamlDictionary.class);
@@ -56,6 +56,22 @@ class YamlDictionary
             LOGGER.warn("Invalid YAML found; ignoring it", e);
         }
         map = requireNonNullElse(yaml, emptyMap());
+    }
+
+    @Override
+    public boolean equals(Object o)
+    {
+        if (o instanceof YamlDictionary dictionary)
+        {
+            return Objects.equals(map, dictionary.map);
+        }
+        return false;
+    }
+
+    @Override
+    public int hashCode()
+    {
+        return Objects.hash(map);
     }
 
     private List<String> singleYamlNode(List<String> lines)

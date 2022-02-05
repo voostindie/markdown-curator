@@ -1,49 +1,61 @@
 package nl.ulso.obsidian.watcher.vault;
 
+import nl.jqno.equalsverifier.EqualsVerifier;
+import org.assertj.core.api.SoftAssertions;
+import org.assertj.core.api.junit.jupiter.InjectSoftAssertions;
+import org.assertj.core.api.junit.jupiter.SoftAssertionsExtension;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 
 import java.util.List;
 
 import static java.util.Collections.emptyList;
 import static org.assertj.core.api.Assertions.assertThat;
 
+@ExtendWith(SoftAssertionsExtension.class)
 class TextTest
 {
+    @InjectSoftAssertions
+    private SoftAssertions softly;
+
     @Test
-    void emptyText()
+    void equalsContract()
     {
-        var text = new Text(emptyList());
-        assertThat(text.isEmpty()).isTrue();
-        assertThat(text.lines()).isEmpty();
-        assertThat(text.content()).isEqualTo("");
+        EqualsVerifier.forClass(Text.class).verify();
     }
 
     @Test
-    void singleLineText()
+    void empty()
     {
-        var text = new Text(List.of("foo bar"));
-        assertThat(text.isEmpty()).isFalse();
-        assertThat(text.lines().size()).isEqualTo(1);
-        assertThat(text.content()).isEqualTo("foo bar");
+        Text empty = new Text(emptyList());
+        softly.assertThat(empty.isEmpty()).isTrue();
+        softly.assertThat(empty.lines()).isEmpty();
+        softly.assertThat(empty.content()).isEmpty();
+    }
+
+    @Test
+    void single()
+    {
+        var single = new Text(List.of("foo bar"));
+        softly.assertThat(single.isEmpty()).isFalse();
+        softly.assertThat(single.lines().size()).isEqualTo(1);
+        softly.assertThat(single.content()).isEqualTo("foo bar");
     }
 
     @Test
     void trimmedFullText()
     {
         var text = new Text(List.of("", "foo", "bar", ""));
-        assertThat(text.isEmpty()).isFalse();
-        assertThat(text.lines().size()).isEqualTo(2);
-        assertThat(text.lines().get(0)).isEqualTo("foo");
-        assertThat(text.lines().get(1)).isEqualTo("bar");
-        assertThat(text.content()).isEqualTo("foo\nbar");
+        softly.assertThat(text.isEmpty()).isFalse();
+        softly.assertThat(text.lines()).containsExactly("foo", "bar");
+        softly.assertThat(text.content()).isEqualTo("foo\nbar");
     }
 
     @Test
     void visitor()
     {
-        var text = new Text(emptyList());
-        ElementCounter counter = new ElementCounter();
-        text.accept(counter);
+        var counter = new ElementCounter();
+        new Text(emptyList()).accept(counter);
         assertThat(counter.texts).isEqualTo(1);
     }
 }

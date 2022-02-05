@@ -1,6 +1,7 @@
 package nl.ulso.obsidian.watcher.vault;
 
 import java.util.List;
+import java.util.Objects;
 
 /**
  * Represents a block of text in a Markdown document. This is the default type of content, meaning
@@ -13,6 +14,22 @@ public final class Text
     public Text(List<String> lines)
     {
         super(lines);
+    }
+
+    @Override
+    public boolean equals(Object o)
+    {
+        if (o instanceof Text text)
+        {
+            return Objects.equals(lines(), text.lines());
+        }
+        return false;
+    }
+
+    @Override
+    public int hashCode()
+    {
+        return Objects.hash(lines());
     }
 
     @Override

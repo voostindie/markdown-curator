@@ -1,5 +1,6 @@
 package nl.ulso.obsidian.watcher.vault;
 
+import nl.jqno.equalsverifier.EqualsVerifier;
 import org.junit.jupiter.api.Test;
 
 import java.util.Date;
@@ -9,6 +10,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 class EmptyDictionaryTest
 {
+    @Test
+    void equalsContract()
+    {
+        EqualsVerifier.forClass(EmptyDictionary.class).verify();
+    }
 
     @Test
     void isAlwaysEmpty()

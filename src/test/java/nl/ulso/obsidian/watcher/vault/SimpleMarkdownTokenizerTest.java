@@ -1,18 +1,28 @@
 package nl.ulso.obsidian.watcher.vault;
 
 import nl.ulso.obsidian.watcher.vault.SimpleMarkdownTokenizer.TokenType;
+import org.assertj.core.api.SoftAssertions;
+import org.assertj.core.api.junit.jupiter.InjectSoftAssertions;
+import org.assertj.core.api.junit.jupiter.SoftAssertionsExtension;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
 import static java.util.Collections.emptyList;
-import static nl.ulso.obsidian.watcher.vault.SimpleMarkdownTokenizer.TokenType.*;
+import static nl.ulso.obsidian.watcher.vault.SimpleMarkdownTokenizer.TokenType.END_OF_DOCUMENT;
+import static nl.ulso.obsidian.watcher.vault.SimpleMarkdownTokenizer.TokenType.FRONT_MATTER;
+import static nl.ulso.obsidian.watcher.vault.SimpleMarkdownTokenizer.TokenType.HEADER;
+import static nl.ulso.obsidian.watcher.vault.SimpleMarkdownTokenizer.TokenType.TEXT;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.fail;
 
+@ExtendWith(SoftAssertionsExtension.class)
 class SimpleMarkdownTokenizerTest
 {
+    @InjectSoftAssertions
+    private SoftAssertions softly;
+
     @Test
     void emptyDocument()
     {
@@ -93,14 +103,14 @@ class SimpleMarkdownTokenizerTest
         {
             for (var token : tokens)
             {
-                assertThat(token.tokenType()).isEqualTo(types[i]);
-                assertThat(token.lineIndex()).isEqualTo(i);
+                softly.assertThat(token.tokenType()).isEqualTo(types[i]);
+                softly.assertThat(token.lineIndex()).isEqualTo(i);
                 i++;
             }
         }
         catch (ArrayIndexOutOfBoundsException e)
         {
-            fail("More lines in actual input than expected");
+            softly.fail("More lines in actual input than expected");
         }
     }
 

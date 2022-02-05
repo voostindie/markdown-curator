@@ -1,6 +1,11 @@
 package nl.ulso.obsidian.watcher.vault;
 
+import nl.jqno.equalsverifier.EqualsVerifier;
+import org.assertj.core.api.SoftAssertions;
+import org.assertj.core.api.junit.jupiter.InjectSoftAssertions;
+import org.assertj.core.api.junit.jupiter.SoftAssertionsExtension;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 
 import java.util.*;
 
@@ -8,8 +13,18 @@ import static java.util.stream.Collectors.toList;
 import static nl.ulso.obsidian.watcher.vault.Dictionary.yamlDictionary;
 import static org.assertj.core.api.Assertions.assertThat;
 
+@ExtendWith(SoftAssertionsExtension.class)
 class YamlDictionaryTest
 {
+    @InjectSoftAssertions
+    private SoftAssertions softly;
+
+    @Test
+    void equalsContract()
+    {
+        EqualsVerifier.forClass(YamlDictionary.class).withIgnoredFields("dateCache").verify();
+    }
+
     @Test
     void emptyList()
     {
@@ -26,9 +41,9 @@ class YamlDictionaryTest
                 answer: 42
                 ---
                 """);
-        assertThat(dictionary.isEmpty()).isFalse();
-        assertThat(dictionary.string("foo", null)).isEqualTo("bar");
-        assertThat(dictionary.integer("answer", -1)).isEqualTo(42);
+        softly.assertThat(dictionary.isEmpty()).isFalse();
+        softly.assertThat(dictionary.string("foo", null)).isEqualTo("bar");
+        softly.assertThat(dictionary.integer("answer", -1)).isEqualTo(42);
     }
 
     @Test
@@ -48,9 +63,9 @@ class YamlDictionaryTest
                 foo: bar
                 answer: 42
                 """);
-        assertThat(dictionary.isEmpty()).isFalse();
-        assertThat(dictionary.string("foo", null)).isEqualTo("bar");
-        assertThat(dictionary.integer("answer", -1)).isEqualTo(42);
+        softly.assertThat(dictionary.isEmpty()).isFalse();
+        softly.assertThat(dictionary.string("foo", null)).isEqualTo("bar");
+        softly.assertThat(dictionary.integer("answer", -1)).isEqualTo(42);
     }
 
     @Test
@@ -102,8 +117,8 @@ class YamlDictionaryTest
                 foo: 42
                 """);
         List<Integer> list = dictionary.listOfIntegers("foo");
-        assertThat(list.size()).isEqualTo(1);
-        assertThat(list.get(0)).isEqualTo(42);
+        softly.assertThat(list.size()).isEqualTo(1);
+        softly.assertThat(list).first().isEqualTo(42);
     }
 
     @Test
