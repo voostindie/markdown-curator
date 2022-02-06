@@ -25,6 +25,7 @@ public abstract class FileSystemVault
         implements Vault
 {
     private static final Logger LOGGER = getLogger(FileSystemVault.class);
+    private static FileSystem FILE_SYSTEM = FileSystems.getDefault();
 
     private final WatchService watchService;
     private final Map<WatchKey, Path> watchKeys;
@@ -37,15 +38,25 @@ public abstract class FileSystemVault
         this.absolutePath = absolutePath;
         try
         {
-            watchService = FileSystems.getDefault().newWatchService();
+            watchService = getFileSystem().newWatchService();
         }
         catch (IOException e)
         {
             throw new RuntimeException(
-                    "Could not create a WatchService on the default filesystem", e);
+                    "Could not create a WatchService on the filesystem", e);
         }
         watchKeys = new HashMap<>();
         Files.walkFileTree(absolutePath, new VaultVisitor(this, absolutePath));
+    }
+
+    static FileSystem getFileSystem()
+    {
+        return FILE_SYSTEM;
+    }
+
+    static void setFileSystemForTesting(FileSystem fileSystem)
+    {
+        FILE_SYSTEM = fileSystem;
     }
 
     @Override
