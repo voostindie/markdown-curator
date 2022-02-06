@@ -20,6 +20,25 @@ public class Folder
         this.documents = new ConcurrentHashMap<>();
     }
 
+    @Override
+    public final boolean equals(Object o)
+    {
+        if (o instanceof Folder folder)
+        {
+            return Objects.equals(name, folder.name)
+                    && Objects.equals(parent, folder.parent)
+                    && Objects.equals(folders, folder.folders)
+                    && Objects.equals(documents, folder.documents);
+        }
+        return false;
+    }
+
+    @Override
+    public final int hashCode()
+    {
+        return Objects.hash(name, parent, folders, documents);
+    }
+
     public Folder parent()
     {
         if (parent == null)
@@ -39,9 +58,9 @@ public class Folder
         return unmodifiableCollection(folders.values());
     }
 
-    Folder folder(String name)
+    public Optional<Folder> folder(String name)
     {
-        return folders.get(name);
+        return Optional.ofNullable(folders.get(name));
     }
 
     public Collection<Document> documents()
@@ -49,9 +68,9 @@ public class Folder
         return unmodifiableCollection(documents.values());
     }
 
-    Document document(String name)
+    public Optional<Document> document(String name)
     {
-        return documents.get(name);
+        return Optional.ofNullable(documents.get(name));
     }
 
     public void accept(Visitor visitor)
@@ -59,8 +78,9 @@ public class Folder
         visitor.visitFolder(this);
     }
 
-    Folder addFolder(Folder folder)
+    Folder addFolder(String name)
     {
+        var folder = new Folder(this, name);
         folders.put(folder.name(), folder);
         return folder;
     }

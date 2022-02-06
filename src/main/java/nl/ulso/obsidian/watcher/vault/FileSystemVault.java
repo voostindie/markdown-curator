@@ -95,7 +95,7 @@ public abstract class FileSystemVault
     {
         if (Files.isDirectory(absolutePath) && !isHidden(absolutePath))
         {
-            var folder = parent.addFolder(new Folder(parent, folderName(absolutePath)));
+            var folder = parent.addFolder(folderName(absolutePath));
             LOGGER.info("Detected new folder: {}", folder.name());
             Files.walkFileTree(absolutePath, new VaultVisitor(folder, absolutePath));
         }
@@ -129,7 +129,7 @@ public abstract class FileSystemVault
         {
             String name = folderName(absolutePath);
             var folder = parent.folder(name);
-            if (folder != null)
+            if (folder.isPresent())
             {
                 LOGGER.info("Detected deleted folder: {}", name);
                 parent.removeFolder(name);
@@ -144,7 +144,7 @@ public abstract class FileSystemVault
         Folder folder = this;
         for (int i = 0; i < steps; i++)
         {
-            folder = folder(relativePath.getName(i).toString());
+            folder = folder(relativePath.getName(i).toString()).orElseThrow();
         }
         return folder;
     }
@@ -214,7 +214,7 @@ public abstract class FileSystemVault
             LOGGER.debug("Watching directory: {}", directory);
             if (!root.equals(directory))
             {
-                currentFolder = currentFolder.addFolder(newFolderFromAbsolutePath(directory));
+                currentFolder = currentFolder.addFolder(folderName(directory));
             }
             return super.preVisitDirectory(directory, attributes);
         }
@@ -247,11 +247,6 @@ public abstract class FileSystemVault
                 currentFolder = currentFolder.parent();
             }
             return super.postVisitDirectory(directory, exception);
-        }
-
-        private Folder newFolderFromAbsolutePath(Path absolutePath)
-        {
-            return new Folder(currentFolder, absolutePath.getFileName().toString());
         }
     }
 }

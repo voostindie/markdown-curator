@@ -1,6 +1,7 @@
 package nl.ulso.obsidian.watcher.vault;
 
 import java.util.List;
+import java.util.Objects;
 
 /**
  * Represents a Markdown document. A document is broken down in a list of {@link Fragment}s.
@@ -22,6 +23,24 @@ public final class Document
         super(lines, fragments);
         this.name = name;
         this.title = resolveTitle(name, fragments);
+    }
+
+    @Override
+    public boolean equals(Object o)
+    {
+        if (o instanceof Document document)
+        {
+            return Objects.equals(name, document.name)
+                    && Objects.equals(lines(), document.lines())
+                    && Objects.equals(fragments(), document.fragments());
+        }
+        return false;
+    }
+
+    @Override
+    public int hashCode()
+    {
+        return Objects.hash(name, lines(), fragments());
     }
 
     private String resolveTitle(String name, List<Fragment> fragments)

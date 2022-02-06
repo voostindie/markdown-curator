@@ -1,5 +1,6 @@
 package nl.ulso.obsidian.watcher.vault;
 
+import nl.jqno.equalsverifier.EqualsVerifier;
 import org.assertj.core.api.SoftAssertions;
 import org.assertj.core.api.junit.jupiter.InjectSoftAssertions;
 import org.assertj.core.api.junit.jupiter.SoftAssertionsExtension;
@@ -18,6 +19,12 @@ class DocumentTest
 {
     @InjectSoftAssertions
     private SoftAssertions softly;
+
+    @Test
+    void equalsContract()
+    {
+        EqualsVerifier.forClass(Document.class).withIgnoredFields("title").verify();
+    }
 
     @Test
     void emptyDocument()
