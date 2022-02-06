@@ -5,7 +5,8 @@ import org.slf4j.Logger;
 import java.io.IOException;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
 
 import static java.nio.file.StandardWatchEventKinds.ENTRY_CREATE;
 import static java.nio.file.StandardWatchEventKinds.ENTRY_DELETE;
@@ -25,7 +26,6 @@ public abstract class FileSystemVault
         implements Vault
 {
     private static final Logger LOGGER = getLogger(FileSystemVault.class);
-    private static FileSystem FILE_SYSTEM = FileSystems.getDefault();
 
     private final WatchService watchService;
     private final Map<WatchKey, Path> watchKeys;
@@ -38,7 +38,7 @@ public abstract class FileSystemVault
         this.absolutePath = absolutePath;
         try
         {
-            watchService = getFileSystem().newWatchService();
+            watchService = absolutePath.getFileSystem().newWatchService();
         }
         catch (IOException e)
         {
@@ -47,16 +47,6 @@ public abstract class FileSystemVault
         }
         watchKeys = new HashMap<>();
         Files.walkFileTree(absolutePath, new VaultVisitor(this, absolutePath));
-    }
-
-    static FileSystem getFileSystem()
-    {
-        return FILE_SYSTEM;
-    }
-
-    static void setFileSystemForTesting(FileSystem fileSystem)
-    {
-        FILE_SYSTEM = fileSystem;
     }
 
     @Override
@@ -174,12 +164,11 @@ public abstract class FileSystemVault
     {
         try
         {
-            List<String> lines = Files.readAllLines(absolutePath);
-            return newDocument(documentName(absolutePath), lines);
+            return newDocument(documentName(absolutePath), Files.readAllLines(absolutePath));
         }
         catch (IOException e)
         {
-            LOGGER.error("Could not read file {}", absolutePath, e);
+            LOGGER.error("Could not read file from disk: {}", absolutePath, e);
             throw new IllegalStateException("Could not read file " + absolutePath, e);
         }
     }
