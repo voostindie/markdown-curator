@@ -34,7 +34,7 @@ public abstract class FileSystemVault
     public FileSystemVault(Path absolutePath)
             throws IOException
     {
-        super(null, absolutePath.toString());
+        super(absolutePath.toString());
         this.absolutePath = absolutePath;
         try
         {
@@ -199,8 +199,7 @@ public abstract class FileSystemVault
         }
 
         @Override
-        public FileVisitResult preVisitDirectory(
-                Path directory, BasicFileAttributes attributes)
+        public FileVisitResult preVisitDirectory(Path directory, BasicFileAttributes attributes)
                 throws IOException
         {
             if (isHidden(directory))
@@ -220,8 +219,7 @@ public abstract class FileSystemVault
         }
 
         @Override
-        public FileVisitResult visitFile(
-                Path file, BasicFileAttributes attributes)
+        public FileVisitResult visitFile(Path file, BasicFileAttributes attributes)
                 throws IOException
         {
             if (isDocument(file))
@@ -232,8 +230,7 @@ public abstract class FileSystemVault
         }
 
         @Override
-        public FileVisitResult postVisitDirectory(
-                Path directory, IOException exception)
+        public FileVisitResult postVisitDirectory(Path directory, IOException exception)
                 throws IOException
         {
             if (exception != null)

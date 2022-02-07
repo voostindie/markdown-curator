@@ -3,7 +3,7 @@
     <module name="obsidian-vault-watcher" />
     <extension name="coverage">
       <pattern>
-        <option name="PATTERN" value="nl.ulso.obsidian.watcher.vault.*" />
+        <option name="PATTERN" value="nl.ulso.obsidian.watcher.*" />
         <option name="ENABLED" value="true" />
       </pattern>
     </extension>

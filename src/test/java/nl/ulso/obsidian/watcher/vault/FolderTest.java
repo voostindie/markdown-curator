@@ -21,14 +21,14 @@ class FolderTest
     void equalsContract()
     {
         EqualsVerifier.forClass(Folder.class)
-                .withPrefabValues(Folder.class, new Folder(null, "red"), new Folder(null, "blue"))
+                .withPrefabValues(Folder.class, new Folder("red"), new Folder("blue"))
                 .verify();
     }
 
     @Test
     void rootFolder()
     {
-        var root = new Folder(null, "root");
+        var root = new Folder("root");
         softly.assertThat(root.name()).isEqualTo("root");
         softly.assertThatThrownBy(root::parent).isInstanceOf(IllegalStateException.class);
     }
@@ -36,7 +36,7 @@ class FolderTest
     @Test
     void subFolder()
     {
-        var root = new Folder(null, "root");
+        var root = new Folder("root");
         var sub = root.addFolder("sub");
         softly.assertThat(sub.parent()).isSameAs(root);
         softly.assertThat(root.folders().size()).isEqualTo(1);
@@ -46,7 +46,7 @@ class FolderTest
     @Test
     void subFolderUniqueNameNewReplacesOld()
     {
-        var root = new Folder(null, "root");
+        var root = new Folder("root");
         root.addFolder("sub");
         var sub = root.addFolder("sub");
         softly.assertThat(root.folders().size()).isEqualTo(1);
@@ -56,7 +56,7 @@ class FolderTest
     @Test
     void removeFolder()
     {
-        var root = new Folder(null, "root");
+        var root = new Folder("root");
         root.addFolder("sub");
         root.removeFolder("sub");
         assertThat(root.folders()).isEmpty();
@@ -65,7 +65,7 @@ class FolderTest
     @Test
     void document()
     {
-        var root = new Folder(null, "root");
+        var root = new Folder("root");
         Document document = Document.newDocument("empty", Collections.emptyList());
         root.addDocument(document);
         softly.assertThat(root.documents().size()).isEqualTo(1);
@@ -75,7 +75,7 @@ class FolderTest
     @Test
     void documentUniqueNameNewReplacesOld()
     {
-        var root = new Folder(null, "root");
+        var root = new Folder("root");
         root.addDocument(Document.newDocument("empty", Collections.emptyList()));
         Document document = Document.newDocument("empty", Collections.emptyList());
         root.addDocument(document);
@@ -86,7 +86,7 @@ class FolderTest
     @Test
     void removeDocument()
     {
-        var root = new Folder(null, "root");
+        var root = new Folder("root");
         root.addDocument(Document.newDocument("empty", Collections.emptyList()));
         root.removeDocument("empty");
         assertThat(root.documents()).isEmpty();
@@ -96,7 +96,7 @@ class FolderTest
     void visitor()
     {
         var counter = new ElementCounter();
-        new Folder(null, "root").accept(counter);
+        new Folder("root").accept(counter);
         assertThat(counter.folders).isEqualTo(1);
     }
 }
