@@ -50,12 +50,4 @@ class TextTest
         softly.assertThat(text.lines()).containsExactly("foo", "bar");
         softly.assertThat(text.content()).isEqualTo("foo\nbar");
     }
-
-    @Test
-    void visitor()
-    {
-        var counter = new ElementCounter();
-        new Text(emptyList()).accept(counter);
-        assertThat(counter.texts).isEqualTo(1);
-    }
 }

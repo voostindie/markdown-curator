@@ -1,6 +1,6 @@
 package nl.ulso.obsidian.watcher.vault;
 
-import java.util.*;
+import java.util.List;
 
 import static java.util.Collections.unmodifiableList;
 import static java.util.Objects.requireNonNull;

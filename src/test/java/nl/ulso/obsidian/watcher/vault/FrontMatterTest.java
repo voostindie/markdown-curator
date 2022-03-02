@@ -30,14 +30,6 @@ class FrontMatterTest
     }
 
     @Test
-    void visitor()
-    {
-        var counter = new ElementCounter();
-        frontMatter().accept(counter);
-        assertThat(counter.frontMatters).isEqualTo(1);
-    }
-
-    @Test
     void dictionaryString()
     {
         assertThat(frontMatter().string("bar", null)).isEqualTo("baz");

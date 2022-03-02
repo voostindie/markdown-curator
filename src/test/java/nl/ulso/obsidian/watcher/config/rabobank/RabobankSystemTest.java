@@ -1,4 +1,4 @@
-package nl.ulso.obsidian.watcher.config.personal;
+package nl.ulso.obsidian.watcher.config.rabobank;
 
 import nl.ulso.obsidian.watcher.vault.ElementCounter;
 import org.assertj.core.api.SoftAssertions;
@@ -10,24 +10,23 @@ import org.junit.jupiter.api.extension.ExtendWith;
 
 import java.io.IOException;
 
+import static nl.ulso.obsidian.watcher.vault.ElementCounter.countAll;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @ExtendWith(SoftAssertionsExtension.class)
-class PersonalVaultTest
+class RabobankSystemTest
 {
-
     @InjectSoftAssertions
     private SoftAssertions softly;
 
     @Disabled
     @Test
-    void constructVault()
+    void constructSystem()
             throws IOException
     {
-        var vault = new PersonalVault();
-        assertThat(vault.name()).endsWith("Personal");
-        var counter = new ElementCounter();
-        vault.accept(counter);
-        System.out.println(counter);
+        var vault = new RabobankSystem().vault();
+        assertThat(vault.name()).endsWith("Rabobank");
+        var statistics = countAll(vault);
+        System.out.println(statistics);
     }
 }

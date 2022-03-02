@@ -7,9 +7,11 @@ import org.assertj.core.api.junit.jupiter.SoftAssertionsExtension;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
+import javax.swing.text.Element;
 import java.util.List;
 
 import static java.util.Collections.emptyList;
+import static nl.ulso.obsidian.watcher.vault.ElementCounter.Scope.ALL;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @ExtendWith(SoftAssertionsExtension.class)
@@ -50,14 +52,6 @@ class SectionTest
     {
         var section = new Section(0, "# {foo} > [bar] ;!@", emptyList(), emptyList());
         assertThat(section.anchor()).isEqualTo("foo bar");
-    }
-
-    @Test
-    void visitor()
-    {
-        var counter = new ElementCounter();
-        new Section(0, "", emptyList(), emptyList()).accept(counter);
-        assertThat(counter.sections).isEqualTo(1);
     }
 
     @Test

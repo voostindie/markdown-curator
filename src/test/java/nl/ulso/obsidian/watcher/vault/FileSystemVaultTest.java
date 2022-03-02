@@ -14,6 +14,7 @@ import java.nio.file.*;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
+import static nl.ulso.obsidian.watcher.vault.ElementCounter.countAll;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
 
@@ -21,12 +22,13 @@ import static org.assertj.core.api.Assertions.fail;
 class FileSystemVaultTest
 {
     private static final int POLLING_INTERVAL_MILLISECONDS = 10;
+    private static final String ROOT = "/vault";
 
     @InjectSoftAssertions
     private SoftAssertions softly;
 
     private Path testVaultRoot;
-    private TestVault vault;
+    private FileSystemVault vault;
 
     @BeforeEach
     void setUpInMemoryFileSystem()
@@ -39,7 +41,7 @@ class FileSystemVaultTest
                                 TimeUnit.MILLISECONDS))
                 .build();
         var fileSystem = Jimfs.newFileSystem(configuration);
-        testVaultRoot = fileSystem.getPath(TestVault.ROOT);
+        testVaultRoot = fileSystem.getPath(ROOT);
         writeFile("README.md", """
                 ---
                 aliases: [Index, Home]
@@ -59,20 +61,19 @@ class FileSystemVaultTest
         writeFile("Actors/Ralph Fiennes.md", "");
         writeFile("Actors/Naomie Harris.md", "");
         writeFile("Actors/Judi Dench.md", "");
-        vault = new TestVault(testVaultRoot);
+        vault = new FileSystemVault(testVaultRoot);
     }
 
     @Test
     void visit()
     {
-        var counter = new ElementCounter();
-        vault.accept(counter);
-        softly.assertThat(counter.vaults).isEqualTo(1);
-        softly.assertThat(counter.folders).isEqualTo(3);
-        softly.assertThat(counter.documents).isEqualTo(13);
-        softly.assertThat(counter.frontMatters).isEqualTo(13);
-        softly.assertThat(counter.sections).isEqualTo(5);
-        softly.assertThat(counter.texts).isEqualTo(6);
+        var statistics = countAll(vault);
+        softly.assertThat(statistics.vaults).isEqualTo(1);
+        softly.assertThat(statistics.folders).isEqualTo(3);
+        softly.assertThat(statistics.documents).isEqualTo(13);
+        softly.assertThat(statistics.frontMatters).isEqualTo(13);
+        softly.assertThat(statistics.sections).isEqualTo(5);
+        softly.assertThat(statistics.texts).isEqualTo(6);
     }
 
     @Test
@@ -149,8 +150,8 @@ class FileSystemVaultTest
             public void changeFileSystem(FileSystem fileSystem)
                     throws IOException
             {
-                var oldPath = fileSystem.getPath(TestVault.ROOT + "/Actors");
-                var newPath = fileSystem.getPath(TestVault.ROOT + "/People");
+                var oldPath = fileSystem.getPath(ROOT + "/Actors");
+                var newPath = fileSystem.getPath(ROOT + "/People");
                 Files.move(oldPath, newPath);
             }
 
@@ -173,7 +174,7 @@ class FileSystemVaultTest
             public void changeFileSystem(FileSystem fileSystem)
                     throws IOException
             {
-                Files.delete(fileSystem.getPath(TestVault.ROOT + "/Characters/M.md"));
+                Files.delete(fileSystem.getPath(ROOT + "/Characters/M.md"));
             }
 
             @Override
@@ -240,7 +241,7 @@ class FileSystemVaultTest
             throws IOException
     {
         var fileSystem = testVaultRoot.getFileSystem();
-        var absolutePath = fileSystem.getPath(TestVault.ROOT + "/" + relativePath);
+        var absolutePath = fileSystem.getPath(ROOT + "/" + relativePath);
         Files.createDirectories(absolutePath.getParent());
         Files.write(absolutePath,
                 List.of(content.split(System.lineSeparator())), StandardCharsets.UTF_8);

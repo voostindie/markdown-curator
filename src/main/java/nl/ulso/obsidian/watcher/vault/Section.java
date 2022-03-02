@@ -22,7 +22,7 @@ public final class Section
         super(lines, fragments);
         if (level < 0)
         {
-            throw new IllegalArgumentException("Minimum level is 0");
+            throw new IllegalArgumentException("Minimum allowed section level is 0");
         }
         this.level = level;
         this.title = requireNonNull(title);
@@ -78,8 +78,8 @@ public final class Section
     }
 
     @Override
-    public void accept(Visitor visitor)
+    public void accept(VaultVisitor visitor)
     {
-        visitor.visitSection(this);
+        visitor.visit(this);
     }
 }

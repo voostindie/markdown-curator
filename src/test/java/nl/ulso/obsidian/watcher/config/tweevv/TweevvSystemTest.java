@@ -1,6 +1,5 @@
 package nl.ulso.obsidian.watcher.config.tweevv;
 
-import nl.ulso.obsidian.watcher.config.personal.PersonalVault;
 import nl.ulso.obsidian.watcher.vault.ElementCounter;
 import org.assertj.core.api.SoftAssertions;
 import org.assertj.core.api.junit.jupiter.InjectSoftAssertions;
@@ -11,10 +10,11 @@ import org.junit.jupiter.api.extension.ExtendWith;
 
 import java.io.IOException;
 
+import static nl.ulso.obsidian.watcher.vault.ElementCounter.countAll;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @ExtendWith(SoftAssertionsExtension.class)
-class TweevvVaultTest
+class TweevvSystemTest
 {
 
     @InjectSoftAssertions
@@ -22,13 +22,12 @@ class TweevvVaultTest
 
     @Disabled
     @Test
-    void constructVault()
+    void constructSystem()
             throws IOException
     {
-        var vault = new TweevvVault();
+        var vault = new TweevvSystem().vault();
         assertThat(vault.name()).endsWith("TweeVV");
-        var counter = new ElementCounter();
-        vault.accept(counter);
-        System.out.println(counter);
+        var statistics = countAll(vault);
+        System.out.println(statistics);
     }
 }

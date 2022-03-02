@@ -2,6 +2,7 @@ package nl.ulso.obsidian.watcher.vault;
 
 import org.slf4j.Logger;
 
+import javax.swing.text.Element;
 import java.io.IOException;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
@@ -12,6 +13,7 @@ import static java.nio.file.StandardWatchEventKinds.ENTRY_CREATE;
 import static java.nio.file.StandardWatchEventKinds.ENTRY_DELETE;
 import static java.nio.file.StandardWatchEventKinds.ENTRY_MODIFY;
 import static nl.ulso.obsidian.watcher.vault.Document.newDocument;
+import static nl.ulso.obsidian.watcher.vault.ElementCounter.countFoldersAndDocuments;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
@@ -21,8 +23,8 @@ import static org.slf4j.LoggerFactory.getLogger;
  * in memory. From then on it watches all folders and subfolders for changes using the file system's
  * {@link WatchService}.
  */
-public abstract class FileSystemVault
-        extends Folder
+public final class FileSystemVault
+        extends FileSystemFolder
         implements Vault
 {
     private static final Logger LOGGER = getLogger(FileSystemVault.class);
@@ -46,13 +48,19 @@ public abstract class FileSystemVault
                     "Could not create a WatchService on the filesystem", e);
         }
         watchKeys = new HashMap<>();
-        Files.walkFileTree(absolutePath, new VaultVisitor(this, absolutePath));
+        Files.walkFileTree(absolutePath, new VaultBuilder(this, absolutePath));
+        if (LOGGER.isInfoEnabled())
+        {
+            var statistics = countFoldersAndDocuments(this);
+            LOGGER.info("Read vault {} into memory with {} folders and {} documents", name(),
+                    statistics.folders, statistics.documents);
+        }
     }
 
     @Override
-    public void accept(Visitor visitor)
+    public void accept(VaultVisitor visitor)
     {
-        visitor.visitVault(this);
+        visitor.visit(this);
     }
 
     @Override
@@ -91,14 +99,14 @@ public abstract class FileSystemVault
         }
     }
 
-    private void processFileCreationEvent(Path absolutePath, Folder parent)
+    private void processFileCreationEvent(Path absolutePath, FileSystemFolder parent)
             throws IOException
     {
         if (Files.isDirectory(absolutePath) && !isHidden(absolutePath))
         {
             var folder = parent.addFolder(folderName(absolutePath));
             LOGGER.info("Detected new folder: {}", folder.name());
-            Files.walkFileTree(absolutePath, new VaultVisitor(folder, absolutePath));
+            Files.walkFileTree(absolutePath, new VaultBuilder(folder, absolutePath));
         }
         else if (isDocument(absolutePath))
         {
@@ -108,7 +116,7 @@ public abstract class FileSystemVault
         }
     }
 
-    private void processFileModificationEvent(Path absolutePath, Folder parent)
+    private void processFileModificationEvent(Path absolutePath, FileSystemFolder parent)
     {
         if (isDocument(absolutePath))
         {
@@ -118,7 +126,7 @@ public abstract class FileSystemVault
         }
     }
 
-    private void processFileDeletionEvent(Path absolutePath, Folder parent)
+    private void processFileDeletionEvent(Path absolutePath, FileSystemFolder parent)
     {
         if (isDocument(absolutePath))
         {
@@ -138,7 +146,7 @@ public abstract class FileSystemVault
         }
     }
 
-    private Folder resolveParentFolder(Path absolutePath)
+    private FileSystemFolder resolveParentFolder(Path absolutePath)
     {
         var relativePath = this.absolutePath.relativize(absolutePath);
         var steps = relativePath.getNameCount() - 1;
@@ -147,7 +155,7 @@ public abstract class FileSystemVault
         {
             folder = folder(relativePath.getName(i).toString()).orElseThrow();
         }
-        return folder;
+        return (FileSystemFolder) folder;
     }
 
     private boolean isHidden(Path directory)
@@ -186,13 +194,13 @@ public abstract class FileSystemVault
         return fileName.substring(0, endIndex);
     }
 
-    private class VaultVisitor
+    private class VaultBuilder
             extends SimpleFileVisitor<Path>
     {
         private final Path root;
-        private Folder currentFolder;
+        private FileSystemFolder currentFolder;
 
-        private VaultVisitor(Folder targetFolder, Path absolutePath)
+        private VaultBuilder(FileSystemFolder targetFolder, Path absolutePath)
         {
             root = absolutePath;
             currentFolder = targetFolder;

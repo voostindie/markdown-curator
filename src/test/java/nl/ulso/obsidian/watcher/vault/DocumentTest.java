@@ -147,14 +147,6 @@ class DocumentTest
         softly.assertThat(document.content()).isEqualTo("---\n42\n---\n# Title");
     }
 
-    @Test
-    void visit()
-    {
-        var counter = new ElementCounter();
-        newDocument("document", document("content")).accept(counter);
-        assertThat(counter.documents).isEqualTo(1);
-    }
-
     private List<String> document(String text)
     {
         return text.lines().collect(toList());

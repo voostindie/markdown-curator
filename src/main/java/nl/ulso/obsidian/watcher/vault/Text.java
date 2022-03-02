@@ -33,8 +33,8 @@ public final class Text
     }
 
     @Override
-    public void accept(Visitor visitor)
+    public void accept(VaultVisitor visitor)
     {
-        visitor.visitText(this);
+        visitor.visit(this);
     }
 }

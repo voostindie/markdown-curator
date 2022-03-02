@@ -49,9 +49,9 @@ public final class FrontMatter
     }
 
     @Override
-    public void accept(Visitor visitor)
+    public void accept(VaultVisitor visitor)
     {
-        visitor.visitFrontMatter(this);
+        visitor.visit(this);
     }
 
     public Dictionary dictionary()

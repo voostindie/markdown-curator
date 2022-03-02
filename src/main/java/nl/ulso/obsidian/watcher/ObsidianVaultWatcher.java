@@ -1,10 +1,8 @@
 package nl.ulso.obsidian.watcher;
 
-import nl.ulso.obsidian.watcher.config.personal.PersonalVault;
-import nl.ulso.obsidian.watcher.config.rabobank.RabobankVault;
-import nl.ulso.obsidian.watcher.config.tweevv.TweevvVault;
-import nl.ulso.obsidian.watcher.vault.FileSystemVault;
-import nl.ulso.obsidian.watcher.vault.Vault;
+import nl.ulso.obsidian.watcher.config.personal.PersonalSystem;
+import nl.ulso.obsidian.watcher.config.rabobank.RabobankSystem;
+import nl.ulso.obsidian.watcher.config.tweevv.TweevvSystem;
 import org.slf4j.Logger;
 
 import java.io.IOException;
@@ -26,44 +24,48 @@ public class ObsidianVaultWatcher
     public static void main(String[] args)
     {
         LOGGER.info("Obsidian Vault Watcher {}", version());
-        var vaults = vaultClasses();
-        var executor = Executors.newFixedThreadPool(vaults.size());
-        for (Class<? extends Vault> vaultClass : vaults)
+        LOGGER.info("Press Ctrl+C to stop");
+        LOGGER.info("--------------------------------------------------");
+        var systems = systems();
+        var executor = Executors.newFixedThreadPool(systems.size());
+        for (Class<? extends System> clazz : systems)
         {
             executor.submit(Executors.callable(() -> {
-                        Vault vault;
-                        try
-                        {
-                            vault = vaultClass.getDeclaredConstructor().newInstance();
-                            vault.watchForChanges();
-                        }
-                        catch (ReflectiveOperationException e)
-                        {
-                            throw new IllegalStateException(
-                                    "Could not instantiate vault class: " + vaultClass);
-                        }
-                        catch (IOException e)
-                        {
-                            LOGGER.error("Error in vault {}. Shutting it down", vaultClass, e);
-                        }
-                        catch (InterruptedException e)
-                        {
-                            Thread.currentThread().interrupt();
-                            LOGGER.error("Got interrupted!", e);
-                        }
-                    })
-            );
+                try
+                {
+                    Thread.currentThread().setName(clazz.getSimpleName());
+                    LOGGER.debug("Instantiating system: {}", clazz.getSimpleName());
+                    var system = clazz.getDeclaredConstructor().newInstance();
+                    system.vault().watchForChanges();
+                }
+                catch (ReflectiveOperationException e)
+                {
+                    LOGGER.error("Could not instantiate system: {}. Cause: {}"
+                            , clazz.getSimpleName(), e);
+                    throw new IllegalStateException(
+                            "Could not instantiate vault graph class: " + clazz);
+                }
+                catch (IOException e)
+                {
+                    LOGGER.error("Error in configuration {}. Shutting it down", clazz, e);
+                }
+                catch (InterruptedException e)
+                {
+                    LOGGER.error("Got interrupted!", e);
+                    Thread.currentThread().interrupt();
+                }
+            }));
         }
-        LOGGER.info("Press Ctrl+C to stop");
         executor.shutdown();
     }
 
-    private static Set<Class<? extends FileSystemVault>> vaultClasses()
+    private static Set<Class<? extends System>> systems()
     {
         return Set.of(
-                RabobankVault.class,
-                TweevvVault.class,
-                PersonalVault.class);
+                RabobankSystem.class,
+                PersonalSystem.class,
+                TweevvSystem.class
+        );
     }
 
     private static String version()

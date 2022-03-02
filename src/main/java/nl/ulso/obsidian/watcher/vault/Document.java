@@ -1,7 +1,6 @@
 package nl.ulso.obsidian.watcher.vault;
 
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 /**
  * Represents a Markdown document. A document is broken down in a list of {@link Fragment}s.
@@ -70,13 +69,20 @@ public final class Document
         return title;
     }
 
-    public void accept(Visitor visitor)
+    public void accept(VaultVisitor visitor)
     {
-        visitor.visitDocument(this);
+        visitor.visit(this);
     }
 
     public Dictionary frontMatter()
     {
         return ((FrontMatter) fragment(0)).dictionary();
+    }
+
+    public Set<InternalLink> findInternalLinks()
+    {
+        var finder = new WikiLinkFinder();
+        accept(finder);
+        return finder.internalLinks();
     }
 }
