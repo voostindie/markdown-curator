@@ -147,6 +147,39 @@ class DocumentTest
         softly.assertThat(document.content()).isEqualTo("---\n42\n---\n# Title");
     }
 
+    @Test
+    void codeBlock()
+    {
+        String text = """
+                line
+                ```js
+                let foo = 42;
+                ```
+                line
+                """;
+        var document = newDocument("document", document(text));
+        softly.assertThat(document.fragments().size()).isEqualTo(4);
+        softly.assertThat(document.fragment(2)).isInstanceOf(CodeBlock.class);
+        var block = (CodeBlock) document.fragment(2);
+        softly.assertThat(block.language()).isEqualTo("js");
+        softly.assertThat(block.code()).isEqualTo("let foo = 42;");
+    }
+
+    @Test
+    void emptyCodeBlock()
+    {
+        String text = """
+                ```
+                ```
+                """;
+        var document = newDocument("document", document(text));
+        softly.assertThat(document.fragments().size()).isEqualTo(2);
+        softly.assertThat(document.fragment(1)).isInstanceOf(CodeBlock.class);
+        var block = (CodeBlock) document.fragment(1);
+        softly.assertThat(block.language()).isBlank();
+        softly.assertThat(block.code()).isBlank();
+    }
+
     private List<String> document(String text)
     {
         return text.lines().collect(toList());

@@ -15,5 +15,7 @@ public interface Fragment
 
     String content();
 
+    boolean isEmpty();
+
     void accept(VaultVisitor visitor);
 }

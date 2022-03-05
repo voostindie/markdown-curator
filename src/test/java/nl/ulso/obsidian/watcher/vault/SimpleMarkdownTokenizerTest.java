@@ -11,10 +11,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import static java.util.Collections.emptyList;
-import static nl.ulso.obsidian.watcher.vault.SimpleMarkdownTokenizer.TokenType.END_OF_DOCUMENT;
-import static nl.ulso.obsidian.watcher.vault.SimpleMarkdownTokenizer.TokenType.FRONT_MATTER;
-import static nl.ulso.obsidian.watcher.vault.SimpleMarkdownTokenizer.TokenType.HEADER;
-import static nl.ulso.obsidian.watcher.vault.SimpleMarkdownTokenizer.TokenType.TEXT;
+import static nl.ulso.obsidian.watcher.vault.SimpleMarkdownTokenizer.TokenType.*;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @ExtendWith(SoftAssertionsExtension.class)
@@ -76,7 +73,7 @@ class SimpleMarkdownTokenizerTest
                         public static void main(String[] arguments) { }
                         ```
                         """,
-                TEXT, TEXT, TEXT, END_OF_DOCUMENT);
+                CODE, CODE, CODE, END_OF_DOCUMENT);
     }
 
     @Test
@@ -87,7 +84,7 @@ class SimpleMarkdownTokenizerTest
                         # Section
                         ```
                         """,
-                TEXT, TEXT, TEXT, END_OF_DOCUMENT);
+                CODE, CODE, CODE, END_OF_DOCUMENT);
     }
 
     private void assertSame(String input, TokenType... types)

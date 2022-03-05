@@ -1,7 +1,5 @@
 package nl.ulso.obsidian.watcher.vault;
 
-import javax.swing.text.Element;
-
 import static nl.ulso.obsidian.watcher.vault.ElementCounter.Scope.ALL;
 import static nl.ulso.obsidian.watcher.vault.ElementCounter.Scope.FOLDERS_AND_DOCUMENTS;
 
@@ -10,8 +8,8 @@ import static nl.ulso.obsidian.watcher.vault.ElementCounter.Scope.FOLDERS_AND_DO
  * <p/>
  * It supports two search scopes:
  * <ol>
- * <li>"ALL": the default; it counts all elements, on all levels.</li>
- * <li>"FOLDERS_AND_DOCUMENTS": counts only folders and documentes.</li>
+ * <li>{@literal ALL}: the default; it counts all elements, on all levels.</li>
+ * <li>{@literal FOLDERS_AND_DOCUMENTS}: counts only folders and documents.</li>
  * </ol>
  */
 public final class ElementCounter
@@ -31,14 +29,18 @@ public final class ElementCounter
         public int frontMatters;
         public int sections;
         public int texts;
+        public int codeBlocks;
 
         @Override
         public String toString()
         {
-            return "vaults: " + vaults + System.lineSeparator() + "folders: " + folders +
-                    System.lineSeparator() + "documents: " + documents + System.lineSeparator() +
-                    "front matters: " + frontMatters + System.lineSeparator() + "sections: " +
-                    sections + System.lineSeparator() + "text: " + texts;
+            return "vaults: " + vaults + System.lineSeparator()
+                    + "folders: " + folders + System.lineSeparator()
+                    + "documents: " + documents + System.lineSeparator()
+                    + "front matters: " + frontMatters + System.lineSeparator()
+                    + "sections: " + sections + System.lineSeparator()
+                    + "code blocks: " + codeBlocks + System.lineSeparator()
+                    + "text: " + texts;
         }
     }
 
@@ -103,6 +105,12 @@ public final class ElementCounter
     {
         statistics.sections++;
         super.visit(section);
+    }
+
+    @Override
+    public void visit(CodeBlock codeBlock)
+    {
+        statistics.codeBlocks++;
     }
 
     @Override

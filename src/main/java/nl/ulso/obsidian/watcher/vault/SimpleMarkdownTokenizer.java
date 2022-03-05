@@ -6,14 +6,8 @@ import java.util.*;
 import java.util.regex.Pattern;
 
 import static java.util.regex.Pattern.compile;
-import static nl.ulso.obsidian.watcher.vault.SimpleMarkdownTokenizer.LineToken.documentEnd;
-import static nl.ulso.obsidian.watcher.vault.SimpleMarkdownTokenizer.LineToken.frontMatter;
-import static nl.ulso.obsidian.watcher.vault.SimpleMarkdownTokenizer.LineToken.header;
-import static nl.ulso.obsidian.watcher.vault.SimpleMarkdownTokenizer.LineToken.text;
-import static nl.ulso.obsidian.watcher.vault.SimpleMarkdownTokenizer.TokenType.END_OF_DOCUMENT;
-import static nl.ulso.obsidian.watcher.vault.SimpleMarkdownTokenizer.TokenType.FRONT_MATTER;
-import static nl.ulso.obsidian.watcher.vault.SimpleMarkdownTokenizer.TokenType.HEADER;
-import static nl.ulso.obsidian.watcher.vault.SimpleMarkdownTokenizer.TokenType.TEXT;
+import static nl.ulso.obsidian.watcher.vault.SimpleMarkdownTokenizer.LineToken.*;
+import static nl.ulso.obsidian.watcher.vault.SimpleMarkdownTokenizer.TokenType.*;
 
 /**
  * Simple tokenizer for Markdown document, Vincent flavored; the document is tokenized line by line.
@@ -41,6 +35,7 @@ class SimpleMarkdownTokenizer
         FRONT_MATTER,
         HEADER,
         TEXT,
+        CODE,
         END_OF_DOCUMENT
     }
 
@@ -78,6 +73,11 @@ class SimpleMarkdownTokenizer
         static LineToken text(int lineIndex)
         {
             return new LineToken(lineIndex, TEXT);
+        }
+
+        static LineToken code(int lineIndex)
+        {
+            return new LineToken(lineIndex, CODE);
         }
 
         static LineToken documentEnd(int size)
@@ -158,16 +158,16 @@ class SimpleMarkdownTokenizer
                 if (!inCode && line.startsWith(CODE_MARKER))
                 {
                     inCode = true;
-                    return text(i);
+                    return code(i);
                 }
                 if (inCode && line.contentEquals(CODE_MARKER))
                 {
                     inCode = false;
-                    return text(i);
+                    return code(i);
                 }
                 if (inCode)
                 {
-                    return text(i);
+                    return code(i);
                 }
                 var matcher = HEADER_PATTERN.matcher(line);
                 if (matcher.matches())

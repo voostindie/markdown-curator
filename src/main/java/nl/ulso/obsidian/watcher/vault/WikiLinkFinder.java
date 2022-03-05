@@ -43,13 +43,12 @@ final class WikiLinkFinder
     @Override
     public void visit(Text text)
     {
-        // TODO: Code blocks can't be Text anymore!
         extractInternalLinks(text.content());
     }
 
     private void extractInternalLinks(String content)
     {
-        matchLinks(content).forEach(matchResult -> {
+        allLinks(content).forEach(matchResult -> {
             var document = matchResult.group(1);
             var anchor = Optional.ofNullable(matchResult.group(2));
             var alias = Optional.ofNullable(matchResult.group(3));
@@ -63,7 +62,7 @@ final class WikiLinkFinder
     }
 
     // This method is static for testing purposes
-    static List<MatchResult> matchLinks(String input)
+    static List<MatchResult> allLinks(String input)
     {
         return LINK_PATTERN.matcher(input).results().toList();
     }

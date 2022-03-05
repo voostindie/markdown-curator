@@ -13,4 +13,6 @@ public interface VaultVisitor
     void visit(Section section);
 
     void visit(Text text);
+
+    void visit(CodeBlock codeBlock);
 }

@@ -41,7 +41,7 @@ abstract class LineContainer
         return lines;
     }
 
-    boolean isEmpty()
+    public boolean isEmpty()
     {
         return lines.isEmpty();
     }

@@ -1,6 +1,10 @@
 package nl.ulso.obsidian.watcher.vault;
 
-import java.util.*;
+import java.util.LinkedList;
+import java.util.List;
+
+import static java.util.Collections.unmodifiableList;
+import static java.util.Objects.requireNonNull;
 
 /**
  * Abstract implementation of the VaultVisitor that implements a breadth first traversal of a vault.
@@ -22,17 +26,17 @@ public abstract class BreadthFirstVaultVisitor
 
     protected List<Folder> currentPath()
     {
-        return Collections.unmodifiableList(Objects.requireNonNull(currentPath));
+        return unmodifiableList(requireNonNull(currentPath));
     }
 
     protected Document currentDocument()
     {
-        return Objects.requireNonNull(currentDocument);
+        return requireNonNull(currentDocument);
     }
 
     protected List<Section> currentLocation()
     {
-        return Collections.unmodifiableList(Objects.requireNonNull(currentLocation));
+        return unmodifiableList(requireNonNull(currentLocation));
     }
 
     @Override
@@ -87,6 +91,12 @@ public abstract class BreadthFirstVaultVisitor
         {
             currentLocation.removeLast();
         }
+    }
+
+    @Override
+    public void visit(CodeBlock codeBlock)
+    {
+
     }
 
     @Override

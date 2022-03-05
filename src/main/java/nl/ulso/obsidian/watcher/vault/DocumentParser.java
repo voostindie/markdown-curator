@@ -1,14 +1,12 @@
 package nl.ulso.obsidian.watcher.vault;
 
 import nl.ulso.obsidian.watcher.vault.SimpleMarkdownTokenizer.HeaderLineToken;
+import nl.ulso.obsidian.watcher.vault.SimpleMarkdownTokenizer.TokenType;
 
 import java.util.*;
 
 import static java.util.Collections.emptyList;
-import static nl.ulso.obsidian.watcher.vault.SimpleMarkdownTokenizer.TokenType.END_OF_DOCUMENT;
-import static nl.ulso.obsidian.watcher.vault.SimpleMarkdownTokenizer.TokenType.FRONT_MATTER;
-import static nl.ulso.obsidian.watcher.vault.SimpleMarkdownTokenizer.TokenType.HEADER;
-import static nl.ulso.obsidian.watcher.vault.SimpleMarkdownTokenizer.TokenType.TEXT;
+import static nl.ulso.obsidian.watcher.vault.SimpleMarkdownTokenizer.TokenType.*;
 
 /**
  * Parses a list of {@link String}s into a {@link Document}. This is <strong>not</strong> a full
@@ -42,7 +40,8 @@ final class DocumentParser
         headers.clear();
         var level = 0;
         var frontMatterEnd = -1;
-        var textStart = -1;
+        var fragmentStart = -1;
+        TokenType fragmentType = null;
         for (var token : new SimpleMarkdownTokenizer(lines))
         {
             var type = token.tokenType();
@@ -56,22 +55,25 @@ final class DocumentParser
                 fragments.get(0).add(new FrontMatter(lines.subList(0, frontMatterEnd)));
                 frontMatterEnd = -1;
             }
-            if (type == TEXT)
+            if (type == fragmentType)
             {
-                if (textStart == -1)
-                {
-                    textStart = token.lineIndex();
-                }
                 continue;
             }
-            if (textStart != -1)
+            if (fragmentStart != -1)
             {
-                var text = new Text(lines.subList(textStart, token.lineIndex()));
-                if (!text.isEmpty())
+                var fragment = createFragment(fragmentType, fragmentStart, token.lineIndex());
+                if (!fragment.isEmpty())
                 {
-                    fragments.get(level).add(text);
+                    fragments.get(level).add(fragment);
                 }
-                textStart = -1;
+                fragmentStart = -1;
+                fragmentType = null;
+            }
+            if (type == TEXT || type == CODE)
+            {
+                fragmentStart = token.lineIndex();
+                fragmentType = type;
+                continue;
             }
             if (type == HEADER)
             {
@@ -94,6 +96,16 @@ final class DocumentParser
             }
         }
         return new Document(name, lines, fragments.get(0));
+    }
+
+    private Fragment createFragment(TokenType type, int start, int end)
+    {
+        return switch (type)
+                {
+                    case TEXT -> new Text(lines.subList(start, end));
+                    case CODE -> new CodeBlock(lines.subList(start, end));
+                    default -> throw new IllegalStateException("Unsupported type " + type);
+                };
     }
 
     private int processSection(int endLineIndex)
