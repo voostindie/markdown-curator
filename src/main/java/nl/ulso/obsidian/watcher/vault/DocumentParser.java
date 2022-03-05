@@ -1,12 +1,12 @@
 package nl.ulso.obsidian.watcher.vault;
 
-import nl.ulso.obsidian.watcher.vault.SimpleMarkdownTokenizer.HeaderLineToken;
-import nl.ulso.obsidian.watcher.vault.SimpleMarkdownTokenizer.TokenType;
+import nl.ulso.obsidian.watcher.vault.MarkdownTokenizer.HeaderLineToken;
+import nl.ulso.obsidian.watcher.vault.MarkdownTokenizer.TokenType;
 
 import java.util.*;
 
 import static java.util.Collections.emptyList;
-import static nl.ulso.obsidian.watcher.vault.SimpleMarkdownTokenizer.TokenType.*;
+import static nl.ulso.obsidian.watcher.vault.MarkdownTokenizer.TokenType.*;
 
 /**
  * Parses a list of {@link String}s into a {@link Document}. This is <strong>not</strong> a full
@@ -41,8 +41,10 @@ final class DocumentParser
         var level = 0;
         var frontMatterEnd = -1;
         var fragmentStart = -1;
+        var queryDefinitionStart = -1;
+        var queryResultStart = -1;
         TokenType fragmentType = null;
-        for (var token : new SimpleMarkdownTokenizer(lines))
+        for (var token : new MarkdownTokenizer(lines))
         {
             var type = token.tokenType();
             if (type == FRONT_MATTER)
@@ -55,6 +57,31 @@ final class DocumentParser
                 fragments.get(0).add(new FrontMatter(lines.subList(0, frontMatterEnd)));
                 frontMatterEnd = -1;
             }
+            if (type == QUERY_DEFINITION)
+            {
+                if (queryDefinitionStart == -1)
+                {
+                    queryDefinitionStart = token.lineIndex();
+                }
+                continue;
+            }
+            if (type == QUERY_RESULT)
+            {
+                if (queryResultStart == -1)
+                {
+                    queryResultStart = token.lineIndex();
+                }
+                continue;
+            }
+            if (type == QUERY_END)
+            {
+                var query = new Query(lines.subList(queryDefinitionStart, token.lineIndex() + 1),
+                        queryResultStart - queryDefinitionStart);
+                fragments.get(level).add(query);
+                queryDefinitionStart = -1;
+                queryResultStart = -1;
+                continue;
+            }
             if (type == fragmentType)
             {
                 continue;
@@ -62,10 +89,7 @@ final class DocumentParser
             if (fragmentStart != -1)
             {
                 var fragment = createFragment(fragmentType, fragmentStart, token.lineIndex());
-                if (!fragment.isEmpty())
-                {
-                    fragments.get(level).add(fragment);
-                }
+                fragments.get(level).add(fragment);
                 fragmentStart = -1;
                 fragmentType = null;
             }

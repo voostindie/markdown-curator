@@ -3,6 +3,7 @@ package nl.ulso.obsidian.watcher.vault;
 import java.util.List;
 import java.util.Objects;
 
+import static java.lang.String.join;
 import static java.lang.System.lineSeparator;
 
 /**
@@ -15,19 +16,24 @@ public final class CodeBlock
 {
     private static final int CODE_MARKER_LENGTH = 3; // ```
 
-    public CodeBlock(List<String> lines)
+    private final String language;
+    private final String code;
+
+    CodeBlock(List<String> lines)
     {
         super(lines);
+        language = lines.get(0).substring(CODE_MARKER_LENGTH);
+        code = join(lineSeparator(), lines.subList(1, lines.size() - 1));
     }
 
     public String language()
     {
-        return lines().get(0).substring(CODE_MARKER_LENGTH);
+        return language;
     }
 
     public String code()
     {
-        return String.join(lineSeparator(), lines().subList(1, lines().size() - 1));
+        return code;
     }
 
     @Override
@@ -35,7 +41,8 @@ public final class CodeBlock
     {
         if (o instanceof CodeBlock codeBlock)
         {
-            return Objects.equals(lines(), codeBlock.lines());
+            return Objects.equals(language, codeBlock.language)
+                    && Objects.equals(code, codeBlock.code);
         }
         return false;
     }
@@ -43,7 +50,13 @@ public final class CodeBlock
     @Override
     public int hashCode()
     {
-        return Objects.hash(lines());
+        return Objects.hash(language, code);
+    }
+
+    @Override
+    public boolean isEmpty()
+    {
+        return code.isEmpty();
     }
 
     @Override

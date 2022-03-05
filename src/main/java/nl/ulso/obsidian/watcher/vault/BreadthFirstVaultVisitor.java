@@ -100,6 +100,12 @@ public abstract class BreadthFirstVaultVisitor
     }
 
     @Override
+    public void visit(Query query)
+    {
+
+    }
+
+    @Override
     public void visit(Text text)
     {
 

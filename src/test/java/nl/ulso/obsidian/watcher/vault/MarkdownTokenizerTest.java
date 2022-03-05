@@ -1,6 +1,6 @@
 package nl.ulso.obsidian.watcher.vault;
 
-import nl.ulso.obsidian.watcher.vault.SimpleMarkdownTokenizer.TokenType;
+import nl.ulso.obsidian.watcher.vault.MarkdownTokenizer.TokenType;
 import org.assertj.core.api.SoftAssertions;
 import org.assertj.core.api.junit.jupiter.InjectSoftAssertions;
 import org.assertj.core.api.junit.jupiter.SoftAssertionsExtension;
@@ -11,11 +11,11 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import static java.util.Collections.emptyList;
-import static nl.ulso.obsidian.watcher.vault.SimpleMarkdownTokenizer.TokenType.*;
+import static nl.ulso.obsidian.watcher.vault.MarkdownTokenizer.TokenType.*;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @ExtendWith(SoftAssertionsExtension.class)
-class SimpleMarkdownTokenizerTest
+class MarkdownTokenizerTest
 {
     @InjectSoftAssertions
     private SoftAssertions softly;
@@ -23,7 +23,7 @@ class SimpleMarkdownTokenizerTest
     @Test
     void emptyDocument()
     {
-        var tokens = new SimpleMarkdownTokenizer(emptyList());
+        var tokens = new MarkdownTokenizer(emptyList());
         assertThat(tokens.iterator().next().tokenType()).isEqualTo(END_OF_DOCUMENT);
     }
 
@@ -87,6 +87,41 @@ class SimpleMarkdownTokenizerTest
                 CODE, CODE, CODE, END_OF_DOCUMENT);
     }
 
+    @Test
+    void shortQuery()
+    {
+        assertSame("""
+                        <!--query: DEFINITION -->
+                        OUTPUT
+                        <!--/query-->
+                        """,
+                QUERY_DEFINITION, QUERY_RESULT, QUERY_END, END_OF_DOCUMENT);
+    }
+
+    @Test
+    void longQuery()
+    {
+        assertSame("""
+                        <!--query:
+                        LINE 1
+                        -->
+                        OUTPUT
+                        <!--/query-->
+                        """,
+                QUERY_DEFINITION, QUERY_DEFINITION, QUERY_DEFINITION,
+                QUERY_RESULT, QUERY_END, END_OF_DOCUMENT);
+    }
+
+    @Test
+    void queryNoOutput()
+    {
+        assertSame("""
+                        <!--query: DEFINITION -->
+                        <!--/query: HASH -->
+                        """,
+                QUERY_DEFINITION, QUERY_END, END_OF_DOCUMENT);
+    }
+
     private void assertSame(String input, TokenType... types)
     {
         assertSame(document(input), types);
@@ -94,7 +129,7 @@ class SimpleMarkdownTokenizerTest
 
     private void assertSame(List<String> input, TokenType... types)
     {
-        var tokens = new SimpleMarkdownTokenizer(input);
+        var tokens = new MarkdownTokenizer(input);
         var i = 0;
         try
         {

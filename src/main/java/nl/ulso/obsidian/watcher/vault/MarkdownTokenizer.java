@@ -1,13 +1,13 @@
 package nl.ulso.obsidian.watcher.vault;
 
-import nl.ulso.obsidian.watcher.vault.SimpleMarkdownTokenizer.LineToken;
+import nl.ulso.obsidian.watcher.vault.MarkdownTokenizer.LineToken;
 
 import java.util.*;
 import java.util.regex.Pattern;
 
 import static java.util.regex.Pattern.compile;
-import static nl.ulso.obsidian.watcher.vault.SimpleMarkdownTokenizer.LineToken.*;
-import static nl.ulso.obsidian.watcher.vault.SimpleMarkdownTokenizer.TokenType.*;
+import static nl.ulso.obsidian.watcher.vault.MarkdownTokenizer.LineToken.*;
+import static nl.ulso.obsidian.watcher.vault.MarkdownTokenizer.TokenType.*;
 
 /**
  * Simple tokenizer for Markdown document, Vincent flavored; the document is tokenized line by line.
@@ -16,17 +16,22 @@ import static nl.ulso.obsidian.watcher.vault.SimpleMarkdownTokenizer.TokenType.*
  * What's Vincent Flavored Markdown (VFM), you ask? Well, it's basically GitHub Flavored Markdown,
  * with some changes. These are:
  * <ul>
- *   <li>Extra: Optional YAML front matter (between "---")</li>
+ *   <li>Optional YAML front matter (between "---")</li>
  *   <li>Only ATX (#) headers, without the optional closing sequence of #'s</li>
  *   <li>Headers are always aligned to the left margin</li>
+ *   <li>Code is always in code blocks surrounded with backticks</li>
+ *   <li>Queries can be defined in HTML comments, for this tool to process. See {@link Query}</li>
  * </ul>
  */
-class SimpleMarkdownTokenizer
+class MarkdownTokenizer
         implements Iterable<LineToken>
 {
     private static final String FRONT_MATTER_MARKER = "---";
-    private static final String CODE_MARKER = "```";
     private static final Pattern HEADER_PATTERN = compile("^(#{1,6}) (.*)$");
+    private static final String CODE_MARKER = "```";
+    static final String QUERY_BEGIN_MARKER = "<!--query";
+    static final String QUERY_CLOSING = "-->";
+    private static final String QUERY_END_MARKER = "<!--/query";
 
     private final List<String> lines;
 
@@ -36,12 +41,16 @@ class SimpleMarkdownTokenizer
         HEADER,
         TEXT,
         CODE,
+        QUERY_DEFINITION,
+        QUERY_RESULT,
+        QUERY_END,
         END_OF_DOCUMENT
     }
 
     static sealed class LineToken
     {
         private final int lineIndex;
+
         private final TokenType tokenType;
 
         private LineToken(int lineIndex, TokenType tokenType)
@@ -80,16 +89,33 @@ class SimpleMarkdownTokenizer
             return new LineToken(lineIndex, CODE);
         }
 
+        static LineToken queryDefinition(int lineIndex)
+        {
+            return new LineToken(lineIndex, QUERY_DEFINITION);
+        }
+
+        static LineToken queryResult(int lineIndex)
+        {
+            return new LineToken(lineIndex, QUERY_RESULT);
+        }
+
+        static LineToken queryEnd(int lineIndex)
+        {
+            return new LineToken(lineIndex, QUERY_END);
+        }
+
         static LineToken documentEnd(int size)
         {
             return new LineToken(size, END_OF_DOCUMENT);
         }
+
     }
 
     static final class HeaderLineToken
             extends LineToken
     {
         private final int level;
+
         private final String title;
 
         private HeaderLineToken(int lineIndex, int level, String title)
@@ -108,11 +134,21 @@ class SimpleMarkdownTokenizer
         {
             return title;
         }
+
     }
 
-    public SimpleMarkdownTokenizer(List<String> lines)
+    public MarkdownTokenizer(List<String> lines)
     {
         this.lines = Objects.requireNonNull(lines);
+    }
+
+    private enum Mode
+    {
+        NORMAL,
+        FRONT_MATTER,
+        CODE,
+        QUERY_DEFINITION,
+        QUERY_OUTPUT
     }
 
     @Override
@@ -121,9 +157,8 @@ class SimpleMarkdownTokenizer
         return new Iterator<>()
         {
             private final int size = lines.size();
+            private Mode mode = Mode.NORMAL;
             private int index = 0;
-            private boolean inFrontMatter = false;
-            private boolean inCode = false;
 
             @Override
             public boolean hasNext()
@@ -136,37 +171,57 @@ class SimpleMarkdownTokenizer
             {
                 var i = this.index;
                 index++;
-                if (i >= size)
+                if (i == size)
                 {
                     return documentEnd(size);
                 }
                 var line = lines.get(i);
                 if (i == 0 && line.contentEquals(FRONT_MATTER_MARKER))
                 {
-                    inFrontMatter = true;
+                    mode = Mode.FRONT_MATTER;
                     return frontMatter(i);
                 }
-                if (i > 0 && inFrontMatter && line.contentEquals(FRONT_MATTER_MARKER))
+                if (mode == Mode.FRONT_MATTER)
                 {
-                    inFrontMatter = false;
+                    if (line.contentEquals(FRONT_MATTER_MARKER))
+                    {
+                        mode = Mode.NORMAL;
+                    }
                     return frontMatter(i);
                 }
-                if (i > 0 && inFrontMatter)
+                if (mode == Mode.NORMAL && line.startsWith(QUERY_BEGIN_MARKER))
                 {
-                    return frontMatter(i);
+                    mode = line.endsWith(QUERY_CLOSING) ? Mode.QUERY_OUTPUT : Mode.QUERY_DEFINITION;
+                    return queryDefinition(i);
                 }
-                if (!inCode && line.startsWith(CODE_MARKER))
+                if (mode == Mode.QUERY_DEFINITION)
                 {
-                    inCode = true;
+                    if (line.endsWith(QUERY_CLOSING))
+                    {
+                        mode = Mode.QUERY_OUTPUT;
+                    }
+                    return queryDefinition(i);
+                }
+                if (mode == Mode.QUERY_OUTPUT)
+                {
+                    if (line.startsWith(QUERY_END_MARKER) && line.endsWith(QUERY_CLOSING))
+                    {
+                        mode = Mode.NORMAL;
+                        return queryEnd(i);
+                    }
+                    return queryResult(i);
+                }
+                if (mode == Mode.NORMAL && line.startsWith(CODE_MARKER))
+                {
+                    mode = Mode.CODE;
                     return code(i);
                 }
-                if (inCode && line.contentEquals(CODE_MARKER))
+                if (mode == Mode.CODE)
                 {
-                    inCode = false;
-                    return code(i);
-                }
-                if (inCode)
-                {
+                    if (line.contentEquals(CODE_MARKER))
+                    {
+                        mode = Mode.NORMAL;
+                    }
                     return code(i);
                 }
                 var matcher = HEADER_PATTERN.matcher(line);

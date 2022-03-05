@@ -18,14 +18,14 @@ class CodeBlockTest
     @Test
     void equalsContract()
     {
-        EqualsVerifier.forClass(CodeBlock.class).verify();
+        EqualsVerifier.forClass(CodeBlock.class).withIgnoredFields("lines").verify();
     }
 
     @Test
     void empty()
     {
         CodeBlock markersOnly = new CodeBlock(List.of("```", "```"));
-        softly.assertThat(markersOnly.isEmpty()).isFalse();
+        softly.assertThat(markersOnly.isEmpty()).isTrue();
         softly.assertThat(markersOnly.code()).isBlank();
         softly.assertThat(markersOnly.language()).isBlank();
     }

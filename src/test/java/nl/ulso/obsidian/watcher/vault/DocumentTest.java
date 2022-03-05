@@ -108,19 +108,6 @@ class DocumentTest
     }
 
     @Test
-    void emptyTextsArePruned()
-    {
-        var document = newDocument("document", document("""
-                ## Section 1
-
-                ### Subsection 1
-                """));
-        var section = (Section) document.fragment(1);
-        softly.assertThat(section.fragments().size()).isEqualTo(1);
-        softly.assertThat(section.fragment(0)).isInstanceOf(Section.class);
-    }
-
-    @Test
     void unclosedYamlFrontMatter()
     {
         String text = """
@@ -178,6 +165,22 @@ class DocumentTest
         var block = (CodeBlock) document.fragment(1);
         softly.assertThat(block.language()).isBlank();
         softly.assertThat(block.code()).isBlank();
+    }
+
+    @Test
+    void query()
+    {
+        String text = """
+                <!--query foo-->
+                bar
+                <!--/query-->
+                """;
+        var document = newDocument("document", document(text));
+        softly.assertThat(document.fragments().size()).isEqualTo(2);
+        softly.assertThat(document.fragment(1)).isInstanceOf(Query.class);
+        var query = (Query) document.fragment(1);
+        softly.assertThat(query.definition()).isEqualTo("foo");
+        softly.assertThat(query.result()).isEqualTo("bar");
     }
 
     private List<String> document(String text)

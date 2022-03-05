@@ -11,7 +11,7 @@ public final class Text
         extends LineContainer
         implements Fragment
 {
-    public Text(List<String> lines)
+    Text(List<String> lines)
     {
         super(lines);
     }

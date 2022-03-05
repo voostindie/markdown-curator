@@ -73,7 +73,7 @@ class FileSystemVaultTest
         softly.assertThat(statistics.documents).isEqualTo(13);
         softly.assertThat(statistics.frontMatters).isEqualTo(13);
         softly.assertThat(statistics.sections).isEqualTo(5);
-        softly.assertThat(statistics.texts).isEqualTo(6);
+        softly.assertThat(statistics.texts).isEqualTo(13);
     }
 
     @Test

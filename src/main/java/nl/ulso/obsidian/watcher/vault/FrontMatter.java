@@ -18,7 +18,7 @@ public final class FrontMatter
 {
     private final Dictionary dictionary;
 
-    public FrontMatter(List<String> lines)
+    FrontMatter(List<String> lines)
     {
         super(lines);
         if (lines.isEmpty())
