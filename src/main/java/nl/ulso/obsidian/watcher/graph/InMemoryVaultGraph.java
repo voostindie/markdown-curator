@@ -8,7 +8,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import static java.util.stream.Collectors.joining;
-import static org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.__.*;
+import static org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.__.addV;
+import static org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.__.inV;
+import static org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.__.unfold;
 
 /**
  * Builds an in-memory graph from a vault, using Apache TinkerGraph.
@@ -93,14 +95,28 @@ public final class InMemoryVaultGraph
         @Override
         public void visit(Document document)
         {
+            // There are better ways to code this, with a single "g" call, but this is faster
+            // than any such "one-liner" I could come up with.
+            var from = g.V().has(DOCUMENT, NAME, document.name()).next().id();
             document.findInternalLinks().forEach(link -> {
                 LOGGER.debug("Adding edge from {} to {}", document.name(), link.targetDocument());
-                g.V().has(DOCUMENT, NAME, document.name()).as("from")
-                        .coalesce(V().has(DOCUMENT, NAME, link.targetDocument()),
-                                addV(DISCOVERED).property(NAME, link.targetDocument()))
-                        .coalesce(inE(LINKS_TO).where(outV().as("from")),
-                                addE(LINKS_TO).from("from"))
+                var edges = g.V(from).outE(LINKS_TO)
+                        .where(inV().has(NAME, link.targetDocument())).fold()
                         .next();
+                if (edges.isEmpty())
+                {
+                    var to = g.V().has(DOCUMENT, NAME, link.targetDocument())
+                            .fold().coalesce(unfold(),
+                                    addV(DISCOVERED).property(NAME, link.targetDocument())).as("to")
+                            .next();
+                    g.V(from).addE(LINKS_TO).to(to).property("count", 1).next();
+                }
+                else
+                {
+                    var edge = edges.get(0);
+                    var count = (Integer) edge.property("count").value();
+                    edge.property("count", count + 1);
+                }
             });
         }
     }
