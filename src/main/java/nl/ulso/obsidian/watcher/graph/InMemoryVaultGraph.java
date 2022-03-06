@@ -8,8 +8,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import static java.util.stream.Collectors.joining;
-import static org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.__.V;
-import static org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.__.addV;
+import static org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.__.*;
 
 /**
  * Builds an in-memory graph from a vault, using Apache TinkerGraph.
@@ -73,7 +72,7 @@ public final class InMemoryVaultGraph
         {
             g.addV(DOCUMENT).property(NAME, document.name()).property("path",
                     currentPath().stream().map(Folder::name).collect(joining("/"))).next();
-            taxonomy.describe(currentPath(), document).ifPresent(descriptor -> {
+            taxonomy.describe(currentPath(), document).forEach(descriptor -> {
                 var label = descriptor.label();
                 if (label.equals(DOCUMENT) || label.equals(DISCOVERED))
                 {
@@ -98,8 +97,9 @@ public final class InMemoryVaultGraph
                 LOGGER.debug("Adding edge from {} to {}", document.name(), link.targetDocument());
                 g.V().has(DOCUMENT, NAME, document.name()).as("from")
                         .coalesce(V().has(DOCUMENT, NAME, link.targetDocument()),
-                                addV(DISCOVERED).property(NAME, link.targetDocument())).as("to")
-                        .addE(LINKS_TO).from("from").to("to")
+                                addV(DISCOVERED).property(NAME, link.targetDocument()))
+                        .coalesce(inE(LINKS_TO).where(outV().as("from")),
+                                addE(LINKS_TO).from("from"))
                         .next();
             });
         }

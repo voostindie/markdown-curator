@@ -26,17 +26,20 @@ public abstract class BreadthFirstVaultVisitor
 
     protected List<Folder> currentPath()
     {
-        return unmodifiableList(requireNonNull(currentPath));
+        return unmodifiableList(requireNonNull(currentPath,
+                "To keep track of the path, start this visitor on the vault level."));
     }
 
     protected Document currentDocument()
     {
-        return requireNonNull(currentDocument);
+        return requireNonNull(currentDocument,
+                "To keep track of the document, start this visitor on the document level.");
     }
 
     protected List<Section> currentLocation()
     {
-        return unmodifiableList(requireNonNull(currentLocation));
+        return unmodifiableList(requireNonNull(currentLocation,
+                "To keep track of the location, start this visitor on the document level."));
     }
 
     @Override

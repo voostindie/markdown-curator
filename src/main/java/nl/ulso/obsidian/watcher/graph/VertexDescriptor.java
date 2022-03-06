@@ -2,7 +2,7 @@ package nl.ulso.obsidian.watcher.graph;
 
 import java.util.Map;
 
-public interface DocumentDescriptor
+public interface VertexDescriptor
 {
     String name();
     String label();
