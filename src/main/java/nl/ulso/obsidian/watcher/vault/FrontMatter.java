@@ -36,6 +36,10 @@ public final class FrontMatter
     @Override
     public boolean equals(Object o)
     {
+        if (this == o)
+        {
+            return true;
+        }
         if (o instanceof FrontMatter frontMatter)
         {
             return Objects.equals(dictionary, frontMatter.dictionary)

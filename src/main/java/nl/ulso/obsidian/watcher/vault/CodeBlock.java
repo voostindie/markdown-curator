@@ -39,6 +39,10 @@ public final class CodeBlock
     @Override
     public boolean equals(Object o)
     {
+        if (this == o)
+        {
+            return true;
+        }
         if (o instanceof CodeBlock codeBlock)
         {
             return Objects.equals(language, codeBlock.language)

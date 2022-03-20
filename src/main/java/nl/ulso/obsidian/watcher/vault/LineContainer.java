@@ -1,7 +1,6 @@
 package nl.ulso.obsidian.watcher.vault;
 
 import java.util.List;
-import java.util.Objects;
 
 import static java.lang.String.join;
 import static java.lang.System.lineSeparator;

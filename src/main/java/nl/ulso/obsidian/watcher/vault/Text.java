@@ -19,6 +19,10 @@ public final class Text
     @Override
     public boolean equals(Object o)
     {
+        if (this == o)
+        {
+            return true;
+        }
         if (o instanceof Text text)
         {
             return Objects.equals(lines(), text.lines());

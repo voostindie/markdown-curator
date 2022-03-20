@@ -47,7 +47,7 @@ public final class Query
     static final String QUERY_OUTPUT_PREFIX = "<!--/query";
     static final String QUERY_OUTPUT_POSTFIX = "-->";
     private static final char QUERY_TYPE_MARKER = ':';
-    private static final String DEFAULT_TYPE = "cypher";
+    private static final String DEFAULT_TYPE = "none";
 
     private final String type;
     private final Dictionary configuration;
@@ -77,6 +77,10 @@ public final class Query
     @Override
     public boolean equals(Object o)
     {
+        if (this == o)
+        {
+            return true;
+        }
         if (o instanceof Query query)
         {
             return Objects.equals(type, query.type)
@@ -124,7 +128,7 @@ public final class Query
                 }
                 if (end > 1)
                 {
-                    this.type = query.substring(1, end);
+                    this.type = query.substring(1, end).toLowerCase();
                 }
                 query = query.substring(end);
             }

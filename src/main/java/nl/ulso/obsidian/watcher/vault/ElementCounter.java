@@ -29,6 +29,7 @@ public final class ElementCounter
         public int frontMatters;
         public int sections;
         public int texts;
+        public int queries;
         public int codeBlocks;
 
         @Override
@@ -39,8 +40,9 @@ public final class ElementCounter
                     + "documents: " + documents + System.lineSeparator()
                     + "front matters: " + frontMatters + System.lineSeparator()
                     + "sections: " + sections + System.lineSeparator()
+                    + "queries: " + queries + System.lineSeparator()
                     + "code blocks: " + codeBlocks + System.lineSeparator()
-                    + "text: " + texts;
+                    + "texts: " + texts;
         }
     }
 
@@ -111,6 +113,12 @@ public final class ElementCounter
     public void visit(CodeBlock codeBlock)
     {
         statistics.codeBlocks++;
+    }
+
+    @Override
+    public void visit(Query query)
+    {
+        statistics.queries++;
     }
 
     @Override

@@ -2,13 +2,13 @@ package nl.ulso.obsidian.watcher.vault;
 
 import org.slf4j.Logger;
 
-import javax.swing.text.Element;
 import java.io.IOException;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.HashMap;
 import java.util.Map;
 
+import static java.nio.file.Files.walkFileTree;
 import static java.nio.file.StandardWatchEventKinds.ENTRY_CREATE;
 import static java.nio.file.StandardWatchEventKinds.ENTRY_DELETE;
 import static java.nio.file.StandardWatchEventKinds.ENTRY_MODIFY;
@@ -48,7 +48,7 @@ public final class FileSystemVault
                     "Could not create a WatchService on the filesystem", e);
         }
         watchKeys = new HashMap<>();
-        Files.walkFileTree(absolutePath, new VaultBuilder(this, absolutePath));
+        walkFileTree(absolutePath, new VaultBuilder(this, absolutePath));
         if (LOGGER.isInfoEnabled())
         {
             var statistics = countFoldersAndDocuments(this);
@@ -61,6 +61,14 @@ public final class FileSystemVault
     public void accept(VaultVisitor visitor)
     {
         visitor.visit(this);
+    }
+
+    @Override
+    public Map<Query, Location> findAllQueries()
+    {
+        var finder = new QueryFinder();
+        this.accept(finder);
+        return finder.queries();
     }
 
     @Override
@@ -106,7 +114,7 @@ public final class FileSystemVault
         {
             var folder = parent.addFolder(folderName(absolutePath));
             LOGGER.info("Detected new folder: {}", folder.name());
-            Files.walkFileTree(absolutePath, new VaultBuilder(folder, absolutePath));
+            walkFileTree(absolutePath, new VaultBuilder(folder, absolutePath));
         }
         else if (isDocument(absolutePath))
         {

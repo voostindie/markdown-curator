@@ -36,6 +36,10 @@ public final class Section
     @Override
     public boolean equals(Object o)
     {
+        if (this == o)
+        {
+            return true;
+        }
         if (o instanceof Section section)
         {
             return Objects.equals(level, section.level)

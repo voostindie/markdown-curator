@@ -72,9 +72,9 @@ public final class InMemoryVaultGraph
         @Override
         public void visit(Document document)
         {
-            g.addV(DOCUMENT).property(NAME, document.name()).property("path",
-                    currentPath().stream().map(Folder::name).collect(joining("/"))).next();
-            taxonomy.describe(currentPath(), document).forEach(descriptor -> {
+            g.addV(DOCUMENT).property(NAME, document.name()).property("vaultPath",
+                    currentVaultPath().stream().map(Folder::name).collect(joining("/"))).next();
+            taxonomy.describe(currentVaultPath(), document).forEach(descriptor -> {
                 var label = descriptor.label();
                 if (label.equals(DOCUMENT) || label.equals(DISCOVERED))
                 {

@@ -4,8 +4,6 @@ import java.util.*;
 import java.util.regex.MatchResult;
 import java.util.regex.Pattern;
 
-import static java.util.Collections.unmodifiableList;
-
 /**
  * Finds all internal links in the WikiLink format.
  * <p/>
@@ -49,13 +47,12 @@ final class WikiLinkFinder
     private void extractInternalLinks(String content)
     {
         allLinks(content).forEach(matchResult -> {
-            var document = matchResult.group(1);
+            var targetDocument = matchResult.group(1);
             var anchor = Optional.ofNullable(matchResult.group(2));
             var alias = Optional.ofNullable(matchResult.group(3));
             internalLinks.add(new InternalLink(
-                    currentDocument(),
-                    unmodifiableList(currentLocation()),
-                    document,
+                    currentLocation(),
+                    targetDocument,
                     anchor,
                     alias));
         });
