@@ -91,35 +91,34 @@ class MarkdownTokenizerTest
     void shortQuery()
     {
         assertSame("""
-                        <!--query: DEFINITION -->
+                        <!--query CONFIGURATION -->
                         OUTPUT
                         <!--/query-->
                         """,
-                QUERY_DEFINITION, QUERY_RESULT, QUERY_END, END_OF_DOCUMENT);
+                QUERY, QUERY, QUERY, END_OF_DOCUMENT);
     }
 
     @Test
     void longQuery()
     {
         assertSame("""
-                        <!--query:
+                        <!--query
                         LINE 1
                         -->
                         OUTPUT
                         <!--/query-->
                         """,
-                QUERY_DEFINITION, QUERY_DEFINITION, QUERY_DEFINITION,
-                QUERY_RESULT, QUERY_END, END_OF_DOCUMENT);
+                QUERY, QUERY, QUERY, QUERY, QUERY, END_OF_DOCUMENT);
     }
 
     @Test
     void queryNoOutput()
     {
         assertSame("""
-                        <!--query: DEFINITION -->
-                        <!--/query: HASH -->
+                        <!--query:TYPE CONFIGURATION-->
+                        <!--/query:HASH-->
                         """,
-                QUERY_DEFINITION, QUERY_END, END_OF_DOCUMENT);
+                QUERY, QUERY, END_OF_DOCUMENT);
     }
 
     private void assertSame(String input, TokenType... types)

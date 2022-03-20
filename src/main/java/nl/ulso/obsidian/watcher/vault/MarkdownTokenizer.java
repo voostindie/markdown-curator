@@ -3,11 +3,15 @@ package nl.ulso.obsidian.watcher.vault;
 import nl.ulso.obsidian.watcher.vault.MarkdownTokenizer.LineToken;
 
 import java.util.*;
-import java.util.regex.Pattern;
 
-import static java.util.regex.Pattern.compile;
+import static nl.ulso.obsidian.watcher.vault.CodeBlock.CODE_MARKER;
+import static nl.ulso.obsidian.watcher.vault.FrontMatter.FRONT_MATTER_MARKER;
 import static nl.ulso.obsidian.watcher.vault.MarkdownTokenizer.LineToken.*;
 import static nl.ulso.obsidian.watcher.vault.MarkdownTokenizer.TokenType.*;
+import static nl.ulso.obsidian.watcher.vault.Query.QUERY_CONFIGURATION_PREFIX;
+import static nl.ulso.obsidian.watcher.vault.Query.QUERY_OUTPUT_POSTFIX;
+import static nl.ulso.obsidian.watcher.vault.Query.QUERY_OUTPUT_PREFIX;
+import static nl.ulso.obsidian.watcher.vault.Section.HEADER_PATTERN;
 
 /**
  * Simple tokenizer for Markdown document, Vincent flavored; the document is tokenized line by line.
@@ -26,13 +30,6 @@ import static nl.ulso.obsidian.watcher.vault.MarkdownTokenizer.TokenType.*;
 class MarkdownTokenizer
         implements Iterable<LineToken>
 {
-    private static final String FRONT_MATTER_MARKER = "---";
-    private static final Pattern HEADER_PATTERN = compile("^(#{1,6}) (.*)$");
-    private static final String CODE_MARKER = "```";
-    static final String QUERY_BEGIN_MARKER = "<!--query";
-    static final String QUERY_CLOSING = "-->";
-    private static final String QUERY_END_MARKER = "<!--/query";
-
     private final List<String> lines;
 
     enum TokenType
@@ -41,9 +38,7 @@ class MarkdownTokenizer
         HEADER,
         TEXT,
         CODE,
-        QUERY_DEFINITION,
-        QUERY_RESULT,
-        QUERY_END,
+        QUERY,
         END_OF_DOCUMENT
     }
 
@@ -81,7 +76,7 @@ class MarkdownTokenizer
 
         static LineToken text(int lineIndex)
         {
-            return new LineToken(lineIndex, TEXT);
+            return new LineToken(lineIndex, TokenType.TEXT);
         }
 
         static LineToken code(int lineIndex)
@@ -89,19 +84,9 @@ class MarkdownTokenizer
             return new LineToken(lineIndex, CODE);
         }
 
-        static LineToken queryDefinition(int lineIndex)
+        static LineToken query(int lineIndex)
         {
-            return new LineToken(lineIndex, QUERY_DEFINITION);
-        }
-
-        static LineToken queryResult(int lineIndex)
-        {
-            return new LineToken(lineIndex, QUERY_RESULT);
-        }
-
-        static LineToken queryEnd(int lineIndex)
-        {
-            return new LineToken(lineIndex, QUERY_END);
+            return new LineToken(lineIndex, QUERY);
         }
 
         static LineToken documentEnd(int size)
@@ -144,11 +129,10 @@ class MarkdownTokenizer
 
     private enum Mode
     {
-        NORMAL,
+        TEXT,
         FRONT_MATTER,
         CODE,
-        QUERY_DEFINITION,
-        QUERY_OUTPUT
+        QUERY
     }
 
     @Override
@@ -157,7 +141,7 @@ class MarkdownTokenizer
         return new Iterator<>()
         {
             private final int size = lines.size();
-            private Mode mode = Mode.NORMAL;
+            private Mode mode = Mode.TEXT;
             private int index = 0;
 
             @Override
@@ -185,33 +169,24 @@ class MarkdownTokenizer
                 {
                     if (line.contentEquals(FRONT_MATTER_MARKER))
                     {
-                        mode = Mode.NORMAL;
+                        mode = Mode.TEXT;
                     }
                     return frontMatter(i);
                 }
-                if (mode == Mode.NORMAL && line.startsWith(QUERY_BEGIN_MARKER))
+                if (mode == Mode.TEXT && line.startsWith(QUERY_CONFIGURATION_PREFIX))
                 {
-                    mode = line.endsWith(QUERY_CLOSING) ? Mode.QUERY_OUTPUT : Mode.QUERY_DEFINITION;
-                    return queryDefinition(i);
+                    mode = Mode.QUERY;
+                    return query(i);
                 }
-                if (mode == Mode.QUERY_DEFINITION)
+                if (mode == Mode.QUERY)
                 {
-                    if (line.endsWith(QUERY_CLOSING))
+                    if (line.startsWith(QUERY_OUTPUT_PREFIX) && line.endsWith(QUERY_OUTPUT_POSTFIX))
                     {
-                        mode = Mode.QUERY_OUTPUT;
+                        mode = Mode.TEXT;
                     }
-                    return queryDefinition(i);
+                    return query(i);
                 }
-                if (mode == Mode.QUERY_OUTPUT)
-                {
-                    if (line.startsWith(QUERY_END_MARKER) && line.endsWith(QUERY_CLOSING))
-                    {
-                        mode = Mode.NORMAL;
-                        return queryEnd(i);
-                    }
-                    return queryResult(i);
-                }
-                if (mode == Mode.NORMAL && line.startsWith(CODE_MARKER))
+                if (mode == Mode.TEXT && line.startsWith(CODE_MARKER))
                 {
                     mode = Mode.CODE;
                     return code(i);
@@ -220,7 +195,7 @@ class MarkdownTokenizer
                 {
                     if (line.contentEquals(CODE_MARKER))
                     {
-                        mode = Mode.NORMAL;
+                        mode = Mode.TEXT;
                     }
                     return code(i);
                 }

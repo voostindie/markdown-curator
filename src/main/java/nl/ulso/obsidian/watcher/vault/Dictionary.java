@@ -21,13 +21,35 @@ public interface Dictionary
      * Constructs a dictionary from YAML.
      * <p>
      * If the parsing fails, the resulting dictionary is empty; it doesn't throw!
+     * <p/>
+     * The list of lines <strong>may</strong> contain YAML document markers. The first document
+     * will be extracted.
      *
      * @param lines Lines to parse as YAML.
      * @return dictionary parsed from the YAML; can be empty!
      */
     static Dictionary yamlDictionary(List<String> lines)
     {
-        return new YamlDictionary(requireNonNull(lines));
+        if (requireNonNull(lines).isEmpty())
+        {
+            return emptyDictionary();
+        }
+        return new YamlDictionary(lines);
+    }
+
+    /**
+     * @see #yamlDictionary(List)
+     * <p/>
+     * The list of lines <strong>may not</strong> contain YAML document markers. The string is
+     * expected to be a single YAML document.
+     */
+    static Dictionary yamlDictionary(String string)
+    {
+        if (requireNonNull(string).isBlank())
+        {
+            return emptyDictionary();
+        }
+        return new YamlDictionary(string);
     }
 
     boolean isEmpty();

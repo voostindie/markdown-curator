@@ -16,6 +16,8 @@ public final class FrontMatter
         extends LineContainer
         implements Fragment, Dictionary
 {
+    static final String FRONT_MATTER_MARKER = "---";
+
     private final Dictionary dictionary;
 
     FrontMatter(List<String> lines)

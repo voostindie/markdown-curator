@@ -39,7 +39,7 @@ final class YamlDictionary
     private final Map<String, ?> map;
     private final Map<String, List<Date>> dateCache;
 
-    YamlDictionary(List<String> lines)
+    YamlDictionary(String string)
     {
         dateCache = new HashMap<>();
         LoadSettings settings = LoadSettings.builder().build();
@@ -47,15 +47,19 @@ final class YamlDictionary
         Map<String, Object> yaml = null;
         try
         {
-            List<String> node = singleYamlNode(lines);
             //noinspection unchecked
-            yaml = (Map<String, Object>) load.loadFromString(join(lineSeparator(), node));
+            yaml = (Map<String, Object>) load.loadFromString(string);
         }
         catch (YamlEngineException | ClassCastException e)
         {
             LOGGER.warn("Invalid YAML found; ignoring it");
         }
         map = requireNonNullElse(yaml, emptyMap());
+    }
+
+    YamlDictionary(List<String> lines)
+    {
+        this(join(lineSeparator(), singleYamlNode(lines)));
     }
 
     @Override
@@ -74,7 +78,7 @@ final class YamlDictionary
         return Objects.hash(map);
     }
 
-    private List<String> singleYamlNode(List<String> lines)
+    private static List<String> singleYamlNode(List<String> lines)
     {
         int from = 0;
         int to = lines.size();

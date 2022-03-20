@@ -171,16 +171,16 @@ class DocumentTest
     void query()
     {
         String text = """
-                <!--query foo-->
-                bar
+                <!--query-->
+                foo
                 <!--/query-->
                 """;
         var document = newDocument("document", document(text));
         softly.assertThat(document.fragments().size()).isEqualTo(2);
         softly.assertThat(document.fragment(1)).isInstanceOf(Query.class);
         var query = (Query) document.fragment(1);
-        softly.assertThat(query.definition()).isEqualTo("foo");
-        softly.assertThat(query.result()).isEqualTo("bar");
+        softly.assertThat(query.configuration().isEmpty()).isTrue();
+        softly.assertThat(query.result()).isEqualTo("foo");
     }
 
     private List<String> document(String text)

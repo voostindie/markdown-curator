@@ -1,13 +1,17 @@
 package nl.ulso.obsidian.watcher.vault;
 
 import java.util.*;
+import java.util.regex.Pattern;
 
 import static java.util.Objects.requireNonNull;
+import static java.util.regex.Pattern.compile;
 
 public final class Section
         extends FragmentContainer
         implements Fragment
 {
+    static final Pattern HEADER_PATTERN = compile("^(#{1,6}) (.*)$");
+
     // These characters are filtered out by Obsidian in anchors; reverse engineered!
     private final static Set<Character> INVALID_ANCHOR_CHARACTERS = Set.of(
             '<', '>', ',', '.', ';', '[', ']', '!', '@', '#', '$', '%', '^',

@@ -14,7 +14,7 @@ public final class CodeBlock
         extends LineContainer
         implements Fragment
 {
-    private static final int CODE_MARKER_LENGTH = 3; // ```
+    static final String CODE_MARKER = "```";
 
     private final String language;
     private final String code;
@@ -22,7 +22,7 @@ public final class CodeBlock
     CodeBlock(List<String> lines)
     {
         super(lines);
-        language = lines.get(0).substring(CODE_MARKER_LENGTH);
+        language = lines.get(0).substring(CODE_MARKER.length());
         code = join(lineSeparator(), lines.subList(1, lines.size() - 1));
     }
 

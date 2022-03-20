@@ -41,8 +41,6 @@ final class DocumentParser
         var level = 0;
         var frontMatterEnd = -1;
         var fragmentStart = -1;
-        var queryDefinitionStart = -1;
-        var queryResultStart = -1;
         TokenType fragmentType = null;
         for (var token : new MarkdownTokenizer(lines))
         {
@@ -57,31 +55,6 @@ final class DocumentParser
                 fragments.get(0).add(new FrontMatter(lines.subList(0, frontMatterEnd)));
                 frontMatterEnd = -1;
             }
-            if (type == QUERY_DEFINITION)
-            {
-                if (queryDefinitionStart == -1)
-                {
-                    queryDefinitionStart = token.lineIndex();
-                }
-                continue;
-            }
-            if (type == QUERY_RESULT)
-            {
-                if (queryResultStart == -1)
-                {
-                    queryResultStart = token.lineIndex();
-                }
-                continue;
-            }
-            if (type == QUERY_END)
-            {
-                var query = new Query(lines.subList(queryDefinitionStart, token.lineIndex() + 1),
-                        queryResultStart - queryDefinitionStart);
-                fragments.get(level).add(query);
-                queryDefinitionStart = -1;
-                queryResultStart = -1;
-                continue;
-            }
             if (type == fragmentType)
             {
                 continue;
@@ -93,7 +66,7 @@ final class DocumentParser
                 fragmentStart = -1;
                 fragmentType = null;
             }
-            if (type == TEXT || type == CODE)
+            if (type == TEXT || type == CODE || type == QUERY)
             {
                 fragmentStart = token.lineIndex();
                 fragmentType = type;
@@ -128,6 +101,7 @@ final class DocumentParser
                 {
                     case TEXT -> new Text(lines.subList(start, end));
                     case CODE -> new CodeBlock(lines.subList(start, end));
+                    case QUERY -> new Query(lines.subList(start, end));
                     default -> throw new IllegalStateException("Unsupported type " + type);
                 };
     }
