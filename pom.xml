@@ -4,8 +4,8 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>nl.ulso.obsidian-vault-watcher</groupId>
-    <artifactId>obsidian-vault-watcher</artifactId>
+    <groupId>nl.ulso.macu</groupId>
+    <artifactId>macu</artifactId>
     <version>1.0.0-SNAPSHOT</version>
 
     <properties>
@@ -85,7 +85,7 @@
                             <goal>repackage</goal>
                         </goals>
                         <configuration>
-                            <mainClass>nl.ulso.obsidian.watcher.ObsidianVaultWatcher</mainClass>
+                            <mainClass>nl.ulso.macu.Application</mainClass>
                         </configuration>
                     </execution>
                 </executions>

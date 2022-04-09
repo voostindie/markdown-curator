@@ -1,4 +1,4 @@
-# Obsidian Vault Watcher
+# Macu - Markdown Curator
 
 TL;DR:
 

@@ -1,13 +1,13 @@
 <component name="ProjectRunConfigurationManager">
   <configuration default="false" name="All tests" type="JUnit" factoryName="JUnit" activateToolWindowBeforeRun="false">
-    <module name="obsidian-vault-watcher" />
+    <module name="macu" />
     <extension name="coverage">
       <pattern>
         <option name="PATTERN" value="nl.ulso.obsidian.watcher.*" />
         <option name="ENABLED" value="true" />
       </pattern>
     </extension>
-    <option name="PACKAGE_NAME" value="nl.ulso.obsidian.watcher" />
+    <option name="PACKAGE_NAME" value="nl.ulso.macu" />
     <option name="MAIN_CLASS_NAME" value="" />
     <option name="METHOD_NAME" value="" />
     <option name="TEST_OBJECT" value="package" />
