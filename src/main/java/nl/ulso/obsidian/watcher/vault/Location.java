@@ -15,7 +15,14 @@ public record Location(List<Folder> vaultPath, Document document, List<Section> 
 {
     public Location(List<Folder> vaultPath, Document document, List<Section> documentPath)
     {
-        this.vaultPath = copyOf(requireNonNull(vaultPath));
+        if (vaultPath == null)
+        {
+            this.vaultPath = emptyList();
+        }
+        else
+        {
+            this.vaultPath = copyOf(vaultPath);
+        }
         this.document = requireNonNull(document);
         this.documentPath = documentPath != null ? copyOf(documentPath) : emptyList();
     }
@@ -25,7 +32,10 @@ public record Location(List<Folder> vaultPath, Document document, List<Section> 
     {
         var builder = new StringBuilder();
         builder.append(vaultPath.stream().map(Folder::name).collect(joining("/")));
-        builder.append("/");
+        if (!vaultPath.isEmpty())
+        {
+            builder.append("/");
+        }
         builder.append(document.name());
         if (!documentPath.isEmpty())
         {
