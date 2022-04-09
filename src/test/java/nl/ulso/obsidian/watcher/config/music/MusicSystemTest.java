@@ -1,5 +1,7 @@
 package nl.ulso.obsidian.watcher.config.music;
 
+import nl.ulso.obsidian.watcher.query.*;
+import nl.ulso.obsidian.watcher.vault.Dictionary;
 import org.assertj.core.api.SoftAssertions;
 import org.assertj.core.api.junit.jupiter.InjectSoftAssertions;
 import org.assertj.core.api.junit.jupiter.SoftAssertionsExtension;
@@ -42,6 +44,20 @@ class MusicSystemTest
         softly.assertThat(statistics.queries).isEqualTo(4);
         softly.assertThat(statistics.codeBlocks).isEqualTo(4);
         softly.assertThat(statistics.texts).isEqualTo(34);
+    }
+
+    @Test
+    void queryCatalog()
+    {
+        QueryCatalog catalog = musicSystem.queryCatalog();
+        softly.assertThat(catalog.specifications().size()).isEqualTo(3);
+        QuerySpecification dummy = catalog.specificationFor("dummy");
+        QueryResult result = dummy.configure(Dictionary.emptyDictionary()).run(musicSystem.vault());
+        softly.assertThat(result.isValid()).isFalse();
+        softly.assertThat(result.errorMessage()).contains("no query defined called 'dummy'");
+        softly.assertThat(result.errorMessage()).contains("albums");
+        softly.assertThat(result.errorMessage()).contains("recordings");
+        softly.assertThat(result.errorMessage()).contains("members");
     }
 
     @Test
