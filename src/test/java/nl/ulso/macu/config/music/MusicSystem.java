@@ -3,6 +3,7 @@ package nl.ulso.macu.config.music;
 import com.google.common.jimfs.Configuration;
 import com.google.common.jimfs.Jimfs;
 import nl.ulso.macu.System;
+import nl.ulso.macu.graph.InMemoryVaultGraph;
 import nl.ulso.macu.query.InMemoryQueryCatalog;
 import nl.ulso.macu.query.QueryCatalog;
 import nl.ulso.macu.vault.FileSystemVault;
@@ -22,6 +23,7 @@ public class MusicSystem
         implements System
 {
     private final QueryCatalog queryCatalog;
+    private final InMemoryVaultGraph graph;
     private final Vault vault;
 
     public MusicSystem()
@@ -32,6 +34,8 @@ public class MusicSystem
         queryCatalog.register(new RecordingsQuerySpecification());
         queryCatalog.register(new MembersQuerySpecification());
         vault = copyVaultIntoMemory();
+        graph = new InMemoryVaultGraph(vault, new MusicTaxonomy());
+        graph.construct();
     }
 
     private Vault copyVaultIntoMemory()

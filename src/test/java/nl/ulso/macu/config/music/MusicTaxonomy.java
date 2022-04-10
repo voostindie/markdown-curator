@@ -1,15 +1,16 @@
-package nl.ulso.macu.config.rabobank;
+package nl.ulso.macu.config.music;
 
 import nl.ulso.macu.graph.Taxonomy;
 import nl.ulso.macu.graph.VertexDescriptor;
 import nl.ulso.macu.vault.Document;
 import nl.ulso.macu.vault.Folder;
 
-import java.util.*;
+import java.util.List;
+import java.util.Set;
 
 import static java.util.Collections.emptySet;
 
-public class RabobankTaxonomy
+public class MusicTaxonomy
         implements Taxonomy
 {
     @Override
