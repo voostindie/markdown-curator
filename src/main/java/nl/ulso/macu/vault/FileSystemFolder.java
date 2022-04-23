@@ -99,20 +99,6 @@ public class FileSystemFolder
     }
 
     @Override
-    public boolean includesFolder(String folderName)
-    {
-        if (name.equals(folderName))
-        {
-            return true;
-        }
-        if (parent == null)
-        {
-            return false;
-        }
-        return parent.includesFolder(folderName);
-    }
-
-    @Override
     public void accept(VaultVisitor visitor)
     {
         visitor.visit(this);

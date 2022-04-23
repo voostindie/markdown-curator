@@ -3,7 +3,7 @@
     <module name="macu" />
     <extension name="coverage">
       <pattern>
-        <option name="PATTERN" value="nl.ulso.obsidian.watcher.*" />
+        <option name="PATTERN" value="nl.ulso.macu.*" />
         <option name="ENABLED" value="true" />
       </pattern>
     </extension>

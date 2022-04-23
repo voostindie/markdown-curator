@@ -1,8 +1,7 @@
 package nl.ulso.macu.system.music;
 
 import nl.ulso.macu.query.*;
-import nl.ulso.macu.vault.ElementCounter;
-import nl.ulso.macu.vault.Dictionary;
+import nl.ulso.macu.vault.*;
 import org.assertj.core.api.SoftAssertions;
 import org.assertj.core.api.junit.jupiter.InjectSoftAssertions;
 import org.assertj.core.api.junit.jupiter.SoftAssertionsExtension;
@@ -65,5 +64,36 @@ class MusicTest
     {
         var queries = music.vault().findAllQueries();
         softly.assertThat(queries.size()).isEqualTo(4);
+    }
+
+    @Test
+    void documentToFolderReferences()
+    {
+        var visitor = new BreadthFirstVaultVisitor() {
+            private Folder current;
+
+            @Override
+            public void visit(Vault vault)
+            {
+                current = vault;
+                super.visit(vault);
+                current = null;
+            }
+
+            @Override
+            public void visit(Folder folder)
+            {
+                current = folder;
+                super.visit(folder);
+                current = folder.parent();
+            }
+
+            @Override
+            public void visit(Document document)
+            {
+                softly.assertThat(document.folder()).isSameAs(current);
+            }
+        };
+        music.vault().accept(visitor);
     }
 }

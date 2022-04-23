@@ -21,6 +21,4 @@ public interface Folder
     Collection<Document> documents();
 
     Optional<Document> document(String name);
-
-    boolean includesFolder(String folderName);
 }
