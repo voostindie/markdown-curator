@@ -10,8 +10,7 @@ import java.util.regex.Pattern;
  * Yes: internal links that look like normal Markdown links are considered to be external links.
  * <p/P
  * A full Obsidian WikiLink looks like this: [[document#anchor|label]], with the anchor and the
- * label
- * optional.
+ * label optional.
  */
 final class WikiLinkFinder
         extends BreadthFirstVaultVisitor
@@ -34,24 +33,24 @@ final class WikiLinkFinder
     @Override
     public void visit(Section section)
     {
-        extractInternalLinks(section.title());
+        extractInternalLinks(section, section.title());
         super.visit(section);
     }
 
     @Override
-    public void visit(Text text)
+    public void visit(TextBlock textBlock)
     {
-        extractInternalLinks(text.content());
+        extractInternalLinks(textBlock, textBlock.content());
     }
 
-    private void extractInternalLinks(String content)
+    private void extractInternalLinks(Fragment fragment, String content)
     {
         allLinks(content).forEach(matchResult -> {
             var targetDocument = matchResult.group(1);
             var anchor = Optional.ofNullable(matchResult.group(2));
             var alias = Optional.ofNullable(matchResult.group(3));
             internalLinks.add(new InternalLink(
-                    currentLocation(),
+                    fragment,
                     targetDocument,
                     anchor,
                     alias));

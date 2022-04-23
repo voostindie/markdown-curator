@@ -9,8 +9,8 @@ import static java.lang.System.lineSeparator;
 import static nl.ulso.macu.vault.Dictionary.yamlDictionary;
 
 /**
- * Represents a query in a Markdown document. A query consists of 3 parts: the type, the
- * configuration and the result. The type and configuration together form the query definition.
+ * Represents a query in a Markdown document. A query consists of 3 parts: the name, the
+ * configuration and the result.
  * <p/>
  * Queries do not exist in any Markdown specification, which is why they're encoded as HTML
  * comments. This also ensures that the query definitions don't show up when rendering the
@@ -18,27 +18,27 @@ import static nl.ulso.macu.vault.Dictionary.yamlDictionary;
  * <p/>
  * The informal BNF specification for queries is:
  * <pre>
- *     query ::= "&lt;!--query" (":" &lt;type>) (&lt;configuration>) "-->" &lt;newline>
+ *     query ::= "&lt;!--query" (":" &lt;name>) (&lt;configuration>) "-->" &lt;newline>
  *               &lt;output> &lt;newline>
  *               "&lt;!--/query-->"
- *     type ::= string of alphabetical characters
+ *     name ::= string of alphabetical characters
  *     configuration ::= YAML
  *     output ::= arbitrary string
  * </pre>
  * This format is processed by this tool; it's why this tool exists in this first place. It picks
- * up the {@code type} and {@code configuration}, interprets it, runs it, and writes the results
+ * up the {@code name} and {@code configuration}, interprets it, runs it, and writes the results
  * in {@code output}.
  * <p/>
- * If no type is provided in the content, the default {@value DEFAULT_TYPE} is assumed.
+ * If no name is provided in the content, the default {@value DEFAULT_NAME} is assumed.
  * <p/>
  * The {@code configuration} is a YAML map. It can be omitted if the query needs no
  * configuration.
  * <p/>
  * The simplest way to add a new query to a page is to add an empty query block. After saving the
- * page, this tool will pick it up and insert the output, which consists of verbose documentation
- * if the query coulnd't be understood in one way or another.
+ * page, this tool will pick it up and insert the output, which consists of a list of available
+ * queries. Then go from there.
  */
-public final class Query
+public final class QueryBlock
         extends LineContainer
         implements Fragment
 {
@@ -46,23 +46,26 @@ public final class Query
     private static final String QUERY_CONFIGURATION_POSTFIX = "-->";
     static final String QUERY_OUTPUT_PREFIX = "<!--/query";
     static final String QUERY_OUTPUT_POSTFIX = "-->";
-    private static final char QUERY_TYPE_MARKER = ':';
-    private static final String DEFAULT_TYPE = "none";
+    private static final char QUERY_NAME_MARKER = ':';
+    private static final String DEFAULT_NAME = "none";
 
-    private final String type;
+    private final String name;
     private final Dictionary configuration;
     private final String result;
 
-    Query(List<String> lines)
+    QueryBlock(List<String> lines)
     {
         super(lines);
         var parser = new QueryParser(lines);
-        type = parser.type();
+        name = parser.name();
         configuration = yamlDictionary(parser.configuration());
         result = parser.result();
     }
 
-    public String type() {return type;}
+    public String name()
+    {
+        return name;
+    }
 
     public Dictionary configuration()
     {
@@ -81,11 +84,11 @@ public final class Query
         {
             return true;
         }
-        if (o instanceof Query query)
+        if (o instanceof QueryBlock queryBlock)
         {
-            return Objects.equals(type, query.type)
-                    && Objects.equals(configuration, query.configuration)
-                    && Objects.equals(result, query.result);
+            return Objects.equals(name, queryBlock.name)
+                    && Objects.equals(configuration, queryBlock.configuration)
+                    && Objects.equals(result, queryBlock.result);
         }
         return false;
     }
@@ -93,7 +96,7 @@ public final class Query
     @Override
     public int hashCode()
     {
-        return Objects.hash(type, configuration, result);
+        return Objects.hash(name, configuration, result);
     }
 
     @Override
@@ -110,7 +113,7 @@ public final class Query
 
     private static final class QueryParser
     {
-        private String type;
+        private String name;
         private String configuration;
         private String result;
 
@@ -119,7 +122,7 @@ public final class Query
             var query = join(lineSeparator(), lines.subList(0, lines.size() - 1))
                     .substring(QUERY_CONFIGURATION_PREFIX.length())
                     .trim();
-            if (query.length() > 0 && query.charAt(0) == QUERY_TYPE_MARKER)
+            if (query.length() > 0 && query.charAt(0) == QUERY_NAME_MARKER)
             {
                 var end = 1;
                 while (isAlphabetic(query.charAt(end)))
@@ -128,7 +131,7 @@ public final class Query
                 }
                 if (end > 1)
                 {
-                    this.type = query.substring(1, end).toLowerCase();
+                    this.name = query.substring(1, end).toLowerCase();
                 }
                 query = query.substring(end);
             }
@@ -140,9 +143,9 @@ public final class Query
             }
         }
 
-        String type()
+        String name()
         {
-            return type != null ? type : DEFAULT_TYPE;
+            return name != null ? name : DEFAULT_NAME;
         }
 
         String configuration()

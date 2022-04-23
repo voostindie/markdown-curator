@@ -1,6 +1,7 @@
-package nl.ulso.macu.config.rabobank;
+package nl.ulso.macu.system.tweevv;
 
 import nl.ulso.macu.vault.ElementCounter;
+import org.assertj.core.api.Assertions;
 import org.assertj.core.api.SoftAssertions;
 import org.assertj.core.api.junit.jupiter.InjectSoftAssertions;
 import org.assertj.core.api.junit.jupiter.SoftAssertionsExtension;
@@ -13,7 +14,7 @@ import java.io.IOException;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @ExtendWith(SoftAssertionsExtension.class)
-class RabobankSystemTest
+class TweevvTest
 {
     @InjectSoftAssertions
     private SoftAssertions softly;
@@ -23,8 +24,8 @@ class RabobankSystemTest
     void constructSystem()
             throws IOException
     {
-        var vault = new RabobankSystem().vault();
-        assertThat(vault.name()).endsWith("Rabobank");
+        var vault = new Tweevv().vault();
+        Assertions.assertThat(vault.name()).endsWith("TweeVV");
         var statistics = ElementCounter.countAll(vault);
         System.out.println(statistics);
     }

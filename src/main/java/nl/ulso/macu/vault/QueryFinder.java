@@ -8,16 +8,16 @@ import java.util.*;
 final class QueryFinder
         extends BreadthFirstVaultVisitor
 {
-    private final Map<Query, Location> queries = new HashMap<>();
+    private final List<QueryBlock> queries = new ArrayList<>();
 
     @Override
-    public void visit(Query query)
+    public void visit(QueryBlock queryBlock)
     {
-        queries.put(query, currentLocation());
+        queries.add(queryBlock);
     }
 
-    Map<Query, Location> queries()
+    Collection<QueryBlock> queries()
     {
-        return Collections.unmodifiableMap(queries);
+        return Collections.unmodifiableCollection(queries);
     }
 }

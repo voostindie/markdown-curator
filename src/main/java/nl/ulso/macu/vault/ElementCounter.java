@@ -116,13 +116,13 @@ public final class ElementCounter
     }
 
     @Override
-    public void visit(Query query)
+    public void visit(QueryBlock queryBlock)
     {
         statistics.queries++;
     }
 
     @Override
-    public void visit(Text text)
+    public void visit(TextBlock textBlock)
     {
         statistics.texts++;
     }

@@ -5,7 +5,7 @@ import java.util.Map;
 
 public interface QueryResult
 {
-    boolean isValid();
+    boolean isSuccess();
 
     List<String> columns();
 

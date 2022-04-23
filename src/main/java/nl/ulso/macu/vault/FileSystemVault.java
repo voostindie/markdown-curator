@@ -5,8 +5,7 @@ import org.slf4j.Logger;
 import java.io.IOException;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 import static java.nio.file.Files.walkFileTree;
 import static java.nio.file.StandardWatchEventKinds.ENTRY_CREATE;
@@ -62,7 +61,7 @@ public final class FileSystemVault
     }
 
     @Override
-    public Map<Query, Location> findAllQueries()
+    public Collection<QueryBlock> findAllQueries()
     {
         var finder = new QueryFinder();
         this.accept(finder);
@@ -178,7 +177,8 @@ public final class FileSystemVault
     {
         try
         {
-            return Document.newDocument(documentName(absolutePath), Files.readAllLines(absolutePath));
+            return Document.newDocument(documentName(absolutePath),
+                    Files.readAllLines(absolutePath));
         }
         catch (IOException e)
         {

@@ -35,14 +35,14 @@ class SectionTest
                         "",
                         "Lorem ipsum"),
                 List.of(
-                        new Text(List.of("", "Lorem ipsum"))
+                        new TextBlock(List.of("", "Lorem ipsum"))
                 ));
         softly.assertThat(section.level()).isEqualTo(42);
         softly.assertThat(section.title()).isEqualTo("Section title");
         softly.assertThat(section.anchor()).isEqualTo("Section title");
         softly.assertThat(section.lines()).containsExactly("## Section title", "", "Lorem ipsum");
         softly.assertThat(section.fragments())
-                .containsExactly(new Text(List.of("", "Lorem ipsum")));
+                .containsExactly(new TextBlock(List.of("", "Lorem ipsum")));
     }
 
     @Test

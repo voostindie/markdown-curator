@@ -2,6 +2,8 @@ package nl.ulso.macu.vault;
 
 import java.util.*;
 
+import static java.util.Objects.requireNonNull;
+
 /**
  * Represents a Markdown document. A document is broken down in a list of {@link Fragment}s.
  * <p/>
@@ -14,6 +16,7 @@ import java.util.*;
 public final class Document
         extends FragmentContainer
 {
+    private Folder folder;
     private final String name;
     private final String title;
 
@@ -22,6 +25,15 @@ public final class Document
         super(lines, fragments);
         this.name = name;
         this.title = resolveTitle(name, fragments);
+    }
+
+    void setFolder(Folder folder)
+    {
+        if (this.folder != null)
+        {
+            throw new IllegalStateException("Folder can be set only once");
+        }
+        this.folder = requireNonNull(folder);
     }
 
     @Override
@@ -61,6 +73,11 @@ public final class Document
     static Document newDocument(String name, List<String> lines)
     {
         return new DocumentParser(name, lines).parse();
+    }
+
+    public Folder folder()
+    {
+        return folder;
     }
 
     public String name()

@@ -7,7 +7,6 @@ import org.apache.tinkerpop.gremlin.tinkergraph.structure.TinkerGraph;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static java.util.stream.Collectors.joining;
 import static org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.__.addV;
 import static org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.__.inV;
 import static org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.__.unfold;
@@ -72,9 +71,8 @@ public final class InMemoryVaultGraph
         @Override
         public void visit(Document document)
         {
-            g.addV(DOCUMENT).property(NAME, document.name()).property("vaultPath",
-                    currentVaultPath().stream().map(Folder::name).collect(joining("/"))).next();
-            taxonomy.describe(currentVaultPath(), document).forEach(descriptor -> {
+            g.addV(DOCUMENT).property(NAME, document.name()).next();
+            taxonomy.describe(document).forEach(descriptor -> {
                 var label = descriptor.label();
                 if (label.equals(DOCUMENT) || label.equals(DISCOVERED))
                 {

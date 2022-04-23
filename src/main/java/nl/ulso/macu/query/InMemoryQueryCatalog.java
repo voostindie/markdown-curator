@@ -1,6 +1,7 @@
 package nl.ulso.macu.query;
 
 import nl.ulso.macu.vault.Dictionary;
+import nl.ulso.macu.vault.Vault;
 
 import java.util.*;
 
@@ -10,45 +11,47 @@ import static java.util.Collections.emptyList;
 public class InMemoryQueryCatalog
         implements QueryCatalog
 {
-    private final Map<String, QuerySpecification> specifications;
+    private final Vault vault;
+    private final Map<String, Query> queries;
 
-    public InMemoryQueryCatalog()
+    public InMemoryQueryCatalog(Vault vault)
     {
-        this.specifications = new HashMap<>();
+        this.vault = vault;
+        this.queries = new HashMap<>();
     }
 
     @Override
-    public void register(QuerySpecification querySpecification)
+    public void register(Query query)
     {
-        specifications.put(querySpecification.type(), querySpecification);
+        queries.put(query.name(), query);
     }
 
     @Override
-    public Collection<QuerySpecification> specifications()
+    public Collection<Query> queries()
     {
-        return Collections.unmodifiableCollection(specifications.values());
+        return Collections.unmodifiableCollection(queries.values());
     }
 
     @Override
-    public QuerySpecification specificationFor(String type)
+    public Query query(String name)
     {
-        return specifications.getOrDefault(type, new InvalidQuerySpecification(type));
+        return queries.getOrDefault(name, new UnknownQuery(name));
     }
 
-    private class InvalidQuerySpecification
-            implements QuerySpecification
+    private class UnknownQuery
+            implements Query
     {
-        private final String unknownType;
+        private final String name;
 
-        public InvalidQuerySpecification(String unknownType)
+        public UnknownQuery(String name)
         {
-            this.unknownType = unknownType;
+            this.name = name;
         }
 
         @Override
-        public String type()
+        public String name()
         {
-            return "none";
+            return name;
         }
 
         public String description()
@@ -57,12 +60,11 @@ public class InMemoryQueryCatalog
         }
 
         @Override
-        public QueryRunner configure(Dictionary configuration)
+        public PreparedQuery prepare(Dictionary configuration)
         {
-            return r -> new QueryResult()
-            {
+            return () -> new QueryResult() {
                 @Override
-                public boolean isValid()
+                public boolean isSuccess()
                 {
                     return false;
                 }
@@ -84,10 +86,10 @@ public class InMemoryQueryCatalog
                 {
                     var builder = new StringBuilder();
                     builder.append("This vault has no query defined called '")
-                            .append(unknownType)
+                            .append(name)
                             .append("'.")
                             .append(lineSeparator());
-                    if (specifications().isEmpty())
+                    if (queries().isEmpty())
                     {
                         builder.append("Actually this vault has no queries defined at all.")
                                 .append(lineSeparator())
@@ -99,9 +101,9 @@ public class InMemoryQueryCatalog
                         builder.append("Queries known for this vault are:")
                                 .append(lineSeparator())
                                 .append(lineSeparator());
-                        specifications().forEach(specification ->
+                        queries().forEach(specification ->
                                 builder.append("- **")
-                                        .append(specification.type())
+                                        .append(specification.name())
                                         .append("**: ")
                                         .append(specification.description())
                                         .append(lineSeparator()));

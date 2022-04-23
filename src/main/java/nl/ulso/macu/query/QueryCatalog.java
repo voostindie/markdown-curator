@@ -4,9 +4,22 @@ import java.util.Collection;
 
 public interface QueryCatalog
 {
-    void register(QuerySpecification querySpecification);
+    /**
+     * Registers the query in the catalog. If a query with the same name already exists, it is
+     * overwritten.
+     *
+     * @param query Query to register.
+     */
+    void register(Query query);
 
-    Collection<QuerySpecification> specifications();
+    /**
+     * @return All queries in this catalog.
+     */
+    Collection<Query> queries();
 
-    QuerySpecification specificationFor(String type);
+    /**
+     * @param name Name of the query to get from the catalog.
+     * @return The query with the specified name, or a default query if no such query exists.
+     */
+    Query query(String name);
 }

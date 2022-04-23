@@ -7,11 +7,11 @@ import java.util.Objects;
  * Represents a block of text in a Markdown document. This is the default type of content, meaning
  * that anything not specifically handled differently is considered to be text.
  */
-public final class Text
+public final class TextBlock
         extends LineContainer
         implements Fragment
 {
-    Text(List<String> lines)
+    TextBlock(List<String> lines)
     {
         super(lines);
     }
@@ -23,9 +23,9 @@ public final class Text
         {
             return true;
         }
-        if (o instanceof Text text)
+        if (o instanceof TextBlock textBlock)
         {
-            return Objects.equals(lines(), text.lines());
+            return Objects.equals(lines(), textBlock.lines());
         }
         return false;
     }

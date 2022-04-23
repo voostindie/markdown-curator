@@ -14,7 +14,7 @@ public interface VaultVisitor
 
     void visit(CodeBlock codeBlock);
 
-    void visit(Query query);
+    void visit(QueryBlock queryBlock);
 
-    void visit(Text text);
+    void visit(TextBlock textBlock);
 }

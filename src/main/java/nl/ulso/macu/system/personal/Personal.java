@@ -1,18 +1,19 @@
-package nl.ulso.macu.config.personal;
+package nl.ulso.macu.system.personal;
 
 import nl.ulso.macu.System;
+import nl.ulso.macu.query.QueryCatalog;
 import nl.ulso.macu.vault.FileSystemVault;
 import nl.ulso.macu.vault.Vault;
 
 import java.io.IOException;
 import java.nio.file.Path;
 
-public class PersonalSystem
+public class Personal
         implements System
 {
     private final Vault vault;
 
-    public PersonalSystem()
+    public Personal()
             throws IOException
     {
         this.vault = new FileSystemVault(Path.of("/Users", "vincent", "Notes", "Personal"));
@@ -22,5 +23,18 @@ public class PersonalSystem
     public Vault vault()
     {
         return vault;
+    }
+
+    @Override
+    public QueryCatalog queryCatalog()
+    {
+        throw new UnsupportedOperationException("Not implemented yet.");
+    }
+
+    @Override
+    public void run()
+            throws IOException, InterruptedException
+    {
+        vault.watchForChanges();
     }
 }

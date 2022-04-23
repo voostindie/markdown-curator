@@ -16,11 +16,11 @@ class InMemoryQueryCatalogTest
     @Test
     void emptyCatalog()
     {
-        var catalog = new InMemoryQueryCatalog();
-        var specification = catalog.specificationFor("invalid");
-        var runner = specification.configure(Dictionary.emptyDictionary());
-        var result = runner.run(null);
-        softly.assertThat(result.isValid()).isFalse();
+        var catalog = new InMemoryQueryCatalog(null);
+        var specification = catalog.query("invalid");
+        var query = specification.prepare(Dictionary.emptyDictionary());
+        var result = query.run();
+        softly.assertThat(result.isSuccess()).isFalse();
         softly.assertThat(result.columns()).isEmpty();
         softly.assertThat(result.rows()).isEmpty();
         softly.assertThat(result.errorMessage()).contains("no queries defined");

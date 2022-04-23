@@ -10,7 +10,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import java.util.List;
 
 @ExtendWith(SoftAssertionsExtension.class)
-class QueryTest
+class PreparedQueryTest
 {
     @InjectSoftAssertions
     private SoftAssertions softly;
@@ -18,13 +18,13 @@ class QueryTest
     @Test
     void equalsContract()
     {
-        EqualsVerifier.forClass(Query.class).withIgnoredFields("lines").verify();
+        EqualsVerifier.forClass(QueryBlock.class).withIgnoredFields("lines").verify();
     }
 
     @Test
     void empty()
     {
-        var emptyQuery = new Query(List.of("<!--query-->", "<!--/query-->"));
+        var emptyQuery = new QueryBlock(List.of("<!--query-->", "<!--/query-->"));
         softly.assertThat(emptyQuery.isEmpty()).isTrue();
         softly.assertThat(emptyQuery.configuration().isEmpty()).isTrue();
         softly.assertThat(emptyQuery.result()).isBlank();
@@ -33,7 +33,7 @@ class QueryTest
     @Test
     void singleLineConfigurationNoOutput()
     {
-        var emptyQuery = new Query(List.of("<!--query foo: bar-->", "<!--/query-->"));
+        var emptyQuery = new QueryBlock(List.of("<!--query foo: bar-->", "<!--/query-->"));
         softly.assertThat(emptyQuery.isEmpty()).isFalse();
         softly.assertThat(emptyQuery.configuration().string("foo", null)).isEqualTo("bar");
         softly.assertThat(emptyQuery.result()).isBlank();
@@ -42,7 +42,7 @@ class QueryTest
     @Test
     void multiLineConfigurationNoOutput()
     {
-        var query = new Query(
+        var query = new QueryBlock(
                 List.of("<!--query", "foo: bar", "answer: 42", "-->", "<!--/query-->"));
         softly.assertThat(query.isEmpty()).isFalse();
         var configuration = query.configuration();
@@ -54,7 +54,7 @@ class QueryTest
     @Test
     void singleLineDefinitionSingleLineOutput()
     {
-        var emptyQuery = new Query(
+        var emptyQuery = new QueryBlock(
                 List.of("<!--query-->", "output", "<!--/query-->"));
         softly.assertThat(emptyQuery.isEmpty()).isFalse();
         softly.assertThat(emptyQuery.configuration().isEmpty()).isTrue();
@@ -64,7 +64,7 @@ class QueryTest
     @Test
     void singleLineDefinitionMultiLineOutput()
     {
-        var emptyQuery = new Query(
+        var emptyQuery = new QueryBlock(
                 List.of("<!--query-->", "line 1", "line 2", "", "<!--/query-->"));
         softly.assertThat(emptyQuery.isEmpty()).isFalse();
         softly.assertThat(emptyQuery.configuration().isEmpty()).isTrue();
@@ -74,39 +74,39 @@ class QueryTest
     @Test
     void defaultTypeIsNone()
     {
-        var query = new Query(List.of("<!--query-->", "<!--/query-->"));
-        softly.assertThat(query.type()).isEqualTo("none");
+        var query = new QueryBlock(List.of("<!--query-->", "<!--/query-->"));
+        softly.assertThat(query.name()).isEqualTo("none");
     }
 
     @Test
     void customType()
     {
-        var query = new Query(List.of("<!--query:custom-->", "<!--/query-->"));
-        softly.assertThat(query.type()).isEqualTo("custom");
+        var query = new QueryBlock(List.of("<!--query:custom-->", "<!--/query-->"));
+        softly.assertThat(query.name()).isEqualTo("custom");
         softly.assertThat(query.configuration().isEmpty()).isTrue();
     }
 
     @Test
     void customTypeMissingOneLine()
     {
-        var query = new Query(List.of("<!--query:-->", "<!--/query-->"));
-        softly.assertThat(query.type()).isEqualTo("none");
+        var query = new QueryBlock(List.of("<!--query:-->", "<!--/query-->"));
+        softly.assertThat(query.name()).isEqualTo("none");
         softly.assertThat(query.configuration().isEmpty()).isTrue();
     }
 
     @Test
     void customTypeMissingMultiLines()
     {
-        var query = new Query(List.of("<!--query:", "foo: bar", "-->", "<!--/query-->"));
-        softly.assertThat(query.type()).isEqualTo("none");
+        var query = new QueryBlock(List.of("<!--query:", "foo: bar", "-->", "<!--/query-->"));
+        softly.assertThat(query.name()).isEqualTo("none");
         softly.assertThat(query.configuration().string("foo", null)).isEqualTo("bar");
     }
 
     @Test
     void invalidQuery()
     {
-        var query = new Query(List.of("<!--query", "<!--/query-->"));
-        softly.assertThat(query.type()).isEqualTo("none");
+        var query = new QueryBlock(List.of("<!--query", "<!--/query-->"));
+        softly.assertThat(query.name()).isEqualTo("none");
         softly.assertThat(query.configuration().isEmpty()).isTrue();
         softly.assertThat(query.result()).isBlank();
     }

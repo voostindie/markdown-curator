@@ -1,4 +1,4 @@
-package nl.ulso.macu.config.music;
+package nl.ulso.macu.system.music;
 
 import nl.ulso.macu.query.*;
 import nl.ulso.macu.vault.ElementCounter;
@@ -15,9 +15,9 @@ import java.io.IOException;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @ExtendWith(SoftAssertionsExtension.class)
-class MusicSystemTest
+class MusicTest
 {
-    private static MusicSystem musicSystem;
+    private static Music music;
 
     @InjectSoftAssertions
     private SoftAssertions softly;
@@ -26,13 +26,13 @@ class MusicSystemTest
     static void constructSystem()
             throws IOException
     {
-        musicSystem = new MusicSystem();
+        music = new Music();
     }
 
     @Test
     void statistics()
     {
-        var vault = musicSystem.vault();
+        var vault = music.vault();
         assertThat(vault.name()).endsWith("music");
         var statistics = ElementCounter.countAll(vault);
         System.out.println(statistics);
@@ -49,11 +49,11 @@ class MusicSystemTest
     @Test
     void queryCatalog()
     {
-        QueryCatalog catalog = musicSystem.queryCatalog();
-        softly.assertThat(catalog.specifications().size()).isEqualTo(3);
-        QuerySpecification dummy = catalog.specificationFor("dummy");
-        QueryResult result = dummy.configure(Dictionary.emptyDictionary()).run(musicSystem.vault());
-        softly.assertThat(result.isValid()).isFalse();
+        QueryCatalog catalog = music.queryCatalog();
+        softly.assertThat(catalog.queries().size()).isEqualTo(3);
+        Query dummy = catalog.query("dummy");
+        QueryResult result = dummy.prepare(Dictionary.emptyDictionary()).run();
+        softly.assertThat(result.isSuccess()).isFalse();
         softly.assertThat(result.errorMessage()).contains("no query defined called 'dummy'");
         softly.assertThat(result.errorMessage()).contains("albums");
         softly.assertThat(result.errorMessage()).contains("recordings");
@@ -63,13 +63,7 @@ class MusicSystemTest
     @Test
     void queries()
     {
-        var queries = musicSystem.vault().findAllQueries();
+        var queries = music.vault().findAllQueries();
         softly.assertThat(queries.size()).isEqualTo(4);
-        queries.keySet().forEach((query) -> {
-            var location = queries.get(query);
-            softly.assertThat(location.vaultPath()).isNotEmpty();
-            softly.assertThat(location.document()).isNotNull();
-            softly.assertThat(location.documentPath()).isNotEmpty();
-        });
     }
 }

@@ -95,9 +95,9 @@ final class DocumentParser
     {
         return switch (type)
                 {
-                    case TEXT -> new Text(lines.subList(start, end));
+                    case TEXT -> new TextBlock(lines.subList(start, end));
                     case CODE -> new CodeBlock(lines.subList(start, end));
-                    case QUERY -> new Query(lines.subList(start, end));
+                    case QUERY -> new QueryBlock(lines.subList(start, end));
                     default -> throw new IllegalStateException("Unsupported type " + type);
                 };
     }

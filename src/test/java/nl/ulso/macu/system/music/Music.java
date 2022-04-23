@@ -1,4 +1,4 @@
-package nl.ulso.macu.config.music;
+package nl.ulso.macu.system.music;
 
 import com.google.common.jimfs.Configuration;
 import com.google.common.jimfs.Jimfs;
@@ -19,21 +19,21 @@ import java.nio.file.attribute.BasicFileAttributes;
  * is initialized on top of this file system. This ensures that the file system stays intact. The
  * vault on disk is there to make it easy to maintain and use: just fire up Obsidian on top of it.
  */
-public class MusicSystem
+public class Music
         implements System
 {
     private final QueryCatalog queryCatalog;
     private final InMemoryVaultGraph graph;
     private final Vault vault;
 
-    public MusicSystem()
+    public Music()
             throws IOException
     {
-        queryCatalog = new InMemoryQueryCatalog();
-        queryCatalog.register(new AlbumQuerySpecification());
-        queryCatalog.register(new RecordingsQuerySpecification());
-        queryCatalog.register(new MembersQuerySpecification());
         vault = copyVaultIntoMemory();
+        queryCatalog = new InMemoryQueryCatalog(vault);
+        queryCatalog.register(new AlbumsQuery());
+        queryCatalog.register(new RecordingsQuery());
+        queryCatalog.register(new MembersQuery());
         graph = new InMemoryVaultGraph(vault, new MusicTaxonomy());
         graph.construct();
     }
@@ -57,6 +57,13 @@ public class MusicSystem
     public Vault vault()
     {
         return vault;
+    }
+
+    @Override
+    public void run()
+            throws IOException, InterruptedException
+    {
+        vault.watchForChanges();
     }
 
     private static class RecursiveCopier

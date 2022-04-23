@@ -14,11 +14,11 @@ import static nl.ulso.macu.vault.Dictionary.yamlDictionary;
  */
 public final class FrontMatter
         extends LineContainer
-        implements Fragment, nl.ulso.macu.vault.Dictionary
+        implements Fragment, Dictionary
 {
     static final String FRONT_MATTER_MARKER = "---";
 
-    private final nl.ulso.macu.vault.Dictionary dictionary;
+    private final Dictionary dictionary;
 
     FrontMatter(List<String> lines)
     {

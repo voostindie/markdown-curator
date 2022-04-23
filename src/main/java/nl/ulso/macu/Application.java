@@ -1,8 +1,8 @@
 package nl.ulso.macu;
 
-import nl.ulso.macu.config.personal.PersonalSystem;
-import nl.ulso.macu.config.rabobank.RabobankSystem;
-import nl.ulso.macu.config.tweevv.TweevvSystem;
+import nl.ulso.macu.system.personal.Personal;
+import nl.ulso.macu.system.rabobank.Rabobank;
+import nl.ulso.macu.system.tweevv.Tweevv;
 import org.slf4j.Logger;
 
 import java.io.IOException;
@@ -12,10 +12,7 @@ import java.util.concurrent.Executors;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
- * Main application: sets up all vaults and watches them for changes, updating the in-memory
- * model as changes come in.
- * <p/>
- * Each vault is managed in its own thread.
+ * Main application: sets up all systems and runs them; each system runs in its own thread.
  */
 public class Application
 {
@@ -36,7 +33,7 @@ public class Application
                     Thread.currentThread().setName(clazz.getSimpleName());
                     LOGGER.debug("Instantiating system: {}", clazz.getSimpleName());
                     var system = clazz.getDeclaredConstructor().newInstance();
-                    system.vault().watchForChanges();
+                    system.run();
                 }
                 catch (ReflectiveOperationException e)
                 {
@@ -62,9 +59,9 @@ public class Application
     private static Set<Class<? extends System>> systems()
     {
         return Set.of(
-                RabobankSystem.class,
-                PersonalSystem.class,
-                TweevvSystem.class
+                Rabobank.class,
+                Personal.class,
+                Tweevv.class
         );
     }
 

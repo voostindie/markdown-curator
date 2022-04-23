@@ -8,9 +8,9 @@ import static nl.ulso.macu.vault.CodeBlock.CODE_MARKER;
 import static nl.ulso.macu.vault.FrontMatter.FRONT_MATTER_MARKER;
 import static nl.ulso.macu.vault.MarkdownTokenizer.LineToken.*;
 import static nl.ulso.macu.vault.MarkdownTokenizer.TokenType.*;
-import static nl.ulso.macu.vault.Query.QUERY_CONFIGURATION_PREFIX;
-import static nl.ulso.macu.vault.Query.QUERY_OUTPUT_POSTFIX;
-import static nl.ulso.macu.vault.Query.QUERY_OUTPUT_PREFIX;
+import static nl.ulso.macu.vault.QueryBlock.QUERY_CONFIGURATION_PREFIX;
+import static nl.ulso.macu.vault.QueryBlock.QUERY_OUTPUT_POSTFIX;
+import static nl.ulso.macu.vault.QueryBlock.QUERY_OUTPUT_PREFIX;
 import static nl.ulso.macu.vault.Section.HEADER_PATTERN;
 
 /**
@@ -24,7 +24,7 @@ import static nl.ulso.macu.vault.Section.HEADER_PATTERN;
  *   <li>Only ATX (#) headers, without the optional closing sequence of #'s</li>
  *   <li>Headers are always aligned to the left margin</li>
  *   <li>Code is always in code blocks surrounded with backticks</li>
- *   <li>Queries can be defined in HTML comments, for this tool to process. See {@link Query}</li>
+ *   <li>Queries can be defined in HTML comments, for this tool to process. See {@link QueryBlock}</li>
  * </ul>
  */
 class MarkdownTokenizer

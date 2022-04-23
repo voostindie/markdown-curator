@@ -1,12 +1,12 @@
 package nl.ulso.macu.vault;
 
 import java.io.IOException;
-import java.util.Map;
+import java.util.Collection;
 
 public interface Vault
         extends Folder
 {
-    Map<Query, Location> findAllQueries();
+    Collection<QueryBlock> findAllQueries();
 
     /**
      * Watches the vault for changes and acts accordingly when it does. This method blocks:

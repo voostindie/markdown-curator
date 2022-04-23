@@ -140,6 +140,7 @@ public class FileSystemFolder
      */
     void addDocument(Document document)
     {
+        document.setFolder(this);
         documents.put(document.name(), document);
     }
 
