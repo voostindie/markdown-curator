@@ -7,9 +7,11 @@ import org.assertj.core.api.junit.jupiter.SoftAssertionsExtension;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
+import java.util.Collections;
 import java.util.List;
 
 import static java.util.Collections.emptyList;
+import static nl.ulso.macu.vault.Document.newDocument;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @ExtendWith(SoftAssertionsExtension.class)
@@ -21,7 +23,12 @@ class SectionTest
     @Test
     void equalsContract()
     {
-        EqualsVerifier.forClass(Section.class).withIgnoredFields("anchor").verify();
+        EqualsVerifier.forClass(Section.class)
+                .withPrefabValues(Document.class,
+                        newDocument("1", Collections.emptyList()),
+                        newDocument("2", Collections.emptyList()))
+                .withIgnoredFields("document", "anchor")
+                .verify();
     }
 
     @Test

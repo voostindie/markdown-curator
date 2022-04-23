@@ -23,7 +23,12 @@ class DocumentTest
     @Test
     void equalsContract()
     {
-        EqualsVerifier.forClass(Document.class).withIgnoredFields("title", "folder").verify();
+        EqualsVerifier.forClass(Document.class)
+                .withPrefabValues(Document.class,
+                        newDocument("1", Collections.emptyList()),
+                        newDocument("2", Collections.emptyList()))
+                .withIgnoredFields("document", "title", "folder")
+                .verify();
     }
 
     @Test

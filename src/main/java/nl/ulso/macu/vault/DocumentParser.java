@@ -62,7 +62,9 @@ final class DocumentParser
                 fragmentStart = -1;
                 fragmentType = null;
             }
-            if (type == MarkdownTokenizer.TokenType.TEXT || type == MarkdownTokenizer.TokenType.CODE || type == MarkdownTokenizer.TokenType.QUERY)
+            if (type == MarkdownTokenizer.TokenType.TEXT ||
+                    type == MarkdownTokenizer.TokenType.CODE ||
+                    type == MarkdownTokenizer.TokenType.QUERY)
             {
                 fragmentStart = token.lineIndex();
                 fragmentType = type;
@@ -88,7 +90,52 @@ final class DocumentParser
                 ensureFrontMatterIsPresent();
             }
         }
-        return new Document(name, lines, fragments.get(0));
+        var document = new Document(name, lines, fragments.get(0));
+        linkFragmentsToDocument(document);
+        return document;
+    }
+
+    private void linkFragmentsToDocument(Document document)
+    {
+        var visitor = new BreadthFirstVaultVisitor()
+        {
+            @Override
+            public void visit(FrontMatter frontMatter)
+            {
+                linkFragment(frontMatter);
+            }
+
+            @Override
+            public void visit(Section section)
+            {
+                linkFragment(section);
+                super.visit(section);
+            }
+
+            @Override
+            public void visit(CodeBlock codeBlock)
+            {
+                linkFragment(codeBlock);
+            }
+
+            @Override
+            public void visit(QueryBlock queryBlock)
+            {
+                linkFragment(queryBlock);
+            }
+
+            @Override
+            public void visit(TextBlock textBlock)
+            {
+                linkFragment(textBlock);
+            }
+
+            private void linkFragment(DocumentHolder documentHolder)
+            {
+                documentHolder.setDocument(document);
+            }
+        };
+        document.accept(visitor);
     }
 
     private Fragment createFragment(MarkdownTokenizer.TokenType type, int start, int end)

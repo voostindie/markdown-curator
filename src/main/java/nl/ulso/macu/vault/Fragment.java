@@ -11,6 +11,8 @@ import java.util.List;
  */
 public interface Fragment
 {
+    Document document();
+
     List<String> lines();
 
     String content();

@@ -7,7 +7,10 @@ import org.assertj.core.api.junit.jupiter.SoftAssertionsExtension;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
+import java.util.Collections;
 import java.util.List;
+
+import static nl.ulso.macu.vault.Document.newDocument;
 
 @ExtendWith(SoftAssertionsExtension.class)
 class CodeBlockTest
@@ -18,7 +21,12 @@ class CodeBlockTest
     @Test
     void equalsContract()
     {
-        EqualsVerifier.forClass(CodeBlock.class).withIgnoredFields("lines").verify();
+        EqualsVerifier.forClass(CodeBlock.class)
+                .withPrefabValues(Document.class,
+                        newDocument("1", Collections.emptyList()),
+                        newDocument("2", Collections.emptyList()))
+                .withIgnoredFields("document", "lines")
+                .verify();
     }
 
     @Test

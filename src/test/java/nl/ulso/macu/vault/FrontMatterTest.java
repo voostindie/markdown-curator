@@ -3,9 +3,11 @@ package nl.ulso.macu.vault;
 import nl.jqno.equalsverifier.EqualsVerifier;
 import org.junit.jupiter.api.Test;
 
+import java.util.Collections;
 import java.util.List;
 
 import static java.util.Collections.emptyList;
+import static nl.ulso.macu.vault.Document.newDocument;
 import static org.assertj.core.api.Assertions.assertThat;
 
 class FrontMatterTest
@@ -13,7 +15,12 @@ class FrontMatterTest
     @Test
     void equalsContract()
     {
-        EqualsVerifier.forClass(FrontMatter.class).verify();
+        EqualsVerifier.forClass(FrontMatter.class)
+                .withPrefabValues(Document.class,
+                        newDocument("1", Collections.emptyList()),
+                        newDocument("2", Collections.emptyList()))
+                .withIgnoredFields("document")
+                .verify();
     }
 
     @Test

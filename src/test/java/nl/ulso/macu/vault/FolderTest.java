@@ -10,6 +10,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 
 import java.util.Collections;
 
+import static nl.ulso.macu.vault.Document.newDocument;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @ExtendWith(SoftAssertionsExtension.class)
@@ -22,8 +23,12 @@ class FolderTest
     void equalsContract()
     {
         EqualsVerifier.forClass(FileSystemFolder.class)
-                .withPrefabValues(
-                        FileSystemFolder.class, new FileSystemFolder("red"), new FileSystemFolder("blue"))
+                .withPrefabValues(Document.class,
+                        newDocument("1", Collections.emptyList()),
+                        newDocument("2", Collections.emptyList()))
+                .withPrefabValues(FileSystemFolder.class,
+                        new FileSystemFolder("red"),
+                        new FileSystemFolder("blue"))
                 .verify();
     }
 

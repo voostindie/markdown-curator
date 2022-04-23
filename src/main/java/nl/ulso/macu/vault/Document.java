@@ -31,7 +31,7 @@ public final class Document
     {
         if (this.folder != null)
         {
-            throw new IllegalStateException("Folder can be set only once");
+            throw new AssertionError("Folder can be set at most once");
         }
         this.folder = requireNonNull(folder);
     }
@@ -73,6 +73,12 @@ public final class Document
     static Document newDocument(String name, List<String> lines)
     {
         return new DocumentParser(name, lines).parse();
+    }
+
+    @Override
+    public Document document()
+    {
+        return this;
     }
 
     public Folder folder()

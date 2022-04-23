@@ -67,31 +67,71 @@ class MusicTest
     }
 
     @Test
-    void documentToFolderReferences()
+    void internalObjectReferences()
     {
         var visitor = new BreadthFirstVaultVisitor() {
-            private Folder current;
+            private Folder currentFolder;
+            private Document currentDocument;
 
             @Override
             public void visit(Vault vault)
             {
-                current = vault;
+                currentFolder = vault;
                 super.visit(vault);
-                current = null;
+                currentFolder = null;
             }
 
             @Override
             public void visit(Folder folder)
             {
-                current = folder;
+                currentFolder = folder;
                 super.visit(folder);
-                current = folder.parent();
+                currentFolder = folder.parent();
             }
 
             @Override
             public void visit(Document document)
             {
-                softly.assertThat(document.folder()).isSameAs(current);
+                softly.assertThat(document.folder()).isSameAs(currentFolder);
+                currentDocument = document;
+                super.visit(document);
+                currentDocument = null;
+            }
+
+            @Override
+            public void visit(FrontMatter frontMatter)
+            {
+                assertDocumentReference(frontMatter);
+            }
+
+            @Override
+            public void visit(Section section)
+            {
+                assertDocumentReference(section);
+                super.visit(section);
+            }
+
+            @Override
+            public void visit(CodeBlock codeBlock)
+            {
+                assertDocumentReference(codeBlock);
+            }
+
+            @Override
+            public void visit(QueryBlock queryBlock)
+            {
+                assertDocumentReference(queryBlock);
+            }
+
+            @Override
+            public void visit(TextBlock textBlock)
+            {
+                assertDocumentReference(textBlock);
+            }
+
+            private void assertDocumentReference(Fragment fragment)
+            {
+                softly.assertThat(fragment.document()).isSameAs(currentDocument);
             }
         };
         music.vault().accept(visitor);

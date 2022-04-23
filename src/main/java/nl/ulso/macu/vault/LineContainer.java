@@ -12,6 +12,7 @@ import static java.util.Objects.requireNonNull;
  * all blank lines at the beginning and the end, effectively trimming the input.
  */
 abstract class LineContainer
+    extends DocumentHolder
 {
     private final List<String> lines;
 
