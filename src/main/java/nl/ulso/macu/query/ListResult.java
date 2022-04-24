@@ -36,7 +36,7 @@ class ListResult
     @Override
     public String errorMessage()
     {
-        return null;
+        return "";
     }
 
     @Override

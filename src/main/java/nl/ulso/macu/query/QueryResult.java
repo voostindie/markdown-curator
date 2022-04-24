@@ -24,4 +24,6 @@ public interface QueryResult
     List<Map<String, String>> rows();
 
     String errorMessage();
+
+    String toString();
 }

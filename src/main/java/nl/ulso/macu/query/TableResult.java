@@ -1,6 +1,7 @@
 package nl.ulso.macu.query;
 
-import java.util.*;
+import java.util.List;
+import java.util.Map;
 
 import static java.lang.System.lineSeparator;
 
@@ -37,7 +38,7 @@ class TableResult
     @Override
     public String errorMessage()
     {
-        return null;
+        return "";
     }
 
     @Override
@@ -68,7 +69,8 @@ class TableResult
             builder.append('|');
             for (var i = 0; i < width; i++)
             {
-                builder.append(String.format("%-" + widths[i] + "s", row.get(columns.get(i))));
+                builder.append(String.format("%-" + widths[i] + "s",
+                        row.getOrDefault(columns.get(i), "")));
                 builder.append("|");
             }
             builder.append(lineSeparator());
@@ -80,13 +82,14 @@ class TableResult
     {
         var width = columns.size();
         var widths = new int[width];
-        for (var i = 0; i < width; i++) {
+        for (var i = 0; i < width; i++)
+        {
             widths[i] = columns.get(i).length();
         }
         rows.forEach(row -> {
             for (var i = 0; i < width; i++)
             {
-                widths[i] = Math.max(widths[i], row.get(columns.get(i)).length());
+                widths[i] = Math.max(widths[i], row.getOrDefault(columns.get(i), "").length());
             }
         });
         return widths;
