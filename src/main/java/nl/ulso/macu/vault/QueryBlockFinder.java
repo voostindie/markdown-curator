@@ -3,9 +3,11 @@ package nl.ulso.macu.vault;
 import java.util.*;
 
 /**
- * Finds all queries in all documents
+ * Finds all query blocks in all documents
+ *
+ * @see Vault#findAllQueryBlocks()
  */
-final class QueryFinder
+final class QueryBlockFinder
         extends BreadthFirstVaultVisitor
 {
     private final List<QueryBlock> queries = new ArrayList<>();

@@ -6,7 +6,7 @@ import java.util.Collection;
 public interface Vault
         extends Folder
 {
-    Collection<QueryBlock> findAllQueries();
+    Collection<QueryBlock> findAllQueryBlocks();
 
     /**
      * Watches the vault for changes and acts accordingly when it does. This method blocks:

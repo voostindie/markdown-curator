@@ -1,6 +1,8 @@
 package nl.ulso.macu.query;
 
-import nl.ulso.macu.vault.Dictionary;
+import nl.ulso.macu.vault.QueryBlock;
+
+import java.util.Map;
 
 public interface Query
 {
@@ -8,5 +10,7 @@ public interface Query
 
     String description();
 
-    PreparedQuery prepare(Dictionary configuration);
+    Map<String, String> supportedConfiguration();
+
+    QueryResult run(QueryBlock queryBlock);
 }

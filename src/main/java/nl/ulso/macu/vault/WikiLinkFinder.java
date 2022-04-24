@@ -4,6 +4,8 @@ import java.util.*;
 import java.util.regex.MatchResult;
 import java.util.regex.Pattern;
 
+import static java.util.regex.Pattern.compile;
+
 /**
  * Finds all internal links in the WikiLink format.
  * <p/>
@@ -15,8 +17,7 @@ import java.util.regex.Pattern;
 final class WikiLinkFinder
         extends BreadthFirstVaultVisitor
 {
-    private static final Pattern LINK_PATTERN =
-            Pattern.compile("\\[\\[(.*?)(?:#(.*?))?(?:\\|(.*))?]]");
+    private static final Pattern LINK_PATTERN = compile("\\[\\[(.*?)(?:#(.*?))?(?:\\|(.*))?]]");
 
     private final Set<InternalLink> internalLinks;
 

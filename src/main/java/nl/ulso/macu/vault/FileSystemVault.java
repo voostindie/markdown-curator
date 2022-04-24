@@ -61,9 +61,9 @@ public final class FileSystemVault
     }
 
     @Override
-    public Collection<QueryBlock> findAllQueries()
+    public Collection<QueryBlock> findAllQueryBlocks()
     {
-        var finder = new QueryFinder();
+        var finder = new QueryBlockFinder();
         this.accept(finder);
         return finder.queries();
     }

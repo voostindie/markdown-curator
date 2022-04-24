@@ -123,6 +123,14 @@ final class YamlDictionary
     }
 
     @Override
+    public boolean bool(String property, boolean defaultValue)
+    {
+        var value = string(property, Boolean.toString(defaultValue));
+        return value.equalsIgnoreCase("true")
+                || value.equalsIgnoreCase("yes");
+    }
+
+    @Override
     public List<String> listOfStrings(String property)
     {
         return safeGetList(property, String.class);

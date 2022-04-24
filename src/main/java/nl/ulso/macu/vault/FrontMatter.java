@@ -10,7 +10,8 @@ import static nl.ulso.macu.vault.Dictionary.yamlDictionary;
  * <strong>always</strong> has such a section (as the first object in the list of fragments),
  * even if the underlying document has none; in that case the front matter is empty.
  * <p/>
- * This class wraps a {@link nl.ulso.macu.vault.Dictionary}. For ease of use it implements its interface as well.
+ * This class wraps a {@link nl.ulso.macu.vault.Dictionary}. For ease of use it implements its
+ * interface as well.
  */
 public final class FrontMatter
         extends LineContainer
@@ -87,6 +88,12 @@ public final class FrontMatter
     public Date date(String property, Date defaultDate)
     {
         return dictionary.date(property, defaultDate);
+    }
+
+    @Override
+    public boolean bool(String property, boolean defaultValue)
+    {
+        return dictionary.bool(property, defaultValue);
     }
 
     @Override

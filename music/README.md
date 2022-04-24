@@ -48,6 +48,7 @@ This particular query requires no additional configuration. But it does support 
 
 ```markdown
 <!--query:albums
+artist: Marillion
 reverse: true
 -->
 <!--/query-->
@@ -59,7 +60,7 @@ If you do not specify a query, if the query you refer to is not supported, or if
 
 ```markdown
 <!--query-->
-Queries known for this vault are:
+Queries available in this vault are:
 
 - **albums**: lists all albums by an artist
 - **recordings**: lists all recordings of a song
@@ -68,3 +69,17 @@ Queries known for this vault are:
 ```
 
 This allows you to discover and play around with queries as you see fit. Just save your file and watch the output get updated automatically, provided that the tool is running in the background of course!
+
+It gets even better than that: there's a built-in `help`-query, which you can use to provide you with help on a specific query. For example:
+
+```markdown
+<!--query:help
+query: albums
+-->
+**albums**: lists all albums by an artist, newest first.
+
+Configuration options:
+
+- **artist**: Name of the artist. Defaults to document name.
+- **reverse**: Whether the list should be reversed. Defaults to false.
+```

@@ -44,6 +44,12 @@ final class EmptyDictionary
     }
 
     @Override
+    public boolean bool(String property, boolean defaultValue)
+    {
+        return defaultValue;
+    }
+
+    @Override
     public List<String> listOfStrings(String property)
     {
         return Collections.emptyList();

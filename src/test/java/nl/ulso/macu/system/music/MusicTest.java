@@ -11,6 +11,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 
 import java.io.IOException;
 
+import static nl.ulso.macu.vault.QueryBlockTest.emptyQueryBlock;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @ExtendWith(SoftAssertionsExtension.class)
@@ -41,7 +42,7 @@ class MusicTest
         softly.assertThat(statistics.frontMatters).isEqualTo(11);
         softly.assertThat(statistics.sections).isEqualTo(29);
         softly.assertThat(statistics.queries).isEqualTo(4);
-        softly.assertThat(statistics.codeBlocks).isEqualTo(4);
+        softly.assertThat(statistics.codeBlocks).isEqualTo(5);
         softly.assertThat(statistics.texts).isEqualTo(34);
     }
 
@@ -49,9 +50,9 @@ class MusicTest
     void queryCatalog()
     {
         QueryCatalog catalog = music.queryCatalog();
-        softly.assertThat(catalog.queries().size()).isEqualTo(3);
+        softly.assertThat(catalog.queries().size()).isEqualTo(4);
         Query dummy = catalog.query("dummy");
-        QueryResult result = dummy.prepare(Dictionary.emptyDictionary()).run();
+        QueryResult result = dummy.run(emptyQueryBlock());
         softly.assertThat(result.isSuccess()).isFalse();
         softly.assertThat(result.errorMessage()).contains("no query defined called 'dummy'");
         softly.assertThat(result.errorMessage()).contains("albums");
@@ -62,14 +63,15 @@ class MusicTest
     @Test
     void queries()
     {
-        var queries = music.vault().findAllQueries();
+        var queries = music.vault().findAllQueryBlocks();
         softly.assertThat(queries.size()).isEqualTo(4);
     }
 
     @Test
     void internalObjectReferences()
     {
-        var visitor = new BreadthFirstVaultVisitor() {
+        var visitor = new BreadthFirstVaultVisitor()
+        {
             private Folder currentFolder;
             private Document currentDocument;
 
@@ -135,5 +137,11 @@ class MusicTest
             }
         };
         music.vault().accept(visitor);
+    }
+
+    @Test
+    void runOnce()
+    {
+        music.runOnce();
     }
 }

@@ -6,12 +6,12 @@ import nl.ulso.macu.System;
 import nl.ulso.macu.graph.InMemoryVaultGraph;
 import nl.ulso.macu.query.InMemoryQueryCatalog;
 import nl.ulso.macu.query.QueryCatalog;
-import nl.ulso.macu.vault.FileSystemVault;
-import nl.ulso.macu.vault.Vault;
+import nl.ulso.macu.vault.*;
 
 import java.io.IOException;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.util.Collection;
 
 /**
  * System for testing. All testing is done in memory. All files in the "music" directory from this
@@ -30,10 +30,10 @@ public class Music
             throws IOException
     {
         vault = copyVaultIntoMemory();
-        queryCatalog = new InMemoryQueryCatalog(vault);
-        queryCatalog.register(new AlbumsQuery());
-        queryCatalog.register(new RecordingsQuery());
-        queryCatalog.register(new MembersQuery());
+        queryCatalog = new InMemoryQueryCatalog();
+        queryCatalog.register(new AlbumsQuery(vault));
+        queryCatalog.register(new RecordingsQuery(vault));
+        queryCatalog.register(new MembersQuery(vault));
         graph = new InMemoryVaultGraph(vault, new MusicTaxonomy());
         graph.construct();
     }
@@ -63,7 +63,25 @@ public class Music
     public void run()
             throws IOException, InterruptedException
     {
+        runOnce();
         vault.watchForChanges();
+    }
+
+    public void runOnce()
+    {
+        var queryBlocks = vault.findAllQueryBlocks();
+        queryBlocks.forEach(queryBlock -> {
+            var query = queryCatalog.query(queryBlock.name());
+            var result = query.run(queryBlock).toString();
+            java.lang.System.out.println("---");
+            java.lang.System.out.println(query.name());
+            java.lang.System.out.println("---");
+            java.lang.System.out.println(result);
+            if (!queryBlock.result().contentEquals(result))
+            {
+                java.lang.System.out.println("==> New results are in!");
+            }
+        });
     }
 
     private static class RecursiveCopier

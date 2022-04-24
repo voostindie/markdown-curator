@@ -1,7 +1,6 @@
 package nl.ulso.macu.vault;
 
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 /**
  * Represents a block of text in a Markdown document. This is the default type of content, meaning
@@ -40,5 +39,12 @@ public final class TextBlock
     public void accept(VaultVisitor visitor)
     {
         visitor.visit(this);
+    }
+
+    public Set<InternalLink> findInternalLinks()
+    {
+        var finder = new WikiLinkFinder();
+        accept(finder);
+        return finder.internalLinks();
     }
 }

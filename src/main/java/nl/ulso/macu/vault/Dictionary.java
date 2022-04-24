@@ -60,6 +60,8 @@ public interface Dictionary
 
     Date date(String property, Date defaultDate);
 
+    boolean bool(String property, boolean defaultValue);
+
     List<String> listOfStrings(String property);
 
     List<Integer> listOfIntegers(String property);

@@ -7,24 +7,29 @@ import org.assertj.core.api.junit.jupiter.SoftAssertionsExtension;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
-import java.util.Collections;
 import java.util.List;
 
+import static java.util.Collections.emptyList;
 import static nl.ulso.macu.vault.Document.newDocument;
 
 @ExtendWith(SoftAssertionsExtension.class)
-class QueryBlockTest
+public class QueryBlockTest
 {
     @InjectSoftAssertions
     private SoftAssertions softly;
+
+    public static QueryBlock emptyQueryBlock()
+    {
+        return new QueryBlock(List.of("<!--query-->", "<!--/query-->"));
+    }
 
     @Test
     void equalsContract()
     {
         EqualsVerifier.forClass(QueryBlock.class)
                 .withPrefabValues(Document.class,
-                        newDocument("1", Collections.emptyList()),
-                        newDocument("2", Collections.emptyList()))
+                        newDocument("1", emptyList()),
+                        newDocument("2", emptyList()))
                 .withIgnoredFields("document", "lines")
                 .verify();
     }
@@ -32,7 +37,7 @@ class QueryBlockTest
     @Test
     void empty()
     {
-        var emptyQuery = new QueryBlock(List.of("<!--query-->", "<!--/query-->"));
+        var emptyQuery = emptyQueryBlock();
         softly.assertThat(emptyQuery.isEmpty()).isTrue();
         softly.assertThat(emptyQuery.configuration().isEmpty()).isTrue();
         softly.assertThat(emptyQuery.result()).isBlank();
