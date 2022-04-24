@@ -40,7 +40,7 @@ public class Application
                     LOGGER.error("Could not instantiate system: {}. Cause: {}"
                             , clazz.getSimpleName(), e);
                     throw new IllegalStateException(
-                            "Could not instantiate vault graph class: " + clazz);
+                            "Could not instantiate system class: " + clazz);
                 }
                 catch (IOException e)
                 {

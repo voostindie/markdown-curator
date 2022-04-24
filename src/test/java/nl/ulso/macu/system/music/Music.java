@@ -3,15 +3,14 @@ package nl.ulso.macu.system.music;
 import com.google.common.jimfs.Configuration;
 import com.google.common.jimfs.Jimfs;
 import nl.ulso.macu.System;
-import nl.ulso.macu.graph.InMemoryVaultGraph;
 import nl.ulso.macu.query.InMemoryQueryCatalog;
 import nl.ulso.macu.query.QueryCatalog;
-import nl.ulso.macu.vault.*;
+import nl.ulso.macu.vault.FileSystemVault;
+import nl.ulso.macu.vault.Vault;
 
 import java.io.IOException;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
-import java.util.Collection;
 
 /**
  * System for testing. All testing is done in memory. All files in the "music" directory from this
@@ -23,7 +22,6 @@ public class Music
         implements System
 {
     private final QueryCatalog queryCatalog;
-    private final InMemoryVaultGraph graph;
     private final Vault vault;
 
     public Music()
@@ -34,8 +32,6 @@ public class Music
         queryCatalog.register(new AlbumsQuery(vault));
         queryCatalog.register(new RecordingsQuery(vault));
         queryCatalog.register(new MembersQuery(vault));
-        graph = new InMemoryVaultGraph(vault, new MusicTaxonomy());
-        graph.construct();
     }
 
     private Vault copyVaultIntoMemory()

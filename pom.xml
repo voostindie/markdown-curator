@@ -15,18 +15,6 @@
     </properties>
 
     <dependencies>
-        <!-- Graph database -->
-        <dependency>
-            <groupId>org.apache.tinkerpop</groupId>
-            <artifactId>tinkergraph-gremlin</artifactId>
-            <version>3.5.1</version>
-        </dependency>
-        <!-- Cypher support -->
-        <dependency>
-            <groupId>org.opencypher.gremlin</groupId>
-            <artifactId>cypher-gremlin-extensions</artifactId>
-            <version>1.0.4</version>
-        </dependency>
         <!-- Logging -->
         <dependency>
             <groupId>ch.qos.logback</groupId>

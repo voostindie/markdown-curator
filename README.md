@@ -16,6 +16,6 @@ Most of the things this application does can also be achieved using plugins in O
 
 With this application I have the best of both worlds: portable Markdown and "dynamic" content.
 
-Shouldn't I have built this application as an Obsidian plugin itself? Maybe. Probably. But, I didn't. Why not? Because I'm sure my use of Markdown will outlive my use of Obsidian. Also, being able to change files in a vault with any editor *and* have the functionality of this application still work lead to fewer surprises. 
+Shouldn't I have built this application as an Obsidian plugin itself? Maybe. Probably. But, I didn't. Why not? Because I'm sure my use of Markdown will outlive my use of Obsidian. Also, being able to change files in a vault with any editor *and* have the functionality of this application still work leads to fewer surprises. 
 
 See the [CHANGELOG](CHANGELOG.md) for releases and the roadmap.
