@@ -13,6 +13,9 @@ import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * Main application: sets up all systems and runs them; each system runs in its own thread.
+ * <p/>
+ * If a single system cannot be instantiated, its thread is basically dead; it won't work. The other
+ * systems (if any) will still work though.
  */
 public class Application
 {
@@ -37,8 +40,8 @@ public class Application
                 }
                 catch (ReflectiveOperationException e)
                 {
-                    LOGGER.error("Could not instantiate system: {}. Cause: {}"
-                            , clazz.getSimpleName(), e);
+                    LOGGER.error("Could not instantiate system {}. It will not run!"
+                            , clazz.getSimpleName());
                     throw new IllegalStateException(
                             "Could not instantiate system class: " + clazz);
                 }

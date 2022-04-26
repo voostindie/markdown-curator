@@ -2,8 +2,7 @@ package nl.ulso.macu.system.music;
 
 import com.google.common.jimfs.Configuration;
 import com.google.common.jimfs.Jimfs;
-import nl.ulso.macu.System;
-import nl.ulso.macu.query.InMemoryQueryCatalog;
+import nl.ulso.macu.SystemTemplate;
 import nl.ulso.macu.query.QueryCatalog;
 import nl.ulso.macu.vault.FileSystemVault;
 import nl.ulso.macu.vault.Vault;
@@ -19,22 +18,10 @@ import java.nio.file.attribute.BasicFileAttributes;
  * vault on disk is there to make it easy to maintain and use: just fire up Obsidian on top of it.
  */
 public class Music
-        implements System
+        extends SystemTemplate
 {
-    private final QueryCatalog queryCatalog;
-    private final Vault vault;
-
-    public Music()
-            throws IOException
-    {
-        vault = copyVaultIntoMemory();
-        queryCatalog = new InMemoryQueryCatalog();
-        queryCatalog.register(new AlbumsQuery(vault));
-        queryCatalog.register(new RecordingsQuery(vault));
-        queryCatalog.register(new MembersQuery(vault));
-    }
-
-    private Vault copyVaultIntoMemory()
+    @Override
+    protected Vault createVault()
             throws IOException
     {
         var sourceRoot = Paths.get("").toAbsolutePath().resolve("music");
@@ -45,29 +32,19 @@ public class Music
         return new FileSystemVault(targetRoot);
     }
 
-    public QueryCatalog queryCatalog()
-    {
-        return queryCatalog;
-    }
-
-    public Vault vault()
-    {
-        return vault;
-    }
-
     @Override
-    public void run()
-            throws IOException, InterruptedException
+    protected void registerQueries(QueryCatalog catalog, Vault vault)
     {
-        runOnce();
-        vault.watchForChanges();
+        catalog.register(new AlbumsQuery(vault));
+        catalog.register(new RecordingsQuery(vault));
+        catalog.register(new MembersQuery(vault));
     }
 
     public void runOnce()
     {
-        var queryBlocks = vault.findAllQueryBlocks();
+        var queryBlocks = vault().findAllQueryBlocks();
         queryBlocks.forEach(queryBlock -> {
-            var query = queryCatalog.query(queryBlock.name());
+            var query = queryCatalog().query(queryBlock.name());
             var result = query.run(queryBlock).toString();
             java.lang.System.out.println("---");
             java.lang.System.out.println(query.name());

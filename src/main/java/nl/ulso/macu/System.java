@@ -11,10 +11,6 @@ import java.io.IOException;
  */
 public interface System
 {
-    Vault vault();
-
-    QueryCatalog queryCatalog();
-
     /**
      * Runs this system by watching the vault for changing and executing commands as a result of
      * these changes. This method blocks.
