@@ -10,8 +10,9 @@ import java.io.PrintWriter;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
-import java.util.stream.Collectors;
 
+import static java.util.Comparator.comparingInt;
+import static java.util.stream.Collectors.groupingBy;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
@@ -25,7 +26,6 @@ import static org.slf4j.LoggerFactory.getLogger;
  * <p/>
  * There's plenty of ways to make this implementation more efficient, like caching the available
  * queries, running queries in parallel, writing documents in a non-blocking manner, and so on.
- *
  */
 public abstract class SystemTemplate
         implements System, VaultChangedCallback
@@ -78,8 +78,8 @@ public abstract class SystemTemplate
     {
         LOGGER.debug("Vault changed! Re-running all queries");
         runAllQueries().entrySet().stream()
-                .sorted(Comparator.comparingInt(e -> e.getKey().resultStartIndex()))
-                .collect(Collectors.groupingBy(e -> e.getKey().document()))
+                .sorted(comparingInt(e -> e.getKey().resultStartIndex()))
+                .collect(groupingBy(e -> e.getKey().document()))
                 .forEach(this::writeDocument);
         LOGGER.debug("Done!");
     }

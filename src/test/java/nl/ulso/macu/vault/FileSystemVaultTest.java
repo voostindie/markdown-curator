@@ -19,7 +19,7 @@ import static org.assertj.core.api.Assertions.fail;
 @ExtendWith(SoftAssertionsExtension.class)
 class FileSystemVaultTest
 {
-    private static final int FILESYSTEM_WAIT_TIME_MILLISECONDS = 500; // "Works on my machine!"
+    private static final int FILESYSTEM_WAIT_TIME_MILLISECONDS = 750; // "Works on my machine!"
 
     @InjectSoftAssertions
     private SoftAssertions softly;
@@ -255,7 +255,6 @@ class FileSystemVaultTest
     private void writeFile(String relativePath, String content)
             throws IOException
     {
-        var fileSystem = testVaultRoot.getFileSystem();
         var absolutePath = testVaultRoot.resolve(relativePath);
         Files.createDirectories(absolutePath.getParent());
         Files.write(absolutePath,
