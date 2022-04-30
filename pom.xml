@@ -15,6 +15,12 @@
     </properties>
 
     <dependencies>
+        <!-- Native directory watching for macOS -->
+        <dependency>
+            <groupId>io.methvin</groupId>
+            <artifactId>directory-watcher</artifactId>
+            <version>0.15.1</version>
+        </dependency>
         <!-- Logging -->
         <dependency>
             <groupId>ch.qos.logback</groupId>

@@ -45,9 +45,7 @@ public class FileSystemFolder
         if (o instanceof FileSystemFolder folder)
         {
             return Objects.equals(name, folder.name)
-                    && Objects.equals(parent, folder.parent)
-                    && Objects.equals(folders, folder.folders)
-                    && Objects.equals(documents, folder.documents);
+                    && Objects.equals(parent, folder.parent);
         }
         return false;
     }
@@ -55,7 +53,7 @@ public class FileSystemFolder
     @Override
     public final int hashCode()
     {
-        return Objects.hash(name, parent, folders, documents);
+        return Objects.hash(name, parent);
     }
 
     @Override

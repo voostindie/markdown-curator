@@ -1,13 +1,12 @@
 package nl.ulso.macu.vault;
 
-import com.google.common.jimfs.*;
 import org.assertj.core.api.SoftAssertions;
 import org.assertj.core.api.junit.jupiter.InjectSoftAssertions;
 import org.assertj.core.api.junit.jupiter.SoftAssertionsExtension;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.ExtendWith;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.*;
@@ -20,8 +19,7 @@ import static org.assertj.core.api.Assertions.fail;
 @ExtendWith(SoftAssertionsExtension.class)
 class FileSystemVaultTest
 {
-    private static final int POLLING_INTERVAL_MILLISECONDS = 10;
-    private static final String ROOT = "/vault";
+    private static final int FILESYSTEM_WAIT_TIME_MILLISECONDS = 500; // "Works on my machine!"
 
     @InjectSoftAssertions
     private SoftAssertions softly;
@@ -30,17 +28,10 @@ class FileSystemVaultTest
     private FileSystemVault vault;
 
     @BeforeEach
-    void setUpInMemoryFileSystem()
+    void setUpFileSystemForTesting()
             throws IOException
     {
-        var configuration = Configuration.unix().toBuilder()
-                .setWatchServiceConfiguration(
-                        WatchServiceConfiguration.polling(
-                                POLLING_INTERVAL_MILLISECONDS,
-                                TimeUnit.MILLISECONDS))
-                .build();
-        var fileSystem = Jimfs.newFileSystem(configuration);
-        testVaultRoot = fileSystem.getPath(ROOT);
+        testVaultRoot = Files.createTempDirectory("macu-");
         writeFile("README.md", """
                 ---
                 aliases: [Index, Home]
@@ -63,6 +54,32 @@ class FileSystemVaultTest
         vault = new FileSystemVault(testVaultRoot);
     }
 
+    @AfterEach
+    void deleteTemporaryFiles()
+    {
+        deleteRecursively(testVaultRoot.toFile());
+    }
+
+    private void deleteRecursively(File directory)
+    {
+        var files = directory.listFiles();
+        if (files != null)
+        {
+            for (File file : files)
+            {
+                if (file.isDirectory())
+                {
+                    deleteRecursively(file);
+                }
+                else
+                {
+                    file.delete();
+                }
+            }
+        }
+        directory.delete();
+    }
+
     @Test
     void visit()
     {
@@ -78,7 +95,6 @@ class FileSystemVaultTest
     @Test
     void testVaultContents()
     {
-        softly.assertThat(vault.name()).endsWith("vault");
         softly.assertThat(vault.documents().size()).isEqualTo(1);
         softly.assertThat(vault.folders().size()).isEqualTo(3);
         softly.assertThat(vault.folder("Movies").get().documents().size()).isEqualTo(5);
@@ -103,8 +119,8 @@ class FileSystemVaultTest
             public void changeFileSystem(FileSystem fileSystem)
                     throws IOException
             {
+                writeFile("Characters/Blofeld.md", "Ernst Stavro");
                 writeFile("Actors/Christopher Waltz.md", "");
-                writeFile("Characters/Blofeld.md", "");
             }
 
             @Override
@@ -149,8 +165,8 @@ class FileSystemVaultTest
             public void changeFileSystem(FileSystem fileSystem)
                     throws IOException
             {
-                var oldPath = fileSystem.getPath(ROOT + "/Actors");
-                var newPath = fileSystem.getPath(ROOT + "/People");
+                var oldPath = testVaultRoot.resolve("Actors");
+                var newPath = testVaultRoot.resolve("People");
                 Files.move(oldPath, newPath);
             }
 
@@ -173,7 +189,7 @@ class FileSystemVaultTest
             public void changeFileSystem(FileSystem fileSystem)
                     throws IOException
             {
-                Files.delete(fileSystem.getPath(ROOT + "/Characters/M.md"));
+                Files.delete(testVaultRoot.resolve("Characters/M.md"));
             }
 
             @Override
@@ -226,7 +242,7 @@ class FileSystemVaultTest
         try
         {
             testCase.changeFileSystem(testVaultRoot.getFileSystem());
-            TimeUnit.MILLISECONDS.sleep(POLLING_INTERVAL_MILLISECONDS * 2);
+            TimeUnit.MILLISECONDS.sleep(FILESYSTEM_WAIT_TIME_MILLISECONDS);
         }
         catch (IOException | InterruptedException e)
         {
@@ -240,7 +256,7 @@ class FileSystemVaultTest
             throws IOException
     {
         var fileSystem = testVaultRoot.getFileSystem();
-        var absolutePath = fileSystem.getPath(ROOT + "/" + relativePath);
+        var absolutePath = testVaultRoot.resolve(relativePath);
         Files.createDirectories(absolutePath.getParent());
         Files.write(absolutePath,
                 List.of(content.split(System.lineSeparator())), StandardCharsets.UTF_8);

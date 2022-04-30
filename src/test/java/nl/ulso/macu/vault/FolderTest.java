@@ -23,6 +23,7 @@ class FolderTest
     void equalsContract()
     {
         EqualsVerifier.forClass(FileSystemFolder.class)
+                .withIgnoredFields("folders", "documents")
                 .withPrefabValues(Document.class,
                         newDocument("1", Collections.emptyList()),
                         newDocument("2", Collections.emptyList()))

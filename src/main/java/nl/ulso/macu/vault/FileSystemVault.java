@@ -1,5 +1,8 @@
 package nl.ulso.macu.vault;
 
+import io.methvin.watcher.DirectoryChangeEvent;
+import io.methvin.watcher.DirectoryWatcher;
+import io.methvin.watcher.hashing.FileHasher;
 import org.slf4j.Logger;
 
 import java.io.IOException;
@@ -8,9 +11,6 @@ import java.nio.file.attribute.BasicFileAttributes;
 import java.util.*;
 
 import static java.nio.file.Files.walkFileTree;
-import static java.nio.file.StandardWatchEventKinds.ENTRY_CREATE;
-import static java.nio.file.StandardWatchEventKinds.ENTRY_DELETE;
-import static java.nio.file.StandardWatchEventKinds.ENTRY_MODIFY;
 import static java.util.Objects.requireNonNull;
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -27,27 +27,32 @@ public final class FileSystemVault
 {
     private static final Logger LOGGER = getLogger(FileSystemVault.class);
 
-    private final WatchService watchService;
-    private final Map<WatchKey, Path> watchKeys;
     private final Path absolutePath;
+    private final DirectoryWatcher watcher;
     private VaultChangedCallback callback;
 
     public FileSystemVault(Path absolutePath)
             throws IOException
     {
+        // This forces the directory watcher to deduce which WatchService to use.
+        // On MacOS, this results in a native, non-polling service. Nice and fast.
+        // However, this service doesn't work with the JimFS filesystem, used in tests.
+        // That's what the other constructor is for.
+        this(absolutePath, null);
+    }
+
+    public FileSystemVault(Path absolutePath, WatchService watchService)
+            throws IOException
+    {
         super(absolutePath.toString());
         this.callback = () -> { /* Default: No-op */ };
         this.absolutePath = absolutePath;
-        try
-        {
-            watchService = absolutePath.getFileSystem().newWatchService();
-        }
-        catch (IOException e)
-        {
-            throw new RuntimeException(
-                    "Could not create a WatchService on the filesystem", e);
-        }
-        watchKeys = new HashMap<>();
+        this.watcher = DirectoryWatcher.builder()
+                .path(absolutePath)
+                .watchService(watchService)
+                .fileHasher(FileHasher.LAST_MODIFIED_TIME)
+                .listener(this::processFileSystemEvent)
+                .build();
         walkFileTree(absolutePath, new VaultBuilder(this, absolutePath));
         if (LOGGER.isInfoEnabled())
         {
@@ -82,42 +87,29 @@ public final class FileSystemVault
             throws InterruptedException, IOException
     {
         LOGGER.info("Watching {} for changes", absolutePath);
-        WatchKey key;
-        while ((key = watchService.take()) != null)
-        {
-            for (WatchEvent<?> event : key.pollEvents())
-            {
-                Path relativePath = (Path) event.context();
-                Path absolutePath = watchKeys.get(key).resolve(relativePath);
-                processFileSystemEvent(absolutePath, event.kind());
-            }
-            callback.vaultChanged();
-            key.reset();
-        }
+        watcher.watch();
     }
 
-    private void processFileSystemEvent(Path absolutePath, WatchEvent.Kind<?> event)
+    private void processFileSystemEvent(DirectoryChangeEvent event)
             throws IOException
     {
+        LOGGER.debug("Change detected: {}", event);
+        switch (event.eventType())
+        {
+            case CREATE -> processFileCreationEvent(event);
+            case DELETE -> processFileDeletionEvent(event);
+            case MODIFY -> processFileModificationEvent(event);
+            default -> LOGGER.warn("Unsupported filesystem event {}", event.eventType());
+        }
+        callback.vaultChanged();
+    }
+
+    private void processFileCreationEvent(DirectoryChangeEvent event)
+            throws IOException
+    {
+        var absolutePath = event.path();
         var parent = resolveParentFolder(absolutePath);
-        if (event == ENTRY_CREATE)
-        {
-            processFileCreationEvent(absolutePath, parent);
-        }
-        else if (event == ENTRY_MODIFY)
-        {
-            processFileModificationEvent(absolutePath, parent);
-        }
-        else if (event == ENTRY_DELETE)
-        {
-            processFileDeletionEvent(absolutePath, parent);
-        }
-    }
-
-    private void processFileCreationEvent(Path absolutePath, FileSystemFolder parent)
-            throws IOException
-    {
-        if (Files.isDirectory(absolutePath) && !isHidden(absolutePath))
+        if (event.isDirectory() && !isHidden(event.path()))
         {
             var folder = parent.addFolder(folderName(absolutePath));
             LOGGER.info("Detected new folder: {}", folder.name());
@@ -131,22 +123,26 @@ public final class FileSystemVault
         }
     }
 
-    private void processFileModificationEvent(Path absolutePath, FileSystemFolder parent)
+    private void processFileModificationEvent(DirectoryChangeEvent event)
     {
+        var absolutePath = event.path();
+        var parent = resolveParentFolder(absolutePath);
         if (isDocument(absolutePath))
         {
             var document = newDocumentFromAbsolutePath(absolutePath);
-            LOGGER.info("Detected changed document: {}", document.name());
+            LOGGER.info("Document changed: {}", document.name());
             parent.addDocument(document);
         }
     }
 
-    private void processFileDeletionEvent(Path absolutePath, FileSystemFolder parent)
+    private void processFileDeletionEvent(DirectoryChangeEvent event)
     {
+        var absolutePath = event.path();
+        var parent = resolveParentFolder(absolutePath);
         if (isDocument(absolutePath))
         {
             String name = documentName(absolutePath);
-            LOGGER.info("Detected deleted document: {}", name);
+            LOGGER.info("Document deleted: {}", name);
             parent.removeDocument(name);
         }
         else
@@ -155,7 +151,7 @@ public final class FileSystemVault
             var folder = parent.folder(name);
             if (folder.isPresent())
             {
-                LOGGER.info("Detected deleted folder: {}", name);
+                LOGGER.info("Folder deleted: {}", name);
                 parent.removeFolder(name);
             }
         }
@@ -251,10 +247,6 @@ public final class FileSystemVault
                 LOGGER.debug("Skipping directory {}", directory);
                 return FileVisitResult.SKIP_SUBTREE;
             }
-            var watchKey =
-                    directory.register(watchService, ENTRY_CREATE, ENTRY_DELETE, ENTRY_MODIFY);
-            watchKeys.put(watchKey, directory);
-            LOGGER.debug("Watching directory: {}", directory);
             if (!root.equals(directory))
             {
                 currentFolder = currentFolder.addFolder(folderName(directory));

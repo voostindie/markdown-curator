@@ -2,8 +2,8 @@ package nl.ulso.macu.system.music;
 
 import com.google.common.jimfs.Configuration;
 import com.google.common.jimfs.Jimfs;
-import nl.ulso.macu.system.SystemTemplate;
 import nl.ulso.macu.query.QueryCatalog;
+import nl.ulso.macu.system.SystemTemplate;
 import nl.ulso.macu.vault.FileSystemVault;
 import nl.ulso.macu.vault.Vault;
 
@@ -29,7 +29,7 @@ public class Music
         var targetFileSystem = Jimfs.newFileSystem(configuration);
         var targetRoot = targetFileSystem.getPath("/music");
         Files.walkFileTree(sourceRoot, new RecursiveCopier(sourceRoot, targetRoot));
-        return new FileSystemVault(targetRoot);
+        return new FileSystemVault(targetRoot, targetFileSystem.newWatchService());
     }
 
     @Override
