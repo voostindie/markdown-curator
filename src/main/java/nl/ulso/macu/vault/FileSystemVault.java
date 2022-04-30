@@ -11,6 +11,7 @@ import static java.nio.file.Files.walkFileTree;
 import static java.nio.file.StandardWatchEventKinds.ENTRY_CREATE;
 import static java.nio.file.StandardWatchEventKinds.ENTRY_DELETE;
 import static java.nio.file.StandardWatchEventKinds.ENTRY_MODIFY;
+import static java.util.Objects.requireNonNull;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
@@ -29,11 +30,13 @@ public final class FileSystemVault
     private final WatchService watchService;
     private final Map<WatchKey, Path> watchKeys;
     private final Path absolutePath;
+    private VaultChangedCallback callback;
 
     public FileSystemVault(Path absolutePath)
             throws IOException
     {
         super(absolutePath.toString());
+        this.callback = () -> { /* Default: No-op */ };
         this.absolutePath = absolutePath;
         try
         {
@@ -52,6 +55,12 @@ public final class FileSystemVault
             LOGGER.info("Read vault {} into memory with {} folders and {} documents", name(),
                     statistics.folders, statistics.documents);
         }
+    }
+
+    @Override
+    public void setVaultChangedCallback(VaultChangedCallback callback)
+    {
+        this.callback = requireNonNull(callback);
     }
 
     @Override
@@ -82,6 +91,7 @@ public final class FileSystemVault
                 Path absolutePath = watchKeys.get(key).resolve(relativePath);
                 processFileSystemEvent(absolutePath, event.kind());
             }
+            callback.vaultChanged();
             key.reset();
         }
     }
@@ -198,6 +208,26 @@ public final class FileSystemVault
         var extensionIndex = fileName.lastIndexOf('.');
         var endIndex = extensionIndex != -1 ? extensionIndex : fileName.length();
         return fileName.substring(0, endIndex);
+    }
+
+    public Path resolveAbsolutePath(Document document)
+    {
+        var parents = new ArrayList<Folder>();
+        var folder = document.folder();
+        while (folder != this)
+        {
+            parents.add(folder);
+            folder = folder.parent();
+        }
+        Collections.reverse(parents);
+        Path absolutePath = this.absolutePath;
+        for (Folder parent : parents)
+        {
+            absolutePath = absolutePath.resolve(parent.name());
+        }
+        absolutePath = absolutePath.resolve(document.name() + ".md");
+        LOGGER.debug("Resolved absolute path for document '{}': {}", document, absolutePath);
+        return absolutePath;
     }
 
     private class VaultBuilder

@@ -13,7 +13,7 @@ class FailureResult
 
     public FailureResult(String errorMessage)
     {
-        this.errorMessage = errorMessage;
+        this.errorMessage = errorMessage.trim();
     }
 
     @Override

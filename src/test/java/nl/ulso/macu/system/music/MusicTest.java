@@ -9,8 +9,6 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
-import java.io.IOException;
-
 import static nl.ulso.macu.vault.QueryBlockTest.emptyQueryBlock;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -24,7 +22,6 @@ class MusicTest
 
     @BeforeAll
     static void constructSystem()
-            throws IOException
     {
         music = new Music();
     }
@@ -142,6 +139,6 @@ class MusicTest
     @Test
     void runOnce()
     {
-        music.runOnce();
+        music.vaultChanged();
     }
 }

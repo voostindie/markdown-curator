@@ -1,5 +1,6 @@
 package nl.ulso.macu.vault;
 
+import java.nio.file.Path;
 import java.util.*;
 
 import static java.util.Objects.requireNonNull;
@@ -111,5 +112,11 @@ public final class Document
         var finder = new WikiLinkFinder();
         accept(finder);
         return finder.internalLinks();
+    }
+
+    @Override
+    public String toString()
+    {
+        return name();
     }
 }

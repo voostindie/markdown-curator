@@ -144,7 +144,7 @@ final class DocumentParser
                 {
                     case TEXT -> new TextBlock(lines.subList(start, end));
                     case CODE -> new CodeBlock(lines.subList(start, end));
-                    case QUERY -> new QueryBlock(lines.subList(start, end));
+                    case QUERY -> new QueryBlock(lines.subList(start, end), start);
                     default -> throw new IllegalStateException("Unsupported type " + type);
                 };
     }

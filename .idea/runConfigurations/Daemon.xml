@@ -4,7 +4,7 @@
     <module name="macu" />
     <extension name="coverage">
       <pattern>
-        <option name="PATTERN" value="nl.ulso.macu.*" />
+        <option name="PATTERN" value="nl.ulso.macu.system.*" />
         <option name="ENABLED" value="true" />
       </pattern>
     </extension>

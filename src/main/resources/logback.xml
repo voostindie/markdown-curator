@@ -2,7 +2,7 @@
 
     <appender name="stdout" class="ch.qos.logback.core.ConsoleAppender">
         <encoder>
-            <pattern>[%thread] %msg%n</pattern>
+            <pattern>%d{HH:mm:ss.SSS} [%thread] %msg%n</pattern>
         </encoder>
     </appender>
 

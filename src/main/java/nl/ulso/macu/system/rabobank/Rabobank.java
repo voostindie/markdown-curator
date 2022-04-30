@@ -1,7 +1,7 @@
 package nl.ulso.macu.system.rabobank;
 
-import nl.ulso.macu.SystemTemplate;
 import nl.ulso.macu.query.QueryCatalog;
+import nl.ulso.macu.system.SystemTemplate;
 import nl.ulso.macu.vault.FileSystemVault;
 import nl.ulso.macu.vault.Vault;
 
@@ -12,11 +12,10 @@ public class Rabobank
         extends SystemTemplate
 {
     @Override
-    protected Vault createVault()
+    protected FileSystemVault createVault()
             throws IOException
     {
-        return new FileSystemVault(
-                Path.of(java.lang.System.getProperty("user.home"), "Notes", "Rabobank"));
+        return createVaultForPathInUserHome("Notes", "Rabobank");
     }
 
     @Override

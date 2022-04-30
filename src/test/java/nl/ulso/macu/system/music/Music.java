@@ -2,7 +2,7 @@ package nl.ulso.macu.system.music;
 
 import com.google.common.jimfs.Configuration;
 import com.google.common.jimfs.Jimfs;
-import nl.ulso.macu.SystemTemplate;
+import nl.ulso.macu.system.SystemTemplate;
 import nl.ulso.macu.query.QueryCatalog;
 import nl.ulso.macu.vault.FileSystemVault;
 import nl.ulso.macu.vault.Vault;
@@ -21,7 +21,7 @@ public class Music
         extends SystemTemplate
 {
     @Override
-    protected Vault createVault()
+    protected FileSystemVault createVault()
             throws IOException
     {
         var sourceRoot = Paths.get("").toAbsolutePath().resolve("music");

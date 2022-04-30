@@ -52,14 +52,18 @@ public final class QueryBlock
     private final String name;
     private final Dictionary configuration;
     private final String result;
+    private final int resultStartIndex;
+    private final int resultEndIndex;
 
-    QueryBlock(List<String> lines)
+    QueryBlock(List<String> lines, int documentLineIndex)
     {
         super(lines);
         var parser = new QueryParser(lines);
         name = parser.name();
         configuration = yamlDictionary(parser.configuration());
         result = parser.result();
+        resultStartIndex = documentLineIndex + parser.resultStartIndex() + 1;
+        resultEndIndex = documentLineIndex + lines.size() - 1;
     }
 
     public String name()
@@ -77,6 +81,22 @@ public final class QueryBlock
         return result;
     }
 
+    /**
+     * @return The index of the line within the document that marks the start of the query result.
+     */
+    public int resultStartIndex()
+    {
+        return resultStartIndex;
+    }
+
+    /**
+     * @return The index of the line  within the document that marks the end of the query result.
+     */
+    public int resultEndIndex()
+    {
+        return resultEndIndex;
+    }
+
     @Override
     public boolean equals(Object o)
     {
@@ -88,7 +108,9 @@ public final class QueryBlock
         {
             return Objects.equals(name, queryBlock.name)
                     && Objects.equals(configuration, queryBlock.configuration)
-                    && Objects.equals(result, queryBlock.result);
+                    && Objects.equals(result, queryBlock.result)
+                    && Objects.equals(resultStartIndex, queryBlock.resultStartIndex)
+                    && Objects.equals(resultEndIndex, queryBlock.resultEndIndex);
         }
         return false;
     }
@@ -96,7 +118,7 @@ public final class QueryBlock
     @Override
     public int hashCode()
     {
-        return Objects.hash(name, configuration, result);
+        return Objects.hash(name, configuration, result, resultStartIndex, resultEndIndex);
     }
 
     @Override
@@ -116,6 +138,7 @@ public final class QueryBlock
         private String name;
         private String configuration;
         private String result;
+        private int resultStartIndex;
 
         QueryParser(List<String> lines)
         {
@@ -140,6 +163,10 @@ public final class QueryBlock
             {
                 configuration = query.substring(0, split).trim();
                 result = query.substring(split + QUERY_CONFIGURATION_POSTFIX.length()).trim();
+                while (!lines.get(resultStartIndex).endsWith(QUERY_OUTPUT_POSTFIX))
+                {
+                    resultStartIndex++;
+                }
             }
         }
 
@@ -156,6 +183,11 @@ public final class QueryBlock
         String result()
         {
             return result != null ? result : "";
+        }
+
+        int resultStartIndex()
+        {
+            return resultStartIndex;
         }
     }
 }

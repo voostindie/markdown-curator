@@ -1,4 +1,4 @@
-package nl.ulso.macu;
+package nl.ulso.macu.system;
 
 import nl.ulso.macu.query.QueryCatalog;
 import nl.ulso.macu.vault.Vault;
