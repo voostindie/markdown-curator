@@ -20,6 +20,11 @@ public class RabobankNotesCurator
     @Override
     protected void registerQueries(QueryCatalog catalog, Vault vault)
     {
+        catalog.register(new ProjectsQuery(vault));
+    }
 
+    public static void main(String[] args)
+    {
+        new RabobankNotesCurator().runOnce();
     }
 }

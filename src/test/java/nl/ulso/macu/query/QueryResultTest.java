@@ -48,11 +48,11 @@ class QueryResultTest
         softly.assertThat(table.rows().size()).isEqualTo(3);
         softly.assertThat(table.errorMessage()).isBlank();
         softly.assertThat(table.toMarkdown()).isEqualTo("""
-                |Title         |Year|
-                |--------------|----|
-                |No Time To Die|2021|
-                |Spectre       |2015|
-                |Skyfall       |2012|
+                | Title          | Year |
+                | -------------- | ---- |
+                | No Time To Die | 2021 |
+                | Spectre        | 2015 |
+                | Skyfall        | 2012 |
                 """.trim());
     }
 
@@ -64,9 +64,9 @@ class QueryResultTest
                 List.of(Map.of("Name", "No Time To Die"))
         );
         softly.assertThat(table.toMarkdown()).isEqualTo("""
-                |Title|
-                |-----|
-                |     |
+                | Title |
+                | ----- |
+                |       |
                 """.trim());
     }
 

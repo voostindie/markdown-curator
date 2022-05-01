@@ -51,28 +51,30 @@ class TableResult
         var widths = findColumnWidths();
         var width = columns.size();
         var builder = new StringBuilder();
-        builder.append('|');
+        builder.append("|");
         for (var i = 0; i < width; i++)
         {
+            builder.append(" ");
             builder.append(String.format("%-" + widths[i] + "s", columns.get(i)));
-            builder.append("|");
+            builder.append(" |");
         }
         builder.append(lineSeparator());
-        builder.append('|');
+        builder.append("|");
         for (var i = 0; i < width; i++)
         {
-            builder.append(String.format("%-" + widths[i] + "s", '-').replace(' ', '-'));
-            builder.append('|');
+            builder.append(" ");
+            builder.append("-".repeat(widths[i]));
+            builder.append(" |");
         }
         builder.append(lineSeparator());
         for (Map<String, String> row : rows)
         {
-            builder.append('|');
+            builder.append("|");
             for (var i = 0; i < width; i++)
             {
-                builder.append(String.format("%-" + widths[i] + "s",
+                builder.append(String.format(" %-" + widths[i] + "s",
                         row.getOrDefault(columns.get(i), "")));
-                builder.append("|");
+                builder.append(" |");
             }
             builder.append(lineSeparator());
         }
