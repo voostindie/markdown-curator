@@ -44,7 +44,7 @@ class FailureResult
     }
 
     @Override
-    public String toString()
+    public String toMarkdown()
     {
         return errorMessage;
     }

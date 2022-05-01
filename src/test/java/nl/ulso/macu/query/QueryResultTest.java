@@ -33,7 +33,7 @@ class QueryResultTest
         softly.assertThat(table.isSuccess()).isTrue();
         softly.assertThat(table.rows()).isEmpty();
         softly.assertThat(table.errorMessage()).isBlank();
-        softly.assertThat(table.toString()).contains("No results");
+        softly.assertThat(table.toMarkdown()).contains("No results");
     }
 
     @Test
@@ -47,7 +47,7 @@ class QueryResultTest
         softly.assertThat(table.columns().size()).isEqualTo(2);
         softly.assertThat(table.rows().size()).isEqualTo(3);
         softly.assertThat(table.errorMessage()).isBlank();
-        softly.assertThat(table.toString()).isEqualTo("""
+        softly.assertThat(table.toMarkdown()).isEqualTo("""
                 |Title         |Year|
                 |--------------|----|
                 |No Time To Die|2021|
@@ -63,7 +63,7 @@ class QueryResultTest
                 List.of("Title"),
                 List.of(Map.of("Name", "No Time To Die"))
         );
-        softly.assertThat(table.toString()).isEqualTo("""
+        softly.assertThat(table.toMarkdown()).isEqualTo("""
                 |Title|
                 |-----|
                 |     |
@@ -77,7 +77,7 @@ class QueryResultTest
         softly.assertThat(list.isSuccess()).isTrue();
         softly.assertThat(list.rows()).isEmpty();
         softly.assertThat(list.errorMessage()).isBlank();
-        softly.assertThat(list.toString()).contains("No results");
+        softly.assertThat(list.toMarkdown()).contains("No results");
     }
 
     @Test
@@ -88,7 +88,7 @@ class QueryResultTest
         softly.assertThat(list.columns().size()).isEqualTo(1);
         softly.assertThat(list.rows().size()).isEqualTo(2);
         softly.assertThat(list.errorMessage()).isBlank();
-        softly.assertThat(list.toString()).isEqualTo("""
+        softly.assertThat(list.toMarkdown()).isEqualTo("""
                 - Foo
                 - Bar
                 """.trim());

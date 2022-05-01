@@ -111,6 +111,7 @@ class FileSystemVaultTest
     }
 
     @Test
+    @Tag("integration-test")
     void watchVaultForNewFiles()
     {
         whileWatchingForChanges(new TestCase()
@@ -137,6 +138,7 @@ class FileSystemVaultTest
     }
 
     @Test
+    @Tag("integration-test")
     void watchVaultForFilesInNewFolders()
     {
         whileWatchingForChanges(new TestCase()
@@ -157,6 +159,7 @@ class FileSystemVaultTest
     }
 
     @Test
+    @Tag("integration-test")
     void watchVaultForRenamedFolders()
     {
         whileWatchingForChanges(new TestCase()
@@ -181,6 +184,7 @@ class FileSystemVaultTest
     }
 
     @Test
+    @Tag("integration-test")
     void watchVaultForDeletedDocument()
     {
         whileWatchingForChanges(new TestCase()
@@ -202,6 +206,7 @@ class FileSystemVaultTest
     }
 
     @Test
+    @Tag("integration-test")
     void watchVaultForChangedDocument()
     {
         whileWatchingForChanges(new TestCase()

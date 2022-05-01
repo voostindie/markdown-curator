@@ -1,29 +1,26 @@
-package nl.ulso.macu.system.personal;
+package nl.ulso.macu.curator.personal;
 
 import nl.ulso.macu.vault.ElementCounter;
 import org.assertj.core.api.SoftAssertions;
 import org.assertj.core.api.junit.jupiter.InjectSoftAssertions;
 import org.assertj.core.api.junit.jupiter.SoftAssertionsExtension;
-import org.junit.jupiter.api.Disabled;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.ExtendWith;
-
-import java.io.IOException;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 @ExtendWith(SoftAssertionsExtension.class)
-class PersonalTest
+@Tag("integration-test")
+class PersonalNotesCuratorTest
 {
     @InjectSoftAssertions
     private SoftAssertions softly;
 
     @Disabled
     @Test
-    void constructSystem()
-            throws IOException
+    void constructCurator()
     {
-        var vault = new Personal().vault();
+        var vault = new PersonalNotesCurator().vault();
         assertThat(vault.name()).endsWith("Personal");
         var statistics = ElementCounter.countAll(vault);
         System.out.println(statistics);

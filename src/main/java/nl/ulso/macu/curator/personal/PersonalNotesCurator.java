@@ -1,15 +1,14 @@
-package nl.ulso.macu.system.personal;
+package nl.ulso.macu.curator.personal;
 
-import nl.ulso.macu.system.SystemTemplate;
+import nl.ulso.macu.curator.CuratorTemplate;
 import nl.ulso.macu.query.QueryCatalog;
 import nl.ulso.macu.vault.FileSystemVault;
 import nl.ulso.macu.vault.Vault;
 
 import java.io.IOException;
-import java.nio.file.Path;
 
-public class Personal
-        extends SystemTemplate
+public class PersonalNotesCurator
+        extends CuratorTemplate
 {
     @Override
     protected FileSystemVault createVault()

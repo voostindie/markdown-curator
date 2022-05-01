@@ -1,9 +1,9 @@
-package nl.ulso.macu.system.music;
+package nl.ulso.macu.curator.music;
 
 import com.google.common.jimfs.Configuration;
 import com.google.common.jimfs.Jimfs;
 import nl.ulso.macu.query.QueryCatalog;
-import nl.ulso.macu.system.SystemTemplate;
+import nl.ulso.macu.curator.CuratorTemplate;
 import nl.ulso.macu.vault.FileSystemVault;
 import nl.ulso.macu.vault.Vault;
 
@@ -17,8 +17,8 @@ import java.nio.file.attribute.BasicFileAttributes;
  * is initialized on top of this file system. This ensures that the file system stays intact. The
  * vault on disk is there to make it easy to maintain and use: just fire up Obsidian on top of it.
  */
-public class Music
-        extends SystemTemplate
+public class MusicCurator
+        extends CuratorTemplate
 {
     @Override
     protected FileSystemVault createVault()
@@ -45,7 +45,7 @@ public class Music
         var queryBlocks = vault().findAllQueryBlocks();
         queryBlocks.forEach(queryBlock -> {
             var query = queryCatalog().query(queryBlock.name());
-            var result = query.run(queryBlock).toString();
+            var result = query.run(queryBlock).toMarkdown();
             java.lang.System.out.println("---");
             java.lang.System.out.println(query.name());
             java.lang.System.out.println("---");

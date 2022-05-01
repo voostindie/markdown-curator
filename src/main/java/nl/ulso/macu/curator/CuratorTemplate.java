@@ -1,4 +1,4 @@
-package nl.ulso.macu.system;
+package nl.ulso.macu.curator;
 
 import nl.ulso.macu.query.InMemoryQueryCatalog;
 import nl.ulso.macu.query.QueryCatalog;
@@ -16,26 +16,27 @@ import static java.util.stream.Collectors.groupingBy;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
- * Base class for {@link System}s on top of a {@link FileSystemVault} and custom, built-in
+ * Base class for {@link Curator}s on top of a {@link FileSystemVault} and custom, built-in
  * queries.
  * <p/>
  * Whenever a change in the underlying vault is detected, all queries are collected from all
  * documents in the vault. These queries are then executed and compared to the existing query
- * results withinthe documents. If a query result has changed, the document is rewritten to disk,
+ * results within the documents. If a query result has changed, the document is rewritten to disk,
  * with the old query result replaced.
  * <p/>
  * There's plenty of ways to make this implementation more efficient, like caching the available
  * queries, running queries in parallel, writing documents in a non-blocking manner, and so on.
+ * I'll dive into that when performance becomes an issue.
  */
-public abstract class SystemTemplate
-        implements System, VaultChangedCallback
+public abstract class CuratorTemplate
+        implements Curator, VaultChangedCallback
 {
-    private static final Logger LOGGER = getLogger(SystemTemplate.class);
+    private static final Logger LOGGER = getLogger(CuratorTemplate.class);
 
     private final FileSystemVault vault;
     private final QueryCatalog queryCatalog;
 
-    public SystemTemplate()
+    public CuratorTemplate()
     {
         try
         {
@@ -71,10 +72,10 @@ public abstract class SystemTemplate
 
     /**
      * This is a simple, non-optimized implementation of the simple callback: it collects all
-     * queries in the vault, runs them all, and writes the ones that have changed back to disk.
+     * queries in the vault, runs them all, and writes the documents that have changed back to disk.
      */
     @Override
-    public void vaultChanged()
+    public final void vaultChanged()
     {
         LOGGER.debug("Vault changed! Re-running all queries");
         runAllQueries().entrySet().stream()
@@ -84,7 +85,7 @@ public abstract class SystemTemplate
         LOGGER.debug("Done!");
     }
 
-    private Map<QueryBlock, String> runAllQueries()
+    Map<QueryBlock, String> runAllQueries()
     {
         Map<QueryBlock, String> writeQueue = new HashMap<>();
         vault.findAllQueryBlocks().forEach(queryBlock -> {
@@ -92,7 +93,7 @@ public abstract class SystemTemplate
             var result = query.run(queryBlock);
             LOGGER.debug("Document '{}', query '{}', success: {}",
                     queryBlock.document(), query.name(), result.isSuccess());
-            var output = result.toString();
+            var output = result.toMarkdown();
             if (!queryBlock.result().contentEquals(output))
             {
                 LOGGER.debug("Document '{}' query result change detected", queryBlock.document());
@@ -102,7 +103,7 @@ public abstract class SystemTemplate
         return writeQueue;
     }
 
-    private void writeDocument(Document document, List<Map.Entry<QueryBlock, String>> outputs)
+    void writeDocument(Document document, List<Map.Entry<QueryBlock, String>> outputs)
     {
         LOGGER.info("Rewriting document '{}'", document);
         var path = vault.resolveAbsolutePath(document);

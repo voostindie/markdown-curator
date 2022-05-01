@@ -1,9 +1,9 @@
 package nl.ulso.macu;
 
-import nl.ulso.macu.system.System;
-import nl.ulso.macu.system.personal.Personal;
-import nl.ulso.macu.system.rabobank.Rabobank;
-import nl.ulso.macu.system.tweevv.Tweevv;
+import nl.ulso.macu.curator.Curator;
+import nl.ulso.macu.curator.personal.PersonalNotesCurator;
+import nl.ulso.macu.curator.rabobank.RabobankNotesCurator;
+import nl.ulso.macu.curator.tweevv.TweevvNotesCurator;
 import org.slf4j.Logger;
 
 import java.io.IOException;
@@ -13,10 +13,10 @@ import java.util.concurrent.Executors;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
- * Main application: sets up all systems and runs them; each system runs in its own thread.
+ * Main application: sets up all curator and runs them; each curator runs in its own thread.
  * <p/>
- * If a single system cannot be instantiated, its thread is basically dead; it won't work. The other
- * systems (if any) will still work though.
+ * If a single curator cannot be instantiated, its thread is basically dead; it won't work. The
+ * other curators (if any) will still work though.
  */
 public class Application
 {
@@ -29,7 +29,7 @@ public class Application
         LOGGER.info("--------------------------------------------------");
         var systems = systems();
         var executor = Executors.newFixedThreadPool(systems.size());
-        for (Class<? extends System> clazz : systems)
+        for (Class<? extends Curator> clazz : systems)
         {
             executor.submit(Executors.callable(() -> {
                 try
@@ -60,12 +60,12 @@ public class Application
         executor.shutdown();
     }
 
-    private static Set<Class<? extends System>> systems()
+    private static Set<Class<? extends Curator>> systems()
     {
         return Set.of(
-                Rabobank.class,
-                Personal.class,
-                Tweevv.class
+                RabobankNotesCurator.class,
+                PersonalNotesCurator.class,
+                TweevvNotesCurator.class
         );
     }
 

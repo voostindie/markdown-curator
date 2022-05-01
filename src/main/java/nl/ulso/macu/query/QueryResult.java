@@ -25,5 +25,5 @@ public interface QueryResult
 
     String errorMessage();
 
-    String toString();
+    String toMarkdown();
 }

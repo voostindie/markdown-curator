@@ -42,7 +42,7 @@ class TableResult
     }
 
     @Override
-    public String toString()
+    public String toMarkdown()
     {
         if (rows.isEmpty())
         {
@@ -65,7 +65,8 @@ class TableResult
             builder.append('|');
         }
         builder.append(lineSeparator());
-        rows.forEach(row -> {
+        for (Map<String, String> row : rows)
+        {
             builder.append('|');
             for (var i = 0; i < width; i++)
             {
@@ -74,7 +75,7 @@ class TableResult
                 builder.append("|");
             }
             builder.append(lineSeparator());
-        });
+        }
         return builder.toString().trim();
     }
 
@@ -86,12 +87,13 @@ class TableResult
         {
             widths[i] = columns.get(i).length();
         }
-        rows.forEach(row -> {
+        for (Map<String, String> row : rows)
+        {
             for (var i = 0; i < width; i++)
             {
                 widths[i] = Math.max(widths[i], row.getOrDefault(columns.get(i), "").length());
             }
-        });
+        }
         return widths;
     }
 }

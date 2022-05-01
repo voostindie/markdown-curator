@@ -1,5 +1,5 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="All tests" type="JUnit" factoryName="JUnit" activateToolWindowBeforeRun="false">
+  <configuration default="false" name="All tests" type="JUnit" factoryName="JUnit">
     <module name="macu" />
     <extension name="coverage">
       <pattern>

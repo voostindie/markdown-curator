@@ -40,7 +40,7 @@ class ListResult
     }
 
     @Override
-    public String toString()
+    public String toMarkdown()
     {
         if (rows.isEmpty())
         {

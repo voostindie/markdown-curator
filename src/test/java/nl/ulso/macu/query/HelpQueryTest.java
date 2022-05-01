@@ -20,7 +20,7 @@ class HelpQueryTest
     void helpQuery()
     {
         var catalog = new InMemoryQueryCatalog();
-        var result = catalog.query("help").run(emptyQueryBlock()).toString();
+        var result = catalog.query("help").run(emptyQueryBlock()).toMarkdown();
         assertThat(result).contains("**help**: shows detailed help information for a query.");
         assertThat(result).contains("Configuration options");
         assertThat(result).contains("- **query**: Name of the query to get help for.");

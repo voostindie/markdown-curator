@@ -1,4 +1,4 @@
-package nl.ulso.macu.system.music;
+package nl.ulso.macu.curator.music;
 
 import nl.ulso.macu.query.*;
 import nl.ulso.macu.vault.*;
@@ -13,9 +13,9 @@ import static nl.ulso.macu.vault.QueryBlockTest.emptyQueryBlock;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @ExtendWith(SoftAssertionsExtension.class)
-class MusicTest
+class MusicCuratorTest
 {
-    private static Music music;
+    private static MusicCurator musicCurator;
 
     @InjectSoftAssertions
     private SoftAssertions softly;
@@ -23,13 +23,13 @@ class MusicTest
     @BeforeAll
     static void constructSystem()
     {
-        music = new Music();
+        musicCurator = new MusicCurator();
     }
 
     @Test
     void statistics()
     {
-        var vault = music.vault();
+        var vault = musicCurator.vault();
         assertThat(vault.name()).endsWith("music");
         var statistics = ElementCounter.countAll(vault);
         System.out.println(statistics);
@@ -46,7 +46,7 @@ class MusicTest
     @Test
     void queryCatalog()
     {
-        QueryCatalog catalog = music.queryCatalog();
+        QueryCatalog catalog = musicCurator.queryCatalog();
         softly.assertThat(catalog.queries().size()).isEqualTo(4);
         Query dummy = catalog.query("dummy");
         QueryResult result = dummy.run(emptyQueryBlock());
@@ -60,7 +60,7 @@ class MusicTest
     @Test
     void queries()
     {
-        var queries = music.vault().findAllQueryBlocks();
+        var queries = musicCurator.vault().findAllQueryBlocks();
         softly.assertThat(queries.size()).isEqualTo(4);
     }
 
@@ -133,12 +133,12 @@ class MusicTest
                 softly.assertThat(fragment.document()).isSameAs(currentDocument);
             }
         };
-        music.vault().accept(visitor);
+        musicCurator.vault().accept(visitor);
     }
 
     @Test
     void runOnce()
     {
-        music.vaultChanged();
+        musicCurator.vaultChanged();
     }
 }
