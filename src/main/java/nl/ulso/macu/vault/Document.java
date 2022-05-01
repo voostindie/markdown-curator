@@ -118,4 +118,9 @@ public final class Document
     {
         return name();
     }
+
+    public String link()
+    {
+        return "[[" + name + "]]";
+    }
 }

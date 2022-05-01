@@ -21,6 +21,11 @@ public class RabobankNotesCurator
     protected void registerQueries(QueryCatalog catalog, Vault vault)
     {
         catalog.register(new ProjectsQuery(vault));
+        catalog.register(new ArticlesQuery(vault));
+        catalog.register(new SystemsQuery(vault));
+        catalog.register(new ArchitectureDecisionRecordsQuery(vault));
+        catalog.register(new TeamQuery(vault));
+        catalog.register(new OneOnOneQuery(vault));
     }
 
     public static void main(String[] args)

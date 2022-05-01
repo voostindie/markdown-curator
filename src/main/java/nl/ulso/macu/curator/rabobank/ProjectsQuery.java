@@ -39,9 +39,13 @@ class ProjectsQuery
     @Override
     public QueryResult run(QueryBlock queryBlock)
     {
-        var finder = new ProjectFinder();
-        vault.accept(finder);
-        return QueryResult.table(List.of("Date", "Project"), finder.projects);
+        return vault.folder("Projects").map(folder -> {
+            var finder = new ProjectFinder();
+            folder.accept(finder);
+            var projects = finder.projects;
+            projects.sort(comparing((Map<String, String> e) -> e.get("Date")).reversed());
+            return QueryResult.table(List.of("Date", "Project"), projects);
+        }).orElse(QueryResult.failure("Couldn't find the folder 'Projects'"));
     }
 
     private static class ProjectFinder
@@ -53,27 +57,12 @@ class ProjectsQuery
         private final List<Map<String, String>> projects = new ArrayList<>();
 
         @Override
-        public void visit(Vault vault)
-        {
-            super.visit(vault);
-            projects.sort(comparing((Map<String, String> e) -> e.get("Date")).reversed());
-        }
-
-        @Override
         public void visit(Folder folder)
         {
+            // Don't recurse into subfolders!
             if (folder.name().equals("Projects"))
             {
                 super.visit(folder);
-            }
-        }
-
-        @Override
-        public void visit(Document document)
-        {
-            if (document.folder().name().equals("Projects"))
-            {
-                super.visit(document);
             }
         }
 
@@ -88,7 +77,7 @@ class ProjectsQuery
                 if (matcher.matches())
                 {
                     projects.add(Map.of(
-                            "Project", "[[" + section.document().name() + "]]",
+                            "Project", section.document().link(),
                             "Date", matcher.group(1)
                     ));
                 }

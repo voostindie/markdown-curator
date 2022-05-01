@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Objects;
 
 import static java.lang.Character.isAlphabetic;
+import static java.lang.Character.isLetterOrDigit;
 import static java.lang.String.join;
 import static java.lang.System.lineSeparator;
 import static nl.ulso.macu.vault.Dictionary.yamlDictionary;
@@ -148,8 +149,13 @@ public final class QueryBlock
             if (query.length() > 0 && query.charAt(0) == QUERY_NAME_MARKER)
             {
                 var end = 1;
-                while (isAlphabetic(query.charAt(end)))
+                while (true)
                 {
+                    char c = query.charAt(end);
+                    if (!isLetterOrDigit(c))
+                    {
+                        break;
+                    }
                     end++;
                 }
                 if (end > 1)
