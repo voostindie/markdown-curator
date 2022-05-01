@@ -6,11 +6,11 @@ Adopted
 
 ## Decision
 
-All this application does, is done in memory. Nothing is persisted to disk or stored elsewhere using some external service. Only output is stored to disk, only where the user wants it.
+Everything this application does, except for producing output, is done in memory. Nothing is persisted to disk or stored elsewhere using some external service (like a database). Only output is stored to disk, where the user wants it.
 
 ## Context
 
-This program processes Markdown files on disk. It extracts information from plaintext files, adds meaning to it, runs queries on top of it, and generates reports. To run these queries, it logically needs something to run these queries against. 
+This program processes Markdown files on disk. It extracts information from plaintext files, adds meaning to it, runs queries on top of it, and generates reports. To run these queries, it logically needs something to run these queries against. The decision is to have this "database" only in memory.
 
 ## Consequences
 
@@ -39,7 +39,7 @@ Because vaults contain human-written notes only (the human being me, typically),
 
 #### Pros
 
-- Faster startup (maybe): just read the cache and the program is ready to go. But this premature optimization. In my first tests I was able to load all documents in my biggest vault (52 MB, maintained since 2017) in less than a quarter of a second.
+- Faster startup (maybe): just read the cache and the program is ready to go. But this is premature optimization. In my first tests I was able to load all documents in my biggest vault (52 MB, maintained since 2017) in less than a quarter of a second.
 
 #### Cons
 
@@ -49,7 +49,8 @@ Because vaults contain human-written notes only (the human being me, typically),
 
 #### Pros
 
-- Memory use can be much more controlled and made constant.
+- Memory usage can be much more controlled and made constant.
+- Query language could be exposed to the user to easily construct queries.
 
 #### Cons
 
