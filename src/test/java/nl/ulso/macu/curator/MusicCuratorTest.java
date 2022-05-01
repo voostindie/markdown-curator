@@ -143,7 +143,8 @@ class MusicCuratorTest
     void runAllQueries()
     {
         Map<QueryBlock, String> map = musicCurator.runAllQueries();
-        softly.assertThat(map.size()).isEqualTo(6);
+        // We expected only (and all) queries in "queries-blank" to have new output:
+        softly.assertThat(map.size()).isEqualTo(3);
     }
 
     @Test

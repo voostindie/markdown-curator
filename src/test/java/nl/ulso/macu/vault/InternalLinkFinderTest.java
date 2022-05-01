@@ -6,10 +6,10 @@ import org.assertj.core.api.junit.jupiter.SoftAssertionsExtension;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
-import static nl.ulso.macu.vault.WikiLinkFinder.allLinks;
+import static nl.ulso.macu.vault.InternalLinkFinder.allLinks;
 
 @ExtendWith(SoftAssertionsExtension.class)
-class WikiLinkFinderTest
+class InternalLinkFinderTest
 {
     @InjectSoftAssertions
     private SoftAssertions softly;

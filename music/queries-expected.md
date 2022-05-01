@@ -14,7 +14,11 @@ artist: Marillion
 <!--query:members
 artist: Marillion
 -->
-Not implemented yet
+- [[Ian Mosley]]
+- [[Mark Kelly]]
+- [[Pete Trewavas]]
+- [[Steve Hogarth]]
+- [[Steve Rothery]]
 <!--/query-->
 
 ## Recordings
@@ -22,5 +26,5 @@ Not implemented yet
 <!--query:recordings
 song: Be Hard On Yourself
 -->
-Not implemented yet
+- Track 1 on [[An Hour Before It Gets Dark]]
 <!--/query-->

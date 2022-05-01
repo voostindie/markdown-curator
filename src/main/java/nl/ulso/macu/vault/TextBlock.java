@@ -43,7 +43,7 @@ public final class TextBlock
 
     public Set<InternalLink> findInternalLinks()
     {
-        var finder = new WikiLinkFinder();
+        var finder = new InternalLinkFinder();
         accept(finder);
         return finder.internalLinks();
     }

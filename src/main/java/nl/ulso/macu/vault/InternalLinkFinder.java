@@ -14,14 +14,14 @@ import static java.util.regex.Pattern.compile;
  * A full Obsidian WikiLink looks like this: [[document#anchor|label]], with the anchor and the
  * label optional.
  */
-final class WikiLinkFinder
+final class InternalLinkFinder
         extends BreadthFirstVaultVisitor
 {
     private static final Pattern LINK_PATTERN = compile("\\[\\[(.*?)(?:#(.*?))?(?:\\|(.*))?]]");
 
     private final Set<InternalLink> internalLinks;
 
-    WikiLinkFinder()
+    InternalLinkFinder()
     {
         internalLinks = new HashSet<>();
     }

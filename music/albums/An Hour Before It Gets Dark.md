@@ -2,7 +2,7 @@
 
 Released by [[Marillion]] in 2022. This is their 20th studio album and the first album with original material since [[F E A R]].
 
-## Track listing
+## Tracks
 
 1. [[Be Hard On Yourself]]
 2. Reprogram The Gene

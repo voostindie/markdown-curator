@@ -4,7 +4,7 @@ Released by [[Marillion]] in 2016. Their 18th studio album.
 
 The acronym "F.E.A.R." stands for "Fuck Everyone And Run".
 
-## Track listing
+## Tracks
 
 1. [[El Dorado]]
 2. Living in F E A R

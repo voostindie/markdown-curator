@@ -2,12 +2,12 @@ package nl.ulso.macu.curator;
 
 import nl.ulso.macu.query.Query;
 import nl.ulso.macu.query.QueryResult;
-import nl.ulso.macu.vault.QueryBlock;
-import nl.ulso.macu.vault.Vault;
+import nl.ulso.macu.vault.*;
 
-import java.util.Map;
+import java.util.*;
 
-import static nl.ulso.macu.query.QueryResult.failure;
+import static java.util.Comparator.comparing;
+import static nl.ulso.macu.query.QueryResult.list;
 
 public class RecordingsQuery
         implements Query
@@ -40,6 +40,75 @@ public class RecordingsQuery
     @Override
     public QueryResult run(QueryBlock queryBlock)
     {
-        return failure("Not implemented yet");
+        var song = queryBlock.configuration().string("song", queryBlock.document().name());
+        var finder = new RecordingsFinder(song);
+        vault.accept(finder);
+        return list(finder.recordings.stream()
+                .map(row ->
+                        "Track " + row.get("Index") + " on [[" + row.get("Album") + "]]").toList());
+    }
+
+    private static class RecordingsFinder
+            extends BreadthFirstVaultVisitor
+    {
+        private final String song;
+
+        private final List<Map<String, String>> recordings;
+
+        public RecordingsFinder(String song)
+        {
+            this.song = song;
+            this.recordings = new ArrayList<>();
+        }
+
+        @Override
+        public void visit(Folder folder)
+        {
+            if (folder.name().equals("albums"))
+            {
+                super.visit(folder);
+            }
+            recordings.sort(comparing(e -> e.get("Album")));
+        }
+
+        public void visit(Section section)
+        {
+            if (section.level() == 2
+                    && section.title().startsWith("Tracks")
+                    && section.fragments().size() > 0)
+            {
+                section.fragments().get(0).accept(this);
+            }
+        }
+
+        @Override
+        public void visit(TextBlock textBlock)
+        {
+            var tracks = textBlock.findInternalLinks().stream()
+                    .filter(link -> link.targetDocument().equals(song)).toList();
+            if (tracks.isEmpty())
+            {
+                return;
+            }
+            for (InternalLink track : tracks)
+            {
+                var link = track.toMarkdown();
+                for (String line : textBlock.lines())
+                {
+                    if (line.endsWith(link))
+                    {
+                        var dot = line.indexOf('.');
+                        if (dot != -1)
+                        {
+                            var index = line.substring(0, dot).trim();
+                            recordings.add(Map.of(
+                                    "Index", index,
+                                    "Album", textBlock.document().name()
+                            ));
+                        }
+                    }
+                }
+            }
+        }
     }
 }

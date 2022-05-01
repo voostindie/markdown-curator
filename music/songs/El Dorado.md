@@ -142,5 +142,5 @@ That angels, we could be.
 ## Recordings
 
 <!--query:recordings-->
-- Track 1 on [[F E A R]] by [[Marillion]], 2016
+- Track 1 on [[F E A R]]
 <!--/query-->

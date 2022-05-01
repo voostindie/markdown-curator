@@ -1,6 +1,5 @@
 package nl.ulso.macu.vault;
 
-import java.nio.file.Path;
 import java.util.*;
 
 import static java.util.Objects.requireNonNull;
@@ -109,7 +108,7 @@ public final class Document
 
     public Set<InternalLink> findInternalLinks()
     {
-        var finder = new WikiLinkFinder();
+        var finder = new InternalLinkFinder();
         accept(finder);
         return finder.internalLinks();
     }
