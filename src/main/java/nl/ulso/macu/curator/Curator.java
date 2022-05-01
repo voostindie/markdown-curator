@@ -9,6 +9,12 @@ import java.io.IOException;
 public interface Curator
 {
     /**
+     * Runs this curator once. Changes to the underlying vault are <b>not</b> monitored!
+     */
+    void runOnce()
+        throws IOException;
+
+    /**
      * Runs this curator by watching the vault for changes and "doing stuff"" as a result of
      * these changes. This method blocks.
      */

@@ -63,6 +63,13 @@ public abstract class CuratorTemplate
     protected abstract void registerQueries(QueryCatalog catalog, Vault vault);
 
     @Override
+    public void runOnce()
+    {
+        LOGGER.info("Running this curator once");
+        vaultChanged();
+    }
+
+    @Override
     public final void run()
             throws IOException, InterruptedException
     {
@@ -77,7 +84,7 @@ public abstract class CuratorTemplate
     @Override
     public final void vaultChanged()
     {
-        LOGGER.debug("Vault changed! Re-running all queries");
+        LOGGER.debug("Re-running all queries");
         runAllQueries().entrySet().stream()
                 .sorted(comparingInt(e -> e.getKey().resultStartIndex()))
                 .collect(groupingBy(e -> e.getKey().document()))
@@ -85,6 +92,10 @@ public abstract class CuratorTemplate
         LOGGER.debug("Done!");
     }
 
+    /**
+     * Runs all queries in the vault and collects the queries whose outputs have changed compared
+     * to what's in memory right now.
+     */
     Map<QueryBlock, String> runAllQueries()
     {
         Map<QueryBlock, String> writeQueue = new HashMap<>();
@@ -138,7 +149,7 @@ public abstract class CuratorTemplate
         }
     }
 
-    public final Vault vault()
+    public final FileSystemVault vault()
     {
         return vault;
     }

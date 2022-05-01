@@ -1,11 +1,9 @@
-package nl.ulso.macu.curator.music;
+package nl.ulso.macu.curator;
 
 import com.google.common.jimfs.Configuration;
 import com.google.common.jimfs.Jimfs;
 import nl.ulso.macu.query.QueryCatalog;
-import nl.ulso.macu.curator.CuratorTemplate;
-import nl.ulso.macu.vault.FileSystemVault;
-import nl.ulso.macu.vault.Vault;
+import nl.ulso.macu.vault.*;
 
 import java.io.IOException;
 import java.nio.file.*;
@@ -16,6 +14,9 @@ import java.nio.file.attribute.BasicFileAttributes;
  * project are copied into a memory-based file system first, after which a {@link FileSystemVault}
  * is initialized on top of this file system. This ensures that the file system stays intact. The
  * vault on disk is there to make it easy to maintain and use: just fire up Obsidian on top of it.
+ * <p/>
+ * This class is in the same package as the {@link CuratorTemplate} base class, so that its
+ * package-local methods are available for testing.
  */
 public class MusicCurator
         extends CuratorTemplate
@@ -40,21 +41,11 @@ public class MusicCurator
         catalog.register(new MembersQuery(vault));
     }
 
-    public void runOnce()
+    String reload(Document document)
+            throws IOException
     {
-        var queryBlocks = vault().findAllQueryBlocks();
-        queryBlocks.forEach(queryBlock -> {
-            var query = queryCatalog().query(queryBlock.name());
-            var result = query.run(queryBlock).toMarkdown();
-            java.lang.System.out.println("---");
-            java.lang.System.out.println(query.name());
-            java.lang.System.out.println("---");
-            java.lang.System.out.println(result);
-            if (!queryBlock.result().contentEquals(result))
-            {
-                java.lang.System.out.println("==> New results are in!");
-            }
-        });
+        var path = vault().resolveAbsolutePath(document);
+        return Files.readString(path).trim();
     }
 
     private static class RecursiveCopier

@@ -1,13 +1,16 @@
-package nl.ulso.macu.curator.music;
+package nl.ulso.macu.curator;
 
 import nl.ulso.macu.query.*;
 import nl.ulso.macu.vault.*;
 import org.assertj.core.api.SoftAssertions;
 import org.assertj.core.api.junit.jupiter.InjectSoftAssertions;
 import org.assertj.core.api.junit.jupiter.SoftAssertionsExtension;
-import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+
+import java.io.IOException;
+import java.util.Map;
 
 import static nl.ulso.macu.vault.QueryBlockTest.emptyQueryBlock;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -15,13 +18,13 @@ import static org.assertj.core.api.Assertions.assertThat;
 @ExtendWith(SoftAssertionsExtension.class)
 class MusicCuratorTest
 {
-    private static MusicCurator musicCurator;
+    private MusicCurator musicCurator;
 
     @InjectSoftAssertions
     private SoftAssertions softly;
 
-    @BeforeAll
-    static void constructSystem()
+    @BeforeEach
+    void constructSystem()
     {
         musicCurator = new MusicCurator();
     }
@@ -35,12 +38,12 @@ class MusicCuratorTest
         System.out.println(statistics);
         softly.assertThat(statistics.vaults).isEqualTo(1);
         softly.assertThat(statistics.folders).isEqualTo(3);
-        softly.assertThat(statistics.documents).isEqualTo(11);
-        softly.assertThat(statistics.frontMatters).isEqualTo(11);
-        softly.assertThat(statistics.sections).isEqualTo(29);
-        softly.assertThat(statistics.queries).isEqualTo(4);
+        softly.assertThat(statistics.documents).isEqualTo(13);
+        softly.assertThat(statistics.frontMatters).isEqualTo(13);
+        softly.assertThat(statistics.sections).isEqualTo(35);
+        softly.assertThat(statistics.queries).isEqualTo(10);
         softly.assertThat(statistics.codeBlocks).isEqualTo(5);
-        softly.assertThat(statistics.texts).isEqualTo(34);
+        softly.assertThat(statistics.texts).isEqualTo(46);
     }
 
     @Test
@@ -61,7 +64,7 @@ class MusicCuratorTest
     void queries()
     {
         var queries = musicCurator.vault().findAllQueryBlocks();
-        softly.assertThat(queries.size()).isEqualTo(4);
+        softly.assertThat(queries.size()).isEqualTo(10);
     }
 
     @Test
@@ -137,8 +140,20 @@ class MusicCuratorTest
     }
 
     @Test
-    void runOnce()
+    void runAllQueries()
     {
-        musicCurator.vaultChanged();
+        Map<QueryBlock, String> map = musicCurator.runAllQueries();
+        softly.assertThat(map.size()).isEqualTo(6);
+    }
+
+    @Test
+    void writeDocument()
+            throws IOException
+    {
+        var original = musicCurator.vault().document("queries-blank").orElseThrow();
+        var expected = musicCurator.vault().document("queries-expected").orElseThrow();
+        musicCurator.runOnce();
+        var update = musicCurator.reload(original);
+        assertThat(update).isEqualTo(expected.content());
     }
 }

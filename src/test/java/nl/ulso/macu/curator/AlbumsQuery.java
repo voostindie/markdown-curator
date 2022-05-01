@@ -1,4 +1,4 @@
-package nl.ulso.macu.curator.music;
+package nl.ulso.macu.curator;
 
 import nl.ulso.macu.query.Query;
 import nl.ulso.macu.query.QueryResult;
