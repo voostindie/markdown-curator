@@ -30,9 +30,7 @@ class InMemoryQueryCatalogTest
         softly.assertThat(specification.supportedConfiguration()).isEmpty();
         var result = specification.run(emptyQueryBlock());
         softly.assertThat(result.isSuccess()).isFalse();
-        softly.assertThat(result.columns()).isEmpty();
-        softly.assertThat(result.rows()).isEmpty();
-        softly.assertThat(result.errorMessage()).contains("no queries defined");
+        softly.assertThat(result.toMarkdown()).contains("no queries defined");
     }
 
     @Test

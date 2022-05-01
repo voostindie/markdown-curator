@@ -1,7 +1,6 @@
 package nl.ulso.macu.query;
 
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static java.lang.System.lineSeparator;
 
@@ -13,8 +12,8 @@ class TableResult
 
     public TableResult(List<String> columns, List<Map<String, String>> rows)
     {
-        this.columns = columns;
-        this.rows = rows;
+        this.columns = Collections.unmodifiableList(columns);
+        this.rows = Collections.unmodifiableList(rows);
     }
 
     @Override
@@ -23,22 +22,14 @@ class TableResult
         return true;
     }
 
-    @Override
-    public List<String> columns()
+    List<String> columns()
     {
         return columns;
     }
 
-    @Override
-    public List<Map<String, String>> rows()
+    List<Map<String, String>> rows()
     {
         return rows;
-    }
-
-    @Override
-    public String errorMessage()
-    {
-        return "";
     }
 
     @Override

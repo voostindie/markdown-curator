@@ -1,7 +1,7 @@
 package nl.ulso.macu.query;
 
+import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 
 import static java.lang.System.lineSeparator;
 
@@ -12,7 +12,7 @@ class ListResult
 
     public ListResult(List<String> rows)
     {
-        this.rows = rows;
+        this.rows = Collections.unmodifiableList(rows);
     }
 
     @Override
@@ -21,22 +21,9 @@ class ListResult
         return true;
     }
 
-    @Override
-    public List<String> columns()
+    List<String> rows()
     {
-        return List.of("Result");
-    }
-
-    @Override
-    public List<Map<String, String>> rows()
-    {
-        return rows.stream().map(row -> Map.of("Result", row)).toList();
-    }
-
-    @Override
-    public String errorMessage()
-    {
-        return "";
+        return rows;
     }
 
     @Override
@@ -47,10 +34,12 @@ class ListResult
             return "No results";
         }
         var builder = new StringBuilder();
-        rows.forEach(row ->
-                builder.append("- ")
-                        .append(row)
-                        .append(lineSeparator()));
+        for (String row : rows)
+        {
+            builder.append("- ")
+                    .append(row)
+                    .append(lineSeparator());
+        }
         return builder.toString().trim();
     }
 }

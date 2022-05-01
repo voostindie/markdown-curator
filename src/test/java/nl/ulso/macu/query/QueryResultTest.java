@@ -11,7 +11,6 @@ import java.util.*;
 @ExtendWith(SoftAssertionsExtension.class)
 class QueryResultTest
 {
-
     @InjectSoftAssertions
     private SoftAssertions softly;
 
@@ -21,9 +20,7 @@ class QueryResultTest
     {
         var failure = QueryResult.failure("error");
         softly.assertThat(failure.isSuccess()).isFalse();
-        softly.assertThat(failure.errorMessage()).contains("error");
-        softly.assertThat(failure.columns()).isEmpty();
-        softly.assertThat(failure.rows()).isEmpty();
+        softly.assertThat(failure.toMarkdown()).contains("error");
     }
 
     @Test
@@ -31,8 +28,6 @@ class QueryResultTest
     {
         var table = QueryResult.table(List.of("1", "2"), Collections.emptyList());
         softly.assertThat(table.isSuccess()).isTrue();
-        softly.assertThat(table.rows()).isEmpty();
-        softly.assertThat(table.errorMessage()).isBlank();
         softly.assertThat(table.toMarkdown()).contains("No results");
     }
 
@@ -44,9 +39,6 @@ class QueryResultTest
                         Map.of("Title", "Spectre", "Year", "2015"),
                         Map.of("Title", "Skyfall", "Year", "2012")));
         softly.assertThat(table.isSuccess()).isTrue();
-        softly.assertThat(table.columns().size()).isEqualTo(2);
-        softly.assertThat(table.rows().size()).isEqualTo(3);
-        softly.assertThat(table.errorMessage()).isBlank();
         softly.assertThat(table.toMarkdown()).isEqualTo("""
                 | Title          | Year |
                 | -------------- | ---- |
@@ -75,8 +67,6 @@ class QueryResultTest
     {
         var list = QueryResult.list(Collections.emptyList());
         softly.assertThat(list.isSuccess()).isTrue();
-        softly.assertThat(list.rows()).isEmpty();
-        softly.assertThat(list.errorMessage()).isBlank();
         softly.assertThat(list.toMarkdown()).contains("No results");
     }
 
@@ -85,9 +75,6 @@ class QueryResultTest
     {
         var list = QueryResult.list(List.of("Foo", "Bar"));
         softly.assertThat(list.isSuccess()).isTrue();
-        softly.assertThat(list.columns().size()).isEqualTo(1);
-        softly.assertThat(list.rows().size()).isEqualTo(2);
-        softly.assertThat(list.errorMessage()).isBlank();
         softly.assertThat(list.toMarkdown()).isEqualTo("""
                 - Foo
                 - Bar

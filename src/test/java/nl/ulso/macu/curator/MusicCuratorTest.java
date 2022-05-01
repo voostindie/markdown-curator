@@ -54,10 +54,11 @@ class MusicCuratorTest
         Query dummy = catalog.query("dummy");
         QueryResult result = dummy.run(emptyQueryBlock());
         softly.assertThat(result.isSuccess()).isFalse();
-        softly.assertThat(result.errorMessage()).contains("no query defined called 'dummy'");
-        softly.assertThat(result.errorMessage()).contains("albums");
-        softly.assertThat(result.errorMessage()).contains("recordings");
-        softly.assertThat(result.errorMessage()).contains("members");
+        var markdown = result.toMarkdown();
+        softly.assertThat(markdown).contains("no query defined called 'dummy'");
+        softly.assertThat(markdown).contains("albums");
+        softly.assertThat(markdown).contains("recordings");
+        softly.assertThat(markdown).contains("members");
     }
 
     @Test
