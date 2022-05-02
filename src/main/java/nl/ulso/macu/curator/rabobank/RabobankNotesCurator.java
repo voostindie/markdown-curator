@@ -18,7 +18,7 @@ public class RabobankNotesCurator
     }
 
     @Override
-    protected void registerQueries(QueryCatalog catalog, Vault vault)
+    protected void registerQueries(QueryCatalog catalog, FileSystemVault vault)
     {
         catalog.register(new ProjectsQuery(vault));
         catalog.register(new ArticlesQuery(vault));
@@ -26,6 +26,8 @@ public class RabobankNotesCurator
         catalog.register(new ArchitectureDecisionRecordsQuery(vault));
         catalog.register(new TeamQuery(vault));
         catalog.register(new OneOnOneQuery(vault));
+        var journal = new Journal(vault);
+        catalog.register(new WeeklyQuery(journal));
     }
 
     public static void main(String[] args)

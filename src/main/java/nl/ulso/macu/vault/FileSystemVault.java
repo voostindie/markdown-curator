@@ -30,6 +30,7 @@ public final class FileSystemVault
     private final Path absolutePath;
     private final DirectoryWatcher watcher;
     private VaultChangedCallback callback;
+    private long version;
 
     public FileSystemVault(Path absolutePath)
             throws IOException
@@ -47,19 +48,21 @@ public final class FileSystemVault
         super(absolutePath.toString());
         this.callback = () -> { /* Default: No-op */ };
         this.absolutePath = absolutePath;
+        VaultBuilder vaultBuilder = new VaultBuilder(this, absolutePath);
+        walkFileTree(absolutePath, vaultBuilder);
         this.watcher = DirectoryWatcher.builder()
-                .path(absolutePath)
+                .paths(vaultBuilder.paths)
+                .listener(this::processFileSystemEvent)
                 .watchService(watchService)
                 .fileHasher(FileHasher.LAST_MODIFIED_TIME)
-                .listener(this::processFileSystemEvent)
                 .build();
-        walkFileTree(absolutePath, new VaultBuilder(this, absolutePath));
         if (LOGGER.isInfoEnabled())
         {
             var statistics = ElementCounter.countFoldersAndDocuments(this);
             LOGGER.info("Read vault {} into memory with {} folders and {} documents", name(),
                     statistics.folders, statistics.documents);
         }
+        version = 0;
     }
 
     @Override
@@ -90,6 +93,14 @@ public final class FileSystemVault
         watcher.watch();
     }
 
+    /**
+     * @return The version of the vault; it's incremented on every change.
+     */
+    public long version()
+    {
+        return version;
+    }
+
     private void processFileSystemEvent(DirectoryChangeEvent event)
             throws IOException
     {
@@ -101,6 +112,7 @@ public final class FileSystemVault
             case MODIFY -> processFileModificationEvent(event);
             default -> LOGGER.warn("Unsupported filesystem event {}", event.eventType());
         }
+        version++;
         callback.vaultChanged();
     }
 
@@ -231,11 +243,13 @@ public final class FileSystemVault
     {
         private final Path root;
         private FileSystemFolder currentFolder;
+        List<Path> paths;
 
         private VaultBuilder(FileSystemFolder targetFolder, Path absolutePath)
         {
             root = absolutePath;
             currentFolder = targetFolder;
+            paths = new ArrayList<>();
         }
 
         @Override
@@ -247,6 +261,7 @@ public final class FileSystemVault
                 LOGGER.debug("Skipping directory {}", directory);
                 return FileVisitResult.SKIP_SUBTREE;
             }
+            paths.add(directory);
             if (!root.equals(directory))
             {
                 currentFolder = currentFolder.addFolder(folderName(directory));

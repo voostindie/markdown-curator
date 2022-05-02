@@ -56,7 +56,7 @@ public final class Section
         return Objects.hash(level, title, lines(), fragments());
     }
 
-    private String createAnchor(String title)
+    public static String createAnchor(String title)
     {
         return title.chars().filter(Section::isValidAnchorCharacter)
                 .collect(StringBuilder::new, StringBuilder::appendCodePoint, StringBuilder::append)
