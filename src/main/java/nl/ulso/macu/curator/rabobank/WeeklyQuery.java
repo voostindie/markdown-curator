@@ -9,6 +9,8 @@ import java.util.*;
 import java.util.regex.Pattern;
 
 import static java.lang.System.lineSeparator;
+import static java.time.format.TextStyle.FULL;
+import static java.util.Locale.US;
 import static java.util.regex.Pattern.compile;
 import static nl.ulso.macu.query.QueryResult.failure;
 
@@ -126,9 +128,9 @@ class WeeklyQuery
                             .append(lineSeparator());
                     for (JournalEntry entry : map.get(document))
                     {
-                        builder.append("  - ")
-                                .append(entry.date())
-                                .append(": [[")
+                        builder.append("  - *")
+                                .append(entry.date().getDayOfWeek().getDisplayName(FULL, US))
+                                .append("*: [[")
                                 .append(entry.section().document().name())
                                 .append("#")
                                 .append(entry.section().anchor())
