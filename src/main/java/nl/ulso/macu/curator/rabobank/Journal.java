@@ -34,20 +34,17 @@ class Journal
 
     private static final Logger LOGGER = LoggerFactory.getLogger(Journal.class);
     private final FileSystemVault vault;
-    private long version;
 
     private final List<JournalEntry> entries;
 
     Journal(FileSystemVault vault)
     {
         this.vault = vault;
-        this.version = -1;
         this.entries = new ArrayList<>();
     }
 
     Map<String, Map<Document, List<JournalEntry>>> forWeek(int year, int week)
     {
-        refreshJournal();
         LOGGER.debug("Selecting entries for year {}, week {}", year, week);
         LocalDate day = LocalDate.of(year, 12, 31)
                 .with(WEEK_OF_WEEK_BASED_YEAR, week)
@@ -62,17 +59,12 @@ class Journal
                 );
     }
 
-    private void refreshJournal()
+    void refresh()
     {
-        if (version == vault.version())
-        {
-            return;
-        }
         LOGGER.debug("Rebuilding the journal");
         entries.clear();
         var finder = new JournalEntryFinder();
         vault.accept(finder);
-        version = vault.version();
     }
 
     private class JournalEntryFinder

@@ -82,7 +82,7 @@ public abstract class CuratorTemplate
      * queries in the vault, runs them all, and writes the documents that have changed back to disk.
      */
     @Override
-    public final void vaultChanged()
+    public void vaultChanged()
     {
         LOGGER.debug("Re-running all queries");
         runAllQueries().entrySet().stream()

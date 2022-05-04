@@ -30,7 +30,6 @@ public final class FileSystemVault
     private final Path absolutePath;
     private final DirectoryWatcher watcher;
     private VaultChangedCallback callback;
-    private long version;
 
     public FileSystemVault(Path absolutePath)
             throws IOException
@@ -62,7 +61,6 @@ public final class FileSystemVault
             LOGGER.info("Read vault {} into memory with {} folders and {} documents", name(),
                     statistics.folders, statistics.documents);
         }
-        version = 0;
     }
 
     @Override
@@ -93,14 +91,6 @@ public final class FileSystemVault
         watcher.watch();
     }
 
-    /**
-     * @return The version of the vault; it's incremented on every change.
-     */
-    public long version()
-    {
-        return version;
-    }
-
     private void processFileSystemEvent(DirectoryChangeEvent event)
             throws IOException
     {
@@ -112,7 +102,6 @@ public final class FileSystemVault
             case MODIFY -> processFileModificationEvent(event);
             default -> LOGGER.warn("Unsupported filesystem event {}", event.eventType());
         }
-        version++;
         callback.vaultChanged();
     }
 

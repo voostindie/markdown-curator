@@ -1,15 +1,16 @@
 package nl.ulso.macu.curator.rabobank;
 
-import nl.ulso.macu.query.QueryCatalog;
 import nl.ulso.macu.curator.CuratorTemplate;
+import nl.ulso.macu.query.QueryCatalog;
 import nl.ulso.macu.vault.FileSystemVault;
-import nl.ulso.macu.vault.Vault;
 
 import java.io.IOException;
 
 public class RabobankNotesCurator
         extends CuratorTemplate
 {
+    private Journal journal;
+
     @Override
     protected FileSystemVault createVault()
             throws IOException
@@ -26,8 +27,15 @@ public class RabobankNotesCurator
         catalog.register(new ArchitectureDecisionRecordsQuery(vault));
         catalog.register(new TeamQuery(vault));
         catalog.register(new OneOnOneQuery(vault));
-        var journal = new Journal(vault);
+        journal = new Journal(vault);
         catalog.register(new WeeklyQuery(journal));
+    }
+
+    @Override
+    public void vaultChanged()
+    {
+        journal.refresh();
+        super.vaultChanged();
     }
 
     public static void main(String[] args)
