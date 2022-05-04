@@ -10,16 +10,29 @@
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <maven.compiler.source>17</maven.compiler.source>
-        <maven.compiler.target>17</maven.compiler.target>
+        <maven.compiler.source>18</maven.compiler.source>
+        <maven.compiler.target>18</maven.compiler.target>
     </properties>
 
     <dependencies>
         <!-- Native directory watching for macOS -->
         <dependency>
+            <groupId>net.java.dev.jna</groupId>
+            <artifactId>jna</artifactId>
+            <!-- 5.10.0 and 5.11.0 don't see files with emoji characters.
+                 Tested on Temurin Java 17 and 18, and on Zulu 18. -->
+            <version>5.9.0</version>
+        </dependency>
+        <dependency>
             <groupId>io.methvin</groupId>
             <artifactId>directory-watcher</artifactId>
             <version>0.15.1</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>net.java.dev.jna</groupId>
+                    <artifactId>jna</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <!-- Logging -->
         <dependency>
