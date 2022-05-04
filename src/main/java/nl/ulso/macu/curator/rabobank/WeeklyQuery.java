@@ -5,21 +5,16 @@ import nl.ulso.macu.query.QueryResult;
 import nl.ulso.macu.vault.Document;
 import nl.ulso.macu.vault.QueryBlock;
 
+import java.time.LocalDate;
+import java.time.temporal.WeekFields;
 import java.util.*;
-import java.util.regex.Pattern;
 
 import static java.lang.System.lineSeparator;
 import static java.time.format.TextStyle.FULL;
-import static java.util.Locale.US;
-import static java.util.regex.Pattern.compile;
-import static nl.ulso.macu.query.QueryResult.failure;
 
 class WeeklyQuery
         implements Query
 {
-    private static final Pattern DOCUMENT_NAME_PATTERN =
-            compile("^(\\d{4}) Week (\\d{2})$");
-
     private final Journal journal;
 
     WeeklyQuery(Journal journal)
@@ -49,38 +44,11 @@ class WeeklyQuery
     @Override
     public QueryResult run(QueryBlock queryBlock)
     {
-        var year = queryBlock.configuration().integer("year", -1);
-        var week = queryBlock.configuration().integer("week", -1);
-        if (year == -1 || week == -1)
-        {
-            var matcher = DOCUMENT_NAME_PATTERN.matcher(queryBlock.document().name());
-            if (matcher.matches())
-            {
-                year = selectInt(year, matcher.group(1));
-                week = selectInt(week, matcher.group(2));
-            }
-        }
-        if (year == -1 || week == -1)
-        {
-            return failure("Invalid date: year " + year + ", week " + week);
-        }
+        var date = LocalDate.now();
+        var year = queryBlock.configuration().integer("year", date.getYear());
+        var week = queryBlock.configuration()
+                .integer("week", date.get(WeekFields.of(Locale.getDefault()).weekOfYear()));
         return new Weekly(journal.forWeek(year, week));
-    }
-
-    private int selectInt(int value, String stringValue)
-    {
-        if (value != -1)
-        {
-            return value;
-        }
-        try
-        {
-            return Integer.parseInt(stringValue);
-        }
-        catch (NumberFormatException e)
-        {
-            return -1;
-        }
     }
 
     private static class Weekly
@@ -129,7 +97,8 @@ class WeeklyQuery
                     for (JournalEntry entry : map.get(document))
                     {
                         builder.append("  - *")
-                                .append(entry.date().getDayOfWeek().getDisplayName(FULL, US))
+                                .append(entry.date().getDayOfWeek()
+                                        .getDisplayName(FULL, Locale.getDefault()))
                                 .append("*: [[")
                                 .append(entry.section().document().name())
                                 .append("#")
