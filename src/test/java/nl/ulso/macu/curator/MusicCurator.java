@@ -34,7 +34,7 @@ public class MusicCurator
     }
 
     @Override
-    protected void registerQueries(QueryCatalog catalog, FileSystemVault vault)
+    protected void registerQueries(QueryCatalog catalog, Vault vault)
     {
         catalog.register(new AlbumsQuery(vault));
         catalog.register(new RecordingsQuery(vault));

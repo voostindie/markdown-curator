@@ -37,8 +37,8 @@ class WeeklyQuery
     @Override
     public Map<String, String> supportedConfiguration()
     {
-        return Map.of("year", "Year of the weekly. Default: parsed from the document name.",
-                "week", "Week of the weekly. Default: parsed from the document name.");
+        return Map.of("year", "Year of the weekly. Default: parsed from the team name.",
+                "week", "Week of the weekly. Default: parsed from the team name.");
     }
 
     @Override

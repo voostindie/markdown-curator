@@ -19,14 +19,14 @@ final class InternalLinkFinder
 {
     private static final Pattern LINK_PATTERN = compile("\\[\\[(.*?)(?:#(.*?))?(?:\\|(.*))?]]");
 
-    private final Set<InternalLink> internalLinks;
+    private final List<InternalLink> internalLinks;
 
     InternalLinkFinder()
     {
-        internalLinks = new HashSet<>();
+        internalLinks = new ArrayList<>();
     }
 
-    Set<InternalLink> internalLinks()
+    List<InternalLink> internalLinks()
     {
         return internalLinks;
     }

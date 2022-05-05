@@ -18,7 +18,7 @@ public class PersonalNotesCurator
     }
 
     @Override
-    protected void registerQueries(QueryCatalog catalog, FileSystemVault vault)
+    protected void registerQueries(QueryCatalog catalog, Vault vault)
     {
 
     }

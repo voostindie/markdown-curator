@@ -60,7 +60,7 @@ public abstract class CuratorTemplate
     protected abstract FileSystemVault createVault()
             throws IOException;
 
-    protected abstract void registerQueries(QueryCatalog catalog, FileSystemVault vault);
+    protected abstract void registerQueries(QueryCatalog catalog, Vault vault);
 
     @Override
     public void runOnce()

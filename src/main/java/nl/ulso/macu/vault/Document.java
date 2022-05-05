@@ -106,7 +106,7 @@ public final class Document
         return ((FrontMatter) fragment(0)).dictionary();
     }
 
-    public Set<InternalLink> findInternalLinks()
+    public List<InternalLink> findInternalLinks()
     {
         var finder = new InternalLinkFinder();
         accept(finder);

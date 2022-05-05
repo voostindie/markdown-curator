@@ -33,14 +33,15 @@ class Journal
     );
 
     private static final Logger LOGGER = LoggerFactory.getLogger(Journal.class);
-    private final FileSystemVault vault;
+    private final
+    Vault vault;
 
-    private final List<JournalEntry> entries;
+    private final Set<JournalEntry> entries;
 
-    Journal(FileSystemVault vault)
+    Journal(Vault vault)
     {
         this.vault = vault;
-        this.entries = new ArrayList<>();
+        this.entries = new HashSet<>();
     }
 
     Map<String, Map<Document, List<JournalEntry>>> forWeek(int year, int week)
@@ -63,8 +64,7 @@ class Journal
     {
         LOGGER.debug("Rebuilding the journal");
         entries.clear();
-        var finder = new JournalEntryFinder();
-        vault.accept(finder);
+        vault.accept(new JournalEntryFinder());
     }
 
     private class JournalEntryFinder

@@ -41,7 +41,7 @@ public final class TextBlock
         visitor.visit(this);
     }
 
-    public Set<InternalLink> findInternalLinks()
+    public List<InternalLink> findInternalLinks()
     {
         var finder = new InternalLinkFinder();
         accept(finder);
