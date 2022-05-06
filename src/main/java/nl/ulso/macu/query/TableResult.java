@@ -46,7 +46,7 @@ class TableResult
         for (var i = 0; i < width; i++)
         {
             builder.append(" ");
-            builder.append(String.format("%-" + widths[i] + "s", columns.get(i)));
+            builder.append(String.format("%-" + widths[i] + "s", capitalize(columns.get(i))));
             builder.append(" |");
         }
         builder.append(lineSeparator());
@@ -70,6 +70,20 @@ class TableResult
             builder.append(lineSeparator());
         }
         return builder.toString().trim();
+    }
+
+    private String capitalize(String string)
+    {
+        var length = string.length();
+        if (length == 0)
+        {
+            return string;
+        }
+        if (length == 1)
+        {
+            return string.toUpperCase();
+        }
+        return string.substring(0,1).toUpperCase() + string.substring(1);
     }
 
     private int[] findColumnWidths()

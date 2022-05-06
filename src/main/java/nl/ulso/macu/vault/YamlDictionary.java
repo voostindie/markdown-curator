@@ -125,9 +125,7 @@ final class YamlDictionary
     @Override
     public boolean bool(String property, boolean defaultValue)
     {
-        var value = string(property, Boolean.toString(defaultValue));
-        return value.equalsIgnoreCase("true")
-                || value.equalsIgnoreCase("yes");
+        return safeGet(property, Boolean.class, defaultValue);
     }
 
     @Override

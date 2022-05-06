@@ -21,11 +21,6 @@ class ListResult
         return true;
     }
 
-    List<String> rows()
-    {
-        return rows;
-    }
-
     @Override
     public String toMarkdown()
     {
