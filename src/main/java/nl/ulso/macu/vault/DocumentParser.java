@@ -3,6 +3,10 @@ package nl.ulso.macu.vault;
 import java.util.*;
 
 import static java.util.Collections.emptyList;
+import static nl.ulso.macu.vault.CodeBlock.CODE_MARKER;
+import static nl.ulso.macu.vault.FrontMatter.FRONT_MATTER_MARKER;
+import static nl.ulso.macu.vault.MarkdownTokenizer.TokenType.*;
+import static nl.ulso.macu.vault.QueryBlock.QUERY_OUTPUT_PREFIX;
 
 /**
  * Parses a list of {@link String}s into a {@link Document}. This is <strong>not</strong> a full
@@ -13,6 +17,10 @@ import static java.util.Collections.emptyList;
  * The parser is a bit complicated because the document is turned into a tree of sections of
  * varying levels. Because the document object model is immutable, a section can only a constructed
  * after all its content has been parsed, recursively.
+ * <p/>
+ * The parser also tries to protect against accidents. Front matter, code blocks and queries need
+ * to be closed with a specific marker. If this marker is missing, the parser treats the block
+ * as text. In case of doubt, that's the safest bet.
  */
 final class DocumentParser
 {
@@ -41,14 +49,14 @@ final class DocumentParser
         for (var token : new MarkdownTokenizer(lines))
         {
             var type = token.tokenType();
-            if (type == MarkdownTokenizer.TokenType.FRONT_MATTER)
+            if (type == FRONT_MATTER)
             {
                 frontMatterEnd = token.lineIndex() + 1;
                 continue;
             }
             if (frontMatterEnd != -1)
             {
-                fragments.get(0).add(new FrontMatter(lines.subList(0, frontMatterEnd)));
+                fragments.get(0).add(createFragment(FRONT_MATTER, 0, frontMatterEnd));
                 frontMatterEnd = -1;
             }
             if (type == fragmentType)
@@ -62,15 +70,13 @@ final class DocumentParser
                 fragmentStart = -1;
                 fragmentType = null;
             }
-            if (type == MarkdownTokenizer.TokenType.TEXT ||
-                    type == MarkdownTokenizer.TokenType.CODE ||
-                    type == MarkdownTokenizer.TokenType.QUERY)
+            if (type == TEXT || type == CODE || type == QUERY)
             {
                 fragmentStart = token.lineIndex();
                 fragmentType = type;
                 continue;
             }
-            if (type == MarkdownTokenizer.TokenType.HEADER)
+            if (type == HEADER)
             {
                 var header = (MarkdownTokenizer.HeaderLineToken) token;
                 while (header.level() <= level)
@@ -81,7 +87,7 @@ final class DocumentParser
                 fragments.put(level, new ArrayList<>());
                 headers.push(header);
             }
-            if (type == MarkdownTokenizer.TokenType.END_OF_DOCUMENT)
+            if (type == END_OF_DOCUMENT)
             {
                 while (!headers.isEmpty())
                 {
@@ -140,13 +146,42 @@ final class DocumentParser
 
     private Fragment createFragment(MarkdownTokenizer.TokenType type, int start, int end)
     {
-        return switch (type)
+        var subList = lines.subList(start, end);
+        int size = subList.size();
+        switch (type)
+        {
+            case FRONT_MATTER:
+                if (size > 1 && subList.get(size - 1).contentEquals(FRONT_MATTER_MARKER))
                 {
-                    case TEXT -> new TextBlock(lines.subList(start, end));
-                    case CODE -> new CodeBlock(lines.subList(start, end));
-                    case QUERY -> new QueryBlock(lines.subList(start, end), start);
-                    default -> throw new IllegalStateException("Unsupported type " + type);
-                };
+                    return new FrontMatter(subList);
+                }
+                else
+                {
+                    return new TextBlock(subList);
+                }
+            case CODE:
+                if (size > 1 && subList.get(size - 1).contentEquals(CODE_MARKER))
+                {
+                    return new CodeBlock(lines.subList(start, end));
+                }
+                else
+                {
+                    return new TextBlock(lines.subList(start, end));
+                }
+            case QUERY:
+                if (size > 1 && subList.get(size - 1).startsWith(QUERY_OUTPUT_PREFIX))
+                {
+                    return new QueryBlock(subList, start);
+                }
+                else
+                {
+                    return new TextBlock(lines.subList(start, end));
+                }
+            case TEXT:
+                return new TextBlock(lines.subList(start, end));
+            default:
+                throw new IllegalStateException("Unsupported type " + type);
+        }
     }
 
     private int processSection(int endLineIndex)

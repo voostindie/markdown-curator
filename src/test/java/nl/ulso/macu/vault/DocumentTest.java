@@ -188,6 +188,42 @@ class DocumentTest
         softly.assertThat(query.result()).isEqualTo("foo");
     }
 
+    @Test
+    void frontMatterWithoutClosingTagBecomesTextBlock()
+    {        String text = """
+                ---
+                foo: bar
+                answer: 42
+                """;
+        var document = newDocument("document", document(text));
+        softly.assertThat(document.fragments().size()).isEqualTo(2);
+        softly.assertThat(document.fragment(1)).isInstanceOf(TextBlock.class);
+    }
+
+    @Test
+    void queryWithoutClosingTagBecomesTextBlock()
+    {
+        String text = """
+                <!--query-->
+                foo
+                """;
+        var document = newDocument("document", document(text));
+        softly.assertThat(document.fragments().size()).isEqualTo(2);
+        softly.assertThat(document.fragment(1)).isInstanceOf(TextBlock.class);
+    }
+
+    @Test
+    void codeWithoutClosingTagBecomesTextBlock()
+    {
+        String text = """
+                ```
+                code
+                """;
+        var document = newDocument("document", document(text));
+        softly.assertThat(document.fragments().size()).isEqualTo(2);
+        softly.assertThat(document.fragment(1)).isInstanceOf(TextBlock.class);
+    }
+
     private List<String> document(String text)
     {
         return text.lines().collect(toList());
