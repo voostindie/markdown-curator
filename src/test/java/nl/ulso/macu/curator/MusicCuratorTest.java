@@ -50,7 +50,7 @@ class MusicCuratorTest
     void queryCatalog()
     {
         QueryCatalog catalog = musicCurator.queryCatalog();
-        softly.assertThat(catalog.queries().size()).isEqualTo(4);
+        softly.assertThat(catalog.queries().size()).isEqualTo(7);
         Query dummy = catalog.query("dummy");
         QueryResult result = dummy.run(emptyQueryBlock());
         softly.assertThat(result.isSuccess()).isFalse();

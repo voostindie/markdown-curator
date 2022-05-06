@@ -1,7 +1,7 @@
 package nl.ulso.macu.curator;
 
-import nl.ulso.macu.query.InMemoryQueryCatalog;
-import nl.ulso.macu.query.QueryCatalog;
+import nl.ulso.macu.curator.common.omnifocus.OmniFocusQuery;
+import nl.ulso.macu.query.*;
 import nl.ulso.macu.vault.*;
 import org.slf4j.Logger;
 
@@ -48,6 +48,9 @@ public abstract class CuratorTemplate
             throw new RuntimeException(e);
         }
         this.queryCatalog = new InMemoryQueryCatalog();
+        queryCatalog.register(new ListQuery(vault));
+        queryCatalog.register(new TableQuery(vault));
+        queryCatalog.register(new OmniFocusQuery(vault));
         registerQueries(queryCatalog, vault);
     }
 

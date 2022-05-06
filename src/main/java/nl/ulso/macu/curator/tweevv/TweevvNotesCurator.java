@@ -20,6 +20,5 @@ public class TweevvNotesCurator
     @Override
     protected void registerQueries(QueryCatalog catalog, Vault vault)
     {
-
     }
 }
