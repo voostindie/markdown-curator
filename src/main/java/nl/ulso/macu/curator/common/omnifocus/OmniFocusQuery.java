@@ -110,7 +110,7 @@ public class OmniFocusQuery
                     .toList();
             if (!missingPages.isEmpty())
             {
-                builder.append("## Projects without a matching page");
+                builder.append("### Projects without a matching page");
                 builder.append(lineSeparator());
                 builder.append(lineSeparator());
                 missingPages.forEach(
@@ -125,7 +125,7 @@ public class OmniFocusQuery
                     .toList();
             if (!missingProjects.isEmpty())
             {
-                builder.append("## Pages without a matching project");
+                builder.append("### Pages without a matching project");
                 builder.append(lineSeparator());
                 builder.append(lineSeparator());
                 missingProjects.forEach(
@@ -135,7 +135,7 @@ public class OmniFocusQuery
             }
             if (missingPages.isEmpty() && missingProjects.isEmpty())
             {
-                builder.append("## All good!");
+                builder.append("### All good!");
                 builder.append(lineSeparator());
                 builder.append(lineSeparator());
                 builder.append("There are no inconsistencies to report.");
