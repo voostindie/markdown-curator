@@ -20,7 +20,5 @@ public interface QueryResult
         return new ListResult(rows);
     }
 
-    boolean isSuccess();
-
     String toMarkdown();
 }

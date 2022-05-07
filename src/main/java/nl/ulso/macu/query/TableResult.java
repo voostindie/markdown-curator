@@ -17,22 +17,6 @@ class TableResult
     }
 
     @Override
-    public boolean isSuccess()
-    {
-        return true;
-    }
-
-    List<String> columns()
-    {
-        return columns;
-    }
-
-    List<Map<String, String>> rows()
-    {
-        return rows;
-    }
-
-    @Override
     public String toMarkdown()
     {
         if (rows.isEmpty())

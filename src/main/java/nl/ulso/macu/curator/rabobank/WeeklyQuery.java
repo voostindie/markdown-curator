@@ -62,12 +62,6 @@ class WeeklyQuery
         }
 
         @Override
-        public boolean isSuccess()
-        {
-            return true;
-        }
-
-        @Override
         public String toMarkdown()
         {
             if (entries.isEmpty())

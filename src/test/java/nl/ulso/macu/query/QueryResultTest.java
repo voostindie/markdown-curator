@@ -19,7 +19,6 @@ class QueryResultTest
     void failure()
     {
         var failure = QueryResult.failure("error");
-        softly.assertThat(failure.isSuccess()).isFalse();
         softly.assertThat(failure.toMarkdown()).contains("error");
     }
 
@@ -27,7 +26,6 @@ class QueryResultTest
     void tableNoResults()
     {
         var table = QueryResult.table(List.of("1", "2"), Collections.emptyList());
-        softly.assertThat(table.isSuccess()).isTrue();
         softly.assertThat(table.toMarkdown()).contains("No results");
     }
 
@@ -38,7 +36,6 @@ class QueryResultTest
                 List.of(Map.of("Title", "No Time To Die", "Year", "2021"),
                         Map.of("Title", "Spectre", "Year", "2015"),
                         Map.of("Title", "Skyfall", "Year", "2012")));
-        softly.assertThat(table.isSuccess()).isTrue();
         softly.assertThat(table.toMarkdown()).isEqualTo("""
                 | Title          | Year |
                 | -------------- | ---- |
@@ -66,7 +63,6 @@ class QueryResultTest
     void listNoResults()
     {
         var list = QueryResult.list(Collections.emptyList());
-        softly.assertThat(list.isSuccess()).isTrue();
         softly.assertThat(list.toMarkdown()).contains("No results");
     }
 
@@ -74,7 +70,6 @@ class QueryResultTest
     void listWithResults()
     {
         var list = QueryResult.list(List.of("Foo", "Bar"));
-        softly.assertThat(list.isSuccess()).isTrue();
         softly.assertThat(list.toMarkdown()).isEqualTo("""
                 - Foo
                 - Bar

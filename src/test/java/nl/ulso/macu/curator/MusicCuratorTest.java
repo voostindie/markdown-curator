@@ -53,7 +53,6 @@ class MusicCuratorTest
         softly.assertThat(catalog.queries().size()).isEqualTo(7);
         Query dummy = catalog.query("dummy");
         QueryResult result = dummy.run(emptyQueryBlock());
-        softly.assertThat(result.isSuccess()).isFalse();
         var markdown = result.toMarkdown();
         softly.assertThat(markdown).contains("no query defined called 'dummy'");
         softly.assertThat(markdown).contains("albums");

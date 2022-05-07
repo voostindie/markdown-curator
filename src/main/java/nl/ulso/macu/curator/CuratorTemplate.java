@@ -105,8 +105,6 @@ public abstract class CuratorTemplate
         vault.findAllQueryBlocks().forEach(queryBlock -> {
             var query = queryCatalog.query(queryBlock.name());
             var result = query.run(queryBlock);
-            LOGGER.debug("Document '{}', query '{}', success: {}",
-                    queryBlock.document(), query.name(), result.isSuccess());
             var output = result.toMarkdown();
             if (!queryBlock.result().contentEquals(output))
             {

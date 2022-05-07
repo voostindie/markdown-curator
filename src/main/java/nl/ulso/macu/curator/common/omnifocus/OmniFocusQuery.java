@@ -94,12 +94,6 @@ public class OmniFocusQuery
         }
 
         @Override
-        public boolean isSuccess()
-        {
-            return true;
-        }
-
-        @Override
         public String toMarkdown()
         {
             var builder = new StringBuilder();

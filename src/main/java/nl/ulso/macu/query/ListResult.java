@@ -16,12 +16,6 @@ class ListResult
     }
 
     @Override
-    public boolean isSuccess()
-    {
-        return true;
-    }
-
-    @Override
     public String toMarkdown()
     {
         if (rows.isEmpty())

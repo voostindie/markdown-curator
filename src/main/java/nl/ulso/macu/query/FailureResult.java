@@ -11,12 +11,6 @@ class FailureResult
     }
 
     @Override
-    public boolean isSuccess()
-    {
-        return false;
-    }
-
-    @Override
     public String toMarkdown()
     {
         return errorMessage;
