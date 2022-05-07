@@ -15,7 +15,7 @@ To make the contents of this vault a little bit more interesting it contains a s
 
 What this vault tries to show is that information written as Markdown is much more human-friendly than encoding that same data in formats like YAML. Of course *extracting* the data from the Markdown content is a bit harder then, but that's what this tool is all about.
 
-A few lessons for maintainers of (Markdown) wiki's:
+A few lessons for maintainers of (Markdown) wikis:
 
 - **Don't repeat yourself**. Write useful information at one place only, at the place you're most likely to look for it when you need it.
 - **Don't maintain lists manually**. Lists of links to other pages in a vault are definitely useful, but maintaining them by hand will eventually lead to inconsistencies.
