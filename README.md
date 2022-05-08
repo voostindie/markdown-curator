@@ -1,46 +1,95 @@
-# Macu - Markdown Curator
-
-TL;DR:
-
-- Map your Obsidian documents to meaningful concepts
-- Extract knowledge from your concepts
-- Integrate new-found knowledge in your documents
-
-Okay, that probably tells you very little.
-
-This is a daemon application that monitors one or more Obsidian Vaults. Based on changes happening to a vault, it detects and runs queries, generates results sets and updates files in the vault with these results.
-
-In this very first version of this application there is no configuration. Everything is "as code", built into a single application. Because this thing is just for me anyway. Configurability implies complexity. I don't need that right now, thank you very much.
-
-If this tool evolves the way I hope, it'll grow into some kind of pluggable system, where the core code is separate from the vault-specific code, and where more and more can be done through configuration in a vault itself, instead of code. We'll see. 
-
-Most of the things this application does can also be achieved using plugins in Obsidian, like the [Dataview plugin](https://github.com/blacksmithgu/obsidian-dataview). I do not like those kinds of plugins. I believe they defeat Obsidian's purpose. Obsidian is all about storing knowledge in **portable** Markdown files. Sprinkling those same files with code (queries) that only Obsidian with a specific plugin installed can understand is not the right idea, I think.
-
-With this application I have the best of both worlds: portable Markdown and "dynamic" content.
-
-Shouldn't I have built this application as an Obsidian plugin itself? Maybe. Probably. But, I didn't. Why not? Because I'm sure my use of Markdown will outlive my use of Obsidian. Also, being able to change files in a vault with any editor *and* have this application still work in the background leads to fewer surprises.
-
-To lift a tip of the veil, here's an example of what you can write in a Markdown document:
-
-<!--query:list
-folder: Articles
--->
-OUTPUT WILL GO HERE
-<!--/query>
-
-Put this snippet in a document in an Obsidian vault tracked by this tool, save it and watch the `OUTPUT WILL GO HERE` be magically replaced with a sorted list of links to documents in the `Articles` folder.
-
-The query syntax may seem a bit weird, but notice that is built up of HTML comment tags. That means the queries disappear from view when you preview the Markdown, or export it to some other format, leaving you with just the output.
-
-Whatever can you put in a query? Basically anything, really. Whatever you can come up with and code in Java. The internal API of this tool allows you to easily extract any kind of information from your documents and use them in queries.
-
-See the [music](music/README.md) test suite for examples of what this tool can do and how it works. The test code contains a [MusicCurator](src/test/java/nl/ulso/macu/curator/MusicCurator.java) that can serve as an example for building your own curator, on top of your own vault. 
-
-## Changes
+# Markdown Curator (macu)
 
 See the [CHANGELOG](CHANGELOG.md) for releases and the roadmap.
 
-## Ideas (let's not call it a roadmap)
+## TL;DR
+
+- You have to be comfortable with coding in Java.
+- Library for processing directories of Markdown documents.
+- Especially well suited for Obsidian vaults.
+- Develop your own queries in Java, with full access to all document content.
+- Integrate query output back in your own documents.
+- Monitor and process directories and documents in the background.
+
+Okay, that probably doesn't tell you much.
+
+## Obsidian users: Ye be warned!
+
+If you're an Obsidian user, then note that most of the things this application does can also be achieved using plugins, like [Dataview](https://github.com/blacksmithgu/obsidian-dataview). I do not like those kinds of plugins. I believe they defeat Obsidian's purpose. For me Obsidian is all about storing knowledge in **portable** Markdown files. Sprinkling those same files with code (queries) that only Obsidian with a specific plugin installed can understand is not the right idea, I think.
+
+With this library I have the best of both worlds: portable Markdown and "dynamic" content. Query output is embedded in the documents as Markdown content. As far as Obsidian concerns, this tool is not even there. 
+
+On the other hand, Obsidian plugins are much easier to install and use. This library requires you to get your hands dirty with Java. You must build your own Java application. That's not for the faint of heart.
+
+Shouldn't I have built this application as an Obsidian plugin itself? Maybe. Probably. But, I didn't. Why not? Because I'm sure my use of Markdown will outlive my use of Obsidian. Also, being able to change files in a vault with any editor *and* have this tool still work in the background leads to fewer surprises.
+
+### The 5 minute introduction
+
+This is a daemon application, developed in Java, that monitors one or more directories of Markdown documents, like [Obsidian](https://obsidian.md) vaults. Based on changes happening in the directories, it detects and runs queries embedded in the documents, generates results sets and updates the documents in the repository accordingly with the result output.
+
+To lift a tip of the veil, here's an example of what you can write in a Markdown document:
+
+```
+<!--query:list
+folder: Articles
+-->
+THE OUTPUT WILL GO HERE
+<!--/query>
+```
+
+Put this snippet (without the code block) in a document in a directory tracked by this tool, save it and watch `THE OUTPUT WILL GO HERE` be magically replaced with a sorted list of links to documents in the `Articles` subdirectory. Add a new article there, delete one, or update an existing one, and watch the list get updated instantly.
+
+The query syntax may seem a bit weird at first, but notice that it is built up of HTML comment tags. That means that the query definitions disappear from view when you preview the Markdown, or export it to some other format using the tool of your choice, leaving you with just the query output. In effect the query syntax invisible to any tool that processes Markdown correctly.
+
+Whatever can you put in a query? Whatever you can come up with and code in Java. The internal API of this tool allows you to extract any kind of information from your documents or elsewhere and use them in queries.
+
+Don't know which queries are available? Simply put a blank query in your content and save it:
+
+```
+<!--query-->
+<!--/query>
+```
+
+By default this tool provides just a couple of built-in generic queries: `list`, `table` and `toc`. To make this tool really useful, you will want to create your own queries. 
+
+To use this library, you have to configure your own application, define this tool as a dependency, and code your own curator and custom queries. See further on for an example.
+
+The [music](music/README.md) test suite provides examples of what this tool can do and how it works. The test code contains a [MusicCurator](src/test/java/nl/ulso/macu/curator/MusicCurator.java) that can serve as an example for building your own curator, on top of your own vault.
+
+## Getting started (TODO)
+
+- Create a new Java artifact
+- Create and publish a custom curator.
+- Create and register one or more queries.
+
+Below is just an outline. More documentation (and automation) is needed!
+
+## Create an new Java artifact
+
+- Create a new Maven project `myproject`.
+- Add the `markdown-curator` and `logback` as a dependency.
+- Add the `spring-boot-maven-plugin` to create a runnable JAR.
+
+A `mvn clean package` and `java -jar target/myproject.jar` should result in the curator starting up and exiting immediately, telling you that it can't find any curators.
+
+## Create and publish a custom curator.
+
+- Implement the `Curator` interface, by subclassing the `CuratorTemplate` class.
+- Implement the `CuratorFactory` interface.
+- Add your implementation to `META-INF/services/nl.ulso.macu.curator.CuratorFactory`.
+
+A `mvn clean package` and `java -jar target/myproject.jar` should result in the curator starting up and monitoring the directory you provided in your own custom `Curator`.
+
+Try changing a file in any Markdown document now. For example, add an empty query block. Magic should happen!
+
+## Create and register one or more queries.
+
+- Implement the `Query` interface.
+- Register the query in your `CuratorTemplate` subclass, in `registerQueries`.
+
+Rebooting your application should result in the availability of the new queries.
+
+## Future ideas (let's not call it a roadmap)
 
 In random order:
 
