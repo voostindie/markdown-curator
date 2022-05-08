@@ -1,6 +1,7 @@
 package nl.ulso.macu.curator.tweevv;
 
 import nl.ulso.macu.curator.CuratorTemplate;
+import nl.ulso.macu.curator.common.omnifocus.OmniFocusQuery;
 import nl.ulso.macu.query.QueryCatalog;
 import nl.ulso.macu.vault.FileSystemVault;
 import nl.ulso.macu.vault.Vault;
@@ -20,5 +21,6 @@ public class TweevvNotesCurator
     @Override
     protected void registerQueries(QueryCatalog catalog, Vault vault)
     {
+        catalog.register(new OmniFocusQuery(vault));
     }
 }

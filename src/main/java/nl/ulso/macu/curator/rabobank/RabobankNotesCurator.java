@@ -1,9 +1,7 @@
 package nl.ulso.macu.curator.rabobank;
 
 import nl.ulso.macu.curator.CuratorTemplate;
-import nl.ulso.macu.query.ListQuery;
 import nl.ulso.macu.curator.common.omnifocus.OmniFocusQuery;
-import nl.ulso.macu.query.TableQuery;
 import nl.ulso.macu.query.QueryCatalog;
 import nl.ulso.macu.vault.FileSystemVault;
 import nl.ulso.macu.vault.Vault;
@@ -26,6 +24,7 @@ public class RabobankNotesCurator
     @Override
     protected void registerQueries(QueryCatalog catalog, Vault vault)
     {
+        catalog.register(new OmniFocusQuery(vault));
         catalog.register(new ProjectsQuery(vault));
         catalog.register(new ArticlesQuery(vault));
         catalog.register(new SystemsQuery(vault));
