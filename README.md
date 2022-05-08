@@ -1,31 +1,31 @@
-# Markdown Curator (macu)
+# Markdown Curator
 
 See the [CHANGELOG](CHANGELOG.md) for releases and the roadmap.
 
 ## TL;DR
 
-- You have to be comfortable with coding in Java.
-- Library for processing directories of Markdown documents.
-- Especially well suited for Obsidian vaults.
-- Develop your own queries in Java, with full access to all document content.
-- Integrate query output back in your own documents.
-- Monitor and process directories and documents in the background.
+- This is a library for processing directories of Markdown documents.
+- It is especially well suited for Obsidian vaults.
+- It detects queries in the documents, runs them, and writes back the results.
+- As an application, it monitors and processes directories in the background.
+- You have to be comfortable with coding in Java 17 or newer.
+- You develop your own queries in Java, with full access to all document content.
 
 Okay, that probably doesn't tell you much.
 
 ## Obsidian users: Ye be warned!
 
-If you're an Obsidian user, then note that most of the things this application does can also be achieved using plugins, like [Dataview](https://github.com/blacksmithgu/obsidian-dataview). I do not like those kinds of plugins. I believe they defeat Obsidian's purpose. For me Obsidian is all about storing knowledge in **portable** Markdown files. Sprinkling those same files with code (queries) that only Obsidian with a specific plugin installed can understand is not the right idea, I think.
+If you're an Obsidian user, then note that most of the things this library does can also be achieved using plugins, like [Dataview](https://github.com/blacksmithgu/obsidian-dataview). I do not like those kinds of plugins. I believe they defeat Obsidian's purpose. For me Obsidian is all about storing knowledge in *portable* Markdown files. Sprinkling those same files with code (queries) that only Obsidian with a specific plugin installed can understand is not the right idea, I think.
 
 With this library I have the best of both worlds: portable Markdown and "dynamic" content. Query output is embedded in the documents as Markdown content. As far as Obsidian concerns, this tool is not even there. 
 
 On the other hand, Obsidian plugins are much easier to install and use. This library requires you to get your hands dirty with Java. You must build your own Java application. That's not for the faint of heart.
 
-Shouldn't I have built this application as an Obsidian plugin itself? Maybe. Probably. But, I didn't. Why not? Because I'm sure my use of Markdown will outlive my use of Obsidian. Also, being able to change files in a vault with any editor *and* have this tool still work in the background leads to fewer surprises.
+Shouldn't I have built this library as an Obsidian plugin itself? Maybe. Probably. But, I didn't. Why not? Because I'm sure my use of Markdown will outlive my use of Obsidian. Also, being able to change files in a vault with any editor *and* have this library still work in the background leads to fewer surprises.
 
 ### The 5 minute introduction
 
-This is a daemon application, developed in Java, that monitors one or more directories of Markdown documents, like [Obsidian](https://obsidian.md) vaults. Based on changes happening in the directories, it detects and runs queries embedded in the documents, generates results sets and updates the documents in the repository accordingly with the result output.
+This is a Java library that can spin up a daemon application. This application can monitor one or more directories of Markdown documents, like [Obsidian](https://obsidian.md) vaults. Based on changes happening in the directories, it detects and runs queries embedded in the documents, generates Markdown output for these queries and embeds this output in the documents themselves.
 
 To lift a tip of the veil, here's an example of what you can write in a Markdown document:
 
@@ -66,9 +66,9 @@ Below is just an outline. More documentation (and automation) is needed!
 
 ## Create an new Java artifact
 
-- Create a new Maven project `myproject`.
-- Add the `markdown-curator` and `logback` as a dependency.
-- Add the `spring-boot-maven-plugin` to create a runnable JAR.
+- Create a new Maven project, e.g. `myproject`.
+- Add the `markdown-curator` and `logback` libraries as dependencies.
+- Add the `spring-boot-maven-plugin` plugin to create a runnable JAR.
 
 A `mvn clean package` and `java -jar target/myproject.jar` should result in the curator starting up and exiting immediately, telling you that it can't find any curators.
 
@@ -88,13 +88,3 @@ Try changing a file in any Markdown document now. For example, add an empty quer
 - Register the query in your `CuratorTemplate` subclass, in `registerQueries`.
 
 Rebooting your application should result in the availability of the new queries.
-
-## Future ideas (let's not call it a roadmap)
-
-In random order:
-
-- Turn `macu` into a standalone application that detects loads plugins as Java modules.
-- Support locale-specific output
-- Come up with a generic data model description (entities, attributes, relations) on top of which queries can be written in "SQL"
-- Allow data models to be defined in configuration instead of Java.
-- Build a native image with Graal.
