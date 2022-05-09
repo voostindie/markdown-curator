@@ -6,10 +6,11 @@ import nl.ulso.macu.vault.*;
 
 import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
-import java.time.temporal.ChronoUnit;
 import java.util.*;
 
 import static java.time.ZoneId.systemDefault;
+import static java.time.temporal.ChronoUnit.DAYS;
+import static java.time.temporal.ChronoUnit.WEEKS;
 import static java.util.Collections.emptyMap;
 import static java.util.Comparator.comparing;
 import static nl.ulso.macu.query.QueryResult.failure;
@@ -48,7 +49,7 @@ class OneOnOneQuery
             folder.accept(finder);
             var contacts = finder.contacts;
             contacts.sort(comparing((Map<String, String> e) -> e.get("Date")));
-            return table(List.of("Date", "Name", "Weeks ago"), contacts);
+            return table(List.of("Date", "Name", "When"), contacts);
         }).orElse(failure("Couldn't find the folder 'Contacts'"));
     }
 
@@ -67,7 +68,7 @@ class OneOnOneQuery
                 contacts.add(Map.of(
                         "Date", DATE_FORMAT.format(date),
                         "Name", document.link(),
-                        "Weeks ago", computeWeeksAgo(date))
+                        "When", computeWeeksAgo(date))
                 );
             }
         }
@@ -75,13 +76,13 @@ class OneOnOneQuery
         private String computeWeeksAgo(Date date)
         {
             var today = new Date();
-            if (date.after(today))
-            {
-                return "Planned";
-            }
             var startDate = LocalDateTime.ofInstant(date.toInstant(), systemDefault());
             var endDate = LocalDateTime.ofInstant(today.toInstant(), systemDefault());
-            return Long.toString(ChronoUnit.WEEKS.between(startDate, endDate));
+            if (date.after(today))
+            {
+                return "In " + DAYS.between(endDate, startDate) + " day(s)";
+            }
+            return WEEKS.between(startDate, endDate) + " week(s) ago";
         }
     }
 }
