@@ -1,6 +1,6 @@
 <component name="ProjectRunConfigurationManager">
   <configuration default="false" name="All tests" type="JUnit" factoryName="JUnit">
-    <module name="macu" />
+    <module name="markdown-curator" />
     <extension name="coverage">
       <pattern>
         <option name="PATTERN" value="nl.ulso.macu.*" />
