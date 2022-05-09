@@ -26,7 +26,7 @@ public class OmniFocusRepository
     private static final Logger LOGGER = LoggerFactory.getLogger(OmniFocusRepository.class);
     private static final String COMMAND = "/usr/bin/osascript";
     private static final String SCRIPT =
-            "/Users/vincent/Code/macu/src/main/jxa/omnifocus-projects.js";
+            "/Users/vincent/Code/markdown-curator/src/main/jxa/omnifocus-projects.js";
 
     private final List<OmniFocusProject> projects;
     private final Map<String, Long> lastUpdated;
