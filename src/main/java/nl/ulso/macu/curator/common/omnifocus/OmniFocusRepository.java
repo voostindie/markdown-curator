@@ -4,6 +4,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.json.*;
+import javax.json.stream.JsonParsingException;
 import java.io.*;
 import java.util.*;
 
@@ -69,7 +70,7 @@ public class OmniFocusRepository
                 projects.add(new OmniFocusProject(id, name));
             }
         }
-        catch (IOException e)
+        catch (IOException | JsonParsingException e)
         {
             LOGGER.info("OmniFocus projects couldn't be fetched. List will be empty.");
         }
