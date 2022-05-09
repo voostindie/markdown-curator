@@ -8,6 +8,7 @@ import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.util.*;
 
+import static java.time.ZoneId.systemDefault;
 import static java.time.temporal.ChronoUnit.DAYS;
 import static java.time.temporal.ChronoUnit.WEEKS;
 import static java.util.Collections.emptyMap;
@@ -65,7 +66,7 @@ class OneOnOneQuery
             if (date != null)
             {
                 contacts.add(Map.of(
-                        "Date", DATE_FORMAT.format(date),
+                        "Date", date.toString(),
                         "Name", document.link(),
                         "When", computeWeeksAgo(date))
                 );
@@ -74,12 +75,21 @@ class OneOnOneQuery
 
         private String computeWeeksAgo(LocalDate date)
         {
-            var today = LocalDate.now();
+            var today = LocalDate.now(systemDefault());
+            if (date.isEqual(today))
+            {
+                return "Today";
+            }
             if (date.isAfter(today))
             {
-                return "In " + DAYS.between(date, today) + " day(s)";
+                return "In " + DAYS.between(today, date) + " day(s)";
             }
-            return WEEKS.between(today, date) + " week(s) ago";
+            var days = DAYS.between(date, today);
+            if (days < 7)
+            {
+                return  days + " days(s) ago";
+            }
+            return WEEKS.between(date, today) + " week(s) ago";
         }
     }
 }
