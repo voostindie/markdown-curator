@@ -87,7 +87,7 @@ class DocumentTest
         softly.assertThat(document.title()).isEqualTo("title");
         softly.assertThat(document.frontMatter().integer("priority", -1)).isEqualTo(100);
         softly.assertThat(document.frontMatter().date("date", null).toString())
-                .isEqualTo("Tue Nov 30 00:00:00 CET 1976");
+                .isEqualTo("1976-11-30");
         softly.assertThat(document.fragment(1).content())
                 .isEqualTo("# title\n\n## foo bar\n\nlorem ipsum");
     }

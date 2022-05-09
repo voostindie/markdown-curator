@@ -3,7 +3,7 @@ package nl.ulso.macu.vault;
 import nl.jqno.equalsverifier.EqualsVerifier;
 import org.junit.jupiter.api.Test;
 
-import java.util.Date;
+import java.time.LocalDate;
 
 import static nl.ulso.macu.vault.Dictionary.emptyDictionary;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -37,7 +37,7 @@ class EmptyDictionaryTest
     @Test
     void dateReturnsDefault()
     {
-        var date = new Date();
+        var date = LocalDate.now();
         assertThat(emptyDictionary().date("foo", date)).isEqualTo(date);
     }
 

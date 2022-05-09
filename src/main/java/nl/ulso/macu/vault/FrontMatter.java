@@ -1,5 +1,6 @@
 package nl.ulso.macu.vault;
 
+import java.time.LocalDate;
 import java.util.*;
 
 import static nl.ulso.macu.vault.Dictionary.emptyDictionary;
@@ -85,7 +86,7 @@ public final class FrontMatter
     }
 
     @Override
-    public Date date(String property, Date defaultDate)
+    public LocalDate date(String property, LocalDate defaultDate)
     {
         return dictionary.date(property, defaultDate);
     }
@@ -109,7 +110,7 @@ public final class FrontMatter
     }
 
     @Override
-    public List<Date> listOfDates(String property)
+    public List<LocalDate> listOfDates(String property)
     {
         return dictionary.listOfDates(property);
     }

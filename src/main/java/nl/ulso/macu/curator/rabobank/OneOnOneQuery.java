@@ -5,10 +5,9 @@ import nl.ulso.macu.query.QueryResult;
 import nl.ulso.macu.vault.*;
 
 import java.text.SimpleDateFormat;
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 import java.util.*;
 
-import static java.time.ZoneId.systemDefault;
 import static java.time.temporal.ChronoUnit.DAYS;
 import static java.time.temporal.ChronoUnit.WEEKS;
 import static java.util.Collections.emptyMap;
@@ -73,16 +72,14 @@ class OneOnOneQuery
             }
         }
 
-        private String computeWeeksAgo(Date date)
+        private String computeWeeksAgo(LocalDate date)
         {
-            var today = new Date();
-            var startDate = LocalDateTime.ofInstant(date.toInstant(), systemDefault());
-            var endDate = LocalDateTime.ofInstant(today.toInstant(), systemDefault());
-            if (date.after(today))
+            var today = LocalDate.now();
+            if (date.isAfter(today))
             {
-                return "In " + DAYS.between(endDate, startDate) + " day(s)";
+                return "In " + DAYS.between(date, today) + " day(s)";
             }
-            return WEEKS.between(startDate, endDate) + " week(s) ago";
+            return WEEKS.between(today, date) + " week(s) ago";
         }
     }
 }

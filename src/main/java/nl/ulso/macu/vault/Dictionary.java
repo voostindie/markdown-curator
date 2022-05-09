@@ -1,6 +1,6 @@
 package nl.ulso.macu.vault;
 
-import java.util.Date;
+import java.time.LocalDate;
 import java.util.List;
 
 import static java.util.Objects.requireNonNull;
@@ -58,7 +58,7 @@ public interface Dictionary
 
     int integer(String property, int defaultValue);
 
-    Date date(String property, Date defaultDate);
+    LocalDate date(String property, LocalDate defaultDate);
 
     boolean bool(String property, boolean defaultValue);
 
@@ -66,5 +66,5 @@ public interface Dictionary
 
     List<Integer> listOfIntegers(String property);
 
-    List<Date> listOfDates(String property);
+    List<LocalDate> listOfDates(String property);
 }

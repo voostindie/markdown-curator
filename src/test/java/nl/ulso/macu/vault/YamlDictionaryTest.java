@@ -7,7 +7,9 @@ import org.assertj.core.api.junit.jupiter.SoftAssertionsExtension;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
-import java.util.*;
+import java.time.LocalDate;
+import java.util.Collections;
+import java.util.List;
 
 import static java.util.stream.Collectors.toList;
 import static nl.ulso.macu.vault.Dictionary.yamlDictionary;
@@ -98,7 +100,7 @@ class YamlDictionaryTest
     {
         var dictionary = dictionary("date: 1976-11-30");
         assertThat(dictionary.date("date", null).toString())
-                .isEqualTo("Tue Nov 30 00:00:00 CET 1976");
+                .isEqualTo("1976-11-30");
     }
 
     @Test
@@ -137,7 +139,7 @@ class YamlDictionaryTest
         var dictionary = dictionary("""
                 dates: [1976-11-30, 1977-11-11, 2003-05-08]
                 """);
-        List<Date> list = dictionary.listOfDates("dates");
+        List<LocalDate> list = dictionary.listOfDates("dates");
         assertThat(list.size()).isEqualTo(3);
 
     }

@@ -1,6 +1,8 @@
 package nl.ulso.macu.vault;
 
-import java.util.*;
+import java.time.LocalDate;
+import java.util.Collections;
+import java.util.List;
 
 final class EmptyDictionary
         implements nl.ulso.macu.vault.Dictionary
@@ -38,7 +40,7 @@ final class EmptyDictionary
     }
 
     @Override
-    public Date date(String property, Date defaultDate)
+    public LocalDate date(String property, LocalDate defaultDate)
     {
         return defaultDate;
     }
@@ -62,7 +64,7 @@ final class EmptyDictionary
     }
 
     @Override
-    public List<Date> listOfDates(String property)
+    public List<LocalDate> listOfDates(String property)
     {
         return Collections.emptyList();
     }

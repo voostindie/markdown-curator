@@ -6,8 +6,8 @@ import org.snakeyaml.engine.v2.api.Load;
 import org.snakeyaml.engine.v2.api.LoadSettings;
 import org.snakeyaml.engine.v2.exceptions.YamlEngineException;
 
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
+import java.time.LocalDate;
+import java.time.format.DateTimeParseException;
 import java.util.*;
 
 import static java.lang.String.join;
@@ -37,7 +37,7 @@ final class YamlDictionary
     private static final String DATE_FORMAT = "yyyy-MM-dd";
 
     private final Map<String, ?> map;
-    private final Map<String, List<Date>> dateCache;
+    private final Map<String, List<LocalDate>> dateCache;
 
     YamlDictionary(String string)
     {
@@ -112,7 +112,7 @@ final class YamlDictionary
     }
 
     @Override
-    public Date date(String property, Date defaultValue)
+    public LocalDate date(String property, LocalDate defaultValue)
     {
         var dates = listOfDates(property);
         if (dates.isEmpty())
@@ -141,19 +141,18 @@ final class YamlDictionary
     }
 
     @Override
-    public List<Date> listOfDates(String property)
+    public List<LocalDate> listOfDates(String property)
     {
         if (dateCache.containsKey(property))
         {
             return dateCache.get(property);
         }
-        var format = new SimpleDateFormat(DATE_FORMAT);
         var dates = safeGetList(property, String.class).stream().map(string -> {
             try
             {
-                return format.parse(string);
+                return LocalDate.parse(string);
             }
-            catch (ParseException e)
+            catch (DateTimeParseException e)
             {
                 return null;
             }
