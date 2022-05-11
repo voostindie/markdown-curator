@@ -50,7 +50,7 @@ public final class FileSystemVault
         VaultBuilder vaultBuilder = new VaultBuilder(this, absolutePath);
         walkFileTree(absolutePath, vaultBuilder);
         this.watcher = DirectoryWatcher.builder()
-                .paths(vaultBuilder.paths)
+                .path(absolutePath)
                 .listener(this::processFileSystemEvent)
                 .watchService(watchService)
                 .fileHasher(FileHasher.LAST_MODIFIED_TIME)
@@ -92,29 +92,37 @@ public final class FileSystemVault
     }
 
     private void processFileSystemEvent(DirectoryChangeEvent event)
-            throws IOException
     {
-        LOGGER.debug("Change detected: {}", event);
-        switch (event.eventType())
+        LOGGER.debug("Change detected: {}", event.path());
+        var parent = resolveParentFolder(event.path());
+        if (parent != null)
         {
-            case CREATE -> processFileCreationEvent(event);
-            case DELETE -> processFileDeletionEvent(event);
-            case MODIFY -> processFileModificationEvent(event);
-            default -> LOGGER.warn("Unsupported filesystem event {}", event.eventType());
+            switch (event.eventType())
+            {
+                case CREATE -> processFileCreationEvent(event, parent);
+                case DELETE -> processFileDeletionEvent(event, parent);
+                case MODIFY -> processFileModificationEvent(event, parent);
+                default -> LOGGER.warn("Unsupported filesystem event {}", event.eventType());
+            }
+            callback.vaultChanged();
         }
-        callback.vaultChanged();
     }
 
-    private void processFileCreationEvent(DirectoryChangeEvent event)
-            throws IOException
+    private void processFileCreationEvent(DirectoryChangeEvent event, FileSystemFolder parent)
     {
         var absolutePath = event.path();
-        var parent = resolveParentFolder(absolutePath);
         if (event.isDirectory() && !isHidden(event.path()))
         {
             var folder = parent.addFolder(folderName(absolutePath));
             LOGGER.info("Detected new folder: {}", folder.name());
-            walkFileTree(absolutePath, new VaultBuilder(folder, absolutePath));
+            try
+            {
+                walkFileTree(absolutePath, new VaultBuilder(folder, absolutePath));
+            }
+            catch (IOException e)
+            {
+                LOGGER.warn("Error while processing file tree", e);
+            }
         }
         else if (isDocument(absolutePath))
         {
@@ -124,10 +132,9 @@ public final class FileSystemVault
         }
     }
 
-    private void processFileModificationEvent(DirectoryChangeEvent event)
+    private void processFileModificationEvent(DirectoryChangeEvent event, FileSystemFolder parent)
     {
         var absolutePath = event.path();
-        var parent = resolveParentFolder(absolutePath);
         if (isDocument(absolutePath))
         {
             var document = newDocumentFromAbsolutePath(absolutePath);
@@ -136,10 +143,9 @@ public final class FileSystemVault
         }
     }
 
-    private void processFileDeletionEvent(DirectoryChangeEvent event)
+    private void processFileDeletionEvent(DirectoryChangeEvent event, FileSystemFolder parent)
     {
         var absolutePath = event.path();
-        var parent = resolveParentFolder(absolutePath);
         if (isDocument(absolutePath))
         {
             String name = documentName(absolutePath);
@@ -165,7 +171,21 @@ public final class FileSystemVault
         Folder folder = this;
         for (int i = 0; i < steps; i++)
         {
-            folder = folder(relativePath.getName(i).toString()).orElseThrow();
+
+            Path directory = relativePath.getName(i);
+            if (isHidden(directory))
+            {
+                LOGGER.debug("Hidden directory. Doing nothing: {}", relativePath);
+                return null;
+            }
+            var subfolder = folder.folder(folderName(directory)).orElse(null);
+            if (subfolder == null)
+            {
+                LOGGER.debug("Couldn't find subfolder '{}' in folder '{}'. Doing nothing.",
+                        directory, folder.name());
+                return null;
+            }
+            folder = subfolder;
         }
         return (FileSystemFolder) folder;
     }
@@ -232,13 +252,11 @@ public final class FileSystemVault
     {
         private final Path root;
         private FileSystemFolder currentFolder;
-        List<Path> paths;
 
         private VaultBuilder(FileSystemFolder targetFolder, Path absolutePath)
         {
             root = absolutePath;
             currentFolder = targetFolder;
-            paths = new ArrayList<>();
         }
 
         @Override
@@ -250,7 +268,6 @@ public final class FileSystemVault
                 LOGGER.debug("Skipping directory {}", directory);
                 return FileVisitResult.SKIP_SUBTREE;
             }
-            paths.add(directory);
             if (!root.equals(directory))
             {
                 currentFolder = currentFolder.addFolder(folderName(directory));
