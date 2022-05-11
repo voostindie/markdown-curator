@@ -91,7 +91,6 @@ public abstract class CuratorTemplate
                 .sorted(comparingInt(e -> e.getKey().resultStartIndex()))
                 .collect(groupingBy(e -> e.getKey().document()))
                 .forEach(this::writeDocument);
-        LOGGER.debug("Done!");
     }
 
     /**
