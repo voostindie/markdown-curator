@@ -25,7 +25,7 @@ public class MusicCurator
     protected FileSystemVault createVault()
             throws IOException
     {
-        var sourceRoot = Paths.get("").toAbsolutePath().resolve("music");
+        var sourceRoot = Paths.get("").toAbsolutePath().resolve("src/test/resources/music");
         var configuration = Configuration.unix().toBuilder().build();
         var targetFileSystem = Jimfs.newFileSystem(configuration);
         var targetRoot = targetFileSystem.getPath("/music");

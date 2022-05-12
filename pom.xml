@@ -23,9 +23,9 @@
         </dependency>
         <!-- Logging -->
         <dependency>
-            <groupId>ch.qos.logback</groupId>
-            <artifactId>logback-classic</artifactId>
-            <version>1.2.10</version>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+            <version>1.7.33</version>
         </dependency>
         <!-- YAML processing -->
         <dependency>
@@ -75,22 +75,6 @@
                 <configuration>
                     <excludedGroups>integration-test</excludedGroups>
                 </configuration>
-            </plugin>
-            <!-- Runnable JAR -->
-            <plugin>
-                <groupId>org.springframework.boot</groupId>
-                <artifactId>spring-boot-maven-plugin</artifactId>
-                <version>2.6.3</version>
-                <executions>
-                    <execution>
-                        <goals>
-                            <goal>repackage</goal>
-                        </goals>
-                        <configuration>
-                            <mainClass>nl.ulso.markdown_curator.Application</mainClass>
-                        </configuration>
-                    </execution>
-                </executions>
             </plugin>
         </plugins>
     </build>
