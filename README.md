@@ -54,7 +54,7 @@ By default this tool provides just a couple of built-in generic queries: `list`,
 
 To use this library, you have to configure your own application, define this tool as a dependency, and code your own curator and custom queries. See further on for an example.
 
-The [music](music/README.md) test suite provides examples of what this tool can do and how it works. The test code contains a [MusicCurator](src/test/java/nl/ulso/macu/curator/MusicCurator.java) that can serve as an example for building your own curator, on top of your own vault.
+The [music](music/README.md) test suite provides examples of what this tool can do and how it works. The test code contains a [MusicCurator](src/test/java/nl/ulso/markdown_curator/MusicCurator.java) that can serve as an example for building your own curator, on top of your own vault.
 
 ## Getting started (TODO)
 

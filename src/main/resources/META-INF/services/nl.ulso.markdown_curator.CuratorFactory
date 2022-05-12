@@ -1,0 +1,3 @@
+nl.ulso.markdown_curator.curator.rabobank.RabobankNotesCuratorFactory
+nl.ulso.markdown_curator.curator.tweevv.TweevvNotesCuratorFactory
+nl.ulso.markdown_curator.curator.personal.PersonalNotesCuratorFactory

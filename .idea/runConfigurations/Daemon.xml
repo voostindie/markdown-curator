@@ -1,10 +1,10 @@
 <component name="ProjectRunConfigurationManager">
   <configuration default="false" name="Daemon" type="Application" factoryName="Application">
-    <option name="MAIN_CLASS_NAME" value="nl.ulso.macu.Application" />
+    <option name="MAIN_CLASS_NAME" value="nl.ulso.markdown_curator.Application" />
     <module name="markdown-curator" />
     <extension name="coverage">
       <pattern>
-        <option name="PATTERN" value="nl.ulso.macu.*" />
+        <option name="PATTERN" value="nl.ulso.markdown_curator.*" />
         <option name="ENABLED" value="true" />
       </pattern>
     </extension>
