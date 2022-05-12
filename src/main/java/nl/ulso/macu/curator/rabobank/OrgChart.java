@@ -58,7 +58,7 @@ public class OrgChart
     private class OrgUnitFinder
             extends BreadthFirstVaultVisitor
     {
-        private static final String LEADERSHIP_SECTION = "Leadership";
+        private static final String ROLES_SECTION = "Roles";
         private static final String ROLE_PATTERN_START = "^- (.*?): ";
         private final Folder teams;
         private final Folder contacts;
@@ -100,7 +100,7 @@ public class OrgChart
         public void visit(Section section)
         {
             if (section.level() == 2
-                    && section.title().contentEquals(LEADERSHIP_SECTION))
+                    && section.title().contentEquals(ROLES_SECTION))
             {
                 super.visit(section);
             }
