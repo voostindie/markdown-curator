@@ -6,6 +6,8 @@
         </encoder>
     </appender>
 
+    <logger name="io.methvin.watcher" level="warn"/>
+
     <root level="info">
         <appender-ref ref="stdout"/>
     </root>
