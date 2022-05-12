@@ -35,7 +35,6 @@ class MusicCuratorTest
         var vault = musicCurator.vault();
         assertThat(vault.name()).endsWith("music");
         var statistics = ElementCounter.countAll(vault);
-        System.out.println(statistics);
         softly.assertThat(statistics.vaults).isEqualTo(1);
         softly.assertThat(statistics.folders).isEqualTo(3);
         softly.assertThat(statistics.documents).isEqualTo(13);

@@ -60,7 +60,6 @@ class InternalLinkFinderTest
     public void linkWithAnchorAndAlias()
     {
         var matches = allLinks("[[link#anchor|alias]]");
-        System.out.println(matches.get(0).group(1));
         softly.assertThat(matches.size()).isEqualTo(1);
         var first = matches.get(0);
         softly.assertThat(first.group(1)).isEqualTo("link");

@@ -33,12 +33,7 @@
             <artifactId>snakeyaml-engine</artifactId>
             <version>2.3</version>
         </dependency>
-        <!-- JSON processing -->
-        <dependency>
-            <groupId>org.glassfish</groupId>
-            <artifactId>javax.json</artifactId>
-            <version>1.1.4</version>
-        </dependency>
+        <!-- Unit testing -->
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter</artifactId>
@@ -61,6 +56,12 @@
             <groupId>com.google.jimfs</groupId>
             <artifactId>jimfs</artifactId>
             <version>1.2</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-classic</artifactId>
+            <version>1.2.10</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
