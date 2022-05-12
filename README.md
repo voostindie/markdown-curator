@@ -21,7 +21,7 @@ On the other hand, Obsidian plugins are much easier to install and use. This lib
 
 Shouldn't I have built this library as an Obsidian plugin itself? Maybe. Probably. But, I didn't. Why not? Because I'm sure my use of Markdown will outlive my use of Obsidian. Also, being able to change files in a vault with any editor *and* have this library still work in the background leads to fewer surprises.
 
-### The 5 minute introduction
+## The 5 minute introduction
 
 This is a Java library and application framework that can spin up a daemon. This daemon can monitor one or more directories of Markdown documents, like [Obsidian](https://obsidian.md) vaults. Based on changes happening in the directories, it detects and runs queries embedded in the documents, generates Markdown output for these queries and embeds this output in the documents themselves.
 
