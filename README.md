@@ -54,7 +54,7 @@ To use this library, you have to configure your own application, define this too
 
 The [music](src/test/resources/music/README.md) test suite provides examples of what this tool can do and how it works. The test code contains a [MusicCurator](src/test/java/nl/ulso/markdown_curator/MusicCurator.java) that can serve as an example for building your own curator, on top of your own vault.
 
-## Getting started (TODO)
+## Getting started
 
 - Create a new Java artifact
 - Create and publish a custom curator.
