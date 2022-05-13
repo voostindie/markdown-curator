@@ -3,6 +3,7 @@ package nl.ulso.markdown_curator;
 import org.slf4j.Logger;
 
 import java.io.IOException;
+import java.util.Properties;
 import java.util.ServiceLoader;
 import java.util.concurrent.Executors;
 
@@ -17,21 +18,22 @@ import static org.slf4j.LoggerFactory.getLogger;
 public class Application
 {
     private static final Logger LOGGER = getLogger(Application.class);
+    static final String UNKNOWN_VERSION = "<UNKNOWN>";
 
     public static void main(String[] args)
     {
-        LOGGER.info("Markdown Curator {}", version());
+        LOGGER.info("Markdown Curator {}", resolveVersion());
         LOGGER.info("Press Ctrl+C to stop");
         LOGGER.info("-".repeat(76));
-        ServiceLoader<CuratorFactory> loader = ServiceLoader.load(CuratorFactory.class);
-        var factories = loader.stream().toList();
+        var factories = ServiceLoader.load(CuratorFactory.class).stream().toList();
         if (factories.isEmpty())
         {
             LOGGER.error("No curators are available in the system. Nothing to do!");
             return;
         }
         var executor = Executors.newFixedThreadPool(factories.size());
-        loader.forEach(factory -> executor.submit(Executors.callable(() -> {
+        factories.forEach(provider -> executor.submit(Executors.callable(() -> {
+            var factory = provider.get();
             Thread.currentThread().setName(factory.name());
             LOGGER.debug("Instantiating curator: {}", factory.name());
             var curator = factory.createCurator();
@@ -40,8 +42,20 @@ public class Application
         executor.shutdown();
     }
 
-    private static String version()
+    static String resolveVersion()
     {
-        return "1.0.0-SNAPSHOT";
+        try (var inputStream =
+                     Application.class.getClassLoader()
+                             .getResourceAsStream("markdown-curator.properties"))
+        {
+            var properties = new Properties();
+            properties.load(inputStream);
+            return properties.getProperty("version", UNKNOWN_VERSION);
+        }
+        catch (IOException e)
+        {
+            LOGGER.warn("Can't read properties file from classpath", e);
+            return UNKNOWN_VERSION;
+        }
     }
 }
