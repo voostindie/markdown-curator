@@ -1,10 +1,6 @@
 package nl.ulso.markdown_curator.vault;
 
 import java.util.*;
-import java.util.regex.MatchResult;
-import java.util.regex.Pattern;
-
-import static java.util.regex.Pattern.compile;
 
 /**
  * Finds all internal links in the WikiLink format.
@@ -17,7 +13,13 @@ import static java.util.regex.Pattern.compile;
 final class InternalLinkFinder
         extends BreadthFirstVaultVisitor
 {
-    private static final Pattern LINK_PATTERN = compile("\\[\\[(.*?)(?:#(.*?))?(?:\\|(.*))?]]");
+    private static final String LINK_START = "[[";
+    private static final int LINK_START_LENGTH = LINK_START.length();
+    private static final String LINK_END = "]]";
+    private static final int LINK_END_LENGTH = LINK_END.length();
+
+    private static final char ANCHOR_MARKER = '#';
+    private static final char ALIAS_MARKER = '|';
 
     private final List<InternalLink> internalLinks;
 
@@ -46,21 +48,42 @@ final class InternalLinkFinder
 
     private void extractInternalLinks(Fragment fragment, String content)
     {
-        allLinks(content).forEach(matchResult -> {
-            var targetDocument = matchResult.group(1);
-            var anchor = Optional.ofNullable(matchResult.group(2));
-            var alias = Optional.ofNullable(matchResult.group(3));
+        var index = 0;
+        var length = content.length();
+        while (index < length)
+        {
+            var start = content.indexOf(LINK_START, index);
+            if (start == -1)
+            {
+                return;
+            }
+            var end = content.indexOf(LINK_END, start + LINK_START_LENGTH);
+            if (end == -1)
+            {
+                return;
+            }
+            var link = content.substring(start + LINK_START_LENGTH, end);
+            Optional<String> alias = Optional.empty();
+            var marker = link.indexOf(ALIAS_MARKER);
+            if (marker != -1)
+            {
+                alias = Optional.of(link.substring(marker + 1));
+                link = link.substring(0, marker);
+            }
+            Optional<String> anchor = Optional.empty();
+            marker = link.indexOf(ANCHOR_MARKER);
+            if (marker != -1)
+            {
+                anchor = Optional.of(link.substring(marker + 1));
+                link = link.substring(0, marker);
+            }
             internalLinks.add(new InternalLink(
                     fragment,
-                    targetDocument,
+                    link,
                     anchor,
-                    alias));
-        });
-    }
-
-    // This method is static for testing purposes
-    static List<MatchResult> allLinks(String input)
-    {
-        return LINK_PATTERN.matcher(input).results().toList();
+                    alias
+            ));
+            index = end + LINK_END_LENGTH;
+        }
     }
 }

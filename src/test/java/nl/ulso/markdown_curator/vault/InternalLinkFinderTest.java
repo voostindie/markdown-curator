@@ -6,7 +6,7 @@ import org.assertj.core.api.junit.jupiter.SoftAssertionsExtension;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
-import static nl.ulso.markdown_curator.vault.InternalLinkFinder.allLinks;
+import java.util.List;
 
 @ExtendWith(SoftAssertionsExtension.class)
 class InternalLinkFinderTest
@@ -17,53 +17,65 @@ class InternalLinkFinderTest
     @Test
     public void singleSimpleLink()
     {
-        var matches = allLinks("A single [[link]] in a line");
-        softly.assertThat(matches.size()).isEqualTo(1);
-        var first = matches.get(0);
-        softly.assertThat(first.group(1)).isEqualTo("link");
-        softly.assertThat(first.group(2)).isNull();
-        softly.assertThat(first.group(3)).isNull();
+        var links = allLinks("A single [[link]] in a line");
+        softly.assertThat(links.size()).isEqualTo(1);
+        var first = links.get(0);
+        softly.assertThat(first.targetDocument()).isEqualTo("link");
+        softly.assertThat(first.alias()).isNotPresent();
+        softly.assertThat(first.targetAnchor()).isNotPresent();
     }
 
     @Test
     public void multiLinksInText()
     {
-        var matches = allLinks("Here are [[link1]] and [[link2]] in a single line");
-        softly.assertThat(matches.size()).isEqualTo(2);
-        softly.assertThat(matches.get(0).group(1)).isEqualTo("link1");
-        softly.assertThat(matches.get(1).group(1)).isEqualTo("link2");
+        var links = allLinks("Here are [[link1]] and [[link2]] in a single line");
+        softly.assertThat(links.size()).isEqualTo(2);
+        softly.assertThat(links.get(0).targetDocument()).isEqualTo("link1");
+        softly.assertThat(links.get(1).targetDocument()).isEqualTo("link2");
     }
 
     @Test
     public void linkWithAnchor()
     {
-        var matches = allLinks("[[link#anchor]]");
-        softly.assertThat(matches.size()).isEqualTo(1);
-        var first = matches.get(0);
-        softly.assertThat(first.group(1)).isEqualTo("link");
-        softly.assertThat(first.group(2)).isEqualTo("anchor");
-        softly.assertThat(first.group(3)).isNull();
+        var links = allLinks("[[link#anchor]]");
+        softly.assertThat(links.size()).isEqualTo(1);
+        var first = links.get(0);
+        softly.assertThat(first.targetDocument()).isEqualTo("link");
+        softly.assertThat(first.targetAnchor()).isPresent();
+        softly.assertThat(first.targetAnchor().get()).isEqualTo("anchor");
+        softly.assertThat(first.alias()).isNotPresent();
     }
 
     @Test
     public void linkWithAlias()
     {
-        var matches = allLinks("[[link|alias]]");
-        softly.assertThat(matches.size()).isEqualTo(1);
-        var first = matches.get(0);
-        softly.assertThat(first.group(1)).isEqualTo("link");
-        softly.assertThat(first.group(2)).isNull();
-        softly.assertThat(first.group(3)).isEqualTo("alias");
+        var links = allLinks("[[link|alias]]");
+        softly.assertThat(links.size()).isEqualTo(1);
+        var first = links.get(0);
+        softly.assertThat(first.targetDocument()).isEqualTo("link");
+        softly.assertThat(first.targetAnchor()).isNotPresent();
+        softly.assertThat(first.alias()).isPresent();
+        softly.assertThat(first.alias()).get().isEqualTo("alias");
     }
 
     @Test
     public void linkWithAnchorAndAlias()
     {
-        var matches = allLinks("[[link#anchor|alias]]");
-        softly.assertThat(matches.size()).isEqualTo(1);
-        var first = matches.get(0);
-        softly.assertThat(first.group(1)).isEqualTo("link");
-        softly.assertThat(first.group(2)).isEqualTo("anchor");
-        softly.assertThat(first.group(3)).isEqualTo("alias");
+        var links = allLinks("[[link#anchor|alias]]");
+        softly.assertThat(links.size()).isEqualTo(1);
+        var first = links.get(0);
+        softly.assertThat(first.targetDocument()).isEqualTo("link");
+        softly.assertThat(first.targetAnchor()).isPresent();
+        softly.assertThat(first.targetAnchor().get()).isEqualTo("anchor");
+        softly.assertThat(first.alias()).isPresent();
+        softly.assertThat(first.alias().get()).isEqualTo("alias");
+    }
+
+    private List<InternalLink> allLinks(String content)
+    {
+        var document = Document.newDocument("test", content.lines().toList());
+        var finder = new InternalLinkFinder();
+        document.accept(finder);
+        return finder.internalLinks();
     }
 }
