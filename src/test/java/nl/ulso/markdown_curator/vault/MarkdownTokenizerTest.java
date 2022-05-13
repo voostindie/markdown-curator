@@ -6,13 +6,16 @@ import org.assertj.core.api.junit.jupiter.InjectSoftAssertions;
 import org.assertj.core.api.junit.jupiter.SoftAssertionsExtension;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.snakeyaml.engine.v2.exceptions.Mark;
 
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.stream.Collectors;
 
 import static java.util.Collections.emptyList;
 import static nl.ulso.markdown_curator.vault.MarkdownTokenizer.TokenType.*;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 @ExtendWith(SoftAssertionsExtension.class)
 class MarkdownTokenizerTest
@@ -119,6 +122,16 @@ class MarkdownTokenizerTest
                         <!--/query:HASH-->
                         """,
                 QUERY, QUERY, END_OF_DOCUMENT);
+    }
+
+    @Test
+    void noSuchElementException()
+    {
+        assertThatThrownBy(() -> {
+            var iterator = new MarkdownTokenizer(emptyList()).iterator();
+            iterator.next();
+            iterator.next();
+        }).isInstanceOf(NoSuchElementException.class);
     }
 
     private void assertSame(String input, TokenType... types)

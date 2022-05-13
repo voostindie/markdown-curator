@@ -154,6 +154,10 @@ class MarkdownTokenizer
             public LineToken next()
             {
                 var i = this.index;
+                if (i > size)
+                {
+                    throw new NoSuchElementException();
+                }
                 index++;
                 if (i == size)
                 {
