@@ -25,14 +25,14 @@ public class Application
         LOGGER.info("Markdown Curator {}", resolveVersion());
         LOGGER.info("Press Ctrl+C to stop");
         LOGGER.info("-".repeat(76));
-        var factories = ServiceLoader.load(CuratorFactory.class).stream().toList();
-        if (factories.isEmpty())
+        var providers = ServiceLoader.load(CuratorFactory.class).stream().toList();
+        if (providers.isEmpty())
         {
             LOGGER.error("No curators are available in the system. Nothing to do!");
             return;
         }
-        var executor = Executors.newFixedThreadPool(factories.size());
-        factories.forEach(provider -> executor.submit(Executors.callable(() -> {
+        var executor = Executors.newFixedThreadPool(providers.size());
+        providers.forEach(provider -> executor.submit(Executors.callable(() -> {
             var factory = provider.get();
             Thread.currentThread().setName(factory.name());
             LOGGER.debug("Instantiating curator: {}", factory.name());
