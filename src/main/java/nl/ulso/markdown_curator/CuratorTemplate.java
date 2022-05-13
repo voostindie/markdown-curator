@@ -101,7 +101,17 @@ public abstract class CuratorTemplate
         Map<QueryBlock, String> writeQueue = new HashMap<>();
         vault.findAllQueryBlocks().forEach(queryBlock -> {
             var query = queryCatalog.query(queryBlock.name());
-            var result = query.run(queryBlock);
+            QueryResult result;
+            try
+            {
+                result = query.run(queryBlock);
+            }
+            catch (RuntimeException e)
+            {
+                LOGGER.warn("Running query {} in document {} resulted in an error. Skipping it.",
+                        query.name(), queryBlock.document().name());
+                return;
+            }
             var output = result.toMarkdown();
             if (!queryBlock.result().contentEquals(output))
             {
