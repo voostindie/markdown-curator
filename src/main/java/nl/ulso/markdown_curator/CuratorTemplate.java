@@ -35,7 +35,7 @@ public abstract class CuratorTemplate
     private final FileSystemVault vault;
     private final QueryCatalog queryCatalog;
 
-    public CuratorTemplate()
+    protected CuratorTemplate()
     {
         try
         {
@@ -73,7 +73,6 @@ public abstract class CuratorTemplate
 
     @Override
     public final void run()
-            throws IOException, InterruptedException
     {
         vault.setVaultChangedCallback(this);
         vault.watchForChanges();

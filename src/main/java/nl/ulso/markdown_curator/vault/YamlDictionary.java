@@ -27,14 +27,13 @@ import static java.util.Objects.requireNonNullElse;
  *     <li>Reading a single value from a list results in the first value.</li>
  *     <li>Reading a list from a single value results in a list with one item.</li>
  * </ul>
- * Dates are supported only in one format: {@value DATE_FORMAT}.
+ * Dates are supported only in one format: "yyyy-MM-dd"
  */
 final class YamlDictionary
         implements Dictionary
 {
     private static final Logger LOGGER = LoggerFactory.getLogger(YamlDictionary.class);
     private static final String DOCUMENT_SEPARATOR = "---";
-    private static final String DATE_FORMAT = "yyyy-MM-dd";
 
     private final Map<String, ?> map;
     private final Map<String, List<LocalDate>> dateCache;

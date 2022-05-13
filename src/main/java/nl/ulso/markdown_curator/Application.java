@@ -32,23 +32,10 @@ public class Application
         }
         var executor = Executors.newFixedThreadPool(factories.size());
         loader.forEach(factory -> executor.submit(Executors.callable(() -> {
-            try
-            {
-                Thread.currentThread().setName(factory.name());
-                LOGGER.debug("Instantiating curator: {}", factory.name());
-                var curator = factory.createCurator();
-                curator.run();
-            }
-            catch (IOException e)
-            {
-                LOGGER.error("Error in configuration for {}. Shutting it down",
-                        factory.name(), e);
-            }
-            catch (InterruptedException e)
-            {
-                LOGGER.error("Got interrupted!", e);
-                Thread.currentThread().interrupt();
-            }
+            Thread.currentThread().setName(factory.name());
+            LOGGER.debug("Instantiating curator: {}", factory.name());
+            var curator = factory.createCurator();
+            curator.run();
         })));
         executor.shutdown();
     }

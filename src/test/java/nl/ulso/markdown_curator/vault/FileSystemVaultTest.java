@@ -233,16 +233,7 @@ class FileSystemVaultTest
 
     void whileWatchingForChanges(TestCase testCase)
     {
-        var background = new Thread(() -> {
-            try
-            {
-                vault.watchForChanges();
-            }
-            catch (InterruptedException | IOException e)
-            {
-                // Do nothing; there's nothing to clean up.
-            }
-        });
+        var background = new Thread(() -> vault.watchForChanges());
         background.start();
         try
         {

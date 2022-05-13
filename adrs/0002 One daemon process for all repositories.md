@@ -55,4 +55,4 @@ This is what I have been doing, with a Ruby program. I had a LaunchAgent per rep
 
 - All files in a vault need to be read into memory, every time.
 - Startup costs of the application are incurred every time a file changes. 
-- Extra configuration to manage, outside of the application.
+- Extra configuration to manage, outside the application.

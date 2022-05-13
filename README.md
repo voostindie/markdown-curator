@@ -21,7 +21,7 @@ On the other hand, Obsidian plugins are much easier to install and use. This lib
 
 Shouldn't I have built this library as an Obsidian plugin itself? Maybe. Probably. But, I didn't. Why not? Because I'm sure my use of Markdown will outlive my use of Obsidian. Also, being able to change files in a vault with any editor *and* have this library still work in the background leads to fewer surprises.
 
-## The 5 minute introduction
+## The 5-minute introduction
 
 This is a Java library and application framework that can spin up a daemon. This daemon can monitor one or more directories of Markdown documents, like [Obsidian](https://obsidian.md) vaults. Based on changes happening in the directories, it detects and runs queries embedded in the documents, generates Markdown output for these queries and embeds this output in the documents themselves.
 
@@ -45,10 +45,10 @@ Don't know which queries are available? Simply put a blank query in your content
 
 ```
 <!--query-->
-<!--/query>
+<!--/query-->
 ```
 
-By default this tool provides just a couple of built-in generic queries: `list`, `table` and `toc`. To make this tool really useful, you will want to create your own queries. 
+By default, this tool provides just a couple of built-in generic queries: `list`, `table` and `toc`. To make this tool really useful, you will want to create your own queries. 
 
 To use this library, you have to configure your own application, define this tool as a dependency, and code your own curator and custom queries. See further on for an example.
 
@@ -60,7 +60,7 @@ The [music](src/test/resources/music/README.md) test suite provides examples of 
 - Create and publish a custom curator.
 - Create and register one or more queries.
 
-## Create an new Java artifact
+## Create a new Java artifact
 
 - Copy the `template-application` in this repository to a new directory.
 - Update the `pom.xml` in your copy:
@@ -69,7 +69,7 @@ The [music](src/test/resources/music/README.md) test suite provides examples of 
 
 A `mvn clean package` and `java -jar target/my-markdown-curator.jar` should result in the application starting up and exiting immediately, telling you that it can't find any curators.
 
-## Create and publish a custom curator.
+## Create and publish a custom curator
 
 - Implement the `Curator` interface, by subclassing the `CuratorTemplate` class.
 - Implement the `CuratorFactory` interface.
@@ -82,7 +82,7 @@ Try changing a file in any Markdown document in your document repository now. Fo
     <!--query:toc-->
     <!--/query-->
 
-## Create and register one or more queries.
+## Create and register one or more queries
 
 - Implement the `Query` interface.
 - Register the query in your `CuratorTemplate` subclass, in `registerQueries`.

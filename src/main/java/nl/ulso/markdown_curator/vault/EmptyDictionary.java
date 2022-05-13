@@ -7,7 +7,7 @@ import java.util.List;
 final class EmptyDictionary
         implements nl.ulso.markdown_curator.vault.Dictionary
 {
-    static Dictionary INSTANCE = new EmptyDictionary();
+    static final Dictionary INSTANCE = new EmptyDictionary();
 
     @Override
     public boolean equals(Object o)

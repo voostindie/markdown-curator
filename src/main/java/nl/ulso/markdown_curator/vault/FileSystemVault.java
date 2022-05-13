@@ -17,7 +17,7 @@ import static org.slf4j.LoggerFactory.getLogger;
 /**
  * {@link Vault} implementation on top of the (default) filesystem.
  * <p/>
- * On creation it uses a {@link FileVisitor} to process all folders and documents and pull them
+ * On creation, it uses a {@link FileVisitor} to process all folders and documents and pull them
  * in memory. From then on it watches all folders and subfolders for changes using the file system's
  * {@link WatchService}.
  */
@@ -35,7 +35,7 @@ public final class FileSystemVault
             throws IOException
     {
         // This forces the directory watcher to deduce which WatchService to use.
-        // On MacOS, this results in a native, non-polling service. Nice and fast.
+        // On macOS, this results in a native, non-polling service. Nice and fast.
         // However, this service doesn't work with the JimFS filesystem, used in tests.
         // That's what the other constructor is for.
         this(absolutePath, null);
@@ -85,7 +85,6 @@ public final class FileSystemVault
 
     @Override
     public void watchForChanges()
-            throws InterruptedException, IOException
     {
         LOGGER.info("Watching {} for changes", absolutePath);
         watcher.watch();

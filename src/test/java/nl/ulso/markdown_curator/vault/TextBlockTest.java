@@ -12,7 +12,6 @@ import java.util.List;
 
 import static java.util.Collections.emptyList;
 import static nl.ulso.markdown_curator.vault.Document.newDocument;
-import static org.assertj.core.api.Assertions.assertThat;
 
 @ExtendWith(SoftAssertionsExtension.class)
 class TextBlockTest
