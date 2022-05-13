@@ -3,10 +3,15 @@ package nl.ulso.markdown_curator;
 import org.slf4j.Logger;
 
 import java.io.IOException;
+import java.nio.file.Path;
 import java.util.Properties;
 import java.util.ServiceLoader;
 import java.util.concurrent.Executors;
 
+import static java.lang.System.getProperty;
+import static java.lang.System.lineSeparator;
+import static java.nio.file.Files.writeString;
+import static java.nio.file.StandardOpenOption.CREATE_NEW;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
@@ -18,19 +23,22 @@ import static org.slf4j.LoggerFactory.getLogger;
 public class Application
 {
     private static final Logger LOGGER = getLogger(Application.class);
+    private static final Path PID = Path.of(getProperty("java.io.tmpdir"), "markdown-curator.pid");
+
     static final String UNKNOWN_VERSION = "<UNKNOWN>";
 
     public static void main(String[] args)
     {
         LOGGER.info("Markdown Curator {}", resolveVersion());
-        LOGGER.info("Press Ctrl+C to stop");
-        LOGGER.info("-".repeat(76));
+        ensureNewPidFile();
         var providers = ServiceLoader.load(CuratorFactory.class).stream().toList();
         if (providers.isEmpty())
         {
             LOGGER.error("No curators are available in the system. Nothing to do!");
             return;
         }
+        LOGGER.info("Press Ctrl+C to stop");
+        LOGGER.info("-".repeat(76));
         var executor = Executors.newFixedThreadPool(providers.size());
         providers.forEach(provider -> executor.submit(Executors.callable(() -> {
             var factory = provider.get();
@@ -40,6 +48,21 @@ public class Application
             curator.run();
         })));
         executor.shutdown();
+    }
+
+    private static void ensureNewPidFile()
+    {
+        try
+        {
+            writeString(PID, ProcessHandle.current().pid() + lineSeparator(), CREATE_NEW);
+        }
+        catch (IOException e)
+        {
+            LOGGER.error(
+                    "Couldn't write PID. Another Markdown Curator is probably running. Exiting.");
+            System.exit(-1);
+        }
+        PID.toFile().deleteOnExit();
     }
 
     static String resolveVersion()
