@@ -27,14 +27,14 @@ final class DocumentParser
     private final String name;
     private final List<String> lines;
     private final Map<Integer, List<Fragment>> fragments;
-    private final Stack<MarkdownTokenizer.HeaderLineToken> headers;
+    private final Deque<MarkdownTokenizer.HeaderLineToken> headers;
 
     public DocumentParser(String name, List<String> lines)
     {
         this.name = name;
         this.lines = lines;
         fragments = new HashMap<>();
-        headers = new Stack<>();
+        headers = new ArrayDeque<>();
     }
 
     Document parse()

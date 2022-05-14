@@ -64,13 +64,13 @@ class FrontMatterTest
     @Test
     void dictionaryIntegerList()
     {
-        assertThat(frontMatter().listOfIntegers("foo").size()).isEqualTo(1);
+        assertThat(frontMatter().listOfIntegers("foo")).hasSize(1);
     }
 
     @Test
     void dictionaryDateList()
     {
-        assertThat(frontMatter().listOfDates("date").size()).isEqualTo(1);
+        assertThat(frontMatter().listOfDates("date")).hasSize(1);
     }
 
     private FrontMatter frontMatter()

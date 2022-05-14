@@ -59,7 +59,7 @@ public final class FileSystemVault
         {
             var statistics = ElementCounter.countFoldersAndDocuments(this);
             LOGGER.info("Read vault {} into memory with {} folders and {} documents", name(),
-                    statistics.folders, statistics.documents);
+                    statistics.folders(), statistics.documents());
         }
     }
 
@@ -92,8 +92,9 @@ public final class FileSystemVault
 
     private void processFileSystemEvent(DirectoryChangeEvent event)
     {
-        LOGGER.debug("Change detected: {}", event.path());
-        var parent = resolveParentFolder(event.path());
+        var eventAbsolutePath = event.path();
+        LOGGER.debug("Change detected: {}", eventAbsolutePath);
+        var parent = resolveParentFolder(eventAbsolutePath);
         if (parent != null)
         {
             switch (event.eventType())
@@ -109,51 +110,51 @@ public final class FileSystemVault
 
     private void processFileCreationEvent(DirectoryChangeEvent event, FileSystemFolder parent)
     {
-        var absolutePath = event.path();
-        if (event.isDirectory() && !isHidden(event.path()))
+        var eventAbsolutePath = event.path();
+        if (event.isDirectory() && !isHidden(eventAbsolutePath))
         {
-            var folder = parent.addFolder(folderName(absolutePath));
-            LOGGER.info("Detected new folder: {}", folder.name());
+            var folder = parent.addFolder(folderName(eventAbsolutePath));
+            LOGGER.info("Detected new folder: {}", folder);
             try
             {
-                walkFileTree(absolutePath, new VaultBuilder(folder, absolutePath));
+                walkFileTree(eventAbsolutePath, new VaultBuilder(folder, eventAbsolutePath));
             }
             catch (IOException e)
             {
                 LOGGER.warn("Error while processing file tree", e);
             }
         }
-        else if (isDocument(absolutePath))
+        else if (isDocument(eventAbsolutePath))
         {
-            var document = newDocumentFromAbsolutePath(absolutePath);
-            LOGGER.info("Detected new document: {}", document.name());
+            var document = newDocumentFromAbsolutePath(eventAbsolutePath);
+            LOGGER.info("Detected new document: {}", document);
             parent.addDocument(document);
         }
     }
 
     private void processFileModificationEvent(DirectoryChangeEvent event, FileSystemFolder parent)
     {
-        var absolutePath = event.path();
-        if (isDocument(absolutePath))
+        var eventAbsolutePath = event.path();
+        if (isDocument(eventAbsolutePath))
         {
-            var document = newDocumentFromAbsolutePath(absolutePath);
-            LOGGER.info("Detected changes to document: {}", document.name());
+            var document = newDocumentFromAbsolutePath(eventAbsolutePath);
+            LOGGER.info("Detected changes to document: {}", document);
             parent.addDocument(document);
         }
     }
 
     private void processFileDeletionEvent(DirectoryChangeEvent event, FileSystemFolder parent)
     {
-        var absolutePath = event.path();
-        if (isDocument(absolutePath))
+        var eventAbsolutePath = event.path();
+        if (isDocument(eventAbsolutePath))
         {
-            String name = documentName(absolutePath);
+            var name = documentName(eventAbsolutePath);
             LOGGER.info("Document deleted: {}", name);
             parent.removeDocument(name);
         }
         else
         {
-            String name = folderName(absolutePath);
+            var name = folderName(eventAbsolutePath);
             var folder = parent.folder(name);
             if (folder.isPresent())
             {
@@ -163,9 +164,9 @@ public final class FileSystemVault
         }
     }
 
-    private FileSystemFolder resolveParentFolder(Path absolutePath)
+    private FileSystemFolder resolveParentFolder(Path eventAbsolutePath)
     {
-        var relativePath = this.absolutePath.relativize(absolutePath);
+        var relativePath = absolutePath.relativize(eventAbsolutePath);
         var steps = relativePath.getNameCount() - 1;
         Folder folder = this;
         for (int i = 0; i < steps; i++)
@@ -208,7 +209,6 @@ public final class FileSystemVault
         }
         catch (IOException e)
         {
-            LOGGER.error("Could not read file from disk: {}", absolutePath, e);
             throw new IllegalStateException("Could not read file " + absolutePath, e);
         }
     }
@@ -236,14 +236,14 @@ public final class FileSystemVault
             folder = folder.parent();
         }
         Collections.reverse(parents);
-        Path absolutePath = this.absolutePath;
+        var path = this.absolutePath;
         for (Folder parent : parents)
         {
-            absolutePath = absolutePath.resolve(parent.name());
+            path = path.resolve(parent.name());
         }
-        absolutePath = absolutePath.resolve(document.name() + ".md");
-        LOGGER.debug("Resolved absolute path for document '{}': {}", document, absolutePath);
-        return absolutePath;
+        path = path.resolve(document.name() + ".md");
+        LOGGER.debug("Resolved absolute path for document '{}': {}", document, path);
+        return path;
     }
 
     private class VaultBuilder

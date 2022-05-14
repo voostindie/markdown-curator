@@ -7,7 +7,8 @@ import java.util.List;
  * to a document's front matter, sections (of any level), and simple text. Every fragment is
  * visitable (see {@link VaultVisitor}.
  * <p>
- * TODO: make this is sealed interface. This requires an update to the EqualsVerifier, > 3.9.
+ * Ideally this is sealed interface, but this probably requires an update to the EqualsVerifier
+ * library, > 3.10.
  */
 public interface Fragment
 {

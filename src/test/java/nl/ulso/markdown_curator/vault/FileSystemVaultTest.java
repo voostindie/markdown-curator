@@ -13,6 +13,7 @@ import java.nio.file.*;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
+import static nl.ulso.markdown_curator.vault.ElementCounter.countAll;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
 
@@ -83,13 +84,13 @@ class FileSystemVaultTest
     @Test
     void visit()
     {
-        var statistics = ElementCounter.countAll(vault);
-        softly.assertThat(statistics.vaults).isEqualTo(1);
-        softly.assertThat(statistics.folders).isEqualTo(3);
-        softly.assertThat(statistics.documents).isEqualTo(13);
-        softly.assertThat(statistics.frontMatters).isEqualTo(13);
-        softly.assertThat(statistics.sections).isEqualTo(5);
-        softly.assertThat(statistics.texts).isEqualTo(13);
+        var statistics = countAll(vault);
+        softly.assertThat(statistics.vaults()).isEqualTo(1);
+        softly.assertThat(statistics.folders()).isEqualTo(3);
+        softly.assertThat(statistics.documents()).isEqualTo(13);
+        softly.assertThat(statistics.frontMatters()).isEqualTo(13);
+        softly.assertThat(statistics.sections()).isEqualTo(5);
+        softly.assertThat(statistics.texts()).isEqualTo(13);
     }
 
     @Test

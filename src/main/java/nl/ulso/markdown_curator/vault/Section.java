@@ -13,7 +13,7 @@ public final class Section
     static final Pattern HEADER_PATTERN = compile("^(#{1,6}) (.*)$");
 
     // These characters are filtered out by Obsidian in anchors; reverse engineered!
-    private final static Set<Character> INVALID_ANCHOR_CHARACTERS = Set.of(
+    private static final Set<Character> INVALID_ANCHOR_CHARACTERS = Set.of(
             '<', '>', ',', '.', ';', '[', ']', '!', '@', '#', '$', '%', '^',
             '&', '*', '(', ')', '=', '+', '/', '?', '{', '}', '\\', '~', '`');
 

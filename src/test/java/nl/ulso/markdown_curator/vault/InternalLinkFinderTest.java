@@ -8,6 +8,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 
 import java.util.List;
 
+import static nl.ulso.markdown_curator.vault.Document.newDocument;
+
 @ExtendWith(SoftAssertionsExtension.class)
 class InternalLinkFinderTest
 {
@@ -15,7 +17,7 @@ class InternalLinkFinderTest
     private SoftAssertions softly;
 
     @Test
-    public void singleSimpleLink()
+    void singleSimpleLink()
     {
         var links = allLinks("A single [[link]] in a line");
         softly.assertThat(links.size()).isEqualTo(1);
@@ -26,7 +28,7 @@ class InternalLinkFinderTest
     }
 
     @Test
-    public void multiLinksInText()
+    void multiLinksInText()
     {
         var links = allLinks("Here are [[link1]] and [[link2]] in a single line");
         softly.assertThat(links.size()).isEqualTo(2);
@@ -35,7 +37,7 @@ class InternalLinkFinderTest
     }
 
     @Test
-    public void linkWithAnchor()
+    void linkWithAnchor()
     {
         var links = allLinks("[[link#anchor]]");
         softly.assertThat(links.size()).isEqualTo(1);
@@ -47,7 +49,7 @@ class InternalLinkFinderTest
     }
 
     @Test
-    public void linkWithAlias()
+    void linkWithAlias()
     {
         var links = allLinks("[[link|alias]]");
         softly.assertThat(links.size()).isEqualTo(1);
@@ -59,7 +61,7 @@ class InternalLinkFinderTest
     }
 
     @Test
-    public void linkWithAnchorAndAlias()
+    void linkWithAnchorAndAlias()
     {
         var links = allLinks("[[link#anchor|alias]]");
         softly.assertThat(links.size()).isEqualTo(1);
@@ -73,9 +75,6 @@ class InternalLinkFinderTest
 
     private List<InternalLink> allLinks(String content)
     {
-        var document = Document.newDocument("test", content.lines().toList());
-        var finder = new InternalLinkFinder();
-        document.accept(finder);
-        return finder.internalLinks();
+        return newDocument("test", content.lines().toList()).findInternalLinks();
     }
 }

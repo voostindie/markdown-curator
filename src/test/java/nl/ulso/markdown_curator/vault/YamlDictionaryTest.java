@@ -99,8 +99,8 @@ class YamlDictionaryTest
     void validDate()
     {
         var dictionary = dictionary("date: 1976-11-30");
-        assertThat(dictionary.date("date", null).toString())
-                .isEqualTo("1976-11-30");
+        assertThat(dictionary.date("date", null))
+                .hasToString("1976-11-30");
     }
 
     @Test
@@ -119,7 +119,7 @@ class YamlDictionaryTest
                 foo: 42
                 """);
         List<Integer> list = dictionary.listOfIntegers("foo");
-        softly.assertThat(list.size()).isEqualTo(1);
+        softly.assertThat(list).hasSize(1);
         softly.assertThat(list).first().isEqualTo(42);
     }
 
@@ -140,7 +140,7 @@ class YamlDictionaryTest
                 dates: [1976-11-30, 1977-11-11, 2003-05-08]
                 """);
         List<LocalDate> list = dictionary.listOfDates("dates");
-        assertThat(list.size()).isEqualTo(3);
+        assertThat(list).hasSize(3);
 
     }
 

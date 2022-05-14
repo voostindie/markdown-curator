@@ -6,6 +6,8 @@ import org.assertj.core.api.junit.jupiter.InjectSoftAssertions;
 import org.assertj.core.api.junit.jupiter.SoftAssertionsExtension;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 import java.util.Collections;
 import java.util.List;
@@ -150,7 +152,7 @@ class DocumentTest
                 line
                 """;
         var document = newDocument("document", document(text));
-        softly.assertThat(document.fragments().size()).isEqualTo(4);
+        softly.assertThat(document.fragments()).hasSize(4);
         softly.assertThat(document.fragment(2)).isInstanceOf(CodeBlock.class);
         var block = (CodeBlock) document.fragment(2);
         softly.assertThat(block.language()).isEqualTo("js");
@@ -165,7 +167,7 @@ class DocumentTest
                 ```
                 """;
         var document = newDocument("document", document(text));
-        softly.assertThat(document.fragments().size()).isEqualTo(2);
+        softly.assertThat(document.fragments()).hasSize(2);
         softly.assertThat(document.fragment(1)).isInstanceOf(CodeBlock.class);
         var block = (CodeBlock) document.fragment(1);
         softly.assertThat(block.language()).isBlank();
@@ -181,46 +183,33 @@ class DocumentTest
                 <!--/query-->
                 """;
         var document = newDocument("document", document(text));
-        softly.assertThat(document.fragments().size()).isEqualTo(2);
+        softly.assertThat(document.fragments()).hasSize(2);
         softly.assertThat(document.fragment(1)).isInstanceOf(QueryBlock.class);
         var query = (QueryBlock) document.fragment(1);
         softly.assertThat(query.configuration().isEmpty()).isTrue();
         softly.assertThat(query.result()).isEqualTo("foo");
     }
 
-    @Test
-    void frontMatterWithoutClosingTagBecomesTextBlock()
-    {        String text = """
-                ---
-                foo: bar
-                answer: 42
-                """;
-        var document = newDocument("document", document(text));
-        softly.assertThat(document.fragments().size()).isEqualTo(2);
-        softly.assertThat(document.fragment(1)).isInstanceOf(TextBlock.class);
-    }
-
-    @Test
-    void queryWithoutClosingTagBecomesTextBlock()
+    @ParameterizedTest
+    @ValueSource(strings = {
+            """
+                    ---
+                    foo: bar
+                    answer: 42
+                    """,
+            """
+                    <!--query-->
+                    foo
+                    """,
+            """
+                    ```
+                    code
+                    """
+    })
+    void unclosedBlockBecomesTextBlock(String text)
     {
-        String text = """
-                <!--query-->
-                foo
-                """;
         var document = newDocument("document", document(text));
-        softly.assertThat(document.fragments().size()).isEqualTo(2);
-        softly.assertThat(document.fragment(1)).isInstanceOf(TextBlock.class);
-    }
-
-    @Test
-    void codeWithoutClosingTagBecomesTextBlock()
-    {
-        String text = """
-                ```
-                code
-                """;
-        var document = newDocument("document", document(text));
-        softly.assertThat(document.fragments().size()).isEqualTo(2);
+        softly.assertThat(document.fragments()).hasSize(2);
         softly.assertThat(document.fragment(1)).isInstanceOf(TextBlock.class);
     }
 

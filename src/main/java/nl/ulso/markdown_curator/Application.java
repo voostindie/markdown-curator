@@ -29,7 +29,6 @@ public class Application
 
     public static void main(String[] args)
     {
-        LOGGER.info("Markdown Curator {}", resolveVersion());
         ensureNewPidFile();
         var providers = ServiceLoader.load(CuratorFactory.class).stream().toList();
         if (providers.isEmpty())
@@ -37,15 +36,26 @@ public class Application
             LOGGER.error("No curators are available in the system. Nothing to do!");
             return;
         }
-        LOGGER.info("Press Ctrl+C to stop");
-        LOGGER.info("-".repeat(76));
+        if (LOGGER.isInfoEnabled())
+        {
+            LOGGER.info("Markdown Curator {}", resolveVersion());
+            LOGGER.info("Press Ctrl+C to stop");
+            LOGGER.info("-".repeat(76));
+        }
         var executor = Executors.newFixedThreadPool(providers.size());
         providers.forEach(provider -> executor.submit(Executors.callable(() -> {
             var factory = provider.get();
-            Thread.currentThread().setName(factory.name());
-            LOGGER.debug("Instantiating curator: {}", factory.name());
-            var curator = factory.createCurator();
-            curator.run();
+            var name = factory.name();
+            Thread.currentThread().setName(name);
+            LOGGER.debug("Instantiating curator: {}", name);
+            try
+            {
+                factory.createCurator().run();
+            }
+            catch (Exception e)
+            {
+                LOGGER.error("Curator '{}' errored out. It's non-functional from now on.", name, e);
+            }
         })));
         executor.shutdown();
     }

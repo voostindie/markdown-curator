@@ -132,4 +132,10 @@ public class FileSystemFolder
     {
         documents.remove(name);
     }
+
+    @Override
+    public String toString()
+    {
+        return name;
+    }
 }

@@ -43,8 +43,7 @@ public abstract class CuratorTemplate
         }
         catch (IOException e)
         {
-            LOGGER.error("Couldn't create vault. Reason: {}", e.toString());
-            throw new RuntimeException(e);
+            throw new IllegalStateException("Couldn't create vault", e);
         }
         this.queryCatalog = new InMemoryQueryCatalog();
         queryCatalog.register(new ListQuery(vault));

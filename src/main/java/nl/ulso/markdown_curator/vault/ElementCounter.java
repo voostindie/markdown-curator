@@ -21,45 +21,39 @@ public final class ElementCounter
         ALL
     }
 
-    public static final class Statistics
-    {
-        public int vaults;
-        public int folders;
-        public int documents;
-        public int frontMatters;
-        public int sections;
-        public int texts;
-        public int queries;
-        public int codeBlocks;
-
-        @Override
-        public String toString()
-        {
-            return "vaults: " + vaults + System.lineSeparator()
-                    + "folders: " + folders + System.lineSeparator()
-                    + "documents: " + documents + System.lineSeparator()
-                    + "front matters: " + frontMatters + System.lineSeparator()
-                    + "sections: " + sections + System.lineSeparator()
-                    + "queries: " + queries + System.lineSeparator()
-                    + "code blocks: " + codeBlocks + System.lineSeparator()
-                    + "texts: " + texts;
-        }
-    }
+    public record Statistics(
+            int vaults,
+            int folders,
+            int documents,
+            int frontMatters,
+            int sections,
+            int texts,
+            int queries,
+            int codeBlocks
+    ) {}
 
     private final Scope scope;
-    private final Statistics statistics;
+    private int vaults;
+    private int folders;
+    private int documents;
+    private int frontMatters;
+    private int sections;
+    private int texts;
+    private int queries;
+    private int codeBlocks;
 
     ElementCounter(Scope scope)
     {
         this.scope = scope;
-        this.statistics = new Statistics();
     }
 
     private static Statistics count(Vault vault, Scope scope)
     {
         var counter = new ElementCounter(scope);
         vault.accept(counter);
-        return counter.statistics;
+        return new Statistics(counter.vaults, counter.folders, counter.documents,
+                counter.frontMatters, counter.sections, counter.texts, counter.queries,
+                counter.codeBlocks);
     }
 
     public static Statistics countAll(Vault vault)
@@ -75,21 +69,21 @@ public final class ElementCounter
     @Override
     public void visit(Vault vault)
     {
-        statistics.vaults++;
+        vaults++;
         super.visit(vault);
     }
 
     @Override
     public void visit(Folder folder)
     {
-        statistics.folders++;
+        folders++;
         super.visit(folder);
     }
 
     @Override
     public void visit(Document document)
     {
-        statistics.documents++;
+        documents++;
         if (scope == ALL)
         {
             super.visit(document);
@@ -99,31 +93,31 @@ public final class ElementCounter
     @Override
     public void visit(FrontMatter frontMatter)
     {
-        statistics.frontMatters++;
+        frontMatters++;
     }
 
     @Override
     public void visit(Section section)
     {
-        statistics.sections++;
+        sections++;
         super.visit(section);
     }
 
     @Override
     public void visit(CodeBlock codeBlock)
     {
-        statistics.codeBlocks++;
+        codeBlocks++;
     }
 
     @Override
     public void visit(QueryBlock queryBlock)
     {
-        statistics.queries++;
+        queries++;
     }
 
     @Override
     public void visit(TextBlock textBlock)
     {
-        statistics.texts++;
+        texts++;
     }
 }

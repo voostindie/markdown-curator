@@ -12,6 +12,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import java.io.IOException;
 import java.util.Map;
 
+import static nl.ulso.markdown_curator.vault.ElementCounter.countAll;
 import static nl.ulso.markdown_curator.vault.QueryBlockTest.emptyQueryBlock;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -34,15 +35,15 @@ class MusicCuratorTest
     {
         var vault = musicCurator.vault();
         assertThat(vault.name()).endsWith("music");
-        var statistics = ElementCounter.countAll(vault);
-        softly.assertThat(statistics.vaults).isEqualTo(1);
-        softly.assertThat(statistics.folders).isEqualTo(3);
-        softly.assertThat(statistics.documents).isEqualTo(13);
-        softly.assertThat(statistics.frontMatters).isEqualTo(13);
-        softly.assertThat(statistics.sections).isEqualTo(35);
-        softly.assertThat(statistics.queries).isEqualTo(10);
-        softly.assertThat(statistics.codeBlocks).isEqualTo(5);
-        softly.assertThat(statistics.texts).isEqualTo(46);
+        var statistics = countAll(vault);
+        softly.assertThat(statistics.vaults()).isEqualTo(1);
+        softly.assertThat(statistics.folders()).isEqualTo(3);
+        softly.assertThat(statistics.documents()).isEqualTo(13);
+        softly.assertThat(statistics.frontMatters()).isEqualTo(13);
+        softly.assertThat(statistics.sections()).isEqualTo(35);
+        softly.assertThat(statistics.queries()).isEqualTo(10);
+        softly.assertThat(statistics.codeBlocks()).isEqualTo(5);
+        softly.assertThat(statistics.texts()).isEqualTo(46);
     }
 
     @Test

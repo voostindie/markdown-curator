@@ -116,7 +116,7 @@ public final class Document
     @Override
     public String toString()
     {
-        return name();
+        return name;
     }
 
     public String link()
