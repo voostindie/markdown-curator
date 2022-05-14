@@ -182,7 +182,7 @@ public final class FileSystemVault
             if (subfolder == null)
             {
                 LOGGER.debug("Couldn't find subfolder '{}' in folder '{}'. Doing nothing.",
-                        directory, folder.name());
+                        directory, folder);
                 return null;
             }
             folder = subfolder;
