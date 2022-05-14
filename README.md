@@ -1,3 +1,6 @@
+[![Build](https://github.com/voostindie/markdown-curator/actions/workflows/maven.yml/badge.svg)](https://github.com/voostindie/markdown-curator/actions/workflows/maven.yml)
+[![CodeQL](https://github.com/voostindie/markdown-curator/actions/workflows/codeql-analysis.yml/badge.svg)](https://github.com/voostindie/markdown-curator/actions/workflows/codeql-analysis.yml)
+
 # Markdown Curator
 
 See the [CHANGELOG](CHANGELOG.md) for releases and the roadmap.
