@@ -1,5 +1,7 @@
 package nl.ulso.markdown_curator.vault;
 
+import nl.ulso.markdown_curator.query.QueryDefinition;
+
 import java.util.List;
 import java.util.Objects;
 
@@ -40,7 +42,7 @@ import static nl.ulso.markdown_curator.vault.Dictionary.yamlDictionary;
  */
 public final class QueryBlock
         extends LineContainer
-        implements Fragment
+        implements Fragment, QueryDefinition
 {
     static final String QUERY_CONFIGURATION_PREFIX = "<!--query";
     private static final String QUERY_CONFIGURATION_POSTFIX = "-->";

@@ -1,14 +1,10 @@
 <configuration>
 
-    <appender name="stdout" class="ch.qos.logback.core.ConsoleAppender">
-        <encoder>
-            <pattern>%d{HH:mm:ss.SSS} [%thread] %msg%n</pattern>
-        </encoder>
-    </appender>
+    <appender name="null" class="ch.qos.logback.core.helpers.NOPAppender"/>
 
     <logger name="io.methvin.watcher" level="warn"/>
 
-    <root level="off">
-        <appender-ref ref="stdout"/>
+    <root level="debug">
+        <appender-ref ref="null"/>
     </root>
 </configuration>

@@ -74,7 +74,7 @@ class FolderTest
     void document()
     {
         var root = new FileSystemFolder("root");
-        Document document = Document.newDocument("empty", Collections.emptyList());
+        Document document = newDocument("empty", Collections.emptyList());
         root.addDocument(document);
         softly.assertThat(root.documents().size()).isEqualTo(1);
         softly.assertThat(root.document("empty").get()).isSameAs(document);
@@ -84,8 +84,8 @@ class FolderTest
     void documentUniqueNameNewReplacesOld()
     {
         var root = new FileSystemFolder("root");
-        root.addDocument(Document.newDocument("empty", Collections.emptyList()));
-        Document document = Document.newDocument("empty", Collections.emptyList());
+        root.addDocument(newDocument("empty", Collections.emptyList()));
+        Document document = newDocument("empty", Collections.emptyList());
         root.addDocument(document);
         softly.assertThat(root.documents().size()).isEqualTo(1);
         softly.assertThat(root.document("empty").get()).isSameAs(document);
@@ -95,7 +95,7 @@ class FolderTest
     void removeDocument()
     {
         var root = new FileSystemFolder("root");
-        root.addDocument(Document.newDocument("empty", Collections.emptyList()));
+        root.addDocument(newDocument("empty", Collections.emptyList()));
         root.removeDocument("empty");
         Assertions.assertThat(root.documents()).isEmpty();
     }

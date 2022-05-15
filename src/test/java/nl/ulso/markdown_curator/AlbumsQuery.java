@@ -1,7 +1,6 @@
 package nl.ulso.markdown_curator;
 
-import nl.ulso.markdown_curator.query.Query;
-import nl.ulso.markdown_curator.query.QueryResult;
+import nl.ulso.markdown_curator.query.*;
 import nl.ulso.markdown_curator.vault.*;
 
 import java.util.*;
@@ -40,10 +39,10 @@ public class AlbumsQuery
     }
 
     @Override
-    public QueryResult run(QueryBlock queryBlock)
+    public QueryResult run(QueryDefinition definition)
     {
-        var artist = queryBlock.configuration().string("artist", queryBlock.document().name());
-        var reverse = queryBlock.configuration().bool("reverse", false);
+        var artist = definition.configuration().string("artist", definition.document().name());
+        var reverse = definition.configuration().bool("reverse", false);
         var finder = new AlbumFinder(artist, reverse);
         vault.accept(finder);
         return unorderedList(finder.albums.stream()

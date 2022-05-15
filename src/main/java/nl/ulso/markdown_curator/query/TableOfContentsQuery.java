@@ -1,7 +1,7 @@
 package nl.ulso.markdown_curator.query;
 
-import nl.ulso.markdown_curator.vault.*;
-import nl.ulso.markdown_curator.vault.Dictionary;
+import nl.ulso.markdown_curator.vault.BreadthFirstVaultVisitor;
+import nl.ulso.markdown_curator.vault.Section;
 
 import java.util.*;
 
@@ -33,13 +33,13 @@ public class TableOfContentsQuery
     }
 
     @Override
-    public QueryResult run(QueryBlock queryBlock)
+    public QueryResult run(QueryDefinition definition)
     {
-        var configuration = queryBlock.configuration();
+        var configuration = definition.configuration();
         var minimumLevel = configuration.integer("minimum-level", 2);
         var maximumLevel = configuration.integer("maximum-level", 6);
         var tocBuilder = new TableOfContentsBuilder(minimumLevel, maximumLevel);
-        queryBlock.document().accept(tocBuilder);
+        definition.document().accept(tocBuilder);
         return () -> {
             var builder = new StringBuilder();
             tocBuilder.sections.forEach(section ->
@@ -72,11 +72,12 @@ public class TableOfContentsQuery
         @Override
         public void visit(Section section)
         {
-            if (section.level() >= minimumLevel)
+            var level = section.level();
+            if (level >= minimumLevel && level <= maximumLevel)
             {
                 sections.add(section);
             }
-            if (section.level() <= maximumLevel)
+            if (level <= maximumLevel)
             {
                 super.visit(section);
             }

@@ -1,11 +1,12 @@
 package nl.ulso.markdown_curator.query;
 
-import nl.ulso.markdown_curator.vault.*;
+import nl.ulso.markdown_curator.vault.Document;
+import nl.ulso.markdown_curator.vault.Vault;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Map;
 
 import static java.util.Collections.reverse;
-import static nl.ulso.markdown_curator.query.QueryResult.error;
 import static nl.ulso.markdown_curator.query.QueryResult.unorderedList;
 
 public class ListQuery
@@ -34,22 +35,19 @@ public class ListQuery
     public Map<String, String> supportedConfiguration()
     {
         return Map.of(
-                "folder", "folder to list pages from; defaults to the folder of the current document",
+                "folder",
+                "folder to list pages from; defaults to the folder of the current document",
                 "recurse", "whether to recurse into directories; defaults to false",
                 "reverse", "whether to reverse the list; defaults to false"
         );
     }
 
     @Override
-    public QueryResult run(QueryBlock queryBlock)
+    public QueryResult run(QueryDefinition definition)
     {
-        var configuration = queryBlock.configuration();
-        var documentFolder = queryBlock.document().folder().name();
+        var configuration = definition.configuration();
+        var documentFolder = definition.document().folder().name();
         var folder = configuration.string("folder", documentFolder);
-        if (folder == null)
-        {
-            return error("Property 'folder' is missing.");
-        }
         var recurse = configuration.bool("recurse", false);
         var reverse = configuration.bool("reverse", false);
         var finder = new PageFinder(folder, recurse);

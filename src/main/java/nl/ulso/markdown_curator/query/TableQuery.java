@@ -27,15 +27,15 @@ public class TableQuery
     @Override
     public String description()
     {
-        return "generates a sorted table of pages, with optional front matter fields in " +
-                "additional columns";
+        return "Generates a sorted table of pages, with optional front matter fields in " +
+                "additional columns.";
     }
 
     @Override
     public Map<String, String> supportedConfiguration()
     {
         return Map.of(
-                "folder", "folder to list pages from",
+                "folder", "folder to list pages from; defaults to this document's folder",
                 "recurse", "whether to recurse into directories; defaults to false",
                 "reverse", "whether to reverse the list; defaults to false",
                 "columns", "list of front matter fields to create columns for",
@@ -44,14 +44,11 @@ public class TableQuery
     }
 
     @Override
-    public QueryResult run(QueryBlock queryBlock)
+    public QueryResult run(QueryDefinition definition)
     {
-        var configuration = queryBlock.configuration();
-        var folder = configuration.string("folder", null);
-        if (folder == null)
-        {
-            return error("Property 'folder' is missing.");
-        }
+        var configuration = definition.configuration();
+        var documentFolder = definition.document().folder().name();
+        var folder = configuration.string("folder", documentFolder);
         var recurse = configuration.bool("recurse", false);
         var reverse = configuration.bool("reverse", false);
         var sort = configuration.string("sort", "Name");

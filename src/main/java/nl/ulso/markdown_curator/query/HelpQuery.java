@@ -37,9 +37,9 @@ public class HelpQuery
     }
 
     @Override
-    public QueryResult run(QueryBlock queryBlock)
+    public QueryResult run(QueryDefinition definition)
     {
-        var queryName = queryBlock.configuration().string("name", "help");
+        var queryName = definition.configuration().string("name", "help");
         var query = catalog.query(queryName);
         return () -> {
             var builder = new StringBuilder();

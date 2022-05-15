@@ -38,7 +38,7 @@ class UnknownQuery
     }
 
     @Override
-    public QueryResult run(QueryBlock queryBlock)
+    public QueryResult run(QueryDefinition definition)
     {
         var builder = new StringBuilder();
         if (catalog.isEmpty())

@@ -14,7 +14,6 @@ import static java.lang.String.join;
 import static java.lang.System.lineSeparator;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.emptyMap;
-import static java.util.Objects.requireNonNullElse;
 
 /**
  * Extremely lenient implementation of a dictionary on top of YAML.
@@ -30,30 +29,18 @@ import static java.util.Objects.requireNonNullElse;
  * Dates are supported only in one format: "yyyy-MM-dd"
  */
 final class YamlDictionary
+        extends MapDictionary
         implements Dictionary
 {
     private static final Logger LOGGER = LoggerFactory.getLogger(YamlDictionary.class);
     private static final String DOCUMENT_SEPARATOR = "---";
 
-    private final Map<String, ?> map;
     private final Map<String, List<LocalDate>> dateCache;
 
     YamlDictionary(String string)
     {
+        super(parseYaml(string));
         dateCache = new HashMap<>();
-        LoadSettings settings = LoadSettings.builder().build();
-        Load load = new Load(settings);
-        Map<String, Object> yaml = null;
-        try
-        {
-            //noinspection unchecked
-            yaml = (Map<String, Object>) load.loadFromString(string);
-        }
-        catch (YamlEngineException | ClassCastException e)
-        {
-            LOGGER.warn("Invalid YAML found; ignoring it");
-        }
-        map = requireNonNullElse(yaml, emptyMap());
     }
 
     YamlDictionary(List<String> lines)
@@ -61,20 +48,21 @@ final class YamlDictionary
         this(join(lineSeparator(), singleYamlNode(lines)));
     }
 
-    @Override
-    public boolean equals(Object o)
+    private static Map<String, ?> parseYaml(String string)
     {
-        if (o instanceof YamlDictionary dictionary)
+        LoadSettings settings = LoadSettings.builder().build();
+        Load load = new Load(settings);
+        Map<String, ?> yaml = null;
+        try
         {
-            return Objects.equals(map, dictionary.map);
+            //noinspection unchecked
+            yaml = (Map<String, ?>) load.loadFromString(string);
         }
-        return false;
-    }
-
-    @Override
-    public int hashCode()
-    {
-        return Objects.hash(map);
+        catch (YamlEngineException | ClassCastException e)
+        {
+            LOGGER.warn("Invalid YAML found; ignoring it");
+        }
+        return yaml != null ? yaml : emptyMap();
     }
 
     private static List<String> singleYamlNode(List<String> lines)
@@ -93,24 +81,6 @@ final class YamlDictionary
     }
 
     @Override
-    public boolean isEmpty()
-    {
-        return map.isEmpty();
-    }
-
-    @Override
-    public String string(String property, String defaultValue)
-    {
-        return safeGet(property, String.class, defaultValue);
-    }
-
-    @Override
-    public int integer(String property, int defaultValue)
-    {
-        return safeGet(property, Integer.class, defaultValue);
-    }
-
-    @Override
     public LocalDate date(String property, LocalDate defaultValue)
     {
         var dates = listOfDates(property);
@@ -119,24 +89,6 @@ final class YamlDictionary
             return defaultValue;
         }
         return dates.get(0);
-    }
-
-    @Override
-    public boolean bool(String property, boolean defaultValue)
-    {
-        return safeGet(property, Boolean.class, defaultValue);
-    }
-
-    @Override
-    public List<String> listOfStrings(String property)
-    {
-        return safeGetList(property, String.class);
-    }
-
-    @Override
-    public List<Integer> listOfIntegers(String property)
-    {
-        return safeGetList(property, Integer.class);
     }
 
     @Override
@@ -158,40 +110,5 @@ final class YamlDictionary
         }).filter(Objects::nonNull).toList();
         dateCache.put(property, dates.isEmpty() ? emptyList() : dates);
         return listOfDates(property);
-    }
-
-    private <T> T safeGet(String property, Class<? extends T> propertyClass, T defaultValue)
-    {
-        var list = safeGetList(property, propertyClass);
-        if (list.isEmpty())
-        {
-            return defaultValue;
-        }
-        return propertyClass.cast(list.get(0));
-    }
-
-    @SuppressWarnings("unchecked")
-    private <T> List<T> safeGetList(String property, Class<? extends T> propertyClass)
-    {
-        Object value = map.get(property);
-        if (value == null)
-        {
-            return emptyList();
-        }
-        if (!(value instanceof List))
-        {
-            value = List.of(value);
-        }
-        List<?> list = (List<?>) value;
-        if (list.isEmpty())
-        {
-            return emptyList();
-        }
-        var first = list.get(0);
-        if (!propertyClass.isInstance(first))
-        {
-            return emptyList();
-        }
-        return (List<T>) list;
     }
 }

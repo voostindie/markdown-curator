@@ -29,8 +29,8 @@ public interface Query
     /**
      * Runs the query against and produces result.
      *
-     * @param queryBlock block to run this query against.
+     * @param definition definition to run this query against.
      * @return Result of running the query against the block.
      */
-    QueryResult run(QueryBlock queryBlock);
+    QueryResult run(QueryDefinition definition);
 }

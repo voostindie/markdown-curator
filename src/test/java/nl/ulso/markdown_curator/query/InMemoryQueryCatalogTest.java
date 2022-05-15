@@ -1,6 +1,5 @@
 package nl.ulso.markdown_curator.query;
 
-import nl.ulso.markdown_curator.vault.QueryBlock;
 import org.assertj.core.api.SoftAssertions;
 import org.assertj.core.api.junit.jupiter.InjectSoftAssertions;
 import org.assertj.core.api.junit.jupiter.SoftAssertionsExtension;
@@ -83,7 +82,7 @@ class InMemoryQueryCatalogTest
         }
 
         @Override
-        public QueryResult run(QueryBlock queryBlock)
+        public QueryResult run(QueryDefinition definition)
         {
             return error("Not implemented");
         }

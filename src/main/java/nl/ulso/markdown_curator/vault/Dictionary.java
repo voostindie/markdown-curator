@@ -2,13 +2,17 @@ package nl.ulso.markdown_curator.vault;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
 
 import static java.util.Objects.requireNonNull;
 
 /**
  * Simple read-only map of key-value pairs.
- * <p>
+ * <p/>
  * Keys are always strings. Values are strings, integers, dates or lists of these. That's it!
+ * <p/>
+ * There are no ways to in(tro)spect the dictionary. You need to know what you want to ask for,
+ * and you are guaranteed to always get a valid answer.
  */
 public interface Dictionary
 {
@@ -50,6 +54,15 @@ public interface Dictionary
             return emptyDictionary();
         }
         return new YamlDictionary(string);
+    }
+
+    static Dictionary mapDictionary(Map<String, ?> map)
+    {
+        if (requireNonNull(map).isEmpty())
+        {
+            return emptyDictionary();
+        }
+        return new MapDictionary(requireNonNull(map));
     }
 
     boolean isEmpty();

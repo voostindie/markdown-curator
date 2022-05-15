@@ -1,7 +1,6 @@
 package nl.ulso.markdown_curator;
 
-import nl.ulso.markdown_curator.query.Query;
-import nl.ulso.markdown_curator.query.QueryResult;
+import nl.ulso.markdown_curator.query.*;
 import nl.ulso.markdown_curator.vault.*;
 
 import java.util.*;
@@ -38,9 +37,9 @@ public class RecordingsQuery
     }
 
     @Override
-    public QueryResult run(QueryBlock queryBlock)
+    public QueryResult run(QueryDefinition definition)
     {
-        var song = queryBlock.configuration().string("song", queryBlock.document().name());
+        var song = definition.configuration().string("song", definition.document().name());
         var finder = new RecordingsFinder(song);
         vault.accept(finder);
         return unorderedList(finder.recordings.stream()
