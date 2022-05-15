@@ -1,12 +1,10 @@
 package nl.ulso.markdown_curator.query;
 
-import nl.ulso.markdown_curator.vault.QueryBlock;
 import nl.ulso.markdown_curator.vault.Vault;
 
 import java.util.*;
 
 import static java.util.Collections.reverse;
-import static nl.ulso.markdown_curator.query.QueryResult.error;
 
 public class TableQuery
         implements Query

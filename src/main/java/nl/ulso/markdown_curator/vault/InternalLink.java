@@ -14,8 +14,8 @@ public record InternalLink(Fragment sourceLocation,
     {
         var builder = new StringBuilder();
         builder.append("[[").append(targetDocument);
-        targetAnchor.ifPresent((anchor) -> builder.append("#").append(anchor));
-        alias.ifPresent((alias) -> builder.append("|").append(alias));
+        targetAnchor.ifPresent(anchor -> builder.append("#").append(anchor));
+        alias.ifPresent(alias -> builder.append("|").append(alias));
         builder.append("]]");
         return builder.toString();
     }

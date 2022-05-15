@@ -14,11 +14,11 @@ public interface Folder
 
     void accept(VaultVisitor visitor);
 
-    Collection<? extends Folder> folders();
+    Collection<Folder> folders();
 
     Optional<Folder> folder(String name);
 
-    Collection<? extends Document> documents();
+    Collection<Document> documents();
 
     Optional<Document> document(String name);
 }

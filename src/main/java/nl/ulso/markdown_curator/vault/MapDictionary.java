@@ -104,7 +104,7 @@ class MapDictionary
         {
             return defaultValue;
         }
-        if (value instanceof List list)
+        if (value instanceof List<?> list)
         {
             if (list.isEmpty())
             {
@@ -127,7 +127,7 @@ class MapDictionary
         {
             return emptyList();
         }
-        if (!(value instanceof List))
+        if (!(value instanceof List<?>))
         {
             value = List.of(value);
         }

@@ -1,7 +1,5 @@
 package nl.ulso.markdown_curator.query;
 
-import nl.ulso.markdown_curator.vault.QueryBlock;
-
 import java.util.Map;
 
 import static java.lang.System.lineSeparator;

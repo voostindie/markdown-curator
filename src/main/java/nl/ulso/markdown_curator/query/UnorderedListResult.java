@@ -1,6 +1,5 @@
 package nl.ulso.markdown_curator.query;
 
-import java.util.Collections;
 import java.util.List;
 
 import static java.lang.System.lineSeparator;

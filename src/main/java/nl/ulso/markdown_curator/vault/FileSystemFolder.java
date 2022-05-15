@@ -73,7 +73,7 @@ public class FileSystemFolder
     }
 
     @Override
-    public Collection<? extends Folder> folders()
+    public Collection<Folder> folders()
     {
         return unmodifiableCollection(folders.values());
     }
@@ -85,7 +85,7 @@ public class FileSystemFolder
     }
 
     @Override
-    public Collection<? extends Document> documents()
+    public Collection<Document> documents()
     {
         return unmodifiableCollection(documents.values());
     }

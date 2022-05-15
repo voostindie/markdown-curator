@@ -100,9 +100,9 @@ public class FolderStub
     }
 
     @Override
-    public Collection<? extends Folder> folders()
+    public Collection<Folder> folders()
     {
-        return folders.values();
+        return folders.values().stream().map(fs -> (Folder) (fs)).toList();
     }
 
     @Override
@@ -112,7 +112,7 @@ public class FolderStub
     }
 
     @Override
-    public Collection<? extends Document> documents()
+    public Collection<Document> documents()
     {
         return documents.values();
     }
