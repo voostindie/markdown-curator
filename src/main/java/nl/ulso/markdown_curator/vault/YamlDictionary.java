@@ -14,6 +14,7 @@ import static java.lang.String.join;
 import static java.lang.System.lineSeparator;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.emptyMap;
+import static java.util.stream.Collectors.toMap;
 
 /**
  * Extremely lenient implementation of a dictionary on top of YAML.
@@ -62,7 +63,13 @@ final class YamlDictionary
         {
             LOGGER.warn("Invalid YAML found; ignoring it");
         }
-        return yaml != null ? yaml : emptyMap();
+        if (yaml == null)
+        {
+            return emptyMap();
+        }
+        return yaml.entrySet().stream()
+                .filter(e -> e.getValue() != null)
+                .collect(toMap(Map.Entry::getKey, Map.Entry::getValue));
     }
 
     private static List<String> singleYamlNode(List<String> lines)

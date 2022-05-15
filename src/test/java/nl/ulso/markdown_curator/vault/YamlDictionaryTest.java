@@ -8,8 +8,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 import java.time.LocalDate;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 import static java.util.stream.Collectors.toList;
 import static nl.ulso.markdown_curator.vault.Dictionary.yamlDictionary;
@@ -142,6 +141,13 @@ class YamlDictionaryTest
         List<LocalDate> list = dictionary.listOfDates("dates");
         assertThat(list).hasSize(3);
 
+    }
+
+    @Test
+    void nullValuesAreAllowed()
+    {
+        var dictionary = dictionary("nothing: null");
+        assertThat(dictionary.string("nothing", "foo")).isEqualTo("foo");
     }
 
     private Dictionary dictionary(String yaml)
