@@ -1,5 +1,9 @@
-[![Build](https://github.com/voostindie/markdown-curator/actions/workflows/maven.yml/badge.svg)](https://github.com/voostindie/markdown-curator/actions/workflows/maven.yml)
+[![Java CI with Maven](https://github.com/voostindie/markdown-curator/actions/workflows/maven.yml/badge.svg)](https://github.com/voostindie/markdown-curator/actions/workflows/maven.yml)
 [![CodeQL](https://github.com/voostindie/markdown-curator/actions/workflows/codeql-analysis.yml/badge.svg)](https://github.com/voostindie/markdown-curator/actions/workflows/codeql-analysis.yml)
+
+[![Reliability Rating](https://sonarcloud.io/api/project_badges/measure?project=voostindie_markdown-curator&metric=reliability_rating)](https://sonarcloud.io/summary/new_code?id=voostindie_markdown-curator)
+[![Maintainability Rating](https://sonarcloud.io/api/project_badges/measure?project=voostindie_markdown-curator&metric=sqale_rating)](https://sonarcloud.io/summary/new_code?id=voostindie_markdown-curator)
+[![Coverage](https://sonarcloud.io/api/project_badges/measure?project=voostindie_markdown-curator&metric=coverage)](https://sonarcloud.io/summary/new_code?id=voostindie_markdown-curator)
 
 # Markdown Curator
 
