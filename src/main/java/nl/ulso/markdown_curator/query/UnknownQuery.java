@@ -4,6 +4,7 @@ import java.util.Map;
 
 import static java.lang.System.lineSeparator;
 import static java.util.Collections.emptyMap;
+import static java.util.Comparator.comparing;
 import static nl.ulso.markdown_curator.query.QueryResult.error;
 
 class UnknownQuery
@@ -51,7 +52,7 @@ class UnknownQuery
             builder.append("Queries available in this vault are:")
                     .append(lineSeparator())
                     .append(lineSeparator());
-            catalog.queries().forEach(specification ->
+            catalog.queries().stream().sorted(comparing(Query::name)).forEach(specification ->
                     builder.append("- **")
                             .append(specification.name())
                             .append("**: ")

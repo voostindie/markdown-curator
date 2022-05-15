@@ -58,11 +58,11 @@ public class HelpQuery
                 builder.append("Configuration options:")
                         .append(lineSeparator())
                         .append(lineSeparator());
-                config.forEach((name, description) ->
+                config.keySet().stream().sorted().forEach(name ->
                         builder.append("- **")
                                 .append(name)
                                 .append("**: ")
-                                .append(description)
+                                .append(config.get(name))
                                 .append(lineSeparator()));
             }
             return builder.toString();
