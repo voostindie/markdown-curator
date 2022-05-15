@@ -6,7 +6,7 @@ import java.util.Map;
 
 import static java.lang.System.lineSeparator;
 import static java.util.Collections.emptyMap;
-import static nl.ulso.markdown_curator.query.QueryResult.failure;
+import static nl.ulso.markdown_curator.query.QueryResult.error;
 
 class UnknownQuery
         implements Query
@@ -28,7 +28,7 @@ class UnknownQuery
 
     public String description()
     {
-        return "does nothing; only outputs instructions";
+        return "Does nothing; only outputs instructions.";
     }
 
     @Override
@@ -41,15 +41,11 @@ class UnknownQuery
     public QueryResult run(QueryBlock queryBlock)
     {
         var builder = new StringBuilder();
-        builder.append("This vault has no query defined called '")
-                .append(name)
-                .append("'.")
-                .append(lineSeparator());
-        if (catalog.queries().size() == 1)
+        if (catalog.isEmpty())
         {
-            builder.append("Actually this vault has no queries defined at all.")
+            builder.append("This vault has no queries defined.")
                     .append(lineSeparator())
-                    .append("A developer has to build some first!")
+                    .append("A developer has to build and register some first...")
                     .append(lineSeparator());
         }
         else
@@ -65,9 +61,8 @@ class UnknownQuery
                             .append(lineSeparator()));
         }
         builder.append(lineSeparator())
-                .append("Use the 'help' query to get more information on a query.")
+                .append("Use the 'help' query to get more information on a specific query.")
                 .append(lineSeparator());
-        var errorMessage = builder.toString();
-        return failure(errorMessage);
+        return error(builder.toString());
     }
 }

@@ -7,7 +7,7 @@ import nl.ulso.markdown_curator.vault.*;
 import java.util.*;
 
 import static java.util.Comparator.comparing;
-import static nl.ulso.markdown_curator.query.QueryResult.list;
+import static nl.ulso.markdown_curator.query.QueryResult.unorderedList;
 
 public class RecordingsQuery
         implements Query
@@ -43,7 +43,7 @@ public class RecordingsQuery
         var song = queryBlock.configuration().string("song", queryBlock.document().name());
         var finder = new RecordingsFinder(song);
         vault.accept(finder);
-        return list(finder.recordings.stream()
+        return unorderedList(finder.recordings.stream()
                 .map(row ->
                         "Track " + row.get("Index") + " on [[" + row.get("Album") + "]]").toList());
     }

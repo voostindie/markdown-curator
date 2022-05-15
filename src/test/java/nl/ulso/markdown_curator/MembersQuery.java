@@ -7,7 +7,7 @@ import nl.ulso.markdown_curator.vault.*;
 import java.util.*;
 
 import static java.util.Comparator.comparing;
-import static nl.ulso.markdown_curator.query.QueryResult.list;
+import static nl.ulso.markdown_curator.query.QueryResult.unorderedList;
 
 public class MembersQuery
         implements Query
@@ -43,7 +43,7 @@ public class MembersQuery
         var band = queryBlock.configuration().string("artist", queryBlock.document().name());
         var finder = new MemberFinder(band);
         vault.accept(finder);
-        return list(finder.members.stream()
+        return unorderedList(finder.members.stream()
                 .map(row -> "[[" + row.get("Name") + "]]").toList());
     }
 

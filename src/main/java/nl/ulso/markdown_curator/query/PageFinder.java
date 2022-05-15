@@ -7,6 +7,9 @@ import java.util.List;
 
 /**
  * Finds all pages in a folder, optionally recursively.
+ *
+ * @see ListQuery
+ * @see TableQuery
  */
 class PageFinder
         extends BreadthFirstVaultVisitor

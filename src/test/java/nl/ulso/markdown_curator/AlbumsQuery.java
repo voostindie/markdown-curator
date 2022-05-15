@@ -8,7 +8,7 @@ import java.util.*;
 import java.util.regex.Pattern;
 
 import static java.util.regex.Pattern.compile;
-import static nl.ulso.markdown_curator.query.QueryResult.list;
+import static nl.ulso.markdown_curator.query.QueryResult.unorderedList;
 
 public class AlbumsQuery
         implements Query
@@ -46,7 +46,7 @@ public class AlbumsQuery
         var reverse = queryBlock.configuration().bool("reverse", false);
         var finder = new AlbumFinder(artist, reverse);
         vault.accept(finder);
-        return list(finder.albums.stream()
+        return unorderedList(finder.albums.stream()
                 .map(row -> "[[" + row.get("Title") + "]], " + row.get("Year")).toList());
     }
 

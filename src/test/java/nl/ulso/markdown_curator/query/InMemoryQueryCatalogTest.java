@@ -10,7 +10,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import java.util.Map;
 
 import static java.util.Collections.emptyMap;
-import static nl.ulso.markdown_curator.query.QueryResult.failure;
+import static nl.ulso.markdown_curator.query.QueryResult.error;
 import static nl.ulso.markdown_curator.vault.QueryBlockTest.emptyQueryBlock;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -24,9 +24,10 @@ class InMemoryQueryCatalogTest
     void emptyCatalog()
     {
         var catalog = new InMemoryQueryCatalog();
+        softly.assertThat(catalog.isEmpty()).isTrue();
         var specification = catalog.query("invalid");
         softly.assertThat(specification.name()).isEqualTo("invalid");
-        softly.assertThat(specification.description()).contains("does nothing");
+        softly.assertThat(specification.description()).contains("Does nothing");
         softly.assertThat(specification.supportedConfiguration()).isEmpty();
         var result = specification.run(emptyQueryBlock());
         softly.assertThat(result.toMarkdown()).contains("no queries defined");
@@ -38,7 +39,8 @@ class InMemoryQueryCatalogTest
         var query = new DummyQuery("q");
         var catalog = new InMemoryQueryCatalog();
         catalog.register(query);
-        assertThat(catalog.query("q")).isSameAs(query);
+        softly.assertThat(catalog.query("q")).isSameAs(query);
+        softly.assertThat(catalog.isEmpty()).isFalse();
     }
 
     @Test
@@ -83,7 +85,7 @@ class InMemoryQueryCatalogTest
         @Override
         public QueryResult run(QueryBlock queryBlock)
         {
-            return failure("Not implemented");
+            return error("Not implemented");
         }
     }
 }

@@ -4,15 +4,16 @@ import java.util.Collections;
 import java.util.List;
 
 import static java.lang.System.lineSeparator;
+import static java.util.Collections.unmodifiableList;
 
-class ListResult
+class UnorderedListResult
         implements QueryResult
 {
     private final List<String> rows;
 
-    public ListResult(List<String> rows)
+    public UnorderedListResult(List<String> rows)
     {
-        this.rows = Collections.unmodifiableList(rows);
+        this.rows = unmodifiableList(rows);
     }
 
     @Override
@@ -29,6 +30,6 @@ class ListResult
                     .append(row)
                     .append(lineSeparator());
         }
-        return builder.toString().trim();
+        return builder.toString();
     }
 }

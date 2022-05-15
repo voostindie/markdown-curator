@@ -2,6 +2,11 @@ package nl.ulso.markdown_curator.query;
 
 import java.util.*;
 
+import static java.util.Collections.unmodifiableCollection;
+
+/**
+ * Simple {@link QueryCatalog} implementation that keeps the catalog in memory.
+ */
 public class InMemoryQueryCatalog
         implements QueryCatalog
 {
@@ -20,9 +25,15 @@ public class InMemoryQueryCatalog
     }
 
     @Override
+    public boolean isEmpty()
+    {
+        return queries.size() == 1;
+    }
+
+    @Override
     public Collection<Query> queries()
     {
-        return Collections.unmodifiableCollection(queries.values());
+        return unmodifiableCollection(queries.values());
     }
 
     @Override

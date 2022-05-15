@@ -1,8 +1,10 @@
 package nl.ulso.markdown_curator.query;
 
-import java.util.*;
+import java.util.List;
+import java.util.Map;
 
 import static java.lang.System.lineSeparator;
+import static java.util.Collections.unmodifiableList;
 
 class TableResult
         implements QueryResult
@@ -12,8 +14,8 @@ class TableResult
 
     public TableResult(List<String> columns, List<Map<String, String>> rows)
     {
-        this.columns = Collections.unmodifiableList(columns);
-        this.rows = Collections.unmodifiableList(rows);
+        this.columns = unmodifiableList(columns);
+        this.rows = unmodifiableList(rows);
     }
 
     @Override
@@ -53,7 +55,7 @@ class TableResult
             }
             builder.append(lineSeparator());
         }
-        return builder.toString().trim();
+        return builder.toString();
     }
 
     private String capitalize(String string)
@@ -67,7 +69,7 @@ class TableResult
         {
             return string.toUpperCase();
         }
-        return string.substring(0,1).toUpperCase() + string.substring(1);
+        return string.substring(0, 1).toUpperCase() + string.substring(1);
     }
 
     private int[] findColumnWidths()

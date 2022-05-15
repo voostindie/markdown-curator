@@ -20,6 +20,11 @@ public interface QueryCatalog
     void register(Query query);
 
     /**
+     * @return {@code true} if this catalog has queries registered, {@code false} otherwise.
+     */
+    boolean isEmpty();
+
+    /**
      * @return All queries in this catalog.
      */
     Collection<Query> queries();

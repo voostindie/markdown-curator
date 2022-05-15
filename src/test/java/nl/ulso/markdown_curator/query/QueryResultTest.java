@@ -18,7 +18,7 @@ class QueryResultTest
     @Test
     void failure()
     {
-        var failure = QueryResult.failure("error");
+        var failure = QueryResult.error("error");
         softly.assertThat(failure.toMarkdown()).contains("error");
     }
 
@@ -42,7 +42,7 @@ class QueryResultTest
                 | No Time To Die | 2021 |
                 | Spectre        | 2015 |
                 | Skyfall        | 2012 |
-                """.trim());
+                """);
     }
 
     @Test
@@ -56,23 +56,23 @@ class QueryResultTest
                 | Title |
                 | ----- |
                 |       |
-                """.trim());
+                """);
     }
 
     @Test
     void listNoResults()
     {
-        var list = QueryResult.list(Collections.emptyList());
+        var list = QueryResult.unorderedList(Collections.emptyList());
         softly.assertThat(list.toMarkdown()).contains("No results");
     }
 
     @Test
     void listWithResults()
     {
-        var list = QueryResult.list(List.of("Foo", "Bar"));
+        var list = QueryResult.unorderedList(List.of("Foo", "Bar"));
         softly.assertThat(list.toMarkdown()).isEqualTo("""
                 - Foo
                 - Bar
-                """.trim());
+                """);
     }
 }

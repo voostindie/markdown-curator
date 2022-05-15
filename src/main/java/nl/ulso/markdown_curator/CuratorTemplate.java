@@ -46,9 +46,7 @@ public abstract class CuratorTemplate
             throw new IllegalStateException("Couldn't create vault", e);
         }
         this.queryCatalog = new InMemoryQueryCatalog();
-        queryCatalog.register(new ListQuery(vault));
-        queryCatalog.register(new TableQuery(vault));
-        queryCatalog.register(new TableOfContentsQuery());
+        registerDefaultQueries();
         registerQueries(queryCatalog, vault);
     }
 
@@ -60,6 +58,13 @@ public abstract class CuratorTemplate
 
     protected abstract FileSystemVault createVault()
             throws IOException;
+
+    private void registerDefaultQueries()
+    {
+        queryCatalog.register(new ListQuery(vault));
+        queryCatalog.register(new TableQuery(vault));
+        queryCatalog.register(new TableOfContentsQuery());
+    }
 
     protected abstract void registerQueries(QueryCatalog catalog, Vault vault);
 
@@ -98,26 +103,28 @@ public abstract class CuratorTemplate
     Map<QueryBlock, String> runAllQueries()
     {
         Map<QueryBlock, String> writeQueue = new HashMap<>();
-        vault.findAllQueryBlocks().forEach(queryBlock -> {
+        for (QueryBlock queryBlock : vault.findAllQueryBlocks())
+        {
             var query = queryCatalog.query(queryBlock.name());
             QueryResult result;
             try
             {
                 result = query.run(queryBlock);
+                var output = result.toMarkdown().trim();
+                if (!queryBlock.result().contentEquals(output))
+                {
+                    LOGGER.debug("Document '{}' query result change detected",
+                            queryBlock.document());
+                    writeQueue.put(queryBlock, output);
+                }
             }
             catch (RuntimeException e)
             {
                 LOGGER.warn("Running query {} in document {} resulted in an error. Skipping it.",
                         query.name(), queryBlock.document().name());
-                return;
             }
-            var output = result.toMarkdown();
-            if (!queryBlock.result().contentEquals(output))
-            {
-                LOGGER.debug("Document '{}' query result change detected", queryBlock.document());
-                writeQueue.put(queryBlock, output);
-            }
-        });
+        }
+        LOGGER.debug("Write queue item count: {}", writeQueue.size());
         return writeQueue;
     }
 

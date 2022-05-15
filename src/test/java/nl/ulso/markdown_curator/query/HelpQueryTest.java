@@ -22,8 +22,9 @@ class HelpQueryTest
         var catalog = new InMemoryQueryCatalog();
         var result = catalog.query("help").run(emptyQueryBlock()).toMarkdown();
         assertThat(result)
-                .contains("**help**: shows detailed help information for a query.")
+                .contains("### help")
+                .contains("Shows detailed help information for a query.")
                 .contains("Configuration options")
-                .contains("- **query**: Name of the query to get help for.");
+                .contains("- **name**: Name of the query to get help for.");
     }
 }

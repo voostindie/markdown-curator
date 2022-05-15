@@ -1,11 +1,15 @@
 package nl.ulso.markdown_curator.query;
 
 import nl.ulso.markdown_curator.vault.*;
+import nl.ulso.markdown_curator.vault.Dictionary;
 
 import java.util.*;
 
 import static java.lang.System.lineSeparator;
 
+/**
+ * Generates a table of contents from the current document.
+ */
 public class TableOfContentsQuery
         implements Query
 {
@@ -18,7 +22,7 @@ public class TableOfContentsQuery
     @Override
     public String description()
     {
-        return "outputs a table of contents for the current document";
+        return "Outputs a table of contents for the current document.";
     }
 
     @Override
@@ -31,20 +35,24 @@ public class TableOfContentsQuery
     @Override
     public QueryResult run(QueryBlock queryBlock)
     {
-        var minimumLevel = queryBlock.configuration().integer("minimum-level", 2);
-        var maximumLevel = queryBlock.configuration().integer("maximum-level", 2);
+        var configuration = queryBlock.configuration();
+        var minimumLevel = configuration.integer("minimum-level", 2);
+        var maximumLevel = configuration.integer("maximum-level", 6);
         var tocBuilder = new TableOfContentsBuilder(minimumLevel, maximumLevel);
         queryBlock.document().accept(tocBuilder);
         return () -> {
             var builder = new StringBuilder();
             tocBuilder.sections.forEach(section ->
-                    builder.append(" ".repeat((section.level() - tocBuilder.minimumLevel) * 2))
-                            .append("- [[#")
-                            .append(section.anchor())
-                            .append("]]")
-                            .append(lineSeparator())
+                    {
+                        var indentLevel = (section.level() - tocBuilder.minimumLevel) * 2;
+                        builder.append(" ".repeat(indentLevel))
+                                .append("- [[#")
+                                .append(section.anchor())
+                                .append("]]")
+                                .append(lineSeparator());
+                    }
             );
-            return builder.toString().trim();
+            return builder.toString();
         };
     }
 

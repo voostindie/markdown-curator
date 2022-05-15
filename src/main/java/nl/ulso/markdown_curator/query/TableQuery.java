@@ -6,7 +6,7 @@ import nl.ulso.markdown_curator.vault.Vault;
 import java.util.*;
 
 import static java.util.Collections.reverse;
-import static nl.ulso.markdown_curator.query.QueryResult.failure;
+import static nl.ulso.markdown_curator.query.QueryResult.error;
 
 public class TableQuery
         implements Query
@@ -50,7 +50,7 @@ public class TableQuery
         var folder = configuration.string("folder", null);
         if (folder == null)
         {
-            return failure("Property 'folder' is missing.");
+            return error("Property 'folder' is missing.");
         }
         var recurse = configuration.bool("recurse", false);
         var reverse = configuration.bool("reverse", false);
