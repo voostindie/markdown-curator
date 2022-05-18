@@ -1,5 +1,8 @@
 package nl.ulso.markdown_curator.vault;
 
+import nl.ulso.markdown_curator.vault.MarkdownTokenizer.HeaderLineToken;
+import nl.ulso.markdown_curator.vault.MarkdownTokenizer.TokenType;
+
 import java.util.*;
 
 import static java.util.Collections.emptyList;
@@ -29,7 +32,7 @@ final class DocumentParser
     private final long lastModified;
     private final List<String> lines;
     private final Map<Integer, List<Fragment>> fragments;
-    private final Deque<MarkdownTokenizer.HeaderLineToken> headers;
+    private final Deque<HeaderLineToken> headers;
 
     public DocumentParser(String name, long lastModified, List<String> lines)
     {
@@ -48,7 +51,7 @@ final class DocumentParser
         var level = 0;
         var frontMatterEnd = -1;
         var fragmentStart = -1;
-        MarkdownTokenizer.TokenType fragmentType = null;
+        TokenType fragmentType = null;
         for (var token : new MarkdownTokenizer(lines))
         {
             var type = token.tokenType();
@@ -88,7 +91,7 @@ final class DocumentParser
             }
             if (type == HEADER)
             {
-                var header = (MarkdownTokenizer.HeaderLineToken) token;
+                var header = (HeaderLineToken) token;
                 while (header.level() <= level)
                 {
                     level = processSection(header.lineIndex());
@@ -111,50 +114,7 @@ final class DocumentParser
         return document;
     }
 
-    private void linkFragmentsToDocument(Document document)
-    {
-        var visitor = new BreadthFirstVaultVisitor()
-        {
-            @Override
-            public void visit(FrontMatter frontMatter)
-            {
-                linkFragment(frontMatter);
-            }
-
-            @Override
-            public void visit(Section section)
-            {
-                linkFragment(section);
-                super.visit(section);
-            }
-
-            @Override
-            public void visit(CodeBlock codeBlock)
-            {
-                linkFragment(codeBlock);
-            }
-
-            @Override
-            public void visit(QueryBlock queryBlock)
-            {
-                linkFragment(queryBlock);
-            }
-
-            @Override
-            public void visit(TextBlock textBlock)
-            {
-                linkFragment(textBlock);
-            }
-
-            private void linkFragment(DocumentHolder documentHolder)
-            {
-                documentHolder.setDocument(document);
-            }
-        };
-        document.accept(visitor);
-    }
-
-    private Fragment createFragment(MarkdownTokenizer.TokenType type, int start, int end)
+    private Fragment createFragment(TokenType type, int start, int end)
     {
         var subList = lines.subList(start, end);
         int size = subList.size();
@@ -211,5 +171,48 @@ final class DocumentParser
         {
             toplevel.add(0, new FrontMatter(emptyList()));
         }
+    }
+
+    private void linkFragmentsToDocument(Document document)
+    {
+        var visitor = new BreadthFirstVaultVisitor()
+        {
+            @Override
+            public void visit(FrontMatter frontMatter)
+            {
+                linkFragment(frontMatter);
+            }
+
+            @Override
+            public void visit(Section section)
+            {
+                linkFragment(section);
+                super.visit(section);
+            }
+
+            @Override
+            public void visit(CodeBlock codeBlock)
+            {
+                linkFragment(codeBlock);
+            }
+
+            @Override
+            public void visit(QueryBlock queryBlock)
+            {
+                linkFragment(queryBlock);
+            }
+
+            @Override
+            public void visit(TextBlock textBlock)
+            {
+                linkFragment(textBlock);
+            }
+
+            private void linkFragment(DocumentHolder documentHolder)
+            {
+                documentHolder.setDocument(document);
+            }
+        };
+        document.accept(visitor);
     }
 }

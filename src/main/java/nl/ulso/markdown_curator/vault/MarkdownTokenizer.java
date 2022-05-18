@@ -119,7 +119,6 @@ class MarkdownTokenizer
         {
             return title;
         }
-
     }
 
     public MarkdownTokenizer(List<String> lines)
