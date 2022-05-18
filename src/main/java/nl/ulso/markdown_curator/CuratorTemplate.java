@@ -145,7 +145,7 @@ public abstract class CuratorTemplate
             var path = vault.resolveAbsolutePath(document);
             if (Files.getLastModifiedTime(path).toMillis() != document.lastModified())
             {
-                LOGGER.warn("Skippping rewrite because document has changed on disk: '{}'",
+                LOGGER.warn("Skipping rewrite because document has changed on disk: '{}'",
                         document);
                 return;
             }
