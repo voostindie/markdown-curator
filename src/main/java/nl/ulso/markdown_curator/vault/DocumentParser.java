@@ -6,6 +6,7 @@ import static java.util.Collections.emptyList;
 import static nl.ulso.markdown_curator.vault.CodeBlock.CODE_MARKER;
 import static nl.ulso.markdown_curator.vault.FrontMatter.FRONT_MATTER_MARKER;
 import static nl.ulso.markdown_curator.vault.MarkdownTokenizer.TokenType.*;
+import static nl.ulso.markdown_curator.vault.QueryBlock.QUERY_CONFIGURATION_PREFIX;
 import static nl.ulso.markdown_curator.vault.QueryBlock.QUERY_OUTPUT_PREFIX;
 
 /**
@@ -63,6 +64,13 @@ final class DocumentParser
             }
             if (type == fragmentType)
             {
+                if (type == QUERY
+                        && lines.get(token.lineIndex()).startsWith(QUERY_CONFIGURATION_PREFIX))
+                {
+                    var fragment = createFragment(TEXT, fragmentStart, token.lineIndex());
+                    fragments.get(level).add(fragment);
+                    fragmentStart = token.lineIndex();
+                }
                 continue;
             }
             if (fragmentStart != -1)

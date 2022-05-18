@@ -213,6 +213,30 @@ class DocumentTest
         softly.assertThat(document.fragment(1)).isInstanceOf(TextBlock.class);
     }
 
+    @Test
+    void nestedQueryBlockBecomesTextBlockAndQueryBlock()
+    {
+        var document = newDocument("document", 0, document("""
+                <!--query-->
+                foo
+                <!--query-->
+                bar
+                <!--/query-->
+                """));
+        softly.assertThat(document.fragments()).hasSize(3);
+        softly.assertThat(document.fragment(1)).isInstanceOf(TextBlock.class);
+        softly.assertThat(document.fragment(1).content()).isEqualTo("""
+                <!--query-->
+                foo
+                """.trim());
+        softly.assertThat(document.fragment(2)).isInstanceOf(QueryBlock.class);
+        softly.assertThat(document.fragment(2).content()).isEqualTo("""
+                <!--query-->
+                bar
+                <!--/query-->
+                """.trim());
+    }
+
     private List<String> document(String text)
     {
         return text.lines().collect(toList());
