@@ -4,14 +4,17 @@ import org.slf4j.Logger;
 
 import java.io.IOException;
 import java.nio.file.Path;
-import java.util.Properties;
-import java.util.ServiceLoader;
+import java.util.*;
+import java.util.ServiceLoader.Provider;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import static java.lang.System.getProperty;
 import static java.lang.System.lineSeparator;
+import static java.lang.Thread.currentThread;
 import static java.nio.file.Files.writeString;
 import static java.nio.file.StandardOpenOption.CREATE_NEW;
+import static java.util.concurrent.Executors.callable;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
@@ -23,13 +26,29 @@ import static org.slf4j.LoggerFactory.getLogger;
 public class Application
 {
     private static final Logger LOGGER = getLogger(Application.class);
-    private static final Path PID = Path.of(getProperty("java.io.tmpdir"), "markdown-curator.pid");
+    private static final Path
+            DEFAULT_PID = Path.of(getProperty("java.io.tmpdir"), "markdown-curator.pid");
 
     static final String UNKNOWN_VERSION = "<UNKNOWN>";
+    private final Path pid;
+
+    Application(Path pid)
+    {
+        this.pid = pid;
+    }
 
     public static void main(String[] args)
     {
-        ensureNewPidFile();
+        new Application(DEFAULT_PID).run();
+    }
+
+    void run()
+    {
+        if (!ensureNewPidFile())
+        {
+            LOGGER.error("Couldn't write PID. Another Markdown Curator is running. Exiting.");
+            return;
+        }
         var providers = ServiceLoader.load(CuratorFactory.class).stream().toList();
         if (providers.isEmpty())
         {
@@ -42,40 +61,25 @@ public class Application
             LOGGER.info("Press Ctrl+C to stop");
             LOGGER.info("-".repeat(76));
         }
-        var executor = Executors.newFixedThreadPool(providers.size());
-        providers.forEach(provider -> executor.submit(Executors.callable(() -> {
-            var factory = provider.get();
-            var name = factory.name();
-            Thread.currentThread().setName(name);
-            LOGGER.debug("Instantiating curator: {}", name);
-            try
-            {
-                factory.createCurator().run();
-            }
-            catch (Exception e)
-            {
-                LOGGER.error("Curator '{}' errored out. It's non-functional from now on.", name, e);
-            }
-        })));
+        var executor = runCuratorsInSeparateThreads(providers);
         executor.shutdown();
     }
 
-    private static void ensureNewPidFile()
+    boolean ensureNewPidFile()
     {
         try
         {
-            writeString(PID, ProcessHandle.current().pid() + lineSeparator(), CREATE_NEW);
+            writeString(pid, ProcessHandle.current().pid() + lineSeparator(), CREATE_NEW);
         }
         catch (IOException e)
         {
-            LOGGER.error(
-                    "Couldn't write PID. Another Markdown Curator is probably running. Exiting.");
-            System.exit(-1);
+            return false;
         }
-        PID.toFile().deleteOnExit();
+        pid.toFile().deleteOnExit();
+        return true;
     }
 
-    static String resolveVersion()
+    String resolveVersion()
     {
         try (var inputStream =
                      Application.class.getClassLoader()
@@ -90,5 +94,25 @@ public class Application
             LOGGER.warn("Can't read properties file from classpath", e);
             return UNKNOWN_VERSION;
         }
+    }
+
+    ExecutorService runCuratorsInSeparateThreads(List<Provider<CuratorFactory>> providers)
+    {
+        var executor = Executors.newFixedThreadPool(providers.size());
+        providers.forEach(provider -> executor.submit(callable(() -> {
+            var factory = provider.get();
+            var name = factory.name();
+            currentThread().setName(name);
+            LOGGER.debug("Instantiating curator: {}", name);
+            try
+            {
+                factory.createCurator().run();
+            }
+            catch (Exception e)
+            {
+                LOGGER.error("Curator '{}' errored out. It's non-functional from now on.", name, e);
+            }
+        })));
+        return executor;
     }
 }
