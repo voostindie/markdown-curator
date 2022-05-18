@@ -24,8 +24,8 @@ class TextBlockTest
     {
         EqualsVerifier.forClass(TextBlock.class)
                 .withPrefabValues(Document.class,
-                        newDocument("1", Collections.emptyList()),
-                        newDocument("2", Collections.emptyList()))
+                        newDocument("1", 0, Collections.emptyList()),
+                        newDocument("2", 0, Collections.emptyList()))
                 .withIgnoredFields("document")
                 .verify();
     }

@@ -75,6 +75,6 @@ class InternalLinkFinderTest
 
     private List<InternalLink> allLinks(String content)
     {
-        return newDocument("test", content.lines().toList()).findInternalLinks();
+        return newDocument("test", 0, content.lines().toList()).findInternalLinks();
     }
 }

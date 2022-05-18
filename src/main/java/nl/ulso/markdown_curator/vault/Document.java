@@ -19,12 +19,14 @@ public final class Document
     private Folder folder;
     private final String name;
     private final String title;
+    private final long lastModified;
 
-    Document(String name, List<String> lines, List<Fragment> fragments)
+    Document(String name, long lastModified, List<Fragment> fragments, List<String> lines)
     {
         super(lines, fragments);
         this.name = name;
         this.title = resolveTitle(name, fragments);
+        this.lastModified = lastModified;
     }
 
     void setFolder(Folder folder)
@@ -46,6 +48,7 @@ public final class Document
         if (o instanceof Document document)
         {
             return Objects.equals(name, document.name)
+                    && Objects.equals(lastModified, document.lastModified)
                     && Objects.equals(lines(), document.lines())
                     && Objects.equals(fragments(), document.fragments());
         }
@@ -55,7 +58,7 @@ public final class Document
     @Override
     public int hashCode()
     {
-        return Objects.hash(name, lines(), fragments());
+        return Objects.hash(name, lastModified, lines(), fragments());
     }
 
     private String resolveTitle(String name, List<Fragment> fragments)
@@ -70,9 +73,9 @@ public final class Document
         return frontMatter.dictionary().string("title", name);
     }
 
-    static Document newDocument(String name, List<String> lines)
+    static Document newDocument(String name, long lastModified, List<String> lines)
     {
-        return new DocumentParser(name, lines).parse();
+        return new DocumentParser(name, lastModified, lines).parse();
     }
 
     @Override
@@ -95,6 +98,8 @@ public final class Document
     {
         return title;
     }
+
+    public long lastModified() { return lastModified; }
 
     public void accept(VaultVisitor visitor)
     {

@@ -27,8 +27,8 @@ class DocumentTest
     {
         EqualsVerifier.forClass(Document.class)
                 .withPrefabValues(Document.class,
-                        newDocument("1", Collections.emptyList()),
-                        newDocument("2", Collections.emptyList()))
+                        newDocument("1", 0, Collections.emptyList()),
+                        newDocument("2", 0, Collections.emptyList()))
                 .withIgnoredFields("document", "title", "folder")
                 .verify();
     }
@@ -36,7 +36,7 @@ class DocumentTest
     @Test
     void emptyDocument()
     {
-        var document = newDocument("document", Collections.emptyList());
+        var document = newDocument("document", 0, Collections.emptyList());
         softly.assertThat(document.title()).isEqualTo("document");
         softly.assertThat(document.frontMatter().isEmpty()).isTrue();
         softly.assertThat(document.lines()).isEmpty();
@@ -45,7 +45,7 @@ class DocumentTest
     @Test
     void textOnlyDocument()
     {
-        var document = newDocument("document", document("One-liner"));
+        var document = newDocument("document", 0, document("One-liner"));
         softly.assertThat(document.title()).isEqualTo("document");
         softly.assertThat(document.frontMatter().isEmpty()).isTrue();
         softly.assertThat(document.lines().get(0)).isEqualTo("One-liner");
@@ -54,7 +54,7 @@ class DocumentTest
     @Test
     void frontMatterOnlyDocument()
     {
-        var document = newDocument("document",
+        var document = newDocument("document", 0,
                 List.of("---", "foo: bar", "---"));
         softly.assertThat(document.title()).isEqualTo("document");
         softly.assertThat(document.frontMatter().string("foo", null)).isEqualTo("bar");
@@ -64,14 +64,14 @@ class DocumentTest
     @Test
     void titleOnlyDocument()
     {
-        var document = newDocument("document", List.of("# Title"));
+        var document = newDocument("document", 0, List.of("# Title"));
         assertThat(document.title()).isEqualTo("Title");
     }
 
     @Test
     void fullDocument()
     {
-        var document = newDocument("document", document("""
+        var document = newDocument("document", 0, document("""
                 ---
                 aliases: [alias]
                 date: 1976-11-30
@@ -97,7 +97,7 @@ class DocumentTest
     @Test
     void multipleSameLevelSections()
     {
-        var document = newDocument("document", document("""
+        var document = newDocument("document", 0, document("""
                 ## Section 1
                 Introduction
                 ## Section 2
@@ -122,7 +122,7 @@ class DocumentTest
                 foo: bar
                         
                 # Title""";
-        var document = newDocument("document", document(text));
+        var document = newDocument("document", 0, document(text));
         softly.assertThat(document.title()).isEqualTo("document");
         softly.assertThat(document.content()).isEqualTo(text);
     }
@@ -135,7 +135,7 @@ class DocumentTest
                 42
                 ---
                 # Title""";
-        var document = newDocument("document", document(text));
+        var document = newDocument("document", 0, document(text));
         softly.assertThat(document.frontMatter().isEmpty()).isTrue();
         softly.assertThat(document.title()).isEqualTo("Title");
         softly.assertThat(document.content()).isEqualTo("---\n42\n---\n# Title");
@@ -151,7 +151,7 @@ class DocumentTest
                 ```
                 line
                 """;
-        var document = newDocument("document", document(text));
+        var document = newDocument("document", 0, document(text));
         softly.assertThat(document.fragments()).hasSize(4);
         softly.assertThat(document.fragment(2)).isInstanceOf(CodeBlock.class);
         var block = (CodeBlock) document.fragment(2);
@@ -166,7 +166,7 @@ class DocumentTest
                 ```
                 ```
                 """;
-        var document = newDocument("document", document(text));
+        var document = newDocument("document", 0, document(text));
         softly.assertThat(document.fragments()).hasSize(2);
         softly.assertThat(document.fragment(1)).isInstanceOf(CodeBlock.class);
         var block = (CodeBlock) document.fragment(1);
@@ -182,7 +182,7 @@ class DocumentTest
                 foo
                 <!--/query-->
                 """;
-        var document = newDocument("document", document(text));
+        var document = newDocument("document", 0, document(text));
         softly.assertThat(document.fragments()).hasSize(2);
         softly.assertThat(document.fragment(1)).isInstanceOf(QueryBlock.class);
         var query = (QueryBlock) document.fragment(1);
@@ -208,7 +208,7 @@ class DocumentTest
     })
     void unclosedBlockBecomesTextBlock(String text)
     {
-        var document = newDocument("document", document(text));
+        var document = newDocument("document", 0, document(text));
         softly.assertThat(document.fragments()).hasSize(2);
         softly.assertThat(document.fragment(1)).isInstanceOf(TextBlock.class);
     }

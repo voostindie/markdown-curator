@@ -204,7 +204,8 @@ public final class FileSystemVault
     {
         try
         {
-            return Document.newDocument(documentName(absolutePath),
+            var lastModified = Files.getLastModifiedTime(absolutePath).toMillis();
+            return Document.newDocument(documentName(absolutePath), lastModified,
                     Files.readAllLines(absolutePath));
         }
         catch (IOException e)

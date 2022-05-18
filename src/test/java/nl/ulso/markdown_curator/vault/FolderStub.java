@@ -46,7 +46,7 @@ public class FolderStub
 
     public Document addDocument(String name, String content)
     {
-        var document = newDocument(name, content.lines().toList());
+        var document = newDocument(name, 0, content.lines().toList());
         document.setFolder(this);
         documents.put(name, document);
         return document;

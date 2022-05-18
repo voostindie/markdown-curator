@@ -4,10 +4,8 @@ import nl.ulso.markdown_curator.query.*;
 import nl.ulso.markdown_curator.vault.*;
 import org.slf4j.Logger;
 
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.nio.file.Files;
-import java.nio.file.Path;
+import java.io.*;
+import java.nio.file.*;
 import java.util.*;
 
 import static java.util.Comparator.comparingInt;
@@ -131,18 +129,27 @@ public abstract class CuratorTemplate
     void writeDocument(Document document, List<Map.Entry<QueryBlock, String>> outputs)
     {
         LOGGER.info("Rewriting document '{}'", document);
-        var path = vault.resolveAbsolutePath(document);
-        try (var writer = Files.newBufferedWriter(path); var out = new PrintWriter(writer))
+        var writer = new StringWriter();
+        var out = new PrintWriter(writer);
+        int index = 0;
+        for (Map.Entry<QueryBlock, String> entry : outputs)
         {
-            int index = 0;
-            for (Map.Entry<QueryBlock, String> entry : outputs)
+            var queryBlock = entry.getKey();
+            printDocumentLines(out, document, index, queryBlock.resultStartIndex());
+            out.println(entry.getValue());
+            index = queryBlock.resultEndIndex();
+        }
+        printDocumentLines(out, document, index, -1);
+        try
+        {
+            var path = vault.resolveAbsolutePath(document);
+            if (Files.getLastModifiedTime(path).toMillis() != document.lastModified())
             {
-                var queryBlock = entry.getKey();
-                printDocumentLines(out, document, index, queryBlock.resultStartIndex());
-                out.println(entry.getValue());
-                index = queryBlock.resultEndIndex();
+                LOGGER.warn("Skippping rewrite because document has changed on disk: '{}'",
+                        document);
+                return;
             }
-            printDocumentLines(out, document, index, -1);
+            Files.writeString(path, writer.toString());
         }
         catch (IOException e)
         {

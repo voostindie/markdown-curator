@@ -28,8 +28,8 @@ public class QueryBlockTest
     {
         EqualsVerifier.forClass(QueryBlock.class)
                 .withPrefabValues(Document.class,
-                        newDocument("1", emptyList()),
-                        newDocument("2", emptyList()))
+                        newDocument("1", 0, emptyList()),
+                        newDocument("2", 0, emptyList()))
                 .withIgnoredFields("document", "lines")
                 .verify();
     }

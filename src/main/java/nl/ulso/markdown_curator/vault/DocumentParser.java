@@ -25,13 +25,15 @@ import static nl.ulso.markdown_curator.vault.QueryBlock.QUERY_OUTPUT_PREFIX;
 final class DocumentParser
 {
     private final String name;
+    private final long lastModified;
     private final List<String> lines;
     private final Map<Integer, List<Fragment>> fragments;
     private final Deque<MarkdownTokenizer.HeaderLineToken> headers;
 
-    public DocumentParser(String name, List<String> lines)
+    public DocumentParser(String name, long lastModified, List<String> lines)
     {
         this.name = name;
+        this.lastModified = lastModified;
         this.lines = lines;
         fragments = new HashMap<>();
         headers = new ArrayDeque<>();
@@ -96,7 +98,7 @@ final class DocumentParser
                 ensureFrontMatterIsPresent();
             }
         }
-        var document = new Document(name, lines, fragments.get(0));
+        var document = new Document(name, lastModified, fragments.get(0), lines);
         linkFragmentsToDocument(document);
         return document;
     }

@@ -25,8 +25,8 @@ class FolderTest
         EqualsVerifier.forClass(FileSystemFolder.class)
                 .withIgnoredFields("folders", "documents")
                 .withPrefabValues(Document.class,
-                        newDocument("1", Collections.emptyList()),
-                        newDocument("2", Collections.emptyList()))
+                        newDocument("1", 0, Collections.emptyList()),
+                        newDocument("2", 0, Collections.emptyList()))
                 .withPrefabValues(FileSystemFolder.class,
                         new FileSystemFolder("red"),
                         new FileSystemFolder("blue"))
@@ -74,7 +74,7 @@ class FolderTest
     void document()
     {
         var root = new FileSystemFolder("root");
-        Document document = newDocument("empty", Collections.emptyList());
+        Document document = newDocument("empty", 0, Collections.emptyList());
         root.addDocument(document);
         softly.assertThat(root.documents().size()).isEqualTo(1);
         softly.assertThat(root.document("empty").get()).isSameAs(document);
@@ -84,8 +84,8 @@ class FolderTest
     void documentUniqueNameNewReplacesOld()
     {
         var root = new FileSystemFolder("root");
-        root.addDocument(newDocument("empty", Collections.emptyList()));
-        Document document = newDocument("empty", Collections.emptyList());
+        root.addDocument(newDocument("empty", 0, Collections.emptyList()));
+        Document document = newDocument("empty", 0, Collections.emptyList());
         root.addDocument(document);
         softly.assertThat(root.documents().size()).isEqualTo(1);
         softly.assertThat(root.document("empty").get()).isSameAs(document);
@@ -95,7 +95,7 @@ class FolderTest
     void removeDocument()
     {
         var root = new FileSystemFolder("root");
-        root.addDocument(newDocument("empty", Collections.emptyList()));
+        root.addDocument(newDocument("empty", 0, Collections.emptyList()));
         root.removeDocument("empty");
         Assertions.assertThat(root.documents()).isEmpty();
     }
