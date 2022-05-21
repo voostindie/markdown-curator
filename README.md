@@ -39,7 +39,7 @@ Here's an example of what you can write in a Markdown document:
 folder: Articles
 -->
 THE OUTPUT WILL GO HERE
-<!--/query>
+<!--/query-->
 ```
 
 Put this snippet (without the code block) in a document in a directory tracked by this tool, save it and watch `THE OUTPUT WILL GO HERE` be magically replaced with a sorted list of links to documents in the `Articles` subdirectory. Add a new article there, delete one, or update an existing one, and watch the list get updated instantly.
