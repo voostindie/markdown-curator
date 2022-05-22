@@ -44,7 +44,7 @@ THE OUTPUT WILL GO HERE
 
 Put this snippet (without the code block) in a document in a directory tracked by this tool, save it and watch `THE OUTPUT WILL GO HERE` be magically replaced with a sorted list of links to documents in the `Articles` subdirectory. Add a new article there, delete one, or update an existing one, and watch the list get updated instantly.
 
-The query syntax may seem a bit weird at first, but notice that it is built up of HTML comment tags. That means that the query definitions disappear from view when you preview the Markdown, or export it to some other format using the tool of your choice, leaving you with just the query output. In effect the query syntax invisible to any tool that processes Markdown correctly.
+The query syntax may seem a bit weird at first, but notice that it is built up of HTML comment tags. That means that the query definitions disappear from view when you preview the Markdown, or export it to some other format using the tool of your choice, leaving you with just the query output. In effect the query syntax is invisible to any tool that processes Markdown correctly.
 
 Whatever can you put in a query? Whatever you can come up with and code in Java. The internal API of this tool allows you to extract any kind of information from your documents or elsewhere and use them in queries.
 
@@ -60,6 +60,41 @@ By default, this tool provides just a couple of built-in generic queries: `list`
 To use this library, you have to configure your own application, define this tool as a dependency, and code your own curator and custom queries. See further on for an example.
 
 The [music](src/test/resources/music/README.md) test suite provides examples of what this tool can do and how it works. The test code contains a [MusicCurator](src/test/java/nl/ulso/markdown_curator/MusicCurator.java) that can serve as an example for building your own curator, on top of your own vault.
+
+## "Vincent Flavored Markdown"
+
+This tool is specifically written for a variant of Markdown that I call *Vincent Flavored Markdown*. Basically VFM is the same as [Github Flavored Markdown (GFM)](https://github.github.com/gfm/) with the following constraints and additions:
+
+- A document can have YAML front matter, between `---`.
+- For headers only ATX (`#`) headers are used, without the optional closing sequence of `#`s. Setext-style headers are not supported.
+- Headers are always aligned to the left margin.
+- Code blocks are always surrounded with backticks, not indented.
+- Internal links - links to other documents in the same repository - use double square brackets. (`[[Like this]]`). The link always points to a file name within the repository. (This is what Obsidian does.)
+- File names are considered to be globally unique within the repository.    Surprises might happen otherwise.
+- The document's title is, in this order of preference:
+	- The title of the first level 1 header, if present and at the top of the document.
+	- The value of the YAML front matter field `title`, if present
+	- The file name, without extension.
+- The file extension is `.md`.
+- Queries can be defined in HTML comments, for this tool to process. See below.
+
+In practice I only use level 1 headers or the `title` property if the filename is not a good title. In 99% of the cases it is. I do not duplicate the filename inside the document, because, well, that's duplication.
+
+If these limitations are not to your liking, then feel free to send me a pull request to support your own personal preferences.
+
+## Not a Markdown parser!
+
+This library/application does **not** fully parse Markdown. It only does so on a line-by-line level. Documents are broken up in blocks of:
+
+- Front matter
+- Nested sections
+- Code
+- Queries
+- Text
+
+A text block is "anything *not* of the above". The content of a text block itself is not parsed. Whether text is in bold or italic, is in a list or in a table, uses CriticMarkup or some other extension: it's all oblivious to the internal parser; it's all just text. When you build your own queries, it's up to you to extract content out of the various blocks, as you see fit. 
+
+I have some ideas to extend this further in order to make query construction easier, but I'm not planning on introducing a full Markdown parser.
 
 ## Getting started
 
