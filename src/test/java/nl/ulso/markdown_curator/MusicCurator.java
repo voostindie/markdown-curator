@@ -8,6 +8,9 @@ import nl.ulso.markdown_curator.vault.*;
 import java.io.IOException;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.util.Set;
+
+import static java.util.Collections.emptySet;
 
 /**
  * System for testing. All testing is done in memory. All files in the "music" directory from this
@@ -34,7 +37,13 @@ public class MusicCurator
     }
 
     @Override
-    protected void registerQueries(QueryCatalog catalog, Vault vault)
+    protected Set<? extends DataModel> createDataModels(Vault vault)
+    {
+        return emptySet();
+    }
+
+    @Override
+    protected void registerQueries(QueryCatalog catalog, Vault vault, DataModelMap dataModels)
     {
         catalog.register(new AlbumsQuery(vault));
         catalog.register(new RecordingsQuery(vault));

@@ -1,5 +1,6 @@
-package nl.ulso.markdown_curator.query;
+package nl.ulso.markdown_curator.query.builtin;
 
+import nl.ulso.markdown_curator.query.*;
 import nl.ulso.markdown_curator.vault.Document;
 import nl.ulso.markdown_curator.vault.Vault;
 
@@ -7,9 +8,10 @@ import java.util.ArrayList;
 import java.util.Map;
 
 import static java.util.Collections.reverse;
+import static nl.ulso.markdown_curator.query.QueryResult.empty;
 import static nl.ulso.markdown_curator.query.QueryResult.unorderedList;
 
-public class ListQuery
+public final class ListQuery
         implements Query
 {
     private final Vault vault;
@@ -53,6 +55,10 @@ public class ListQuery
         var finder = new PageFinder(folder, recurse);
         vault.accept(finder);
         var list = new ArrayList<>(finder.pages().stream().map(Document::link).sorted().toList());
+        if (list.isEmpty())
+        {
+            return empty();
+        }
         if (reverse)
         {
             reverse(list);

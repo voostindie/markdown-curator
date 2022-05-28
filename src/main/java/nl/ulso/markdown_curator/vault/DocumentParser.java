@@ -10,6 +10,7 @@ import static nl.ulso.markdown_curator.vault.CodeBlock.CODE_MARKER;
 import static nl.ulso.markdown_curator.vault.FrontMatter.FRONT_MATTER_MARKER;
 import static nl.ulso.markdown_curator.vault.MarkdownTokenizer.TokenType.*;
 import static nl.ulso.markdown_curator.vault.QueryBlock.QUERY_CONFIGURATION_PREFIX;
+import static nl.ulso.markdown_curator.vault.QueryBlock.QUERY_OUTPUT_POSTFIX;
 import static nl.ulso.markdown_curator.vault.QueryBlock.QUERY_OUTPUT_PREFIX;
 
 /**
@@ -39,8 +40,8 @@ final class DocumentParser
         this.name = name;
         this.lastModified = lastModified;
         this.lines = lines;
-        fragments = new HashMap<>();
-        headers = new ArrayDeque<>();
+        this.fragments = new HashMap<>();
+        this.headers = new ArrayDeque<>();
     }
 
     Document parse()
@@ -110,7 +111,7 @@ final class DocumentParser
             }
         }
         var document = new Document(name, lastModified, fragments.get(0), lines);
-        linkFragmentsToDocument(document);
+        updateInternalReferences(document);
         return document;
     }
 
@@ -139,7 +140,9 @@ final class DocumentParser
                     return new TextBlock(lines.subList(start, end));
                 }
             case QUERY:
-                if (size > 1 && subList.get(size - 1).startsWith(QUERY_OUTPUT_PREFIX))
+                if (size > 1
+                        && subList.get(size - 1).startsWith(QUERY_OUTPUT_PREFIX)
+                        && subList.get(size - 1).endsWith(QUERY_OUTPUT_POSTFIX))
                 {
                     return new QueryBlock(subList, start);
                 }
@@ -173,10 +176,12 @@ final class DocumentParser
         }
     }
 
-    private void linkFragmentsToDocument(Document document)
+    private void updateInternalReferences(Document document)
     {
         var visitor = new BreadthFirstVaultVisitor()
         {
+            private Section currentSection;
+
             @Override
             public void visit(FrontMatter frontMatter)
             {
@@ -187,7 +192,10 @@ final class DocumentParser
             public void visit(Section section)
             {
                 linkFragment(section);
+                var tempSection = currentSection;
+                currentSection = section;
                 super.visit(section);
+                currentSection = tempSection;
             }
 
             @Override
@@ -208,9 +216,9 @@ final class DocumentParser
                 linkFragment(textBlock);
             }
 
-            private void linkFragment(DocumentHolder documentHolder)
+            private void linkFragment(LineContainer lineContainer)
             {
-                documentHolder.setDocument(document);
+                lineContainer.setInternalReferences(document, currentSection);
             }
         };
         document.accept(visitor);

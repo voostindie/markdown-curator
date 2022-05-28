@@ -104,13 +104,27 @@ public class Application
             var name = factory.name();
             currentThread().setName(name);
             LOGGER.debug("Instantiating curator: {}", name);
+            Curator curator = null;
             try
             {
-                factory.createCurator().run();
+                curator = factory.createCurator();
             }
             catch (Exception e)
             {
-                LOGGER.error("Curator '{}' errored out. It's non-functional from now on.", name, e);
+                LOGGER.error("Could not create curator '{}'. It will not be run.", name, e);
+            }
+            if (curator != null)
+            {
+                try
+                {
+                    curator.run();
+                }
+                catch (Exception e)
+                {
+                    LOGGER.error("Curator '{}' errored out. It's non-functional from now on.",
+                            name, e);
+                }
+
             }
         })));
         return executor;

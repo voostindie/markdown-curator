@@ -78,12 +78,6 @@ public final class Document
         return new DocumentParser(name, lastModified, lines).parse();
     }
 
-    @Override
-    public Document document()
-    {
-        return this;
-    }
-
     public Folder folder()
     {
         return folder;

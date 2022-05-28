@@ -7,6 +7,8 @@ import java.util.Map;
 /**
  * Represents a single query that can be executed against a {@link QueryBlock}; the configuration
  * of the query comes from the block.
+ * <p/>
+ * Important: queries may be run in parallel and must therefore be thread-safe.
  */
 public interface Query
 {

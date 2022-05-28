@@ -26,7 +26,10 @@ class TextBlockTest
                 .withPrefabValues(Document.class,
                         newDocument("1", 0, Collections.emptyList()),
                         newDocument("2", 0, Collections.emptyList()))
-                .withIgnoredFields("document")
+                .withPrefabValues(Section.class,
+                        new Section(1, "1", emptyList(), emptyList()),
+                        new Section(1, "2", emptyList(), emptyList()))
+                .withIgnoredFields("document", "section")
                 .verify();
     }
 

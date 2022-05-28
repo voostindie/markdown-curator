@@ -1,4 +1,6 @@
-package nl.ulso.markdown_curator.query;
+package nl.ulso.markdown_curator.query.builtin;
+
+import nl.ulso.markdown_curator.query.*;
 
 import java.util.Map;
 
@@ -7,7 +9,7 @@ import static java.util.Collections.emptyMap;
 import static java.util.Comparator.comparing;
 import static nl.ulso.markdown_curator.query.QueryResult.error;
 
-class UnknownQuery
+public final class UnknownQuery
         implements Query
 {
     private final QueryCatalog catalog;

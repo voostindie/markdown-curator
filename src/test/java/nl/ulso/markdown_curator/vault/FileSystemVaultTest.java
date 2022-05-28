@@ -241,7 +241,12 @@ class FileSystemVaultTest
             testCase.changeFileSystem(testVaultRoot.getFileSystem());
             TimeUnit.MILLISECONDS.sleep(FILESYSTEM_WAIT_TIME_MILLISECONDS);
         }
-        catch (IOException | InterruptedException e)
+        catch (InterruptedException e)
+        {
+            Thread.currentThread().interrupt();
+            fail("Unexpected exception in test", e);
+        }
+        catch (IOException e)
         {
             fail("Unexpected exception in test", e);
         }

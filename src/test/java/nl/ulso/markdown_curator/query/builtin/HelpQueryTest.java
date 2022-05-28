@@ -1,5 +1,6 @@
-package nl.ulso.markdown_curator.query;
+package nl.ulso.markdown_curator.query.builtin;
 
+import nl.ulso.markdown_curator.query.InMemoryQueryCatalog;
 import org.assertj.core.api.SoftAssertions;
 import org.assertj.core.api.junit.jupiter.InjectSoftAssertions;
 import org.assertj.core.api.junit.jupiter.SoftAssertionsExtension;

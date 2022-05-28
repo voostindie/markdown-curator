@@ -1,6 +1,7 @@
 package nl.ulso.markdown_curator.vault;
 
 import java.util.List;
+import java.util.Optional;
 
 /**
  * A fragment is any distinguishable piece of content in a document. For now that is limited
@@ -13,6 +14,8 @@ import java.util.List;
 public interface Fragment
 {
     Document document();
+
+    Optional<Section> section();
 
     List<String> lines();
 

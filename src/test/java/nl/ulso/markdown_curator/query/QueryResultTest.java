@@ -16,17 +16,27 @@ class QueryResultTest
 
 
     @Test
-    void failure()
+    void error()
     {
-        var failure = QueryResult.error("error");
-        softly.assertThat(failure.toMarkdown()).contains("error");
+        var error = QueryResult.error("error");
+        softly.assertThat(error.toMarkdown()).contains("error");
+    }
+
+    @Test
+    void empty()
+    {
+        var empty = QueryResult.empty();
+        softly.assertThat(empty.toMarkdown()).isEqualTo("No results");
     }
 
     @Test
     void tableNoResults()
     {
         var table = QueryResult.table(List.of("1", "2"), Collections.emptyList());
-        softly.assertThat(table.toMarkdown()).contains("No results");
+        softly.assertThat(table.toMarkdown()).isEqualTo("""
+                | 1 | 2 |
+                | - | - |
+                """);
     }
 
     @Test
@@ -63,7 +73,7 @@ class QueryResultTest
     void listNoResults()
     {
         var list = QueryResult.unorderedList(Collections.emptyList());
-        softly.assertThat(list.toMarkdown()).contains("No results");
+        softly.assertThat(list.toMarkdown()).isBlank();
     }
 
     @Test

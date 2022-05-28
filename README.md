@@ -55,7 +55,7 @@ Don't know which queries are available? Simply put a blank query in your content
 <!--/query-->
 ```
 
-By default, this tool provides just a couple of built-in generic queries: `list`, `table` and `toc`. To make this tool really useful, you will want to create your own queries. 
+By default, this tool provides just a couple of built-in generic queries: `backlinks`, `list`, `table` and `toc`. To make this tool really useful, you will want to create your own queries. 
 
 To use this library, you have to configure your own application, define this tool as a dependency, and code your own curator and custom queries. See further on for an example.
 

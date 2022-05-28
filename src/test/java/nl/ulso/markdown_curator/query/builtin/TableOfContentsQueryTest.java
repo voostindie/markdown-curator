@@ -1,5 +1,6 @@
-package nl.ulso.markdown_curator.query;
+package nl.ulso.markdown_curator.query.builtin;
 
+import nl.ulso.markdown_curator.query.QueryDefinitionStub;
 import nl.ulso.markdown_curator.vault.FolderStub;
 import org.assertj.core.api.junit.jupiter.SoftAssertionsExtension;
 import org.junit.jupiter.api.Test;
@@ -81,5 +82,4 @@ class TableOfContentsQueryTest
                 )
         );
     }
-
 }

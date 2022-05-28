@@ -40,17 +40,17 @@ class MusicCuratorTest
         softly.assertThat(statistics.folders()).isEqualTo(3);
         softly.assertThat(statistics.documents()).isEqualTo(13);
         softly.assertThat(statistics.frontMatters()).isEqualTo(13);
-        softly.assertThat(statistics.sections()).isEqualTo(35);
-        softly.assertThat(statistics.queries()).isEqualTo(10);
+        softly.assertThat(statistics.sections()).isEqualTo(37);
+        softly.assertThat(statistics.queries()).isEqualTo(14);
         softly.assertThat(statistics.codeBlocks()).isEqualTo(5);
-        softly.assertThat(statistics.texts()).isEqualTo(46);
+        softly.assertThat(statistics.texts()).isEqualTo(52);
     }
 
     @Test
     void queryCatalog()
     {
         QueryCatalog catalog = musicCurator.queryCatalog();
-        softly.assertThat(catalog.queries().size()).isEqualTo(7);
+        softly.assertThat(catalog.queries().size()).isEqualTo(8);
         Query dummy = catalog.query("dummy");
         QueryResult result = dummy.run(emptyQueryBlock());
         var markdown = result.toMarkdown();
@@ -63,7 +63,7 @@ class MusicCuratorTest
     void queries()
     {
         var queries = musicCurator.vault().findAllQueryBlocks();
-        softly.assertThat(queries.size()).isEqualTo(10);
+        softly.assertThat(queries.size()).isEqualTo(14);
     }
 
     @Test
@@ -73,6 +73,7 @@ class MusicCuratorTest
         {
             private Folder currentFolder;
             private Document currentDocument;
+            private Section currentSection;
 
             @Override
             public void visit(Vault vault)
@@ -95,6 +96,7 @@ class MusicCuratorTest
             {
                 softly.assertThat(document.folder()).isSameAs(currentFolder);
                 currentDocument = document;
+                currentSection = null;
                 super.visit(document);
                 currentDocument = null;
             }
@@ -109,7 +111,10 @@ class MusicCuratorTest
             public void visit(Section section)
             {
                 assertDocumentReference(section);
+                var tempSection = currentSection;
+                currentSection = section;
                 super.visit(section);
+                currentSection = tempSection;
             }
 
             @Override
@@ -133,6 +138,8 @@ class MusicCuratorTest
             private void assertDocumentReference(Fragment fragment)
             {
                 softly.assertThat(fragment.document()).isSameAs(currentDocument);
+                var section = fragment.section().orElse(null);
+                softly.assertThat(section).isEqualTo(currentSection);
             }
         };
         musicCurator.vault().accept(visitor);
@@ -142,8 +149,8 @@ class MusicCuratorTest
     void runAllQueries()
     {
         Map<QueryBlock, String> map = musicCurator.runAllQueries();
-        // We expected only (and all) queries in "queries-blank" to have new output:
-        softly.assertThat(map.size()).isEqualTo(3);
+        // We expect only (and all) queries in "queries-blank" to have new output:
+        softly.assertThat(map.size()).isEqualTo(4);
     }
 
     @Test

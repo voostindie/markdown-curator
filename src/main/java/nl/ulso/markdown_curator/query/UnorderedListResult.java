@@ -18,10 +18,6 @@ class UnorderedListResult
     @Override
     public String toMarkdown()
     {
-        if (rows.isEmpty())
-        {
-            return "No results";
-        }
         var builder = new StringBuilder();
         for (String row : rows)
         {

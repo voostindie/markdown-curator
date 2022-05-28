@@ -1,12 +1,14 @@
-package nl.ulso.markdown_curator.query;
+package nl.ulso.markdown_curator.query.builtin;
 
+import nl.ulso.markdown_curator.query.*;
 import nl.ulso.markdown_curator.vault.Vault;
 
 import java.util.*;
 
 import static java.util.Collections.reverse;
+import static nl.ulso.markdown_curator.query.QueryResult.empty;
 
-public class TableQuery
+public final class TableQuery
         implements Query
 {
     private final Vault vault;
@@ -66,6 +68,10 @@ public class TableQuery
                 })
                 .sorted(Comparator.comparing(row -> row.get(sort)))
                 .toList());
+        if (table.isEmpty())
+        {
+            return empty();
+        }
         if (reverse)
         {
             reverse(table);

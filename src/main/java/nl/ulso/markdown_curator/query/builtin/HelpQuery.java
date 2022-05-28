@@ -1,10 +1,12 @@
-package nl.ulso.markdown_curator.query;
+package nl.ulso.markdown_curator.query.builtin;
+
+import nl.ulso.markdown_curator.query.*;
 
 import java.util.Map;
 
 import static java.lang.System.lineSeparator;
 
-public class HelpQuery
+public final class HelpQuery
         implements Query
 {
     private final QueryCatalog catalog;

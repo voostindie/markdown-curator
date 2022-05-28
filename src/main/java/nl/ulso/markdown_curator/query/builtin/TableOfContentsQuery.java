@@ -1,5 +1,6 @@
-package nl.ulso.markdown_curator.query;
+package nl.ulso.markdown_curator.query.builtin;
 
+import nl.ulso.markdown_curator.query.*;
 import nl.ulso.markdown_curator.vault.BreadthFirstVaultVisitor;
 import nl.ulso.markdown_curator.vault.Section;
 
@@ -10,7 +11,7 @@ import static java.lang.System.lineSeparator;
 /**
  * Generates a table of contents from the current document.
  */
-public class TableOfContentsQuery
+public final class TableOfContentsQuery
         implements Query
 {
     @Override

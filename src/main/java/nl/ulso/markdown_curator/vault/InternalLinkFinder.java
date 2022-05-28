@@ -10,7 +10,7 @@ import java.util.*;
  * A full Obsidian WikiLink looks like this: [[document#anchor|label]], with the anchor and the
  * label optional.
  */
-final class InternalLinkFinder
+public class InternalLinkFinder
         extends BreadthFirstVaultVisitor
 {
     private static final String LINK_START = "[[";
@@ -23,12 +23,12 @@ final class InternalLinkFinder
 
     private final List<InternalLink> internalLinks;
 
-    InternalLinkFinder()
+    public InternalLinkFinder()
     {
         internalLinks = new ArrayList<>();
     }
 
-    List<InternalLink> internalLinks()
+    public List<InternalLink> internalLinks()
     {
         return internalLinks;
     }
@@ -46,7 +46,7 @@ final class InternalLinkFinder
         extractInternalLinks(textBlock, textBlock.content());
     }
 
-    private void extractInternalLinks(Fragment fragment, String content)
+    protected void extractInternalLinks(Fragment fragment, String content)
     {
         var index = 0;
         var length = content.length();

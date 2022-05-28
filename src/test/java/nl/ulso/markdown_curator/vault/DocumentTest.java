@@ -12,6 +12,7 @@ import org.junit.jupiter.params.provider.ValueSource;
 import java.util.Collections;
 import java.util.List;
 
+import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.toList;
 import static nl.ulso.markdown_curator.vault.Document.newDocument;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -29,7 +30,10 @@ class DocumentTest
                 .withPrefabValues(Document.class,
                         newDocument("1", 0, Collections.emptyList()),
                         newDocument("2", 0, Collections.emptyList()))
-                .withIgnoredFields("document", "title", "folder")
+                .withPrefabValues(Section.class,
+                        new Section(1, "1", emptyList(), emptyList()),
+                        new Section(1, "2", emptyList(), emptyList()))
+                .withIgnoredFields("document", "section", "title", "folder")
                 .verify();
     }
 

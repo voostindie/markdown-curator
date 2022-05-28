@@ -21,10 +21,6 @@ class TableResult
     @Override
     public String toMarkdown()
     {
-        if (rows.isEmpty())
-        {
-            return "No results";
-        }
         var widths = findColumnWidths();
         var width = columns.size();
         var builder = new StringBuilder();

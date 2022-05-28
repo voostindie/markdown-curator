@@ -5,7 +5,7 @@ import nl.ulso.markdown_curator.vault.Document;
 
 public interface QueryDefinition
 {
-    String name();
+    String queryName();
 
     Dictionary configuration();
 

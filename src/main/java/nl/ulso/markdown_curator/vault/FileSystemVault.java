@@ -11,6 +11,7 @@ import java.nio.file.attribute.BasicFileAttributes;
 import java.util.*;
 
 import static java.nio.file.Files.walkFileTree;
+import static java.util.Collections.reverse;
 import static java.util.Objects.requireNonNull;
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -236,14 +237,14 @@ public final class FileSystemVault
             parents.add(folder);
             folder = folder.parent();
         }
-        Collections.reverse(parents);
+        reverse(parents);
         var path = this.absolutePath;
         for (Folder parent : parents)
         {
             path = path.resolve(parent.name());
         }
         path = path.resolve(document.name() + ".md");
-        LOGGER.debug("Resolved absolute path for document '{}': {}", document, path);
+        LOGGER.debug("Resolved absolute path for document: {}", path);
         return path;
     }
 

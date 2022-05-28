@@ -51,7 +51,7 @@ public final class QueryBlock
     private static final char QUERY_NAME_MARKER = ':';
     private static final String DEFAULT_NAME = "none";
 
-    private final String name;
+    private final String queryName;
     private final Dictionary configuration;
     private final String result;
     private final int resultStartIndex;
@@ -61,16 +61,16 @@ public final class QueryBlock
     {
         super(lines);
         var parser = new QueryParser(lines);
-        name = parser.name();
+        queryName = parser.queryName();
         configuration = yamlDictionary(parser.configuration());
         result = parser.result();
         resultStartIndex = documentLineIndex + parser.resultStartIndex() + 1;
         resultEndIndex = documentLineIndex + lines.size() - 1;
     }
 
-    public String name()
+    public String queryName()
     {
-        return name;
+        return queryName;
     }
 
     public Dictionary configuration()
@@ -108,7 +108,7 @@ public final class QueryBlock
         }
         if (o instanceof QueryBlock queryBlock)
         {
-            return Objects.equals(name, queryBlock.name)
+            return Objects.equals(queryName, queryBlock.queryName)
                     && Objects.equals(configuration, queryBlock.configuration)
                     && Objects.equals(result, queryBlock.result)
                     && Objects.equals(resultStartIndex, queryBlock.resultStartIndex)
@@ -120,7 +120,7 @@ public final class QueryBlock
     @Override
     public int hashCode()
     {
-        return Objects.hash(name, configuration, result, resultStartIndex, resultEndIndex);
+        return Objects.hash(queryName, configuration, result, resultStartIndex, resultEndIndex);
     }
 
     @Override
@@ -137,7 +137,7 @@ public final class QueryBlock
 
     private static final class QueryParser
     {
-        private String name;
+        private String queryName;
         private String configuration;
         private String result;
         private int resultStartIndex;
@@ -161,7 +161,7 @@ public final class QueryBlock
                 }
                 if (end > 1)
                 {
-                    this.name = query.substring(1, end).toLowerCase();
+                    queryName = query.substring(1, end).toLowerCase();
                 }
                 query = query.substring(end);
             }
@@ -177,9 +177,9 @@ public final class QueryBlock
             }
         }
 
-        String name()
+        String queryName()
         {
-            return name != null ? name : DEFAULT_NAME;
+            return queryName != null ? queryName : DEFAULT_NAME;
         }
 
         String configuration()

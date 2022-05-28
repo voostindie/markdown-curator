@@ -1,5 +1,8 @@
 package nl.ulso.markdown_curator.query;
 
+import nl.ulso.markdown_curator.query.builtin.HelpQuery;
+import nl.ulso.markdown_curator.query.builtin.UnknownQuery;
+
 import java.util.*;
 
 import static java.util.Collections.unmodifiableCollection;

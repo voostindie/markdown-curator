@@ -1,4 +1,4 @@
-package nl.ulso.markdown_curator.query;
+package nl.ulso.markdown_curator.query.builtin;
 
 import nl.ulso.markdown_curator.vault.*;
 

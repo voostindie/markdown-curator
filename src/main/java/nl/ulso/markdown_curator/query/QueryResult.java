@@ -10,6 +10,11 @@ import java.util.Map;
 public interface QueryResult
 {
     /**
+     * @return an empty result; it shows that there are 0 results.
+     */
+    static QueryResult empty() { return EmptyResult.INSTANCE; }
+
+    /**
      * Creates an error result; it add a level-3 "Error" header at the top.
      *
      * @param errorMessage The message to show in the error.

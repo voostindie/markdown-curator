@@ -30,7 +30,10 @@ public class QueryBlockTest
                 .withPrefabValues(Document.class,
                         newDocument("1", 0, emptyList()),
                         newDocument("2", 0, emptyList()))
-                .withIgnoredFields("document", "lines")
+                .withPrefabValues(Section.class,
+                        new Section(1, "1", emptyList(), emptyList()),
+                        new Section(1, "2", emptyList(), emptyList()))
+                .withIgnoredFields("document", "section", "lines")
                 .verify();
     }
 
@@ -88,14 +91,14 @@ public class QueryBlockTest
     void defaultTypeIsNone()
     {
         var query = new QueryBlock(List.of("<!--query-->", "<!--/query-->"), 0);
-        softly.assertThat(query.name()).isEqualTo("none");
+        softly.assertThat(query.queryName()).isEqualTo("none");
     }
 
     @Test
     void customType()
     {
         var query = new QueryBlock(List.of("<!--query:custom-->", "<!--/query-->"), 0);
-        softly.assertThat(query.name()).isEqualTo("custom");
+        softly.assertThat(query.queryName()).isEqualTo("custom");
         softly.assertThat(query.configuration().isEmpty()).isTrue();
     }
 
@@ -103,7 +106,7 @@ public class QueryBlockTest
     void customTypeMissingOneLine()
     {
         var query = new QueryBlock(List.of("<!--query:-->", "<!--/query-->"), 0);
-        softly.assertThat(query.name()).isEqualTo("none");
+        softly.assertThat(query.queryName()).isEqualTo("none");
         softly.assertThat(query.configuration().isEmpty()).isTrue();
     }
 
@@ -111,7 +114,7 @@ public class QueryBlockTest
     void customTypeMissingMultiLines()
     {
         var query = new QueryBlock(List.of("<!--query:", "foo: bar", "-->", "<!--/query-->"), 0);
-        softly.assertThat(query.name()).isEqualTo("none");
+        softly.assertThat(query.queryName()).isEqualTo("none");
         softly.assertThat(query.configuration().string("foo", null)).isEqualTo("bar");
     }
 
@@ -119,7 +122,7 @@ public class QueryBlockTest
     void invalidQuery()
     {
         var query = new QueryBlock(List.of("<!--query", "<!--/query-->"), 0);
-        softly.assertThat(query.name()).isEqualTo("none");
+        softly.assertThat(query.queryName()).isEqualTo("none");
         softly.assertThat(query.configuration().isEmpty()).isTrue();
         softly.assertThat(query.result()).isBlank();
     }

@@ -4,7 +4,7 @@
 
     <logger name="io.methvin.watcher" level="warn"/>
 
-    <root level="debug">
+    <root level="trace">
         <appender-ref ref="null"/>
     </root>
 </configuration>

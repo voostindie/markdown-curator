@@ -26,7 +26,7 @@ public class QueryDefinitionStub implements QueryDefinition
     }
 
     @Override
-    public String name()
+    public String queryName()
     {
         return query.name();
     }
