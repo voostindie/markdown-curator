@@ -84,12 +84,12 @@ public abstract class CuratorTemplate
         return models;
     }
 
-    private Set<? extends DataModel> createDefaultDataModels(Vault vault)
+    private Set<DataModel> createDefaultDataModels(Vault vault)
     {
         return Set.of(new BacklinksModel(vault));
     }
 
-    protected abstract Set<? extends DataModel> createDataModels(Vault vault);
+    protected abstract Set<DataModel> createDataModels(Vault vault);
 
     private void registerDefaultQueries(
             QueryCatalog queryCatalog, Vault vault,
