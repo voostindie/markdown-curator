@@ -3,6 +3,7 @@ package nl.ulso.markdown_curator;
 import nl.ulso.markdown_curator.query.*;
 import nl.ulso.markdown_curator.query.builtin.*;
 import nl.ulso.markdown_curator.vault.*;
+import nl.ulso.markdown_curator.vault.event.VaultChangedEvent;
 import org.slf4j.Logger;
 
 import java.io.*;
@@ -18,6 +19,7 @@ import static java.nio.file.Files.writeString;
 import static java.util.Comparator.comparingInt;
 import static java.util.concurrent.Executors.newFixedThreadPool;
 import static java.util.stream.Collectors.groupingBy;
+import static nl.ulso.markdown_curator.vault.event.VaultChangedEvent.vaultRefreshed;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
@@ -109,7 +111,7 @@ public abstract class CuratorTemplate
     public final void runOnce()
     {
         LOGGER.info("Running this curator once");
-        vaultChanged();
+        vaultChanged(vaultRefreshed());
     }
 
     @Override
@@ -119,21 +121,17 @@ public abstract class CuratorTemplate
         vault.watchForChanges();
     }
 
-    /**
-     * This is a simple, non-optimized implementation of the simple callback: it collects all
-     * queries in the vault, runs them all, and writes the documents that have changed back to disk.
-     */
     @Override
-    public final void vaultChanged()
+    public final void vaultChanged(VaultChangedEvent event)
     {
-        refreshAllDataModels();
+        refreshAllDataModels(event);
         runAllQueries().entrySet().stream()
                 .sorted(comparingInt(e -> e.getKey().resultStartIndex()))
                 .collect(groupingBy(e -> e.getKey().document()))
                 .forEach(this::writeDocument);
     }
 
-    private void refreshAllDataModels()
+    private void refreshAllDataModels(VaultChangedEvent event)
     {
         var models = dataModels.models();
         if (LOGGER.isDebugEnabled())
@@ -145,7 +143,7 @@ public abstract class CuratorTemplate
             {
                 LOGGER.trace("Refreshing data model: {}", model.getClass().getSimpleName());
             }
-            model.refreshOnVaultChange();
+            model.vaultChanged(event);
         });
     }
 

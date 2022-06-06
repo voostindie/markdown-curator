@@ -1,5 +1,6 @@
 package nl.ulso.markdown_curator.vault;
 
+import nl.ulso.markdown_curator.vault.event.*;
 import org.assertj.core.api.SoftAssertions;
 import org.assertj.core.api.junit.jupiter.InjectSoftAssertions;
 import org.assertj.core.api.junit.jupiter.SoftAssertionsExtension;
@@ -10,9 +11,11 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.*;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
+import static java.util.Collections.synchronizedList;
 import static nl.ulso.markdown_curator.vault.ElementCounter.countAll;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
@@ -20,7 +23,7 @@ import static org.assertj.core.api.Assertions.fail;
 @ExtendWith(SoftAssertionsExtension.class)
 class FileSystemVaultTest
 {
-    private static final int FILESYSTEM_WAIT_TIME_MILLISECONDS = 750; // "Works on my machine!"
+    private static final int FILESYSTEM_WAIT_TIME_MILLISECONDS = 1000; // "Works on my machine!"
 
     @InjectSoftAssertions
     private SoftAssertions softly;
@@ -126,7 +129,7 @@ class FileSystemVaultTest
             }
 
             @Override
-            public void verify()
+            public void verify(List<VaultChangedEvent> events)
             {
                 var characters = vault.folder("Characters").orElseThrow();
                 softly.assertThat(characters.documents().size()).isEqualTo(4);
@@ -134,6 +137,8 @@ class FileSystemVaultTest
                 var actors = vault.folder("Actors").orElseThrow();
                 softly.assertThat(actors.documents().size()).isEqualTo(5);
                 softly.assertThat(actors.document("Christopher Waltz")).isPresent();
+                softly.assertThat(events.stream().map(e -> (Class) e.getClass()))
+                        .containsExactly(DocumentAdded.class, DocumentAdded.class);
             }
         });
     }
@@ -152,9 +157,11 @@ class FileSystemVaultTest
             }
 
             @Override
-            public void verify()
+            public void verify(List<VaultChangedEvent> events)
             {
                 assertThat(vault.folder("Studios").get().document("MGM")).isPresent();
+                softly.assertThat(events.stream().map(e -> (Class) e.getClass()))
+                        .containsExactly(FolderAdded.class, DocumentAdded.class);
             }
         });
     }
@@ -175,11 +182,13 @@ class FileSystemVaultTest
             }
 
             @Override
-            public void verify()
+            public void verify(List<VaultChangedEvent> events)
             {
                 softly.assertThat(vault.folder("Actors")).isNotPresent();
                 softly.assertThat(vault.folder("People")).isPresent();
                 softly.assertThat(vault.folder("People").get().documents().size()).isEqualTo(4);
+                softly.assertThat(events.stream().map(e -> (Class) e.getClass()))
+                        .contains(FolderRemoved.class, FolderAdded.class);
             }
         });
     }
@@ -198,10 +207,12 @@ class FileSystemVaultTest
             }
 
             @Override
-            public void verify()
+            public void verify(List<VaultChangedEvent> events)
             {
                 softly.assertThat(vault.folder("Characters").get().documents().size()).isEqualTo(2);
                 softly.assertThat(vault.folder("Characters").get().document("M")).isNotPresent();
+                softly.assertThat(events.stream().map(e -> (Class) e.getClass()))
+                        .containsExactly(DocumentRemoved.class);
             }
         });
     }
@@ -223,7 +234,7 @@ class FileSystemVaultTest
             }
 
             @Override
-            public void verify()
+            public void verify(List<VaultChangedEvent> events)
             {
                 var newM = vault.folder("Characters").orElseThrow().document("M").orElseThrow();
                 softly.assertThat(newM).isNotSameAs(m);
@@ -234,6 +245,8 @@ class FileSystemVaultTest
 
     void whileWatchingForChanges(TestCase testCase)
     {
+        var events = synchronizedList(new ArrayList<VaultChangedEvent>());
+        vault.setVaultChangedCallback(events::add);
         var background = new Thread(() -> vault.watchForChanges());
         background.start();
         try
@@ -250,8 +263,8 @@ class FileSystemVaultTest
         {
             fail("Unexpected exception in test", e);
         }
-        testCase.verify();
         background.interrupt();
+        testCase.verify(events);
     }
 
     private void writeFile(String relativePath, String content)
@@ -268,6 +281,6 @@ class FileSystemVaultTest
         void changeFileSystem(FileSystem fileSystem)
                 throws IOException;
 
-        void verify();
+        void verify(List<VaultChangedEvent> events);
     }
 }

@@ -1,15 +1,16 @@
 package nl.ulso.markdown_curator.query.builtin;
 
-import nl.ulso.markdown_curator.DataModel;
+import nl.ulso.markdown_curator.DataModelTemplate;
 import nl.ulso.markdown_curator.vault.*;
 
-import java.util.*;
+import java.util.List;
+import java.util.Map;
 
 import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.groupingBy;
 
 public final class BacklinksModel
-        implements DataModel
+        extends DataModelTemplate
 {
     private final Vault vault;
     private Map<String, List<InternalLink>> backlinks;
@@ -26,7 +27,7 @@ public final class BacklinksModel
     }
 
     @Override
-    public void refreshOnVaultChange()
+    protected void fullRefresh()
     {
         var finder = new InternalLinkFinder();
         vault.accept(finder);

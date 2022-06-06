@@ -1,5 +1,7 @@
 package nl.ulso.markdown_curator;
 
+import nl.ulso.markdown_curator.vault.event.VaultChangedEvent;
+
 /**
  * Represents a data model that is derived from a {@link nl.ulso.markdown_curator.vault.Vault}.
  * <p/>
@@ -15,5 +17,5 @@ package nl.ulso.markdown_curator;
  */
 public interface DataModel
 {
-    void refreshOnVaultChange();
+    void vaultChanged(VaultChangedEvent event);
 }

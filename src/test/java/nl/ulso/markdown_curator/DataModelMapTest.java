@@ -1,5 +1,6 @@
 package nl.ulso.markdown_curator;
 
+import nl.ulso.markdown_curator.vault.event.VaultChangedEvent;
 import org.assertj.core.api.SoftAssertions;
 import org.assertj.core.api.junit.jupiter.InjectSoftAssertions;
 import org.assertj.core.api.junit.jupiter.SoftAssertionsExtension;
@@ -46,7 +47,7 @@ class DataModelMapTest
             implements DataModel
     {
         @Override
-        public void refreshOnVaultChange()
+        public void vaultChanged(VaultChangedEvent event)
         {
         }
     }

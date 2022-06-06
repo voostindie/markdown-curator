@@ -13,6 +13,7 @@ import org.junit.jupiter.params.provider.MethodSource;
 
 import java.util.stream.Stream;
 
+import static nl.ulso.markdown_curator.vault.event.VaultChangedEvent.vaultRefreshed;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @ExtendWith(SoftAssertionsExtension.class)
@@ -36,7 +37,7 @@ class BacklinksQueryTest
         var vault = testVault();
         var document = vault.resolveDocumentInPath(documentName);
         BacklinksModel model = new BacklinksModel(vault);
-        model.refreshOnVaultChange();
+        model.vaultChanged(vaultRefreshed());
         var query = new BacklinksQuery(model);
         QueryDefinitionStub definition = new QueryDefinitionStub(query, document);
         var result = query.run(definition);

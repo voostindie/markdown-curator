@@ -1,16 +1,13 @@
 package nl.ulso.markdown_curator;
 
-import com.google.common.jimfs.Configuration;
-import com.google.common.jimfs.Jimfs;
 import nl.ulso.markdown_curator.query.QueryCatalog;
 import nl.ulso.markdown_curator.vault.*;
 
 import java.io.IOException;
-import java.nio.file.*;
-import java.nio.file.attribute.BasicFileAttributes;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.Collections;
 import java.util.Set;
-
-import static java.util.Collections.emptySet;
 
 /**
  * System for testing. All testing is done in memory. All files in the "music" directory from this
@@ -22,31 +19,21 @@ import static java.util.Collections.emptySet;
  * package-local methods are available for testing.
  */
 public class MusicCurator
-        extends CuratorTemplate
+        extends InMemoryCuratorTemplate
 {
-    /**
-     * Creates a vault by copying all files in the test vault on disk to an in-memory filesystem.
-     * <p/>
-     * "Normal" subclasses typically create a vault with a one-liner call to
-     * {@link #createVaultForPathInUserHome(String...)}.
-     * @return a vault on top of an in-memory filesystem.
-     */
     @Override
     protected FileSystemVault createVault()
             throws IOException
     {
-        var sourceRoot = Paths.get("").toAbsolutePath().resolve("src/test/resources/music");
-        var configuration = Configuration.unix().toBuilder().build();
-        var targetFileSystem = Jimfs.newFileSystem(configuration);
-        var targetRoot = targetFileSystem.getPath("/music");
-        Files.walkFileTree(sourceRoot, new RecursiveCopier(sourceRoot, targetRoot));
-        return new FileSystemVault(targetRoot, targetFileSystem.newWatchService());
+        var sourceRoot = Paths.get("").toAbsolutePath()
+                .resolve("src/test/resources/music");
+        return copyVaultToMemory(sourceRoot, "/music");
     }
 
     @Override
     protected Set<DataModel> createDataModels(Vault vault)
     {
-        return emptySet();
+        return Collections.emptySet();
     }
 
     @Override
@@ -62,59 +49,5 @@ public class MusicCurator
     {
         var path = vault().resolveAbsolutePath(document);
         return Files.readString(path).trim();
-    }
-
-    /**
-     * Recursively copies all files and directories. In this specific case the source is on an
-     * actual filesystem, while the target is in memory.
-     */
-    private static class RecursiveCopier
-            extends SimpleFileVisitor<Path>
-    {
-        private final Path sourceRoot;
-        private final Path targetRoot;
-
-        public RecursiveCopier(Path sourceRoot, Path targetRoot)
-        {
-            this.sourceRoot = sourceRoot;
-            this.targetRoot = targetRoot;
-        }
-
-        @Override
-        public FileVisitResult preVisitDirectory(
-                Path sourceDirectory,
-                BasicFileAttributes attributes)
-                throws IOException
-        {
-            Path targetPath = resolveTargetPath(sourceDirectory);
-            Files.createDirectory(targetPath);
-            return FileVisitResult.CONTINUE;
-        }
-
-        @Override
-        public FileVisitResult visitFile(Path sourceFile, BasicFileAttributes attributes)
-                throws IOException
-        {
-            Files.copy(sourceFile, resolveTargetPath(sourceFile));
-            return FileVisitResult.CONTINUE;
-        }
-
-        /**
-         * Because the source and target roots are in different file system implementations,
-         * resolving the target path from a source path is a bit cumbersome. "resolve" doesn't work
-         * across file systems.
-         *
-         * @param sourcePath source path to resolve in the target.
-         * @return The corresponding path in the target root.
-         */
-        private Path resolveTargetPath(Path sourcePath)
-        {
-            var targetPath = targetRoot;
-            for (var path : sourceRoot.relativize(sourcePath))
-            {
-                targetPath = targetPath.resolve(path.toString());
-            }
-            return targetPath;
-        }
     }
 }

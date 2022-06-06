@@ -1,13 +1,11 @@
 package nl.ulso.markdown_curator.vault;
 
+import nl.ulso.markdown_curator.vault.event.VaultChangedEvent;
+
 /**
- * This is an extremely simply callback that is triggered whenever the vault is changed.
- * <p/>
- * It doesn't say what has changed, nor does it make any promises on how often it is called when
- * something changes. This is the simplest of callbacks. It's probably the first place to look for
- * optimizations when these are needed.
+ * Callback that is triggered whenever a meaningful change to the vault has been detected.
  */
 public interface VaultChangedCallback
 {
-    void vaultChanged();
+    void vaultChanged(VaultChangedEvent event);
 }

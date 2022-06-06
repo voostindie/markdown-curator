@@ -7,9 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Backlog]
 
-- Make vault change events more granular, to update data models more efficiently.
 - Apply a data model in the Music Curator demo
-- Extract the testing stuff from the Music Curator into an abstract base class, to make it a better example.
 
 ## [Unreleased]
 

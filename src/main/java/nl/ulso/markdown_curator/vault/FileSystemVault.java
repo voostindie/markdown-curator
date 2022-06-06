@@ -3,16 +3,19 @@ package nl.ulso.markdown_curator.vault;
 import io.methvin.watcher.DirectoryChangeEvent;
 import io.methvin.watcher.DirectoryWatcher;
 import io.methvin.watcher.hashing.FileHasher;
+import nl.ulso.markdown_curator.vault.event.VaultChangedEvent;
 import org.slf4j.Logger;
 
 import java.io.IOException;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
 
 import static java.nio.file.Files.walkFileTree;
 import static java.util.Collections.reverse;
 import static java.util.Objects.requireNonNull;
+import static nl.ulso.markdown_curator.vault.event.VaultChangedEvent.*;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
@@ -46,7 +49,7 @@ public final class FileSystemVault
             throws IOException
     {
         super(absolutePath.toString());
-        this.callback = () -> { /* Default: No-op */ };
+        this.callback = (VaultChangedEvent changeEvent) -> { /* Default: No-op */ };
         this.absolutePath = absolutePath;
         VaultBuilder vaultBuilder = new VaultBuilder(this, absolutePath);
         walkFileTree(absolutePath, vaultBuilder);
@@ -98,18 +101,23 @@ public final class FileSystemVault
         var parent = resolveParentFolder(eventAbsolutePath);
         if (parent != null)
         {
+            VaultChangedEvent output = null;
             switch (event.eventType())
             {
-                case CREATE -> processFileCreationEvent(event, parent);
-                case DELETE -> processFileDeletionEvent(event, parent);
-                case MODIFY -> processFileModificationEvent(event, parent);
+                case CREATE -> output = processFileCreationEvent(event, parent);
+                case DELETE -> output = processFileDeletionEvent(event, parent);
+                case MODIFY -> output = processFileModificationEvent(event, parent);
                 default -> LOGGER.warn("Unsupported filesystem event {}", event.eventType());
             }
-            callback.vaultChanged();
+            if (output != null)
+            {
+                callback.vaultChanged(output);
+            }
         }
     }
 
-    private void processFileCreationEvent(DirectoryChangeEvent event, FileSystemFolder parent)
+    private VaultChangedEvent processFileCreationEvent(
+            DirectoryChangeEvent event, FileSystemFolder parent)
     {
         var eventAbsolutePath = event.path();
         if (event.isDirectory() && !isHidden(eventAbsolutePath))
@@ -119,6 +127,7 @@ public final class FileSystemVault
             try
             {
                 walkFileTree(eventAbsolutePath, new VaultBuilder(folder, eventAbsolutePath));
+                return folderAdded(folder);
             }
             catch (IOException e)
             {
@@ -130,10 +139,13 @@ public final class FileSystemVault
             var document = newDocumentFromAbsolutePath(eventAbsolutePath);
             LOGGER.info("Detected new document: {}", document);
             parent.addDocument(document);
+            return documentAdded(document);
         }
+        return null;
     }
 
-    private void processFileModificationEvent(DirectoryChangeEvent event, FileSystemFolder parent)
+    private VaultChangedEvent processFileModificationEvent(
+            DirectoryChangeEvent event, FileSystemFolder parent)
     {
         var eventAbsolutePath = event.path();
         if (isDocument(eventAbsolutePath))
@@ -141,27 +153,32 @@ public final class FileSystemVault
             var document = newDocumentFromAbsolutePath(eventAbsolutePath);
             LOGGER.info("Detected changes to document: {}", document);
             parent.addDocument(document);
+            return documentChanged(document);
         }
+        return null;
     }
 
-    private void processFileDeletionEvent(DirectoryChangeEvent event, FileSystemFolder parent)
+    private VaultChangedEvent processFileDeletionEvent(
+            DirectoryChangeEvent event, FileSystemFolder parent)
     {
         var eventAbsolutePath = event.path();
         if (isDocument(eventAbsolutePath))
         {
             var name = documentName(eventAbsolutePath);
-            LOGGER.info("Document deleted: {}", name);
-            parent.removeDocument(name);
+            return parent.document(name).map(document -> {
+                LOGGER.info("Document deleted: {}", name);
+                parent.removeDocument(name);
+                return documentRemoved(document);
+            }).orElse(null);
         }
         else
         {
             var name = folderName(eventAbsolutePath);
-            var folder = parent.folder(name);
-            if (folder.isPresent())
-            {
+            return parent.folder(name).map(folder -> {
                 LOGGER.info("Folder deleted: {}", name);
                 parent.removeFolder(name);
-            }
+                return folderRemoved(folder);
+            }).orElse(null);
         }
     }
 
