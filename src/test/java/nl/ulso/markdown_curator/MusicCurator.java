@@ -24,6 +24,13 @@ import static java.util.Collections.emptySet;
 public class MusicCurator
         extends CuratorTemplate
 {
+    /**
+     * Creates a vault by copying all files in the test vault on disk to an in-memory filesystem.
+     * <p/>
+     * "Normal" subclasses typically create a vault with a one-liner call to
+     * {@link #createVaultForPathInUserHome(String...)}.
+     * @return a vault on top of an in-memory filesystem.
+     */
     @Override
     protected FileSystemVault createVault()
             throws IOException
@@ -57,6 +64,10 @@ public class MusicCurator
         return Files.readString(path).trim();
     }
 
+    /**
+     * Recursively copies all files and directories. In this specific case the source is on an
+     * actual filesystem, while the target is in memory.
+     */
     private static class RecursiveCopier
             extends SimpleFileVisitor<Path>
     {
