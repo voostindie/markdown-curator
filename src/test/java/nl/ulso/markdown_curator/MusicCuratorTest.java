@@ -138,7 +138,7 @@ class MusicCuratorTest
             private void assertDocumentReference(Fragment fragment)
             {
                 softly.assertThat(fragment.document()).isSameAs(currentDocument);
-                var section = fragment.section().orElse(null);
+                var section = fragment.parentSection().orElse(null);
                 softly.assertThat(section).isEqualTo(currentSection);
             }
         };

@@ -74,7 +74,7 @@ abstract class LineContainer
         return document;
     }
 
-    public final Optional<Section> section()
+    public final Optional<Section> parentSection()
     {
         return Optional.ofNullable(section);
     }

@@ -15,7 +15,7 @@ public interface Fragment
 {
     Document document();
 
-    Optional<Section> section();
+    Optional<Section> parentSection();
 
     List<String> lines();
 

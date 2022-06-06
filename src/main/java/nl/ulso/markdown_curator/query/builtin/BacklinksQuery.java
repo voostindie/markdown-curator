@@ -86,11 +86,12 @@ public final class BacklinksQuery
         }
         else
         {
+            var parentSection = fragment.parentSection();
             return new InternalLink(
                     null,
                     fragment.document().name(),
-                    fragment.section().map(Section::anchor),
-                    fragment.section().map(section -> createAnchor(section.title())));
+                    parentSection.map(Section::anchor),
+                    parentSection.map(section -> createAnchor(section.title())));
         }
     }
 }
