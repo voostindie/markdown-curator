@@ -176,8 +176,7 @@ public abstract class CuratorTemplate
             catch (RuntimeException e)
             {
                 LOGGER.warn(
-                        "Running query {} in document {} resulted in an error. Skipping it.",
-                        query.name(), queryBlock.document().name());
+                        "Ignoring output due to exception while running query '{}' in document: {}", query.name(), queryBlock.document().name(), e);
             }
             if (result != null)
             {
