@@ -6,12 +6,7 @@ import nl.ulso.markdown_curator.vault.MarkdownTokenizer.TokenType;
 import java.util.*;
 
 import static java.util.Collections.emptyList;
-import static nl.ulso.markdown_curator.vault.CodeBlock.CODE_MARKER;
-import static nl.ulso.markdown_curator.vault.FrontMatter.FRONT_MATTER_MARKER;
-import static nl.ulso.markdown_curator.vault.MarkdownTokenizer.TokenType.*;
-import static nl.ulso.markdown_curator.vault.QueryBlock.QUERY_CONFIGURATION_PREFIX;
-import static nl.ulso.markdown_curator.vault.QueryBlock.QUERY_OUTPUT_POSTFIX;
-import static nl.ulso.markdown_curator.vault.QueryBlock.QUERY_OUTPUT_PREFIX;
+import static nl.ulso.markdown_curator.vault.MarkdownTokenizer.TokenType.QUERY;
 
 /**
  * Parses a list of {@link String}s into a {@link Document}. This is <strong>not</strong> a full
@@ -50,111 +45,71 @@ final class DocumentParser
         fragments.put(0, new ArrayList<>());
         headers.clear();
         var level = 0;
-        var frontMatterEnd = -1;
-        var fragmentStart = -1;
-        TokenType fragmentType = null;
+        var fragmentStart = 0;
+        boolean hasText = false;
         for (var token : new MarkdownTokenizer(lines))
         {
             var type = token.tokenType();
-            if (type == FRONT_MATTER)
+            var lineIndex = token.lineIndex();
+            switch (type)
             {
-                frontMatterEnd = token.lineIndex() + 1;
-                continue;
-            }
-            if (frontMatterEnd != -1)
-            {
-                fragments.get(0).add(createFragment(FRONT_MATTER, 0, frontMatterEnd));
-                frontMatterEnd = -1;
-            }
-            if (type == fragmentType)
-            {
-                if (type == QUERY
-                        && lines.get(token.lineIndex()).startsWith(QUERY_CONFIGURATION_PREFIX))
+                case TEXT ->
                 {
-                    var fragment = createFragment(TEXT, fragmentStart, token.lineIndex());
-                    fragments.get(level).add(fragment);
-                    fragmentStart = token.lineIndex();
+                    hasText = true;
+                    continue;
                 }
-                continue;
-            }
-            if (fragmentStart != -1)
-            {
-                var fragment = createFragment(fragmentType, fragmentStart, token.lineIndex());
-                fragments.get(level).add(fragment);
-                fragmentStart = -1;
-                fragmentType = null;
-            }
-            if (type == TEXT || type == CODE || type == QUERY)
-            {
-                fragmentStart = token.lineIndex();
-                fragmentType = type;
-                continue;
-            }
-            if (type == HEADER)
-            {
-                var header = (HeaderLineToken) token;
-                while (header.level() <= level)
+                case HEADER ->
                 {
-                    level = processSection(header.lineIndex());
+                    hasText = processText(hasText, level, fragmentStart, token.lineIndex());
+                    var header = (HeaderLineToken) token;
+                    while (header.level() <= level)
+                    {
+                        level = processSection(header.lineIndex());
+                    }
+                    level = header.level();
+                    fragments.put(level, new ArrayList<>());
+                    headers.push(header);
+                    fragmentStart = token.lineIndex() + 1;
+                    continue;
                 }
-                level = header.level();
-                fragments.put(level, new ArrayList<>());
-                headers.push(header);
-            }
-            if (type == END_OF_DOCUMENT)
-            {
-                while (!headers.isEmpty())
+                case END_OF_DOCUMENT ->
                 {
-                    processSection(token.lineIndex());
+                    if (fragmentStart < lineIndex)
+                    {
+                        // We were still in the middle of something. Treat it as text.
+                        processText(true, level, fragmentStart, lineIndex);
+                    }
+                    while (!headers.isEmpty())
+                    {
+                        processSection(token.lineIndex());
+                    }
+                    ensureFrontMatterIsPresent();
+                    continue;
                 }
-                ensureFrontMatterIsPresent();
+            }
+            switch (token.tokenStatus())
+            {
+                case START ->
+                {
+                    if (type == QUERY && !hasText && fragmentStart < lineIndex)
+                    {
+                        // Special case: a new query, while we're already in a query.
+                        // Solution: treat the part found so far as text.
+                        processText(true, level, fragmentStart, lineIndex);
+                    }
+                    hasText = processText(hasText, level, fragmentStart, lineIndex);
+                    fragmentStart = lineIndex;
+                }
+                case END ->
+                {
+                    processFragment(level, type, fragmentStart, lineIndex + 1);
+                    fragmentStart = lineIndex + 1;
+                }
             }
         }
         var document = new Document(name, lastModified, fragments.get(0), lines);
         updateInternalReferences(document);
         return document;
-    }
-
-    private Fragment createFragment(TokenType type, int start, int end)
-    {
-        var subList = lines.subList(start, end);
-        int size = subList.size();
-        switch (type)
-        {
-            case FRONT_MATTER:
-                if (size > 1 && subList.get(size - 1).contentEquals(FRONT_MATTER_MARKER))
-                {
-                    return new FrontMatter(subList);
-                }
-                else
-                {
-                    return new TextBlock(subList);
-                }
-            case CODE:
-                if (size > 1 && subList.get(size - 1).contentEquals(CODE_MARKER))
-                {
-                    return new CodeBlock(lines.subList(start, end));
-                }
-                else
-                {
-                    return new TextBlock(lines.subList(start, end));
-                }
-            case QUERY:
-                if (size > 1
-                        && subList.get(size - 1).startsWith(QUERY_OUTPUT_PREFIX)
-                        && subList.get(size - 1).endsWith(QUERY_OUTPUT_POSTFIX))
-                {
-                    return new QueryBlock(subList, start);
-                }
-                else
-                {
-                    return new TextBlock(lines.subList(start, end));
-                }
-            case TEXT:
-                return new TextBlock(lines.subList(start, end));
-            default:
-                throw new IllegalStateException("Unsupported type " + type);
-        }
     }
 
     private int processSection(int endLineIndex)
@@ -165,6 +120,28 @@ final class DocumentParser
                 lines.subList(header.lineIndex(), endLineIndex),
                 fragments.get(header.level())));
         return previousLevel;
+    }
+
+    private boolean processText(boolean hasText, int level, int start, int end)
+    {
+        if (hasText)
+        {
+            fragments.get(level).add(new TextBlock(lines.subList(start, end)));
+        }
+        return false;
+    }
+
+    private void processFragment(int level, TokenType type, int start, int end)
+    {
+        var subList = lines.subList(start, end);
+        var fragment = switch (type)
+                {
+                    case FRONT_MATTER -> new FrontMatter(subList);
+                    case CODE -> new CodeBlock(subList);
+                    case QUERY -> new QueryBlock(subList, start);
+                    default -> throw new IllegalStateException("Unsupported type " + type);
+                };
+        fragments.get(level).add(fragment);
     }
 
     private void ensureFrontMatterIsPresent()

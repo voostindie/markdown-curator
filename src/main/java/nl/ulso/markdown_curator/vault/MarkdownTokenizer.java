@@ -6,6 +6,9 @@ import java.util.*;
 
 import static nl.ulso.markdown_curator.vault.CodeBlock.CODE_MARKER;
 import static nl.ulso.markdown_curator.vault.FrontMatter.FRONT_MATTER_MARKER;
+import static nl.ulso.markdown_curator.vault.MarkdownTokenizer.TokenStatus.CONTENT;
+import static nl.ulso.markdown_curator.vault.MarkdownTokenizer.TokenStatus.END;
+import static nl.ulso.markdown_curator.vault.MarkdownTokenizer.TokenStatus.START;
 import static nl.ulso.markdown_curator.vault.MarkdownTokenizer.LineToken.*;
 import static nl.ulso.markdown_curator.vault.MarkdownTokenizer.TokenType.*;
 import static nl.ulso.markdown_curator.vault.QueryBlock.QUERY_CONFIGURATION_PREFIX;
@@ -24,7 +27,8 @@ import static nl.ulso.markdown_curator.vault.Section.HEADER_PATTERN;
  *   <li>Only ATX (#) headers, without the optional closing sequence of #'s</li>
  *   <li>Headers are always aligned to the left margin</li>
  *   <li>Code is always in code blocks surrounded with backticks</li>
- *   <li>Queries can be defined in HTML comments, for this tool to process. See {@link QueryBlock}</li>
+ *   <li>Queries can be defined in HTML comments, for this tool to process. See
+ *   {@link QueryBlock}</li>
  * </ul>
  */
 class MarkdownTokenizer
@@ -42,16 +46,24 @@ class MarkdownTokenizer
         END_OF_DOCUMENT
     }
 
+    enum TokenStatus
+    {
+        START,
+        CONTENT,
+        END
+    }
+
     static sealed class LineToken
     {
         private final int lineIndex;
-
         private final TokenType tokenType;
+        private final TokenStatus tokenStatus;
 
-        private LineToken(int lineIndex, TokenType tokenType)
+        private LineToken(int lineIndex, TokenType tokenType, TokenStatus tokenStatus)
         {
             this.lineIndex = lineIndex;
             this.tokenType = tokenType;
+            this.tokenStatus = tokenStatus;
         }
 
         int lineIndex()
@@ -64,9 +76,14 @@ class MarkdownTokenizer
             return tokenType;
         }
 
-        static LineToken frontMatter(int lineIndex)
+        TokenStatus tokenStatus()
         {
-            return new LineToken(lineIndex, FRONT_MATTER);
+            return tokenStatus;
+        }
+
+        static LineToken frontMatter(int lineIndex, TokenStatus tokenStatus)
+        {
+            return new LineToken(lineIndex, FRONT_MATTER, tokenStatus);
         }
 
         static LineToken header(int lineIndex, int level, String title)
@@ -76,22 +93,22 @@ class MarkdownTokenizer
 
         static LineToken text(int lineIndex)
         {
-            return new LineToken(lineIndex, TokenType.TEXT);
+            return new LineToken(lineIndex, TEXT, CONTENT);
         }
 
-        static LineToken code(int lineIndex)
+        static LineToken code(int lineIndex, TokenStatus tokenStatus)
         {
-            return new LineToken(lineIndex, CODE);
+            return new LineToken(lineIndex, CODE, tokenStatus);
         }
 
-        static LineToken query(int lineIndex)
+        static LineToken query(int lineIndex, TokenStatus tokenStatus)
         {
-            return new LineToken(lineIndex, QUERY);
+            return new LineToken(lineIndex, QUERY, tokenStatus);
         }
 
         static LineToken documentEnd(int size)
         {
-            return new LineToken(size, END_OF_DOCUMENT);
+            return new LineToken(size, END_OF_DOCUMENT, END);
         }
 
     }
@@ -105,7 +122,7 @@ class MarkdownTokenizer
 
         private HeaderLineToken(int lineIndex, int level, String title)
         {
-            super(lineIndex, HEADER);
+            super(lineIndex, HEADER, CONTENT);
             this.level = level;
             this.title = title;
         }
@@ -166,41 +183,52 @@ class MarkdownTokenizer
                 if (i == 0 && line.contentEquals(FRONT_MATTER_MARKER))
                 {
                     mode = Mode.FRONT_MATTER;
-                    return frontMatter(i);
+                    return frontMatter(i, START);
                 }
                 if (mode == Mode.FRONT_MATTER)
                 {
+                    var status = CONTENT;
                     if (line.contentEquals(FRONT_MATTER_MARKER))
                     {
+                        status = END;
                         mode = Mode.TEXT;
                     }
-                    return frontMatter(i);
+                    return frontMatter(i, status);
                 }
                 if (mode == Mode.TEXT && line.startsWith(QUERY_CONFIGURATION_PREFIX))
                 {
                     mode = Mode.QUERY;
-                    return query(i);
+                    return query(i, START);
                 }
                 if (mode == Mode.QUERY)
                 {
-                    if (line.startsWith(QUERY_OUTPUT_PREFIX) && line.endsWith(QUERY_OUTPUT_POSTFIX))
+                    var status = CONTENT;
+                    if (line.startsWith(QUERY_CONFIGURATION_PREFIX))
                     {
+                        status = START;
+                    }
+                    else if (line.startsWith(QUERY_OUTPUT_PREFIX) &&
+                             line.endsWith(QUERY_OUTPUT_POSTFIX))
+                    {
+                        status = END;
                         mode = Mode.TEXT;
                     }
-                    return query(i);
+                    return query(i, status);
                 }
                 if (mode == Mode.TEXT && line.startsWith(CODE_MARKER))
                 {
                     mode = Mode.CODE;
-                    return code(i);
+                    return code(i, START);
                 }
                 if (mode == Mode.CODE)
                 {
+                    var status = CONTENT;
                     if (line.contentEquals(CODE_MARKER))
                     {
+                        status = END;
                         mode = Mode.TEXT;
                     }
-                    return code(i);
+                    return code(i, status);
                 }
                 var matcher = HEADER_PATTERN.matcher(line);
                 if (matcher.matches())
