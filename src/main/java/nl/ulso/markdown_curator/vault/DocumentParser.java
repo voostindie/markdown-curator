@@ -6,7 +6,12 @@ import nl.ulso.markdown_curator.vault.MarkdownTokenizer.TokenType;
 import java.util.*;
 
 import static java.util.Collections.emptyList;
+import static nl.ulso.markdown_curator.vault.MarkdownTokenizer.TokenStatus.END;
+import static nl.ulso.markdown_curator.vault.MarkdownTokenizer.TokenStatus.START;
+import static nl.ulso.markdown_curator.vault.MarkdownTokenizer.TokenType.END_OF_DOCUMENT;
+import static nl.ulso.markdown_curator.vault.MarkdownTokenizer.TokenType.HEADER;
 import static nl.ulso.markdown_curator.vault.MarkdownTokenizer.TokenType.QUERY;
+import static nl.ulso.markdown_curator.vault.MarkdownTokenizer.TokenType.TEXT;
 
 /**
  * Parses a list of {@link String}s into a {@link Document}. This is <strong>not</strong> a full
@@ -51,60 +56,55 @@ final class DocumentParser
         {
             var type = token.tokenType();
             var lineIndex = token.lineIndex();
-            switch (type)
+            if (type == TEXT)
             {
-                case TEXT ->
-                {
-                    hasText = true;
-                    continue;
-                }
-                case HEADER ->
-                {
-                    hasText = processText(hasText, level, fragmentStart, token.lineIndex());
-                    var header = (HeaderLineToken) token;
-                    while (header.level() <= level)
-                    {
-                        level = processSection(header.lineIndex());
-                    }
-                    level = header.level();
-                    fragments.put(level, new ArrayList<>());
-                    headers.push(header);
-                    fragmentStart = token.lineIndex() + 1;
-                    continue;
-                }
-                case END_OF_DOCUMENT ->
-                {
-                    if (fragmentStart < lineIndex)
-                    {
-                        // We were still in the middle of something. Treat it as text.
-                        processText(true, level, fragmentStart, lineIndex);
-                    }
-                    while (!headers.isEmpty())
-                    {
-                        processSection(token.lineIndex());
-                    }
-                    ensureFrontMatterIsPresent();
-                    continue;
-                }
+                hasText = true;
+                continue;
             }
-            switch (token.tokenStatus())
+            else if (type == HEADER)
             {
-                case START ->
+                hasText = processText(hasText, level, fragmentStart, token.lineIndex());
+                var header = (HeaderLineToken) token;
+                while (header.level() <= level)
                 {
-                    if (type == QUERY && !hasText && fragmentStart < lineIndex)
-                    {
-                        // Special case: a new query, while we're already in a query.
-                        // Solution: treat the part found so far as text.
-                        processText(true, level, fragmentStart, lineIndex);
-                    }
-                    hasText = processText(hasText, level, fragmentStart, lineIndex);
-                    fragmentStart = lineIndex;
+                    level = processSection(header.lineIndex());
                 }
-                case END ->
+                level = header.level();
+                fragments.put(level, new ArrayList<>());
+                headers.push(header);
+                fragmentStart = token.lineIndex() + 1;
+                continue;
+            }
+            else if (type == END_OF_DOCUMENT)
+            {
+                if (fragmentStart < lineIndex)
                 {
-                    processFragment(level, type, fragmentStart, lineIndex + 1);
-                    fragmentStart = lineIndex + 1;
+                    // We were still in the middle of something. Treat it as text.
+                    processText(true, level, fragmentStart, lineIndex);
                 }
+                while (!headers.isEmpty())
+                {
+                    processSection(token.lineIndex());
+                }
+                ensureFrontMatterIsPresent();
+                continue;
+            }
+            var status = token.tokenStatus();
+            if (status == START)
+            {
+                if (type == QUERY && !hasText && fragmentStart < lineIndex)
+                {
+                    // Special case: a new query, while we're already in a query.
+                    // Solution: treat the part found so far as text.
+                    processText(true, level, fragmentStart, lineIndex);
+                }
+                hasText = processText(hasText, level, fragmentStart, lineIndex);
+                fragmentStart = lineIndex;
+            }
+            else if (status == END)
+            {
+                processFragment(level, type, fragmentStart, lineIndex + 1);
+                fragmentStart = lineIndex + 1;
             }
         }
         var document = new Document(name, lastModified, fragments.get(0), lines);
