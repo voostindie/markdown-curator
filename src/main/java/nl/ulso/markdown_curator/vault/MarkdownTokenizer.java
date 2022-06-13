@@ -108,7 +108,7 @@ class MarkdownTokenizer
 
         static LineToken documentEnd(int size)
         {
-            return new LineToken(size, END_OF_DOCUMENT, CONTENT);
+            return new LineToken(size, END_OF_DOCUMENT, END);
         }
 
     }

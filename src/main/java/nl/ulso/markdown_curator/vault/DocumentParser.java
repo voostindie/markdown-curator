@@ -52,6 +52,7 @@ final class DocumentParser
         for (var token : new MarkdownTokenizer(lines))
         {
             var type = token.tokenType();
+            var status = token.tokenStatus();
             var lineIndex = token.lineIndex();
             if (type == HEADER)
             {
@@ -75,8 +76,7 @@ final class DocumentParser
                 }
                 ensureFrontMatterIsPresent();
             }
-            var status = token.tokenStatus();
-            if (status == START)
+            else if (status == START)
             {
                 processText(level, startIndex, lineIndex);
                 startIndex = lineIndex;
