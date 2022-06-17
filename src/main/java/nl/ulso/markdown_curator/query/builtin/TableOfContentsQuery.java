@@ -45,7 +45,7 @@ public final class TableOfContentsQuery
             var builder = new StringBuilder();
             tocBuilder.sections.forEach(section ->
                     {
-                        var indentLevel = (section.level() - tocBuilder.minimumLevel) * 2;
+                        var indentLevel = (section.level() - tocBuilder.minimumLevel) * 4;
                         builder.append(" ".repeat(indentLevel))
                                 .append("- [[#")
                                 .append(section.anchor())

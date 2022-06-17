@@ -58,19 +58,19 @@ class TableOfContentsQueryTest
                         emptyMap(), """
                                 - [[#Two]]
                                 - [[#Three]]
-                                  - [[#Four]]
-                                  - [[#Five]]
+                                    - [[#Four]]
+                                    - [[#Five]]
                                 - [[#Six]]
                                 """
                 ),
                 Arguments.of(
                         Map.of("minimum-level", 1), """
                                 - [[#One]]
-                                  - [[#Two]]
-                                  - [[#Three]]
-                                    - [[#Four]]
-                                    - [[#Five]]
-                                  - [[#Six]]
+                                    - [[#Two]]
+                                    - [[#Three]]
+                                        - [[#Four]]
+                                        - [[#Five]]
+                                    - [[#Six]]
                                 """
                 ),
                 Arguments.of(

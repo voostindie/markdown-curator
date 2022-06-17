@@ -66,7 +66,7 @@ public final class BacklinksQuery
                         .collect(joining(", "));
                 if (!line.isEmpty())
                 {
-                    builder.append("  - ").append(line).append(lineSeparator());
+                    builder.append("    - ").append(line).append(lineSeparator());
                 }
             });
             return builder.toString();

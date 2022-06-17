@@ -50,9 +50,9 @@ class BacklinksQueryTest
                 Arguments.of("Home", "No results"),
                 Arguments.of("Foo", """
                         - [[Bar]]
-                          - [[Bar#Section|Section]]
+                            - [[Bar#Section|Section]]
                         - [[Baz]]
-                          - [[Baz#Foo|Foo]]
+                            - [[Baz#Foo|Foo]]
                         - [[Home]]
                         """),
                 Arguments.of("Bar", """
