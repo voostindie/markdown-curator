@@ -49,7 +49,7 @@ public class AlbumsQuery
                 .map(row -> "[[" + row.get("Title") + "]], " + row.get("Year")).toList());
     }
 
-    private static class AlbumFinder
+    static class AlbumFinder
             extends BreadthFirstVaultVisitor
     {
         private static final Pattern YEAR_PATTERN = compile("(\\d{4})");
@@ -63,6 +63,11 @@ public class AlbumsQuery
             this.artist = artist;
             this.reverse = reverse;
             this.albums = new ArrayList<>();
+        }
+
+        List<Map<String, String>> albums()
+        {
+            return Collections.unmodifiableList(albums);
         }
 
         @Override

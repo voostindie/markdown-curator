@@ -42,6 +42,7 @@ public class MusicCurator
         catalog.register(new AlbumsQuery(vault));
         catalog.register(new RecordingsQuery(vault));
         catalog.register(new MembersQuery(vault));
+        catalog.register(new iAWriterWorkaroundQuery(vault));
     }
 
     String reload(Document document)

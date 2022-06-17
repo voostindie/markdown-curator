@@ -40,17 +40,17 @@ class MusicCuratorTest
         softly.assertThat(statistics.folders()).isEqualTo(3);
         softly.assertThat(statistics.documents()).isEqualTo(13);
         softly.assertThat(statistics.frontMatters()).isEqualTo(13);
-        softly.assertThat(statistics.sections()).isEqualTo(37);
-        softly.assertThat(statistics.queries()).isEqualTo(14);
+        softly.assertThat(statistics.sections()).isEqualTo(39);
+        softly.assertThat(statistics.queries()).isEqualTo(16);
         softly.assertThat(statistics.codeBlocks()).isEqualTo(5);
-        softly.assertThat(statistics.texts()).isEqualTo(52);
+        softly.assertThat(statistics.texts()).isEqualTo(56);
     }
 
     @Test
     void queryCatalog()
     {
         QueryCatalog catalog = musicCurator.queryCatalog();
-        softly.assertThat(catalog.queries().size()).isEqualTo(8);
+        softly.assertThat(catalog.queries().size()).isEqualTo(9);
         Query dummy = catalog.query("dummy");
         QueryResult result = dummy.run(emptyQueryBlock());
         var markdown = result.toMarkdown();
@@ -63,7 +63,7 @@ class MusicCuratorTest
     void queries()
     {
         var queries = musicCurator.vault().findAllQueryBlocks();
-        softly.assertThat(queries.size()).isEqualTo(14);
+        softly.assertThat(queries.size()).isEqualTo(16);
     }
 
     @Test
@@ -150,7 +150,7 @@ class MusicCuratorTest
     {
         Map<QueryBlock, String> map = musicCurator.runAllQueries();
         // We expect only (and all) queries in "queries-blank" to have new output:
-        softly.assertThat(map.size()).isEqualTo(4);
+        softly.assertThat(map.size()).isEqualTo(5);
     }
 
     @Test

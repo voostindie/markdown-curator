@@ -6,13 +6,13 @@ import java.util.Map;
 import static java.lang.System.lineSeparator;
 import static java.util.Collections.unmodifiableList;
 
-class TableResult
+public class TableResult
         implements QueryResult
 {
     private final List<String> columns;
     private final List<Map<String, String>> rows;
 
-    public TableResult(List<String> columns, List<Map<String, String>> rows)
+    TableResult(List<String> columns, List<Map<String, String>> rows)
     {
         this.columns = unmodifiableList(columns);
         this.rows = unmodifiableList(rows);

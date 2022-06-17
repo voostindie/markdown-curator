@@ -35,3 +35,11 @@ document: Marillion
 -->
 Intentionally left blank...
 <!--/query-->
+
+## iA Writer workaround
+
+<!--query:ia
+artist: Marillion
+-->
+Intentionally left blank...
+<!--/query-->
