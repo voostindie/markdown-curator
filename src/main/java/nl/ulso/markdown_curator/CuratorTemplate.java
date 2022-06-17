@@ -297,7 +297,7 @@ public abstract class CuratorTemplate
         catch (InterruptedException e)
         {
             Thread.currentThread().interrupt();
-            throw new RuntimeException(e);
+            throw new CuratorException(e);
         }
     }
 
