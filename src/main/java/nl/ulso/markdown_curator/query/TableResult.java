@@ -78,7 +78,7 @@ class TableResult
         }
         for (Map<String, String> row : rows)
         {
-            for (var i = 0; i < width; i++)
+            for (var i = 0; i < width - 1; i++)
             {
                 widths[i] = Math.max(widths[i], row.getOrDefault(columns.get(i), "").length());
             }
