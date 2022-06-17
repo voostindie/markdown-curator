@@ -28,7 +28,9 @@ public class TableResult
         for (var i = 0; i < width; i++)
         {
             builder.append(" ");
-            builder.append(String.format("%-" + widths[i] + "s", capitalize(columns.get(i))));
+            var column = capitalize(columns.get(i));
+            builder.append(column);
+            builder.append(" ".repeat(Math.max(0, widths[i] - column.length())));
             builder.append(" |");
         }
         builder.append(lineSeparator());
@@ -45,8 +47,10 @@ public class TableResult
             builder.append("|");
             for (var i = 0; i < width; i++)
             {
-                builder.append(String.format(" %-" + widths[i] + "s",
-                        row.getOrDefault(columns.get(i), "")));
+                builder.append(" ");
+                var column = row.getOrDefault(columns.get(i), "");
+                builder.append(column);
+                builder.append(" ".repeat(Math.max(0, widths[i] - column.length())));
                 builder.append(" |");
             }
             builder.append(lineSeparator());
