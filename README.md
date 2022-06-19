@@ -12,25 +12,15 @@ See the [CHANGELOG](CHANGELOG.md) for releases and the roadmap.
 ## TL;DR
 
 - This is a Java 17+ library and small application framework for processing directories of Markdown documents.
-- It is especially well suited for Obsidian vaults.
+- It is especially well suited for Obsidian vaults and iA Writer libraries.
 - It detects queries in the documents, runs them, and writes back the results.
 - As an application, it monitors and processes directories in the background.
 
 Okay, that probably doesn't tell you much.
 
-## Obsidian users: Ye be warned!
-
-If you're an Obsidian user, then note that most of the things this library does can also be achieved using plugins, like [Dataview](https://github.com/blacksmithgu/obsidian-dataview). I do not like those kinds of plugins. I believe they defeat Obsidian's purpose. For me Obsidian is all about storing knowledge in *portable* Markdown files. Sprinkling those same files with code (queries) that only Obsidian with a specific plugin installed can understand is not the right idea, I think.
-
-With this library I have the best of both worlds: portable Markdown and "dynamic" content. Query output is embedded in the documents as Markdown content. As far as Obsidian concerns, this tool is not even there. 
-
-On the other hand, Obsidian plugins are much easier to install and use. This library requires you to get your hands dirty with Java. You must build your own Java application. That's not for everyone.
-
-Shouldn't I have built this library as an Obsidian plugin itself? Maybe. Probably. But, I didn't. Why not? Because I'm sure my use of Markdown will outlive my use of Obsidian. Also, being able to change files in a vault with any editor *and* have this library still work in the background leads to fewer surprises.
-
 ## The 5-minute introduction
 
-This is a Java library and application framework that can spin up a daemon. This daemon can monitor one or more directories of Markdown documents, like [Obsidian](https://obsidian.md) vaults. Based on changes happening in the directories, it detects and runs queries embedded in the documents, generates Markdown output for these queries and embeds this output in the documents themselves.
+This is a Java library and application framework that can spin up a daemon. This daemon can monitor one or more directories of Markdown documents, like [Obsidian](https://obsidian.md) vaults or [iA Writer](https://ia.net/writer) libraries. Based on changes happening in the directories, it detects and runs queries embedded in the documents, generates Markdown output for these queries and embeds this output in the documents themselves.
 
 Here's an example of what you can write in a Markdown document:
 
@@ -55,11 +45,23 @@ Don't know which queries are available? Simply put a blank query in your content
 <!--/query-->
 ```
 
-By default, this tool provides just a couple of built-in generic queries: `backlinks`, `list`, `table` and `toc`. To make this tool really useful, you will want to create your own queries. 
+By default, this tool provides just a couple of built-in generic queries: `backlinks`, `deadlinks`, `list`, `table` and `toc`. To make this tool more useful, you will want to create your own queries. 
 
-To use this library, you have to configure your own application, define this tool as a dependency, and code your own curator and custom queries. See further on for an example.
+To use this library, you have to code your own Java application, define this tool as a dependency, and implement your own curator and custom queries. See further on for an example.
 
 The [music](src/test/resources/music/README.md) test suite provides examples of what this tool can do and how it works. The test code contains a [MusicCurator](src/test/java/nl/ulso/markdown_curator/MusicCurator.java) that can serve as an example for building your own curator, on top of your own vault.
+
+## Obsidian users: Ye be warned!
+
+If you're an Obsidian user, then note that most of the things this library does can also be achieved using plugins, like [Dataview](https://github.com/blacksmithgu/obsidian-dataview). I do not like those kinds of plugins. I believe they defeat Obsidian's purpose. For me Obsidian is all about storing knowledge in *portable* Markdown files. Sprinkling those same files with code (queries) that only Obsidian with a specific plugin installed can understand is not the right idea, I think.
+
+With this library I have the best of both worlds: portable Markdown and "dynamic" content. Query output is embedded in the documents as Markdown content. As far as Obsidian concerns, this tool is not even there. 
+
+On the other hand, Obsidian plugins are much easier to install and use. This library requires you to get your hands dirty with Java. You must build your own Java application. That's not for everyone.
+
+Shouldn't I have built this library as an Obsidian plugin itself? Maybe. Probably. But, I didn't. Why not? Because I'm sure my use of Markdown will outlive my use of Obsidian. Also, being able to change files in a vault with any editor *and* have this library still work in the background leads to fewer surprises.
+
+Case in point: with the June 2022 release of [iA Writer 6](https://ia.net/writer) and its support for wikilinks, mostly compatible with Obsidian's, there's now a truly native and focused macOS app for personal knowledge management. iA Writer has far fewer bells and whistles than Obsidian, but that's *exactly* why I happen to like it so much. And because I do not depend on Obsidian-specific plugins for my content, I can easily switch between them at will and even use them simultaneously.
 
 ## "Vincent Flavored Markdown"
 
@@ -69,7 +71,7 @@ This tool is specifically written for a variant of Markdown that I call *Vincent
 - For headers only ATX (`#`) headers are used, without the optional closing sequence of `#`s. Setext-style headers are not supported.
 - Headers are always aligned to the left margin.
 - Code blocks are always surrounded with backticks, not indented.
-- Internal links - links to other documents in the same repository - use double square brackets. (`[[Like this]]`). The link always points to a file name within the repository. (This is what Obsidian does.)
+- Internal links - links to other documents in the same repository - use double square brackets. (`[[Like this]]`). The link always points to a file name within the repository. (This is what Obsidian and iA Writer do.)
 - File names are considered to be globally unique within the repository.    Surprises might happen otherwise.
 - The document's title is, in this order of preference:
 	- The title of the first level 1 header, if present and at the top of the document.
@@ -101,8 +103,9 @@ I have some ideas to extend this further in order to make query construction eas
 - Create a new Java artifact
 - Create and publish a custom curator.
 - Create and register one or more queries.
+- Create your own custom data models.
 
-## Create a new Java artifact
+### Create a new Java artifact
 
 - Copy the `template-application` in this repository to a new directory.
 - Update the `pom.xml` in your copy:
@@ -111,7 +114,7 @@ I have some ideas to extend this further in order to make query construction eas
 
 A `mvn clean package` and `java -jar target/my-markdown-curator.jar` should result in the application starting up and exiting immediately, telling you that it can't find any curators.
 
-## Create and publish a custom curator
+### Create and publish a custom curator
 
 - Implement the `Curator` interface, by subclassing the `CuratorTemplate` class.
 - Implement the `CuratorFactory` interface.
@@ -124,9 +127,24 @@ Try changing a file in any Markdown document in your document repository now. Fo
     <!--query:toc-->
     <!--/query-->
 
-## Create and register one or more queries
+### Create and register one or more queries
 
 - Implement the `Query` interface.
 - Register the query in your `CuratorTemplate` subclass, in `registerQueries`.
 
 Rebooting your application should result in the availability of the new queries.
+
+### Create your own custom data models
+
+Once you've implemented a couple of queries you might run into one or two issues:
+
+1. **Duplication**. Extracting specific values from documents might be complex, and might be needed across queries.
+2. **Heavy processing**. Running many queries across large data sets on every change, no matter how small, can be CPU intensive.
+
+To work around this you can create your own data models, which you can then build your queries upon.
+
+To do so, implement the `DataModel` interface, register it in your curator and share it with your own queries. Whenever a change is detected, the curator requests your data models to update themselves accordingly, through the `vaultChanged` method. 
+
+By extending the `DataModelTemplate` class you get full refreshes basically for free, and an easy way to process events in a more granular fashion, if so desired: simply override the `process` methods of choice and provide your own implementation.
+
+As an example of a simple custom data model, see the built-in `LinksModel`, which is reused by the `backlinks` and `deadlinks` queries.
