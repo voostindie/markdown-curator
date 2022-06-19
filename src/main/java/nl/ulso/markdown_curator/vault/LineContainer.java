@@ -17,6 +17,7 @@ import static java.util.Objects.requireNonNull;
  * make for a convenient API.
  */
 abstract class LineContainer
+    implements Visitable
 {
     private final List<String> lines;
     private Document document;

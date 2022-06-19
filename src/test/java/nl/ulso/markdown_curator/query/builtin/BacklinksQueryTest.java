@@ -36,7 +36,7 @@ class BacklinksQueryTest
     {
         var vault = testVault();
         var document = vault.resolveDocumentInPath(documentName);
-        BacklinksModel model = new BacklinksModel(vault);
+        var model = new LinksModel(vault);
         model.vaultChanged(vaultRefreshed());
         var query = new BacklinksQuery(model);
         QueryDefinitionStub definition = new QueryDefinitionStub(query, document);

@@ -28,6 +28,7 @@ class MusicCuratorTest
     void constructSystem()
     {
         musicCurator = new MusicCurator();
+        musicCurator.runOnce();
     }
 
     @Test
@@ -50,7 +51,7 @@ class MusicCuratorTest
     void queryCatalog()
     {
         QueryCatalog catalog = musicCurator.queryCatalog();
-        softly.assertThat(catalog.queries().size()).isEqualTo(9);
+        softly.assertThat(catalog.queries().size()).isEqualTo(10);
         Query dummy = catalog.query("dummy");
         QueryResult result = dummy.run(emptyQueryBlock());
         var markdown = result.toMarkdown();
@@ -150,7 +151,11 @@ class MusicCuratorTest
     {
         Map<QueryBlock, String> map = musicCurator.runAllQueries();
         // We expect only (and all) queries in "queries-blank" to have new output:
-        softly.assertThat(map.size()).isEqualTo(5);
+        var list = map.keySet().stream()
+                .map(block -> block.document().name())
+                .filter(name -> !name.contentEquals("queries-blank"))
+                .toList();
+        softly.assertThat(list).isEmpty();
     }
 
     @Test

@@ -16,12 +16,12 @@ import static nl.ulso.markdown_curator.vault.Section.createAnchor;
 public final class BacklinksQuery
         implements Query
 {
-    private final BacklinksModel backlinksModel;
+    private final LinksModel linksModel;
     private static final String DOCUMENT_PROPERTY = "document";
 
-    public BacklinksQuery(BacklinksModel backlinksModel)
+    public BacklinksQuery(LinksModel linksModel)
     {
-        this.backlinksModel = backlinksModel;
+        this.linksModel = linksModel;
     }
 
     @Override
@@ -48,7 +48,7 @@ public final class BacklinksQuery
     {
         var documentName = definition.configuration()
                 .string(DOCUMENT_PROPERTY, definition.document().name());
-        var links = backlinksModel.linksFor(documentName).stream()
+        var links = linksModel.incomingLinksFor(documentName).stream()
                 .map(this::convertLink)
                 .distinct()
                 .collect(groupingBy(InternalLink::targetDocument));

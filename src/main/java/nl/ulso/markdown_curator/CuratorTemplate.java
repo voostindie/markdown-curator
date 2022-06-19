@@ -88,7 +88,7 @@ public abstract class CuratorTemplate
 
     private Set<DataModel> createDefaultDataModels(Vault vault)
     {
-        return Set.of(new BacklinksModel(vault));
+        return Set.of(new LinksModel(vault));
     }
 
     protected abstract Set<DataModel> createDataModels(Vault vault);
@@ -100,7 +100,8 @@ public abstract class CuratorTemplate
         queryCatalog.register(new TableOfContentsQuery());
         queryCatalog.register(new ListQuery(vault));
         queryCatalog.register(new TableQuery(vault));
-        queryCatalog.register(new BacklinksQuery(dataModels.get(BacklinksModel.class)));
+        queryCatalog.register(new BacklinksQuery(dataModels.get(LinksModel.class)));
+        queryCatalog.register(new DeadLinksQuery(dataModels.get(LinksModel.class)));
     }
 
     protected abstract void registerQueries(
@@ -117,6 +118,7 @@ public abstract class CuratorTemplate
     @Override
     public final void run()
     {
+        refreshAllDataModels(vaultRefreshed());
         vault.setVaultChangedCallback(this);
         vault.watchForChanges();
     }
@@ -157,7 +159,7 @@ public abstract class CuratorTemplate
         Collection<QueryBlock> queryBlocks = vault.findAllQueryBlocks();
         if (LOGGER.isDebugEnabled())
         {
-            LOGGER.debug("Re-running {} queries", queryBlocks.size());
+            LOGGER.debug("Running {} queries", queryBlocks.size());
         }
         runInParallel(queryBlocks, queryBlock -> {
             var query = queryCatalog.query(queryBlock.queryName());

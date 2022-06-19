@@ -7,12 +7,11 @@ import java.util.Optional;
  * Represents a folder, containing documents and other folders.
  */
 public interface Folder
+    extends Visitable
 {
     Folder parent();
 
     String name();
-
-    void accept(VaultVisitor visitor);
 
     Collection<Folder> folders();
 
