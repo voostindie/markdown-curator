@@ -36,6 +36,8 @@ class QueryResultTest
         softly.assertThat(table.toMarkdown()).isEqualTo("""
                 | 1 | 2 |
                 | - | - |
+                
+                (*0 results*)
                 """);
     }
 
@@ -52,6 +54,8 @@ class QueryResultTest
                 | No Time To Die | 2021 |
                 | Spectre        | 2015 |
                 | Skyfall        | 2012 |
+
+                (*3 results*)
                 """);
     }
 
@@ -66,6 +70,8 @@ class QueryResultTest
                 | Title |
                 | ----- |
                 |       |
+
+                (*1 result*)
                 """);
     }
 

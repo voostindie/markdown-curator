@@ -185,7 +185,6 @@ public abstract class CuratorTemplate
                 {
                     LOGGER.debug("Query result change detected in document: {}",
                             queryBlock.document());
-                    output = applyiAWriterWorkaroundIfNeeded(result, output);
                     writeQueue.put(queryBlock, output);
                 }
             }
@@ -236,21 +235,6 @@ public abstract class CuratorTemplate
         {
             out.println(lines.get(i));
         }
-    }
-
-    /**
-     * iA Writer doesn't preview tables well if they are directly followed by an HTML comment
-     * (&lt;--/query--&gt;). Workaround: in case of a table, insert an extra newline at the end.
-     * <p/>
-     * Once (if) iA Writer fixes this little wart, this workaround can be removed.
-     */
-    private String applyiAWriterWorkaroundIfNeeded(QueryResult result, String output)
-    {
-        if (result instanceof TableResult)
-        {
-            output += "\n";
-        }
-        return output;
     }
 
     final FileSystemVault vault()

@@ -49,6 +49,8 @@ class TableQueryTest
                                 | ---- |
                                 | [[M]] |
                                 | [[V]] |
+                                
+                                (*2 results*)
                                 """
                 ),
                 Arguments.of(
@@ -57,6 +59,8 @@ class TableQueryTest
                                 | ----- | ---- |
                                 | [[M]] | 1977-11-11 |
                                 | [[V]] | 1976-11-30 |
+
+                                (*2 results*)
                                 """
                 ),
                 Arguments.of(
@@ -69,6 +73,8 @@ class TableQueryTest
                                 | 2003-08-05 | [[Y]] |
                                 | 1977-11-11 | [[M]] |
                                 | 1976-11-30 | [[V]] |
+
+                                (*3 results*)
                                 """
                 ),
                 Arguments.of(

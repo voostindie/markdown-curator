@@ -55,6 +55,14 @@ public class TableResult
             }
             builder.append(lineSeparator());
         }
+        builder.append(lineSeparator());
+        var label = rows.size() == 1 ? "result" : "results";
+        builder.append("(*")
+                .append(rows.size())
+                .append(" ")
+                .append(label)
+                .append("*)")
+                .append(lineSeparator());
         return builder.toString();
     }
 
