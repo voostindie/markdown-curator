@@ -99,7 +99,8 @@ public class Application
     ExecutorService runCuratorsInSeparateThreads(List<Provider<CuratorFactory>> providers)
     {
         var executor = Executors.newFixedThreadPool(providers.size());
-        providers.forEach(provider -> executor.submit(callable(() -> {
+        providers.forEach(provider -> executor.submit(callable(() ->
+        {
             var factory = provider.get();
             var name = factory.name();
             currentThread().setName(name);

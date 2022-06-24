@@ -41,7 +41,8 @@ public final class TableOfContentsQuery
         var maximumLevel = configuration.integer("maximum-level", 6);
         var tocBuilder = new TableOfContentsBuilder(minimumLevel, maximumLevel);
         definition.document().accept(tocBuilder);
-        return () -> {
+        return () ->
+        {
             var builder = new StringBuilder();
             tocBuilder.sections.forEach(section ->
                     {

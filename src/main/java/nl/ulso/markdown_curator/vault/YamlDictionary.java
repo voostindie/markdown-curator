@@ -7,7 +7,6 @@ import org.snakeyaml.engine.v2.api.LoadSettings;
 import org.snakeyaml.engine.v2.exceptions.YamlEngineException;
 
 import java.time.LocalDate;
-import java.time.format.DateTimeParseException;
 import java.util.*;
 
 import static java.lang.String.join;
@@ -105,16 +104,10 @@ final class YamlDictionary
         {
             return dateCache.get(property);
         }
-        var dates = safeGetList(property, String.class).stream().map(string -> {
-            try
-            {
-                return LocalDate.parse(string);
-            }
-            catch (DateTimeParseException e)
-            {
-                return null;
-            }
-        }).filter(Objects::nonNull).toList();
+        var dates = safeGetList(property, String.class).stream()
+                .map(LocalDates::parseDateOrNull)
+                .filter(Objects::nonNull)
+                .toList();
         dateCache.put(property, dates.isEmpty() ? emptyList() : dates);
         return listOfDates(property);
     }

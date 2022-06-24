@@ -18,12 +18,12 @@ public class FolderStub
         this.name = name;
     }
 
-    public void addFolder(String name)
+    public Folder addFolder(String name)
     {
-        folders.put(name, new FolderStub(this, name));
+        return folders.put(name, new FolderStub(this, name));
     }
 
-    public void addDocumentInPath(String path, String content)
+    public Document addDocumentInPath(String path, String content)
     {
         int index = 0;
         int length = path.length();
@@ -41,7 +41,7 @@ public class FolderStub
             index = folderEnd + 1;
         }
         var documentName = path.substring(index);
-        folder.addDocument(documentName, content);
+        return folder.addDocument(documentName, content);
     }
 
     public Document addDocument(String name, String content)

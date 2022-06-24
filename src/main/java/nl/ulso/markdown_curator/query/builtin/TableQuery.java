@@ -28,7 +28,7 @@ public final class TableQuery
     public String description()
     {
         return "Generates a sorted table of pages, with optional front matter fields in " +
-                "additional columns.";
+               "additional columns.";
     }
 
     @Override
@@ -56,7 +56,8 @@ public final class TableQuery
         var finder = new PageFinder(folder, recurse);
         vault.accept(finder);
         var table = new ArrayList<>(finder.pages().stream()
-                .map(document -> {
+                .map(document ->
+                {
                     Map<String, String> row = new HashMap<>();
                     row.put("Name", document.link());
                     var frontMatter = document.frontMatter();

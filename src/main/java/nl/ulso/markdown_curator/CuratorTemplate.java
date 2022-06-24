@@ -140,7 +140,8 @@ public abstract class CuratorTemplate
         {
             LOGGER.debug("Refreshing {} data models", models.size());
         }
-        runInParallel(models, model -> {
+        runInParallel(models, model ->
+        {
             if (LOGGER.isTraceEnabled())
             {
                 LOGGER.trace("Refreshing data model: {}", model.getClass().getSimpleName());
@@ -161,7 +162,8 @@ public abstract class CuratorTemplate
         {
             LOGGER.debug("Running {} queries", queryBlocks.size());
         }
-        runInParallel(queryBlocks, queryBlock -> {
+        runInParallel(queryBlocks, queryBlock ->
+        {
             var query = queryCatalog.query(queryBlock.queryName());
             if (LOGGER.isTraceEnabled())
             {

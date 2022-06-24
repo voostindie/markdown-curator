@@ -41,7 +41,8 @@ public final class HelpQuery
     {
         var queryName = definition.configuration().string("name", "help");
         var query = catalog.query(queryName);
-        return () -> {
+        return () ->
+        {
             var builder = new StringBuilder();
             builder.append("### ")
                     .append(queryName)

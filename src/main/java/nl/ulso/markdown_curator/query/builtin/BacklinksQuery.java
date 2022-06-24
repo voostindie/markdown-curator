@@ -56,9 +56,11 @@ public final class BacklinksQuery
         {
             return empty();
         }
-        return () -> {
+        return () ->
+        {
             var builder = new StringBuilder();
-            links.keySet().stream().sorted().forEach(document -> {
+            links.keySet().stream().sorted().forEach(document ->
+            {
                 builder.append("- [[").append(document).append("]]").append(lineSeparator());
                 var line = links.get(document).stream()
                         .filter(link -> link.targetAnchor().isPresent())

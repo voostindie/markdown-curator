@@ -165,7 +165,8 @@ public final class FileSystemVault
         if (isDocument(eventAbsolutePath))
         {
             var name = documentName(eventAbsolutePath);
-            return parent.document(name).map(document -> {
+            return parent.document(name).map(document ->
+            {
                 LOGGER.info("Document deleted: {}", name);
                 parent.removeDocument(name);
                 return documentRemoved(document);
@@ -174,7 +175,8 @@ public final class FileSystemVault
         else
         {
             var name = folderName(eventAbsolutePath);
-            return parent.folder(name).map(folder -> {
+            return parent.folder(name).map(folder ->
+            {
                 LOGGER.info("Folder deleted: {}", name);
                 parent.removeFolder(name);
                 return folderRemoved(folder);

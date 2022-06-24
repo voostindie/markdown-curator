@@ -2,8 +2,6 @@ package nl.ulso.markdown_curator.query.builtin;
 
 import nl.ulso.markdown_curator.query.QueryDefinitionStub;
 import nl.ulso.markdown_curator.vault.VaultStub;
-import org.assertj.core.api.SoftAssertions;
-import org.assertj.core.api.junit.jupiter.InjectSoftAssertions;
 import org.assertj.core.api.junit.jupiter.SoftAssertionsExtension;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -19,9 +17,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 @ExtendWith(SoftAssertionsExtension.class)
 class BacklinksQueryTest
 {
-    @InjectSoftAssertions
-    private SoftAssertions softly;
-
     @Test
     void configurationOptions()
     {
@@ -32,14 +27,24 @@ class BacklinksQueryTest
 
     @ParameterizedTest
     @MethodSource("provideConfigurations")
-    void configurations(String documentName, String expectedOutput)
+    void queryBacklinks(String documentName, String expectedOutput)
     {
-        var vault = testVault();
+        var vault = new VaultStub();
+        vault.addDocumentInPath("Home", "[[Foo]], [[Bar]] and [[Baz]]\n");
+        vault.addDocumentInPath("Foo", "[[Bar]]]]");
+        vault.addDocumentInPath("Bar", """
+                ## Section
+                                
+                [[Foo]]
+                """);
+        vault.addDocumentInPath("Baz", """
+                ## [[Foo]]
+                """);
         var document = vault.resolveDocumentInPath(documentName);
         var model = new LinksModel(vault);
         model.vaultChanged(vaultRefreshed());
         var query = new BacklinksQuery(model);
-        QueryDefinitionStub definition = new QueryDefinitionStub(query, document);
+        var definition = new QueryDefinitionStub(query, document);
         var result = query.run(definition);
         assertThat(result.toMarkdown()).isEqualTo(expectedOutput);
     }
@@ -63,21 +68,5 @@ class BacklinksQueryTest
                         - [[Home]]
                         """)
         );
-    }
-
-    private VaultStub testVault()
-    {
-        var vault = new VaultStub();
-        vault.addDocumentInPath("Home", "[[Foo]], [[Bar]] and [[Baz]]\n");
-        vault.addDocumentInPath("Foo", "[[Bar]]]]");
-        vault.addDocumentInPath("Bar", """
-                ## Section
-                                
-                [[Foo]]
-                """);
-        vault.addDocumentInPath("Baz", """
-                ## [[Foo]]
-                """);
-        return vault;
     }
 }
