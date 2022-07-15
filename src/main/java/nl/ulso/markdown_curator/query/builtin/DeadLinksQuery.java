@@ -2,6 +2,7 @@ package nl.ulso.markdown_curator.query.builtin;
 
 import nl.ulso.markdown_curator.query.*;
 
+import javax.inject.Inject;
 import java.util.Map;
 
 import static nl.ulso.markdown_curator.query.QueryResult.empty;
@@ -13,6 +14,7 @@ public final class DeadLinksQuery
     private final LinksModel linksModel;
     private static final String DOCUMENT_PROPERTY = "document";
 
+    @Inject
     public DeadLinksQuery(LinksModel linksModel)
     {
         this.linksModel = linksModel;

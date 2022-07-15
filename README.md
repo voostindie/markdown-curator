@@ -49,7 +49,7 @@ By default, this tool provides just a couple of built-in generic queries: `backl
 
 To use this library, you have to code your own Java application, define this tool as a dependency, and implement your own curator and custom queries. See further on for an example.
 
-The [music](src/test/resources/music/README.md) test suite provides examples of what this tool can do and how it works. The test code contains a [MusicCurator](src/test/java/nl/ulso/markdown_curator/MusicCurator.java) that can serve as an example for building your own curator, on top of your own vault.
+The [music](src/test/resources/music/README.md) test suite provides examples of what this tool can do and how it works. The test code contains a [MusicCuratorModule](src/test/java/nl/ulso/markdown_curator/MusicCuratorModule.java) that can serve as an example for building your own curator, on top of your own vault.
 
 ## Obsidian users: Ye be warned!
 
@@ -116,11 +116,10 @@ A `mvn clean package` and `java -jar target/my-markdown-curator.jar` should resu
 
 ### Create and publish a custom curator
 
-- Implement the `Curator` interface, by subclassing the `CuratorTemplate` class.
-- Implement the `CuratorFactory` interface.
-- Add your implementation to `src/main/resources/META-INF/services/nl.ulso.markdown_curator.CuratorFactory`.
+- Extend the `CuratorModule` base class.
+- Add your implementation to `src/main/resources/META-INF/services/nl.ulso.markdown_curator.CuratorModule`.
 
-A `mvn clean package` and `java -jar target/myproject.jar` should result in the application starting up and staying up, monitoring the directory you provided in your own custom `Curator`.
+A `mvn clean package` and `java -jar target/myproject.jar` should result in the application starting up and staying up, monitoring the directory you provided in your own custom curator.
 
 Try changing a file in any Markdown document in your document repository now. For example, add the `toc` query. Magic should happen!
 
@@ -130,7 +129,7 @@ Try changing a file in any Markdown document in your document repository now. Fo
 ### Create and register one or more queries
 
 - Implement the `Query` interface.
-- Register the query in your `CuratorTemplate` subclass, in `registerQueries`.
+- Register the query in your `CuratorModule` subclass, with `registerQuery`.
 
 Rebooting your application should result in the availability of the new queries.
 
@@ -143,7 +142,9 @@ Once you've implemented a couple of queries you might run into one or two issues
 
 To work around this you can create your own data models, which you can then build your queries upon.
 
-To do so, implement the `DataModel` interface, register it in your curator and share it with your own queries. Whenever a change is detected, the curator requests your data models to update themselves accordingly, through the `vaultChanged` method. 
+To do so, implement the `DataModel` interface, register it in your curator module and share it with your own queries. Whenever a change is detected, the curator requests your data models to update themselves accordingly, through the `vaultChanged` method. 
+
+**IMPORTANT**: make sure your data models are registered as `@Singleton`s!
 
 By extending the `DataModelTemplate` class you get full refreshes basically for free, and an easy way to process events in a more granular fashion, if so desired: simply override the `process` methods of choice and provide your own implementation.
 

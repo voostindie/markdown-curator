@@ -1,11 +1,15 @@
 package nl.ulso.markdown_curator.vault;
 
+import com.google.inject.Inject;
 import io.methvin.watcher.DirectoryChangeEvent;
 import io.methvin.watcher.DirectoryWatcher;
 import io.methvin.watcher.hashing.FileHasher;
+import nl.ulso.markdown_curator.DocumentPathResolver;
+import nl.ulso.markdown_curator.VaultPath;
 import nl.ulso.markdown_curator.vault.event.VaultChangedEvent;
 import org.slf4j.Logger;
 
+import javax.inject.Singleton;
 import java.io.IOException;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
@@ -25,9 +29,10 @@ import static org.slf4j.LoggerFactory.getLogger;
  * in memory. From then on it watches all folders and subfolders for changes using the file system's
  * {@link WatchService}.
  */
+@Singleton
 public final class FileSystemVault
         extends FileSystemFolder
-        implements Vault
+        implements Vault, DocumentPathResolver
 {
     private static final Logger LOGGER = getLogger(FileSystemVault.class);
 
@@ -35,17 +40,8 @@ public final class FileSystemVault
     private final DirectoryWatcher watcher;
     private VaultChangedCallback callback;
 
-    public FileSystemVault(Path absolutePath)
-            throws IOException
-    {
-        // This forces the directory watcher to deduce which WatchService to use.
-        // On macOS, this results in a native, non-polling service. Nice and fast.
-        // However, this service doesn't work with the JimFS filesystem, used in tests.
-        // That's what the other constructor is for.
-        this(absolutePath, null);
-    }
-
-    public FileSystemVault(Path absolutePath, WatchService watchService)
+    @Inject
+    public FileSystemVault(@VaultPath Path absolutePath, WatchServiceHolder watchServiceHolder)
             throws IOException
     {
         super(absolutePath.toString());
@@ -56,7 +52,7 @@ public final class FileSystemVault
         this.watcher = DirectoryWatcher.builder()
                 .path(absolutePath)
                 .listener(this::processFileSystemEvent)
-                .watchService(watchService)
+                .watchService(watchServiceHolder.watchService)
                 .fileHasher(FileHasher.LAST_MODIFIED_TIME)
                 .build();
         if (LOGGER.isInfoEnabled())
@@ -65,6 +61,22 @@ public final class FileSystemVault
             LOGGER.info("Read vault {} into memory with {} folders and {} documents", name(),
                     statistics.folders(), statistics.documents());
         }
+    }
+
+    public FileSystemVault(Path absolutePath)
+            throws IOException
+    {
+        // This forces the directory watcher to deduce itself which WatchService to use.
+        // On macOS, this results in a native, non-polling service. Nice and fast.
+        // However, this service doesn't work with the JimFS filesystem, used in tests.
+        // That's why there's a constructor for an "optional" WatchService.
+        this(absolutePath, new WatchServiceHolder());
+    }
+
+    static class WatchServiceHolder
+    {
+        @Inject(optional = true)
+        WatchService watchService = null;
     }
 
     @Override

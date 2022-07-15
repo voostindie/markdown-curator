@@ -2,6 +2,7 @@ package nl.ulso.markdown_curator.query.builtin;
 
 import nl.ulso.markdown_curator.query.*;
 
+import javax.inject.Inject;
 import java.util.Map;
 
 import static java.lang.System.lineSeparator;
@@ -11,6 +12,7 @@ public final class HelpQuery
 {
     private final QueryCatalog catalog;
 
+    @Inject
     public HelpQuery(QueryCatalog catalog)
     {
         this.catalog = catalog;

@@ -4,10 +4,13 @@ import nl.ulso.markdown_curator.DataModelTemplate;
 import nl.ulso.markdown_curator.vault.*;
 import nl.ulso.markdown_curator.vault.event.*;
 
+import javax.inject.Inject;
+import javax.inject.Singleton;
 import java.util.*;
 
 import static java.util.Collections.emptyList;
 
+@Singleton
 public final class LinksModel
         extends DataModelTemplate
 {
@@ -16,6 +19,7 @@ public final class LinksModel
     private final Map<String, List<InternalLink>> outgoingLinks;
     private final Map<String, List<InternalLink>> incomingLinks;
 
+    @Inject
     public LinksModel(Vault vault)
     {
         this.vault = vault;

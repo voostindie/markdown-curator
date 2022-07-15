@@ -3,6 +3,7 @@ package nl.ulso.markdown_curator;
 import nl.ulso.markdown_curator.query.*;
 import nl.ulso.markdown_curator.vault.*;
 
+import javax.inject.Inject;
 import java.util.*;
 
 import static java.util.Comparator.comparing;
@@ -13,6 +14,7 @@ public class MembersQuery
 {
     private final Vault vault;
 
+    @Inject
     public MembersQuery(Vault vault)
     {
         this.vault = vault;

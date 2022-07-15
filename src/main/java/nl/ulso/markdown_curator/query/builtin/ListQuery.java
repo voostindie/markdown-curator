@@ -4,6 +4,7 @@ import nl.ulso.markdown_curator.query.*;
 import nl.ulso.markdown_curator.vault.Document;
 import nl.ulso.markdown_curator.vault.Vault;
 
+import javax.inject.Inject;
 import java.util.ArrayList;
 import java.util.Map;
 
@@ -16,6 +17,7 @@ public final class ListQuery
 {
     private final Vault vault;
 
+    @Inject
     public ListQuery(Vault vault)
     {
         this.vault = vault;

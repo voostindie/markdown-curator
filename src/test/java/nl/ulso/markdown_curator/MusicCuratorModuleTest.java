@@ -1,7 +1,9 @@
 package nl.ulso.markdown_curator;
 
+import com.google.inject.Injector;
 import nl.ulso.markdown_curator.query.*;
 import nl.ulso.markdown_curator.vault.*;
+import nl.ulso.markdown_curator.vault.event.VaultChangedEvent;
 import org.assertj.core.api.SoftAssertions;
 import org.assertj.core.api.junit.jupiter.InjectSoftAssertions;
 import org.assertj.core.api.junit.jupiter.SoftAssertionsExtension;
@@ -10,16 +12,22 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 import java.io.IOException;
+import java.nio.file.Files;
 import java.util.Map;
 
+import static com.google.inject.Guice.createInjector;
 import static nl.ulso.markdown_curator.vault.ElementCounter.countAll;
 import static nl.ulso.markdown_curator.vault.QueryBlockTest.emptyQueryBlock;
+import static nl.ulso.markdown_curator.vault.event.VaultChangedEvent.*;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.fail;
 
 @ExtendWith(SoftAssertionsExtension.class)
-class MusicCuratorTest
+class MusicCuratorModuleTest
 {
-    private MusicCurator musicCurator;
+    private Injector injector;
+    private Curator musicCurator;
+    private DocumentPathResolver documentPathResolver;
 
     @InjectSoftAssertions
     private SoftAssertions softly;
@@ -27,31 +35,32 @@ class MusicCuratorTest
     @BeforeEach
     void constructSystem()
     {
-        musicCurator = new MusicCurator();
-        musicCurator.runOnce();
+        injector = createInjector(new MusicCuratorModule());
+        musicCurator = injector.getInstance(Curator.class);
+        documentPathResolver = injector.getInstance(DocumentPathResolver.class);
     }
 
     @Test
     void statistics()
     {
-        var vault = musicCurator.vault();
+        var vault = injector.getInstance(Vault.class);
         assertThat(vault.name()).endsWith("music");
         var statistics = countAll(vault);
         softly.assertThat(statistics.vaults()).isEqualTo(1);
         softly.assertThat(statistics.folders()).isEqualTo(3);
         softly.assertThat(statistics.documents()).isEqualTo(13);
         softly.assertThat(statistics.frontMatters()).isEqualTo(13);
-        softly.assertThat(statistics.sections()).isEqualTo(39);
-        softly.assertThat(statistics.queries()).isEqualTo(16);
+        softly.assertThat(statistics.sections()).isEqualTo(37);
+        softly.assertThat(statistics.queries()).isEqualTo(14);
         softly.assertThat(statistics.codeBlocks()).isEqualTo(5);
-        softly.assertThat(statistics.texts()).isEqualTo(56);
+        softly.assertThat(statistics.texts()).isEqualTo(52);
     }
 
     @Test
     void queryCatalog()
     {
-        QueryCatalog catalog = musicCurator.queryCatalog();
-        softly.assertThat(catalog.queries().size()).isEqualTo(10);
+        QueryCatalog catalog = injector.getInstance(QueryCatalog.class);
+        softly.assertThat(catalog.queries().size()).isEqualTo(9);
         Query dummy = catalog.query("dummy");
         QueryResult result = dummy.run(emptyQueryBlock());
         var markdown = result.toMarkdown();
@@ -63,8 +72,8 @@ class MusicCuratorTest
     @Test
     void queries()
     {
-        var queries = musicCurator.vault().findAllQueryBlocks();
-        softly.assertThat(queries.size()).isEqualTo(16);
+        var queries = injector.getInstance(Vault.class).findAllQueryBlocks();
+        softly.assertThat(queries.size()).isEqualTo(14);
     }
 
     @Test
@@ -143,12 +152,13 @@ class MusicCuratorTest
                 softly.assertThat(section).isEqualTo(currentSection);
             }
         };
-        musicCurator.vault().accept(visitor);
+        injector.getInstance(Vault.class).accept(visitor);
     }
 
     @Test
     void runAllQueries()
     {
+        musicCurator.vaultChanged(vaultRefreshed());
         Map<QueryBlock, String> map = musicCurator.runAllQueries();
         // We expect only (and all) queries in "queries-blank" to have new output:
         var list = map.keySet().stream()
@@ -162,10 +172,11 @@ class MusicCuratorTest
     void writeDocument()
             throws IOException
     {
-        var original = musicCurator.vault().document("queries-blank").orElseThrow();
-        var expected = musicCurator.vault().document("queries-expected").orElseThrow();
+        var vault = injector.getInstance(Vault.class);
+        var original = vault.document("queries-blank").orElseThrow();
+        var expected = vault.document("queries-expected").orElseThrow();
         musicCurator.runOnce();
-        var update = musicCurator.reload(original);
+        var update = Files.readString(documentPathResolver.resolveAbsolutePath(original)).trim();
         assertThat(update).isEqualTo(expected.content());
     }
 }

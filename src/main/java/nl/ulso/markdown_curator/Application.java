@@ -1,5 +1,6 @@
 package nl.ulso.markdown_curator;
 
+import com.google.inject.Guice;
 import org.slf4j.Logger;
 
 import java.io.IOException;
@@ -9,6 +10,7 @@ import java.util.ServiceLoader.Provider;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import static com.google.inject.Guice.createInjector;
 import static java.lang.System.getProperty;
 import static java.lang.System.lineSeparator;
 import static java.lang.Thread.currentThread;
@@ -49,8 +51,8 @@ public class Application
             LOGGER.error("Couldn't write PID. Another Markdown Curator is running. Exiting.");
             return;
         }
-        var providers = ServiceLoader.load(CuratorFactory.class).stream().toList();
-        if (providers.isEmpty())
+        var modules = ServiceLoader.load(CuratorModule.class).stream().map(Provider::get).toList();
+        if (modules.isEmpty())
         {
             LOGGER.error("No curators are available in the system. Nothing to do!");
             return;
@@ -61,7 +63,7 @@ public class Application
             LOGGER.info("Press Ctrl+C to stop");
             LOGGER.info("-".repeat(76));
         }
-        var executor = runCuratorsInSeparateThreads(providers);
+        var executor = runCuratorsInSeparateThreads(modules);
         executor.shutdown();
     }
 
@@ -96,19 +98,18 @@ public class Application
         }
     }
 
-    ExecutorService runCuratorsInSeparateThreads(List<Provider<CuratorFactory>> providers)
+    ExecutorService runCuratorsInSeparateThreads(List<CuratorModule> modules)
     {
-        var executor = Executors.newFixedThreadPool(providers.size());
-        providers.forEach(provider -> executor.submit(callable(() ->
+        var executor = Executors.newFixedThreadPool(modules.size());
+        modules.forEach(module -> executor.submit(callable(() ->
         {
-            var factory = provider.get();
-            var name = factory.name();
+            var name = module.name();
             currentThread().setName(name);
             LOGGER.debug("Instantiating curator: {}", name);
             Curator curator = null;
             try
             {
-                curator = factory.createCurator();
+                curator = createInjector(module).getInstance(Curator.class);
             }
             catch (Exception e)
             {

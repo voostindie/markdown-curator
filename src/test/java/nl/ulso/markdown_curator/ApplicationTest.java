@@ -66,31 +66,15 @@ class ApplicationTest
     @Test
     void oneThreadPerCurator()
     {
-        List<Provider<CuratorFactory>> providers = List.of(new MusicCuratorFactoryProvider());
-        var executor = new Application(null).runCuratorsInSeparateThreads(providers);
+        List<CuratorModule> modules = List.of(new MusicCuratorModule());
+        var executor = new Application(null).runCuratorsInSeparateThreads(modules);
         softly.assertThat(executor).isInstanceOf(ThreadPoolExecutor.class);
         var threadPoolExecutor = (ThreadPoolExecutor) executor;
-        softly.assertThat(threadPoolExecutor.getActiveCount()).isEqualTo(providers.size());
+        softly.assertThat(threadPoolExecutor.getActiveCount()).isEqualTo(modules.size());
     }
 
     private Path tempPidPath()
     {
         return Path.of(getProperty("java.io.tmpdir"), "markdown-curator-temp.pid");
-    }
-
-    private static class MusicCuratorFactoryProvider
-            implements Provider<CuratorFactory>
-    {
-        @Override
-        public Class<? extends CuratorFactory> type()
-        {
-            return MusicCuratorFactory.class;
-        }
-
-        @Override
-        public MusicCuratorFactory get()
-        {
-            return new MusicCuratorFactory();
-        }
     }
 }

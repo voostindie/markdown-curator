@@ -6,9 +6,10 @@ import org.assertj.core.api.junit.jupiter.SoftAssertionsExtension;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
-import java.util.Map;
+import java.util.*;
 
 import static java.util.Collections.emptyMap;
+import static java.util.Collections.emptySet;
 import static nl.ulso.markdown_curator.query.QueryResult.error;
 import static nl.ulso.markdown_curator.vault.QueryBlockTest.emptyQueryBlock;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -22,7 +23,7 @@ class InMemoryQueryCatalogTest
     @Test
     void emptyCatalog()
     {
-        var catalog = new InMemoryQueryCatalog();
+        var catalog = new InMemoryQueryCatalog(emptySet());
         softly.assertThat(catalog.isEmpty()).isTrue();
         var specification = catalog.query("invalid");
         softly.assertThat(specification.name()).isEqualTo("invalid");
@@ -33,24 +34,13 @@ class InMemoryQueryCatalogTest
     }
 
     @Test
-    void registerQueryOnce()
-    {
-        var query = new DummyQuery("q");
-        var catalog = new InMemoryQueryCatalog();
-        catalog.register(query);
-        softly.assertThat(catalog.query("q")).isSameAs(query);
-        softly.assertThat(catalog.isEmpty()).isFalse();
-    }
-
-    @Test
     void registerQueriesSameNameOverwrites()
     {
-        var q1 = new DummyQuery("q");
-        var q2 = new DummyQuery("q");
-        var catalog = new InMemoryQueryCatalog();
-        catalog.register(q1);
-        catalog.register(q2);
-        assertThat(catalog.query("q")).isSameAs(q2);
+        Set<Query> set = new HashSet<>();
+        set.add(new DummyQuery("q"));
+        set.add(new DummyQuery("q"));
+        var catalog = new InMemoryQueryCatalog(set);
+        assertThat(catalog.queries().size()).isEqualTo(2);
     }
 
     private static class DummyQuery

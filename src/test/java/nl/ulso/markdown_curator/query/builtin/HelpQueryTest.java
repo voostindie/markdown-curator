@@ -7,6 +7,9 @@ import org.assertj.core.api.junit.jupiter.SoftAssertionsExtension;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
+import java.util.Set;
+
+import static java.util.Collections.emptySet;
 import static nl.ulso.markdown_curator.vault.QueryBlockTest.emptyQueryBlock;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -20,7 +23,7 @@ class HelpQueryTest
     @Test
     void helpQuery()
     {
-        var catalog = new InMemoryQueryCatalog();
+        var catalog = new InMemoryQueryCatalog(emptySet());
         var result = catalog.query("help").run(emptyQueryBlock()).toMarkdown();
         assertThat(result)
                 .contains("### help")

@@ -2,23 +2,37 @@ package nl.ulso.markdown_curator;
 
 import com.google.common.jimfs.Configuration;
 import com.google.common.jimfs.Jimfs;
+import com.google.inject.Provides;
 import nl.ulso.markdown_curator.vault.FileSystemVault;
 
 import java.io.IOException;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
 
-abstract class InMemoryCuratorTemplate
-        extends CuratorTemplate
+abstract class InMemoryCuratorModule
+        extends CuratorModule
 {
-    protected FileSystemVault copyVaultToMemory(Path sourceRoot, String targetPath)
-            throws IOException
+    protected Path copyVaultToMemory(Path sourceRoot, String targetPath)
     {
         var configuration = Configuration.unix().toBuilder().build();
         var targetFileSystem = Jimfs.newFileSystem(configuration);
         var targetRoot = targetFileSystem.getPath(targetPath);
-        Files.walkFileTree(sourceRoot, new RecursiveCopier(sourceRoot, targetRoot));
-        return new FileSystemVault(targetRoot, targetFileSystem.newWatchService());
+        try
+        {
+            Files.walkFileTree(sourceRoot, new RecursiveCopier(sourceRoot, targetRoot));
+        }
+        catch (IOException e)
+        {
+            throw new IllegalStateException("Couldn't copy filesystem into memory", e);
+        }
+        return targetRoot;
+    }
+
+    @Provides
+    public WatchService watchService(@VaultPath Path vaultPath)
+            throws IOException
+    {
+        return vaultPath.getFileSystem().newWatchService();
     }
 
     /**

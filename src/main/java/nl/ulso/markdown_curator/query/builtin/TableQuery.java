@@ -3,6 +3,7 @@ package nl.ulso.markdown_curator.query.builtin;
 import nl.ulso.markdown_curator.query.*;
 import nl.ulso.markdown_curator.vault.Vault;
 
+import javax.inject.Inject;
 import java.util.*;
 
 import static java.util.Collections.reverse;
@@ -13,6 +14,7 @@ public final class TableQuery
 {
     private final Vault vault;
 
+    @Inject
     public TableQuery(Vault vault)
     {
         this.vault = vault;
