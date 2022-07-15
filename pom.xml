@@ -17,6 +17,12 @@
     </properties>
 
     <dependencies>
+        <!-- Guice for modularity -->
+        <dependency>
+            <groupId>com.google.inject</groupId>
+            <artifactId>guice</artifactId>
+            <version>5.1.0</version>
+        </dependency>
         <!-- Native directory watching for macOS -->
         <dependency>
             <groupId>io.methvin</groupId>
