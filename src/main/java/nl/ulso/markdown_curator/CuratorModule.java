@@ -13,15 +13,30 @@ import static com.google.inject.multibindings.Multibinder.newSetBinder;
 
 /**
  * Base Guice module for curators. Every new curator must extend this class and register it for
- * the Java {@link java.util.ServiceLoader} API (in
- * {@code META-INF/services/nl.ulso.markdown_curator.CuratorModule}).
+ * the Java {@link java.util.ServiceLoader} API in
+ * {@code META-INF/services/nl.ulso.markdown_curator.CuratorModule}.
+ * <p/>
+ * Curators must do 4 things:
+ * <p/>
+ * <ol>
+ *     <li>Provide a {@link #name()}. This name is used for logging. A single application can
+ *     run multiple curators, and each curator uses multiple threads. The curator's name is used
+ *     in each of the curator's threads.</li>
+ *     <li>Provide a {@link #vaultPath()}. This is the path on disk to the vault (repository)
+ *     with Markdown files.</li>
+ *     <li>(Optional): register custom {@link DataModel}s. Use either the
+ *     {@link #registerDataModel(Class)} or {@link #dataModelBinder()} method for that. Note that
+ *     every data model must be a singleton.</li>
+ *     <li>(Optional): register custom {@link Query}s. Use either the {@link #registerQuery(Class)}
+ *     or {@link #queryBinder()} method for that.</li>
+ * </ol>
  * <p/>
  * Curator modules can use the full power of Guice to configure themselves however they want. This
  * base class sets up the base system and some helper methods.
  * <p/>
- * I might want to split up this module in two independent separate modules later. For now I
+ * (Note: I might want to split up this module in two independent separate modules later. For now I
  * actually like how I can use a single module to enforce subclasses to provide the required
- * information in the right way.
+ * information in the right way.)
  */
 public abstract class CuratorModule
         extends AbstractModule
@@ -49,6 +64,7 @@ public abstract class CuratorModule
         bind(Vault.class).to(FileSystemVault.class);
         bind(DocumentPathResolver.class).to(FileSystemVault.class);
         bind(QueryCatalog.class).to(InMemoryQueryCatalog.class);
+        bind(Curator.class);
         registerDataModel(LinksModel.class);
         registerQuery(BacklinksQuery.class);
         registerQuery(DeadLinksQuery.class);
@@ -78,12 +94,12 @@ public abstract class CuratorModule
 
     protected final void registerQuery(Class<? extends Query> queryClass)
     {
-        queryBinder.addBinding().to(queryClass);
+        queryBinder().addBinding().to(queryClass);
     }
 
     protected final void registerDataModel(Class<? extends DataModel> dataModelClass)
     {
-        dataModelBinder.addBinding().to(dataModelClass);
+        dataModelBinder().addBinding().to(dataModelClass);
     }
 
     protected final Path pathInUserHome(String... path)

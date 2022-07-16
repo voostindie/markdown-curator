@@ -3,7 +3,6 @@ package nl.ulso.markdown_curator;
 import com.google.common.jimfs.Configuration;
 import com.google.common.jimfs.Jimfs;
 import com.google.inject.Provides;
-import nl.ulso.markdown_curator.vault.FileSystemVault;
 
 import java.io.IOException;
 import java.nio.file.*;
