@@ -12,8 +12,11 @@ import nl.ulso.markdown_curator.vault.event.VaultChangedEvent;
  * journal data model that keeps a timeline of all activities across all documents in the vault,
  * and queries on top of that model that select specific parts of the journal.
  * <p/>
- * Important: data models are accessed by queries running in parallel and must therefore be
- * thread-safe. Note however that each refresh is guaranteed to be synchronized.
+ * <b>Important</b>: data models must be singletons (e.g. marked with
+ * {@link javax.inject.Singleton})! They are accessed by queries running in parallel and must
+ * therefore be thread-safe. The {@link Curator} ensures that writes are synchronized, and that
+ * no reads can happen while writes are in progress. This of course only holds if in your
+ * implementations you don't update any internal data structures on <em>read</em>.
  */
 public interface DataModel
 {

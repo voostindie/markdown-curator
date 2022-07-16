@@ -15,7 +15,6 @@ import static nl.ulso.markdown_curator.vault.event.VaultChangedEvent.vaultRefres
  * other {@code process} methods to make the refresh more granular and efficient for that
  * specific event.
  */
-
 public abstract class DataModelTemplate
         implements DataModel, VaultChangedEventHandler
 {

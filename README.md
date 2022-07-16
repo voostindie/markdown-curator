@@ -20,7 +20,7 @@ Okay, that probably doesn't tell you much.
 
 ## The 5-minute introduction
 
-This is a Java library and application framework that can spin up a daemon. This daemon can monitor one or more directories of Markdown documents, like [Obsidian](https://obsidian.md) vaults or [iA Writer](https://ia.net/writer) libraries. Based on changes happening in the directories, it detects and runs queries embedded in the documents, generates Markdown output for these queries and embeds this output in the documents themselves.
+This is a Java library and application framework that spins up a daemon. This daemon monitors one or more directories of Markdown documents, like [Obsidian](https://obsidian.md) vaults or [iA Writer](https://ia.net/writer) libraries. Based on changes happening in the directories, it detects and runs queries embedded in the documents, generates Markdown output for these queries and embeds this output in the documents themselves.
 
 Here's an example of what you can write in a Markdown document:
 
@@ -47,7 +47,7 @@ Don't know which queries are available? Simply put a blank query in your content
 
 By default, this tool provides just a couple of built-in generic queries: `backlinks`, `deadlinks`, `list`, `table` and `toc`. To make this tool more useful, you will want to create your own queries. 
 
-To use this library, you have to code your own Java application, define this tool as a dependency, and implement your own curator and custom queries. See further on for an example.
+To use this library, you have to code your own Java application, define this tool as a dependency, and implement your own curator, custom data models and custom queries. See further on for an example.
 
 The [music](src/test/resources/music/README.md) test suite provides examples of what this tool can do and how it works. The test code contains a [MusicCuratorModule](src/test/java/nl/ulso/markdown_curator/MusicCuratorModule.java) that can serve as an example for building your own curator, on top of your own vault.
 
