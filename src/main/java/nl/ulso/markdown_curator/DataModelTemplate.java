@@ -1,8 +1,8 @@
 package nl.ulso.markdown_curator;
 
 import nl.ulso.markdown_curator.vault.event.*;
-
-import javax.inject.Singleton;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import static nl.ulso.markdown_curator.vault.event.VaultChangedEvent.vaultRefreshed;
 
@@ -19,6 +19,8 @@ import static nl.ulso.markdown_curator.vault.event.VaultChangedEvent.vaultRefres
 public abstract class DataModelTemplate
         implements DataModel, VaultChangedEventHandler
 {
+    private static final Logger LOGGER = LoggerFactory.getLogger(DataModelTemplate.class);
+
     /**
      * Fully refreshes the data model from the vault.
      */
@@ -34,6 +36,8 @@ public abstract class DataModelTemplate
     @Override
     public final void process(VaultRefreshed event)
     {
+        LOGGER.debug("Performing a full refresh on data model: {}",
+                this.getClass().getSimpleName());
         fullRefresh();
     }
 

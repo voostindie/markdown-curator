@@ -47,7 +47,7 @@ public class InMemoryQueryCatalog
         queries = unmodifiableMap(map);
         if (LOGGER.isDebugEnabled())
         {
-            LOGGER.debug("Initialized the query catalog with {} distinct queries", queries.size());
+            LOGGER.debug("Initialized query catalog with {} queries", queries.size());
         }
     }
 
