@@ -15,7 +15,7 @@ import java.util.Map;
 
 import static com.google.inject.Guice.createInjector;
 import static java.util.Collections.emptyMap;
-import static nl.ulso.markdown_curator.query.QueryResult.empty;
+import static nl.ulso.markdown_curator.query.QueryResult.emptyResult;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @ExtendWith(SoftAssertionsExtension.class)
@@ -90,7 +90,7 @@ class CuratorModuleTest
         public QueryResult run(QueryDefinition definition)
         {
             // Do nothing
-            return empty();
+            return emptyResult();
         }
     }
 }

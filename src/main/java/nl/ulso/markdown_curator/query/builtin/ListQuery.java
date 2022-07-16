@@ -9,7 +9,7 @@ import java.util.ArrayList;
 import java.util.Map;
 
 import static java.util.Collections.reverse;
-import static nl.ulso.markdown_curator.query.QueryResult.empty;
+import static nl.ulso.markdown_curator.query.QueryResult.emptyResult;
 import static nl.ulso.markdown_curator.query.QueryResult.unorderedList;
 
 public final class ListQuery
@@ -59,7 +59,7 @@ public final class ListQuery
         var list = new ArrayList<>(finder.pages().stream().map(Document::link).sorted().toList());
         if (list.isEmpty())
         {
-            return empty();
+            return emptyResult();
         }
         if (reverse)
         {

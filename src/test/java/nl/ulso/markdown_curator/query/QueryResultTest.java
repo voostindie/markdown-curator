@@ -8,6 +8,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 
 import java.util.*;
 
+import static nl.ulso.markdown_curator.query.QueryResult.emptyResult;
+
 @ExtendWith(SoftAssertionsExtension.class)
 class QueryResultTest
 {
@@ -25,8 +27,7 @@ class QueryResultTest
     @Test
     void empty()
     {
-        var empty = QueryResult.empty();
-        softly.assertThat(empty.toMarkdown()).isEqualTo("No results");
+        softly.assertThat(emptyResult().toMarkdown()).isEqualTo("No results");
     }
 
     @Test

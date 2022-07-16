@@ -5,7 +5,7 @@ import nl.ulso.markdown_curator.query.*;
 import javax.inject.Inject;
 import java.util.Map;
 
-import static nl.ulso.markdown_curator.query.QueryResult.empty;
+import static nl.ulso.markdown_curator.query.QueryResult.emptyResult;
 import static nl.ulso.markdown_curator.query.QueryResult.unorderedList;
 
 public final class DeadLinksQuery
@@ -47,7 +47,7 @@ public final class DeadLinksQuery
         var links = linksModel.deadLinksFor(documentName);
         if (links.isEmpty())
         {
-            return empty();
+            return emptyResult();
         }
         return unorderedList(links.stream().map(document -> "[[" + document + "]]").toList());
     }

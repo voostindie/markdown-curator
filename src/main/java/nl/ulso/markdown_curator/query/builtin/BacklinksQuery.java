@@ -11,7 +11,7 @@ import java.util.Optional;
 import static java.lang.System.lineSeparator;
 import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.joining;
-import static nl.ulso.markdown_curator.query.QueryResult.empty;
+import static nl.ulso.markdown_curator.query.QueryResult.emptyResult;
 import static nl.ulso.markdown_curator.vault.Section.createAnchor;
 
 public final class BacklinksQuery
@@ -56,7 +56,7 @@ public final class BacklinksQuery
                 .collect(groupingBy(InternalLink::targetDocument));
         if (links.isEmpty())
         {
-            return empty();
+            return emptyResult();
         }
         return () ->
         {

@@ -7,7 +7,7 @@ import javax.inject.Inject;
 import java.util.*;
 
 import static java.util.Collections.reverse;
-import static nl.ulso.markdown_curator.query.QueryResult.empty;
+import static nl.ulso.markdown_curator.query.QueryResult.emptyResult;
 
 public final class TableQuery
         implements Query
@@ -73,7 +73,7 @@ public final class TableQuery
                 .toList());
         if (table.isEmpty())
         {
-            return empty();
+            return emptyResult();
         }
         if (reverse)
         {
