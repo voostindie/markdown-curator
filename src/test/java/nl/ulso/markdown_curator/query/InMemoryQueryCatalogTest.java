@@ -39,7 +39,7 @@ class InMemoryQueryCatalogTest
         set.add(new DummyQuery("q"));
         set.add(new DummyQuery("q"));
         var catalog = new InMemoryQueryCatalog(set, new QueryResultFactory());
-        assertThat(catalog.queries().size()).isEqualTo(2);
+        assertThat(catalog.queries()).hasSize(2);
     }
 
     private static class DummyQuery

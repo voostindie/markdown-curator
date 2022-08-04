@@ -1,6 +1,5 @@
 package nl.ulso.markdown_curator;
 
-import com.google.inject.Guice;
 import org.slf4j.Logger;
 
 import java.io.IOException;
