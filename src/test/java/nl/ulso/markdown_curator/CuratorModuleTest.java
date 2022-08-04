@@ -2,8 +2,6 @@ package nl.ulso.markdown_curator;
 
 import nl.ulso.markdown_curator.query.*;
 import nl.ulso.markdown_curator.vault.event.VaultChangedEvent;
-import org.assertj.core.api.SoftAssertions;
-import org.assertj.core.api.junit.jupiter.InjectSoftAssertions;
 import org.assertj.core.api.junit.jupiter.SoftAssertionsExtension;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -15,15 +13,11 @@ import java.util.Map;
 
 import static com.google.inject.Guice.createInjector;
 import static java.util.Collections.emptyMap;
-import static nl.ulso.markdown_curator.query.QueryResult.emptyResult;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @ExtendWith(SoftAssertionsExtension.class)
 class CuratorModuleTest
 {
-    @InjectSoftAssertions
-    private SoftAssertions softly;
-
     @Test
     void createCuratorWithInjector()
     {
@@ -90,7 +84,7 @@ class CuratorModuleTest
         public QueryResult run(QueryDefinition definition)
         {
             // Do nothing
-            return emptyResult();
+            return () -> "";
         }
     }
 }

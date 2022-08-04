@@ -1,6 +1,7 @@
 package nl.ulso.markdown_curator.query.builtin;
 
 import nl.ulso.markdown_curator.query.QueryDefinitionStub;
+import nl.ulso.markdown_curator.query.QueryResultFactory;
 import nl.ulso.markdown_curator.vault.VaultStub;
 import org.assertj.core.api.junit.jupiter.SoftAssertionsExtension;
 import org.junit.jupiter.api.Test;
@@ -21,7 +22,7 @@ class ListQueryTest
     @Test
     void configurationOptions()
     {
-        var query = new ListQuery(null);
+        var query = new ListQuery(null, new QueryResultFactory());
         assertThat(query.supportedConfiguration()).containsOnlyKeys("folder", "recurse", "reverse");
     }
 
@@ -31,7 +32,7 @@ class ListQueryTest
     {
         var vault = testVault();
         var document = vault.resolveDocumentInPath("A/1");
-        var query = new ListQuery(vault);
+        var query = new ListQuery(vault, new QueryResultFactory());
         QueryDefinitionStub definition = new QueryDefinitionStub(query, document);
         configuration.forEach(definition::withConfiguration);
         var result = query.run(definition);

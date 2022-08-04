@@ -7,17 +7,18 @@ import javax.inject.Inject;
 import java.util.*;
 
 import static java.util.Comparator.comparing;
-import static nl.ulso.markdown_curator.query.QueryResult.unorderedList;
 
 public class RecordingsQuery
         implements Query
 {
     private final Vault vault;
+    private final QueryResultFactory resultFactory;
 
     @Inject
-    public RecordingsQuery(Vault vault)
+    public RecordingsQuery(Vault vault, QueryResultFactory resultFactory)
     {
         this.vault = vault;
+        this.resultFactory = resultFactory;
     }
 
     @Override
@@ -44,7 +45,7 @@ public class RecordingsQuery
         var song = definition.configuration().string("song", definition.document().name());
         var finder = new RecordingsFinder(song);
         vault.accept(finder);
-        return unorderedList(finder.recordings.stream()
+        return resultFactory.unorderedList(finder.recordings.stream()
                 .map(row ->
                         "Track " + row.get("Index") + " on [[" + row.get("Album") + "]]").toList());
     }
@@ -75,8 +76,8 @@ public class RecordingsQuery
         public void visit(Section section)
         {
             if (section.level() == 2
-                    && section.title().startsWith("Tracks")
-                    && section.fragments().size() > 0)
+                && section.title().startsWith("Tracks")
+                && section.fragments().size() > 0)
             {
                 section.fragments().get(0).accept(this);
             }

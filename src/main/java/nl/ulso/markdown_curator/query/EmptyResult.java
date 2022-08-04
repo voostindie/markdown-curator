@@ -3,15 +3,16 @@ package nl.ulso.markdown_curator.query;
 final class EmptyResult
         implements QueryResult
 {
-    static final EmptyResult INSTANCE = new EmptyResult();
+    private final String message;
 
-    private EmptyResult()
+    EmptyResult(String message)
     {
+        this.message = message;
     }
 
     @Override
     public String toMarkdown()
     {
-        return "No results";
+        return message;
     }
 }

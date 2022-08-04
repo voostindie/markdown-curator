@@ -11,19 +11,20 @@ import java.util.Optional;
 import static java.lang.System.lineSeparator;
 import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.joining;
-import static nl.ulso.markdown_curator.query.QueryResult.emptyResult;
 import static nl.ulso.markdown_curator.vault.Section.createAnchor;
 
 public final class BacklinksQuery
         implements Query
 {
     private final LinksModel linksModel;
+    private final QueryResultFactory resultFactory;
     private static final String DOCUMENT_PROPERTY = "document";
 
     @Inject
-    public BacklinksQuery(LinksModel linksModel)
+    public BacklinksQuery(LinksModel linksModel, QueryResultFactory resultFactory)
     {
         this.linksModel = linksModel;
+        this.resultFactory = resultFactory;
     }
 
     @Override
@@ -56,7 +57,7 @@ public final class BacklinksQuery
                 .collect(groupingBy(InternalLink::targetDocument));
         if (links.isEmpty())
         {
-            return emptyResult();
+            return resultFactory.empty();
         }
         return () ->
         {

@@ -7,18 +7,19 @@ import java.util.Map;
 import static java.lang.System.lineSeparator;
 import static java.util.Collections.emptyMap;
 import static java.util.Comparator.comparing;
-import static nl.ulso.markdown_curator.query.QueryResult.error;
 
 public final class UnknownQuery
         implements Query
 {
     private final QueryCatalog catalog;
     private final String name;
+    private final QueryResultFactory resultFactory;
 
-    public UnknownQuery(QueryCatalog catalog, String name)
+    public UnknownQuery(QueryCatalog catalog, String name, QueryResultFactory resultFactory)
     {
         this.catalog = catalog;
         this.name = name;
+        this.resultFactory = resultFactory;
     }
 
     @Override
@@ -64,6 +65,6 @@ public final class UnknownQuery
         builder.append(lineSeparator())
                 .append("Use the 'help' query to get more information on a specific query.")
                 .append(lineSeparator());
-        return error(builder.toString());
+        return resultFactory.error(builder.toString());
     }
 }

@@ -11,11 +11,13 @@ public class TableResult
 {
     private final List<String> columns;
     private final List<Map<String, String>> rows;
+    private final String summaryText;
 
-    TableResult(List<String> columns, List<Map<String, String>> rows)
+    TableResult(List<String> columns, List<Map<String, String>> rows, String summaryText)
     {
         this.columns = unmodifiableList(columns);
         this.rows = unmodifiableList(rows);
+        this.summaryText = summaryText;
     }
 
     @Override
@@ -56,11 +58,8 @@ public class TableResult
             builder.append(lineSeparator());
         }
         builder.append(lineSeparator());
-        var label = rows.size() == 1 ? "result" : "results";
         builder.append("(*")
-                .append(rows.size())
-                .append(" ")
-                .append(label)
+                .append(summaryText)
                 .append("*)")
                 .append(lineSeparator());
         return builder.toString();

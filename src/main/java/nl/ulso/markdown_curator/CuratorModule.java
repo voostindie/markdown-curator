@@ -8,15 +8,17 @@ import nl.ulso.markdown_curator.vault.FileSystemVault;
 import nl.ulso.markdown_curator.vault.Vault;
 
 import java.nio.file.Path;
+import java.util.Locale;
 
 import static com.google.inject.multibindings.Multibinder.newSetBinder;
+import static java.util.Locale.ENGLISH;
 
 /**
  * Base Guice module for curators. Every new curator must extend this class and register it for
  * the Java {@link java.util.ServiceLoader} API in
  * {@code META-INF/services/nl.ulso.markdown_curator.CuratorModule}.
  * <p/>
- * Curators must do 4 things:
+ * Curators must do 5 things:
  * <p/>
  * <ol>
  *     <li>Provide a {@link #name()}. This name is used for logging. A single application can
@@ -24,6 +26,8 @@ import static com.google.inject.multibindings.Multibinder.newSetBinder;
  *     in each of the curator's threads.</li>
  *     <li>Provide a {@link #vaultPath()}. This is the path on disk to the vault (repository)
  *     with Markdown files.</li>
+ *     <li>Provide a {@link java.util.Locale}. This will be used for translations in normal
+ *     output. (Instructions and error messages are all in English, hard-coded.)</li>
  *     <li>(Optional): register custom {@link DataModel}s. Use either the
  *     {@link #registerDataModel(Class)} or {@link #dataModelBinder()} method for that. Note that
  *     every data model must be a singleton.</li>
@@ -55,6 +59,14 @@ public abstract class CuratorModule
      */
     public abstract Path vaultPath();
 
+    /**
+     * @return The locale to use for translations in normal output; this defaults to English.
+     */
+    public Locale locale()
+    {
+        return ENGLISH;
+    }
+
     @Override
     protected final void configure()
     {
@@ -62,8 +74,11 @@ public abstract class CuratorModule
         queryBinder = newSetBinder(binder(), Query.class);
         bind(Path.class).annotatedWith(VaultPath.class).toInstance(vaultPath());
         bind(Vault.class).to(FileSystemVault.class);
+        bind(Locale.class).toInstance(locale());
         bind(DocumentPathResolver.class).to(FileSystemVault.class);
         bind(QueryCatalog.class).to(InMemoryQueryCatalog.class);
+        bind(GeneralMessages.class).to(ResourceBundledGeneralMessages.class);
+        bind(QueryResultFactory.class);
         bind(Curator.class);
         registerDataModel(LinksModel.class);
         registerQuery(BacklinksQuery.class);

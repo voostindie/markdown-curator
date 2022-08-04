@@ -8,17 +8,18 @@ import java.util.*;
 import java.util.regex.Pattern;
 
 import static java.util.regex.Pattern.compile;
-import static nl.ulso.markdown_curator.query.QueryResult.unorderedList;
 
 public class AlbumsQuery
         implements Query
 {
     private final Vault vault;
+    private final QueryResultFactory resultFactory;
 
     @Inject
-    public AlbumsQuery(Vault vault)
+    public AlbumsQuery(Vault vault, QueryResultFactory resultFactory)
     {
         this.vault = vault;
+        this.resultFactory = resultFactory;
     }
 
     @Override
@@ -47,7 +48,7 @@ public class AlbumsQuery
         var reverse = definition.configuration().bool("reverse", false);
         var finder = new AlbumFinder(artist, reverse);
         vault.accept(finder);
-        return unorderedList(finder.albums.stream()
+        return resultFactory.unorderedList(finder.albums.stream()
                 .map(row -> "[[" + row.get("Title") + "]], " + row.get("Year")).toList());
     }
 
@@ -65,11 +66,6 @@ public class AlbumsQuery
             this.artist = artist;
             this.reverse = reverse;
             this.albums = new ArrayList<>();
-        }
-
-        List<Map<String, String>> albums()
-        {
-            return Collections.unmodifiableList(albums);
         }
 
         @Override
@@ -115,8 +111,8 @@ public class AlbumsQuery
         public void visit(Section section)
         {
             if (section.level() == 2
-                    && section.title().startsWith("About")
-                    && section.fragments().size() > 0)
+                && section.title().startsWith("About")
+                && section.fragments().size() > 0)
             {
                 section.fragments().get(0).accept(this);
             }

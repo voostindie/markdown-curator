@@ -1,6 +1,7 @@
 package nl.ulso.markdown_curator.query.builtin;
 
 import nl.ulso.markdown_curator.query.QueryDefinitionStub;
+import nl.ulso.markdown_curator.query.QueryResultFactory;
 import nl.ulso.markdown_curator.vault.VaultStub;
 import org.assertj.core.api.junit.jupiter.SoftAssertionsExtension;
 import org.junit.jupiter.api.Test;
@@ -20,7 +21,7 @@ class BacklinksQueryTest
     @Test
     void configurationOptions()
     {
-        var query = new BacklinksQuery(null);
+        var query = new BacklinksQuery(null, new QueryResultFactory());
         assertThat(query.supportedConfiguration())
                 .containsOnlyKeys("document");
     }
@@ -43,7 +44,7 @@ class BacklinksQueryTest
         var document = vault.resolveDocumentInPath(documentName);
         var model = new LinksModel(vault);
         model.vaultChanged(vaultRefreshed());
-        var query = new BacklinksQuery(model);
+        var query = new BacklinksQuery(model, new QueryResultFactory());
         var definition = new QueryDefinitionStub(query, document);
         var result = query.run(definition);
         assertThat(result.toMarkdown()).isEqualTo(expectedOutput);

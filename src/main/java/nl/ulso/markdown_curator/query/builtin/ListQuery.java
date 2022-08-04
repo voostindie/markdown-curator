@@ -9,18 +9,18 @@ import java.util.ArrayList;
 import java.util.Map;
 
 import static java.util.Collections.reverse;
-import static nl.ulso.markdown_curator.query.QueryResult.emptyResult;
-import static nl.ulso.markdown_curator.query.QueryResult.unorderedList;
 
 public final class ListQuery
         implements Query
 {
     private final Vault vault;
+    private final QueryResultFactory resultFactory;
 
     @Inject
-    public ListQuery(Vault vault)
+    public ListQuery(Vault vault, QueryResultFactory resultFactory)
     {
         this.vault = vault;
+        this.resultFactory = resultFactory;
     }
 
     @Override
@@ -57,14 +57,10 @@ public final class ListQuery
         var finder = new PageFinder(folder, recurse);
         vault.accept(finder);
         var list = new ArrayList<>(finder.pages().stream().map(Document::link).sorted().toList());
-        if (list.isEmpty())
-        {
-            return emptyResult();
-        }
         if (reverse)
         {
             reverse(list);
         }
-        return unorderedList(list);
+        return resultFactory.unorderedList(list);
     }
 }

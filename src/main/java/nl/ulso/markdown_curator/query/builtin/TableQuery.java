@@ -7,17 +7,18 @@ import javax.inject.Inject;
 import java.util.*;
 
 import static java.util.Collections.reverse;
-import static nl.ulso.markdown_curator.query.QueryResult.emptyResult;
 
 public final class TableQuery
         implements Query
 {
     private final Vault vault;
+    private final QueryResultFactory resultFactory;
 
     @Inject
-    public TableQuery(Vault vault)
+    public TableQuery(Vault vault, QueryResultFactory resultFactory)
     {
         this.vault = vault;
+        this.resultFactory = resultFactory;
     }
 
     @Override
@@ -71,10 +72,6 @@ public final class TableQuery
                 })
                 .sorted(Comparator.comparing(row -> row.get(sort)))
                 .toList());
-        if (table.isEmpty())
-        {
-            return emptyResult();
-        }
         if (reverse)
         {
             reverse(table);
@@ -88,6 +85,6 @@ public final class TableQuery
             columns.remove(i);
             columns.add(0, sort);
         }
-        return QueryResult.table(columns, table);
+        return resultFactory.table(columns, table);
     }
 }

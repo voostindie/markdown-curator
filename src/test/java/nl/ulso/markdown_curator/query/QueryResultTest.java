@@ -8,44 +8,38 @@ import org.junit.jupiter.api.extension.ExtendWith;
 
 import java.util.*;
 
-import static nl.ulso.markdown_curator.query.QueryResult.emptyResult;
-
 @ExtendWith(SoftAssertionsExtension.class)
 class QueryResultTest
 {
     @InjectSoftAssertions
     private SoftAssertions softly;
 
+    private final QueryResultFactory factory = new QueryResultFactory();
 
     @Test
     void error()
     {
-        var error = QueryResult.error("error");
+        var error = factory.error("error");
         softly.assertThat(error.toMarkdown()).contains("error");
     }
 
     @Test
     void empty()
     {
-        softly.assertThat(emptyResult().toMarkdown()).isEqualTo("No results");
+        softly.assertThat(factory.empty().toMarkdown()).isEqualTo("No results");
     }
 
     @Test
     void tableNoResults()
     {
-        var table = QueryResult.table(List.of("1", "2"), Collections.emptyList());
-        softly.assertThat(table.toMarkdown()).isEqualTo("""
-                | 1 | 2 |
-                | - | - |
-                
-                (*0 results*)
-                """);
+        var table = factory.table(List.of("1", "2"), Collections.emptyList());
+        softly.assertThat(table.toMarkdown()).isEqualTo("No results");
     }
 
     @Test
     void tableWithResults()
     {
-        var table = QueryResult.table(List.of("Title", "Year"),
+        var table = factory.table(List.of("Title", "Year"),
                 List.of(Map.of("Title", "No Time To Die", "Year", "2021"),
                         Map.of("Title", "Spectre", "Year", "2015"),
                         Map.of("Title", "Skyfall", "Year", "2012")));
@@ -63,7 +57,7 @@ class QueryResultTest
     @Test
     void tableWithMissingColumn()
     {
-        var table = QueryResult.table(
+        var table = factory.table(
                 List.of("Title"),
                 List.of(Map.of("Name", "No Time To Die"))
         );
@@ -79,14 +73,14 @@ class QueryResultTest
     @Test
     void listNoResults()
     {
-        var list = QueryResult.unorderedList(Collections.emptyList());
-        softly.assertThat(list.toMarkdown()).isBlank();
+        var list = factory.unorderedList(Collections.emptyList());
+        softly.assertThat(list.toMarkdown()).isEqualTo("No results");
     }
 
     @Test
     void listWithResults()
     {
-        var list = QueryResult.unorderedList(List.of("Foo", "Bar"));
+        var list = factory.unorderedList(List.of("Foo", "Bar"));
         softly.assertThat(list.toMarkdown()).isEqualTo("""
                 - Foo
                 - Bar

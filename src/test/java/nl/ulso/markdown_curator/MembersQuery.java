@@ -7,17 +7,18 @@ import javax.inject.Inject;
 import java.util.*;
 
 import static java.util.Comparator.comparing;
-import static nl.ulso.markdown_curator.query.QueryResult.unorderedList;
 
 public class MembersQuery
         implements Query
 {
     private final Vault vault;
+    private final QueryResultFactory resultFactory;
 
     @Inject
-    public MembersQuery(Vault vault)
+    public MembersQuery(Vault vault, QueryResultFactory resultFactory)
     {
         this.vault = vault;
+        this.resultFactory = resultFactory;
     }
 
     @Override
@@ -44,7 +45,7 @@ public class MembersQuery
         var band = definition.configuration().string("artist", definition.document().name());
         var finder = new MemberFinder(band);
         vault.accept(finder);
-        return unorderedList(finder.members.stream()
+        return resultFactory.unorderedList(finder.members.stream()
                 .map(row -> "[[" + row.get("Name") + "]]").toList());
     }
 
@@ -74,8 +75,8 @@ public class MembersQuery
         public void visit(Section section)
         {
             if (section.level() == 2
-                    && section.title().startsWith("About")
-                    && section.fragments().size() > 0)
+                && section.title().startsWith("About")
+                && section.fragments().size() > 0)
             {
                 section.fragments().get(0).accept(this);
             }

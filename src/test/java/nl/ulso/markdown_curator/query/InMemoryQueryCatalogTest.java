@@ -10,7 +10,6 @@ import java.util.*;
 
 import static java.util.Collections.emptyMap;
 import static java.util.Collections.emptySet;
-import static nl.ulso.markdown_curator.query.QueryResult.error;
 import static nl.ulso.markdown_curator.vault.QueryBlockTest.emptyQueryBlock;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -23,7 +22,7 @@ class InMemoryQueryCatalogTest
     @Test
     void emptyCatalog()
     {
-        var catalog = new InMemoryQueryCatalog(emptySet());
+        var catalog = new InMemoryQueryCatalog(emptySet(), new QueryResultFactory());
         softly.assertThat(catalog.isEmpty()).isTrue();
         var specification = catalog.query("invalid");
         softly.assertThat(specification.name()).isEqualTo("invalid");
@@ -39,7 +38,7 @@ class InMemoryQueryCatalogTest
         Set<Query> set = new HashSet<>();
         set.add(new DummyQuery("q"));
         set.add(new DummyQuery("q"));
-        var catalog = new InMemoryQueryCatalog(set);
+        var catalog = new InMemoryQueryCatalog(set, new QueryResultFactory());
         assertThat(catalog.queries().size()).isEqualTo(2);
     }
 
@@ -74,7 +73,7 @@ class InMemoryQueryCatalogTest
         @Override
         public QueryResult run(QueryDefinition definition)
         {
-            return error("Not implemented");
+            return () -> "Not implemented";
         }
     }
 }

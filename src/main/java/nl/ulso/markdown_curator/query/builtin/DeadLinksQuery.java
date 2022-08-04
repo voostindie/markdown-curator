@@ -5,19 +5,18 @@ import nl.ulso.markdown_curator.query.*;
 import javax.inject.Inject;
 import java.util.Map;
 
-import static nl.ulso.markdown_curator.query.QueryResult.emptyResult;
-import static nl.ulso.markdown_curator.query.QueryResult.unorderedList;
-
 public final class DeadLinksQuery
         implements Query
 {
     private final LinksModel linksModel;
+    private final QueryResultFactory resultFactory;
     private static final String DOCUMENT_PROPERTY = "document";
 
     @Inject
-    public DeadLinksQuery(LinksModel linksModel)
+    public DeadLinksQuery(LinksModel linksModel, QueryResultFactory resultFactory)
     {
         this.linksModel = linksModel;
+        this.resultFactory = resultFactory;
     }
 
     @Override
@@ -44,11 +43,9 @@ public final class DeadLinksQuery
     {
         var documentName = definition.configuration()
                 .string(DOCUMENT_PROPERTY, definition.document().name());
-        var links = linksModel.deadLinksFor(documentName);
-        if (links.isEmpty())
-        {
-            return emptyResult();
-        }
-        return unorderedList(links.stream().map(document -> "[[" + document + "]]").toList());
+        return resultFactory.unorderedList(
+                linksModel.deadLinksFor(documentName).stream()
+                        .map(document -> "[[" + document + "]]")
+                        .toList());
     }
 }

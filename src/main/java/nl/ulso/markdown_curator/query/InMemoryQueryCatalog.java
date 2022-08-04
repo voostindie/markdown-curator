@@ -25,10 +25,12 @@ public class InMemoryQueryCatalog
     private static final Logger LOGGER = getLogger(InMemoryQueryCatalog.class);
 
     private final Map<String, Query> queries;
+    private final QueryResultFactory resultFactory;
 
     @Inject
-    public InMemoryQueryCatalog(Set<Query> querySet)
+    public InMemoryQueryCatalog(Set<Query> querySet, QueryResultFactory resultFactory)
     {
+        this.resultFactory = resultFactory;
         Map<String, Query> map = new HashMap<>();
         var help = new HelpQuery(this);
         map.put(help.name(), help);
@@ -71,6 +73,6 @@ public class InMemoryQueryCatalog
         {
             return query;
         }
-        return new UnknownQuery(this, name);
+        return new UnknownQuery(this, name, resultFactory);
     }
 }
