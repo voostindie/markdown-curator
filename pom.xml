@@ -23,11 +23,12 @@
             <artifactId>guice</artifactId>
             <version>5.1.0</version>
         </dependency>
-        <!-- Native directory watching for macOS -->
+        <!-- Native directory watching for macOS
+             https://github.com/gmethvin/directory-watcher -->
         <dependency>
             <groupId>io.methvin</groupId>
             <artifactId>directory-watcher</artifactId>
-            <version>0.15.1</version>
+            <version>0.16.1</version>
         </dependency>
         <!-- Logging -->
         <dependency>
