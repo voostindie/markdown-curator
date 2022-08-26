@@ -149,3 +149,16 @@ To do so, implement the `DataModel` interface, register it in your curator modul
 By extending the `DataModelTemplate` class you get full refreshes basically for free, and an easy way to process events in a more granular fashion, if so desired: simply override the `process` methods of choice and provide your own implementation.
 
 As an example of a simple custom data model, see the built-in `LinksModel`, which is reused by the `backlinks` and `deadlinks` queries.
+
+## FAQ
+
+### Help! Changes to some files are not detected!
+
+Solution: set the environment to use the right language, e.g. `LC_CTYPE=UTF-8`.
+
+My personal experience:
+
+- When run from the command line, changes to all files were detected.
+- When run from within IntelliJ IDEA, changes to files with emoj's in their name where not detected.
+
+Adding the `LC_CTYPE` variable to the Run configuration environment fixed it. The command line already had it.
