@@ -30,12 +30,12 @@ public final class LinksModel
 
     List<InternalLink> incomingLinksFor(String documentName)
     {
-        return incomingLinks.computeIfAbsent(documentName, key -> emptyList());
+        return incomingLinks.getOrDefault(documentName, emptyList());
     }
 
     List<String> deadLinksFor(String documentName)
     {
-        return outgoingLinks.computeIfAbsent(documentName, key -> emptyList()).stream()
+        return outgoingLinks.getOrDefault(documentName, emptyList()).stream()
                 .map(InternalLink::targetDocument)
                 .filter(document -> !document.isBlank())
                 .filter(document -> !documents.contains(document))
