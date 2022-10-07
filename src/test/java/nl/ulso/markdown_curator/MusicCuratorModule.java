@@ -1,9 +1,7 @@
 package nl.ulso.markdown_curator;
 
-import com.google.inject.Provides;
-
-import java.io.IOException;
-import java.nio.file.*;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 /**
  * Module for testing. All testing is done in memory. All files in the "music" directory from this
@@ -34,5 +32,6 @@ public class MusicCuratorModule
         registerQuery(AlbumsQuery.class);
         registerQuery(MembersQuery.class);
         registerQuery(RecordingsQuery.class);
+        registerQuery(NoOpQuery.class);
     }
 }

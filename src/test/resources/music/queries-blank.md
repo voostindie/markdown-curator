@@ -35,3 +35,11 @@ document: Marillion
 -->
 Intentionally left blank...
 <!--/query-->
+
+## No-op
+
+<!--query:noop-->
+Content placed inside this query is left intact, because the query returns a
+"no-op". This allows queries to basically turn themselves off in some cases,
+without overwriting what was previously produced.
+<!--/query-->

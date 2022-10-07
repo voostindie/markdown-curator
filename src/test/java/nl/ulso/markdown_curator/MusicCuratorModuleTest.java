@@ -3,7 +3,6 @@ package nl.ulso.markdown_curator;
 import com.google.inject.Injector;
 import nl.ulso.markdown_curator.query.*;
 import nl.ulso.markdown_curator.vault.*;
-import nl.ulso.markdown_curator.vault.event.VaultChangedEvent;
 import org.assertj.core.api.SoftAssertions;
 import org.assertj.core.api.junit.jupiter.InjectSoftAssertions;
 import org.assertj.core.api.junit.jupiter.SoftAssertionsExtension;
@@ -18,9 +17,8 @@ import java.util.Map;
 import static com.google.inject.Guice.createInjector;
 import static nl.ulso.markdown_curator.vault.ElementCounter.countAll;
 import static nl.ulso.markdown_curator.vault.QueryBlockTest.emptyQueryBlock;
-import static nl.ulso.markdown_curator.vault.event.VaultChangedEvent.*;
+import static nl.ulso.markdown_curator.vault.event.VaultChangedEvent.vaultRefreshed;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.fail;
 
 @ExtendWith(SoftAssertionsExtension.class)
 class MusicCuratorModuleTest
@@ -50,17 +48,17 @@ class MusicCuratorModuleTest
         softly.assertThat(statistics.folders()).isEqualTo(3);
         softly.assertThat(statistics.documents()).isEqualTo(13);
         softly.assertThat(statistics.frontMatters()).isEqualTo(13);
-        softly.assertThat(statistics.sections()).isEqualTo(37);
-        softly.assertThat(statistics.queries()).isEqualTo(14);
+        softly.assertThat(statistics.sections()).isEqualTo(39);
+        softly.assertThat(statistics.queries()).isEqualTo(16);
         softly.assertThat(statistics.codeBlocks()).isEqualTo(5);
-        softly.assertThat(statistics.texts()).isEqualTo(52);
+        softly.assertThat(statistics.texts()).isEqualTo(56);
     }
 
     @Test
     void queryCatalog()
     {
         QueryCatalog catalog = injector.getInstance(QueryCatalog.class);
-        softly.assertThat(catalog.queries().size()).isEqualTo(9);
+        softly.assertThat(catalog.queries().size()).isEqualTo(10);
         Query dummy = catalog.query("dummy");
         QueryResult result = dummy.run(emptyQueryBlock());
         var markdown = result.toMarkdown();
@@ -73,7 +71,7 @@ class MusicCuratorModuleTest
     void queries()
     {
         var queries = injector.getInstance(Vault.class).findAllQueryBlocks();
-        softly.assertThat(queries.size()).isEqualTo(14);
+        softly.assertThat(queries.size()).isEqualTo(16);
     }
 
     @Test

@@ -1,9 +1,7 @@
 package nl.ulso.markdown_curator;
 
 import com.google.inject.Inject;
-import nl.ulso.markdown_curator.query.Query;
-import nl.ulso.markdown_curator.query.QueryCatalog;
-import nl.ulso.markdown_curator.query.QueryResult;
+import nl.ulso.markdown_curator.query.*;
 import nl.ulso.markdown_curator.vault.*;
 import nl.ulso.markdown_curator.vault.event.VaultChangedEvent;
 import org.slf4j.Logger;
@@ -124,7 +122,7 @@ public class Curator
                 LOGGER.trace("Running query '{}' in document: {}", query.name(),
                         queryBlock.document());
             }
-            QueryResult result = null;
+            final QueryResult result;
             try
             {
                 result = query.run(queryBlock);
@@ -134,16 +132,21 @@ public class Curator
                 LOGGER.warn(
                         "Ignoring output due to exception while running query '{}' in document: {}",
                         query.name(), queryBlock.document().name(), e);
+                return;
             }
-            if (result != null)
+            if (result instanceof NoOpResult)
             {
-                var output = result.toMarkdown().trim();
-                if (!queryBlock.result().contentEquals(output))
-                {
-                    LOGGER.debug("Query result change detected in document: {}",
-                            queryBlock.document());
-                    writeQueue.put(queryBlock, output);
-                }
+                LOGGER.debug(
+                        "Ignoring output due to no-op result for query '{}'  in document: {}",
+                        query.name(), queryBlock.document().name());
+                return;
+            }
+            var output = result.toMarkdown().trim();
+            if (!queryBlock.result().contentEquals(output))
+            {
+                LOGGER.debug("Query result change detected in document: {}",
+                        queryBlock.document());
+                writeQueue.put(queryBlock, output);
             }
         });
         LOGGER.debug("Write queue item count: {}", writeQueue.size());

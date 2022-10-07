@@ -1,7 +1,8 @@
 package nl.ulso.markdown_curator.query;
 
 import javax.inject.Inject;
-import java.util.*;
+import java.util.List;
+import java.util.Map;
 
 public final class QueryResultFactory
 {
@@ -27,7 +28,7 @@ public final class QueryResultFactory
     }
 
     /**
-     * Creates an error result; it add a level-3 "Error" header at the top.
+     * Creates an error result; it adds a level-3 "Error" header at the top.
      *
      * @param errorMessage The message to show in the error.
      * @return QueryResult that represents an error.
@@ -35,6 +36,18 @@ public final class QueryResultFactory
     public QueryResult error(String errorMessage)
     {
         return new ErrorResult(errorMessage);
+    }
+
+    /**
+     * Creates a no-op result; it throws an exception when asked for its Markdown content. When a
+     * query returns this output, the curator will do nothing and keep the existing content in
+     * place.
+     *
+     * @return QueryResult that represents a no-op.
+     */
+    public QueryResult noOp()
+    {
+        return new NoOpResult();
     }
 
     /**

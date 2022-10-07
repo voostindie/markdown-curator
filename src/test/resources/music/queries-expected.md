@@ -5,6 +5,7 @@ This document is used for testing: all queries are run after which it is persist
 - [[#Members]]
 - [[#Recordings]]
 - [[#Backlinks]]
+- [[#No-op]]
 <!--/query-->
 
 ## Albums
@@ -55,4 +56,12 @@ document: Marillion
     - [[Steve Hogarth#About|About]]
 - [[Steve Rothery]]
     - [[Steve Rothery#About|About]]
+<!--/query-->
+
+## No-op
+
+<!--query:noop-->
+Content placed inside this query is left intact, because the query returns a
+"no-op". This allows queries to basically turn themselves off in some cases,
+without overwriting what was previously produced.
 <!--/query-->
