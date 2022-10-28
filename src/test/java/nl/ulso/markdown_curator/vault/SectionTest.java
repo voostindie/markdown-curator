@@ -59,7 +59,7 @@ class SectionTest
     void cleanedUpAnchor()
     {
         var section = new Section(0, "# {foo} > [bar] ;!@", emptyList(), emptyList());
-        assertThat(section.anchor()).isEqualTo("foo bar");
+        assertThat(section.anchor()).isEqualTo("{foo} > bar ;!@");
     }
 
     @Test
