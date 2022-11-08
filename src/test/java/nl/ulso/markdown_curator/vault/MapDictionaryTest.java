@@ -75,4 +75,13 @@ class MapDictionaryTest
         var value = dictionary.listOfStrings("list");
         assertThat(value).isEmpty();
     }
+
+    @Test
+    void datePropertyPresent()
+    {
+        var dictionary = new MapDictionary(Map.of("date", "?"));
+        var value = dictionary.date("date", null);
+        assertThat(value).isNull();
+        assertThat(dictionary.hasProperty("date")).isTrue();
+    }
 }

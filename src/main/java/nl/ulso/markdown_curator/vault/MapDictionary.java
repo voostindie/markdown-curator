@@ -97,6 +97,12 @@ class MapDictionary
         return safeGetList(property, LocalDate.class);
     }
 
+    @Override
+    public boolean hasProperty(String property)
+    {
+        return map.containsKey(property);
+    }
+
     protected <T> T safeGet(String property, Class<? extends T> propertyClass, T defaultValue)
     {
         Object value = map.get(property);

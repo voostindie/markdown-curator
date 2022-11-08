@@ -80,4 +80,6 @@ public interface Dictionary
     List<Integer> listOfIntegers(String property);
 
     List<LocalDate> listOfDates(String property);
+
+    boolean hasProperty(String property);
 }

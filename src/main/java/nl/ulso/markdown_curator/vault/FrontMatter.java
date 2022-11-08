@@ -114,4 +114,10 @@ public final class FrontMatter
     {
         return dictionary.listOfDates(property);
     }
+
+    @Override
+    public boolean hasProperty(String property)
+    {
+        return dictionary.hasProperty(property);
+    }
 }

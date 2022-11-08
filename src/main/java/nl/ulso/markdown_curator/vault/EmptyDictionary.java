@@ -68,4 +68,10 @@ final class EmptyDictionary
     {
         return Collections.emptyList();
     }
+
+    @Override
+    public boolean hasProperty(String property)
+    {
+        return false;
+    }
 }
