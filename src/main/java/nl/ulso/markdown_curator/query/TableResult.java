@@ -2,13 +2,20 @@ package nl.ulso.markdown_curator.query;
 
 import java.util.List;
 import java.util.Map;
+import java.util.function.Predicate;
 
 import static java.lang.System.lineSeparator;
 import static java.util.Collections.unmodifiableList;
+import static java.util.regex.Pattern.compile;
 
 public class TableResult
         implements QueryResult
 {
+    private static final char NORMAL_HYPHEN = '-';
+    private static final char NON_BREAKING_HYPHEN = '‑';
+    private static final Predicate<String> DATE_PREDICATE =
+            compile("\\d{4}-\\d{2}-\\d{2}").asPredicate();
+
     private final List<String> columns;
     private final List<Map<String, String>> rows;
     private final String summaryText;
@@ -50,7 +57,8 @@ public class TableResult
             for (var i = 0; i < width; i++)
             {
                 builder.append(" ");
-                var column = row.getOrDefault(columns.get(i), "");
+                var column = applyObsidianFormattingWorkaround(
+                        row.getOrDefault(columns.get(i), ""));
                 builder.append(column);
                 builder.append(" ".repeat(Math.max(0, widths[i] - column.length())));
                 builder.append(" |");
@@ -63,6 +71,25 @@ public class TableResult
                 .append("*)")
                 .append(lineSeparator());
         return builder.toString();
+    }
+
+    /*
+     * The table formatting in Obsidian is such that it wraps along hyphens, which is correct most
+     * of the time, except when the colum is a date. In that case the dates might be wrapped. To
+     * prevent dates being wrapped this method replaces the normal hyphens with non-breaking
+     * hyphens. They look exactly the same visually, which is great when looking at the table
+     * in Markdown format.
+     *
+     * I'm aware that this workaround only applies if dates are formatted as "YYYY-MM-DD", which
+     * is what I do. For people formatting dates differently, this workaround simply doesn't work.
+     */
+    private String applyObsidianFormattingWorkaround(String column)
+    {
+        if (DATE_PREDICATE.test(column))
+        {
+            return column.replace(NORMAL_HYPHEN, NON_BREAKING_HYPHEN);
+        }
+        return column;
     }
 
     private String capitalize(String string)
