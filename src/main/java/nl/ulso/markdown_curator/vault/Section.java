@@ -5,6 +5,7 @@ import java.util.regex.Pattern;
 
 import static java.util.Objects.requireNonNull;
 import static java.util.regex.Pattern.compile;
+import static nl.ulso.emoji.EmojiFilter.stripEmojis;
 
 public final class Section
         extends FragmentContainer
@@ -18,6 +19,7 @@ public final class Section
 
     private final int level;
     private final String title;
+    private final String sortableTitle;
     private final String anchor;
 
     Section(int level, String title, List<String> lines, List<Fragment> fragments)
@@ -29,6 +31,7 @@ public final class Section
         }
         this.level = level;
         this.title = requireNonNull(title);
+        this.sortableTitle = stripEmojis(title).trim();
         this.anchor = createAnchor(title);
     }
 
@@ -77,6 +80,11 @@ public final class Section
     public String title()
     {
         return title;
+    }
+
+    public String sortableTitle()
+    {
+        return sortableTitle;
     }
 
     public String anchor()

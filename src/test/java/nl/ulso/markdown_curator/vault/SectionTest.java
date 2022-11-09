@@ -30,7 +30,7 @@ class SectionTest
                 .withPrefabValues(Section.class,
                         new Section(1, "1", emptyList(), emptyList()),
                         new Section(1, "2", emptyList(), emptyList()))
-                .withIgnoredFields("document", "section", "anchor")
+                .withIgnoredFields("document", "section", "anchor", "sortableTitle")
                 .verify();
     }
 
@@ -68,5 +68,13 @@ class SectionTest
         var section = new Section(0, "", emptyList(), emptyList());
         softly.assertThat(section.lines()).isEmpty();
         softly.assertThat(section.fragments()).isEmpty();
+    }
+
+    @Test
+    void sortableTitle()
+    {
+        var section = new Section(0, "🏃 Activity 😱", emptyList(), emptyList());
+        softly.assertThat(section.title()).isEqualTo("🏃 Activity 😱");
+        softly.assertThat(section.sortableTitle()).isEqualTo("Activity");
     }
 }

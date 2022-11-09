@@ -1,8 +1,10 @@
 package nl.ulso.markdown_curator.vault;
 
-import java.util.*;
+import java.util.List;
+import java.util.Objects;
 
 import static java.util.Objects.requireNonNull;
+import static nl.ulso.emoji.EmojiFilter.stripEmojis;
 
 /**
  * Represents a Markdown document. A document is broken down in a list of {@link Fragment}s.
@@ -19,6 +21,7 @@ public final class Document
     private Folder folder;
     private final String name;
     private final String title;
+    private final String sortableTitle;
     private final long lastModified;
 
     Document(String name, long lastModified, List<Fragment> fragments, List<String> lines)
@@ -26,6 +29,7 @@ public final class Document
         super(lines, fragments);
         this.name = name;
         this.title = resolveTitle(name, fragments);
+        this.sortableTitle = stripEmojis(title).trim();
         this.lastModified = lastModified;
     }
 
@@ -48,9 +52,9 @@ public final class Document
         if (o instanceof Document document)
         {
             return Objects.equals(name, document.name)
-                    && Objects.equals(lastModified, document.lastModified)
-                    && Objects.equals(lines(), document.lines())
-                    && Objects.equals(fragments(), document.fragments());
+                   && Objects.equals(lastModified, document.lastModified)
+                   && Objects.equals(lines(), document.lines())
+                   && Objects.equals(fragments(), document.fragments());
         }
         return false;
     }
@@ -64,8 +68,8 @@ public final class Document
     private String resolveTitle(String name, List<Fragment> fragments)
     {
         if (fragments.size() > 1
-                && fragments.get(1) instanceof Section section
-                && section.level() == 1)
+            && fragments.get(1) instanceof Section section
+            && section.level() == 1)
         {
             return section.title();
         }
@@ -93,7 +97,15 @@ public final class Document
         return title;
     }
 
-    public long lastModified() { return lastModified; }
+    public String sortableTitle()
+    {
+        return sortableTitle;
+    }
+
+    public long lastModified()
+    {
+        return lastModified;
+    }
 
     public void accept(VaultVisitor visitor)
     {

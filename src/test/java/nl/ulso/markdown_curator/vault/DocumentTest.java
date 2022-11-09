@@ -33,7 +33,7 @@ class DocumentTest
                 .withPrefabValues(Section.class,
                         new Section(1, "1", emptyList(), emptyList()),
                         new Section(1, "2", emptyList(), emptyList()))
-                .withIgnoredFields("document", "section", "title", "folder")
+                .withIgnoredFields("document", "section", "title", "folder", "sortableTitle")
                 .verify();
     }
 
@@ -239,6 +239,14 @@ class DocumentTest
                 bar
                 <!--/query-->
                 """.trim());
+    }
+
+
+    @Test
+    void sortableTitle()
+    {
+        var document = newDocument("📄 Document 😱", 0, emptyList());
+        assertThat(document.sortableTitle()).isEqualTo("Document");
     }
 
     private List<String> document(String text)
