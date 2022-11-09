@@ -19,6 +19,7 @@ import static java.util.Collections.synchronizedList;
 import static nl.ulso.markdown_curator.vault.ElementCounter.countAll;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
+import static org.awaitility.Awaitility.await;
 
 @ExtendWith(SoftAssertionsExtension.class)
 class FileSystemVaultTest
@@ -115,17 +116,17 @@ class FileSystemVaultTest
     }
 
     @Test
-    @Tag("integration-test")
     void watchVaultForNewFiles()
     {
         whileWatchingForChanges(new TestCase()
         {
             @Override
-            public void changeFileSystem(FileSystem fileSystem)
+            public int changeFileSystem(FileSystem fileSystem)
                     throws IOException
             {
                 writeFile("Characters/Blofeld.md", "Ernst Stavro");
                 writeFile("Actors/Christopher Waltz.md", "");
+                return 2;
             }
 
             @Override
@@ -144,22 +145,22 @@ class FileSystemVaultTest
     }
 
     @Test
-    @Tag("integration-test")
     void watchVaultForFilesInNewFolders()
     {
         whileWatchingForChanges(new TestCase()
         {
             @Override
-            public void changeFileSystem(FileSystem fileSystem)
+            public int changeFileSystem(FileSystem fileSystem)
                     throws IOException
             {
                 writeFile("Studios/MGM.md", "Metro-Goldwyn-Mayer");
+                return 2;
             }
 
             @Override
             public void verify(List<VaultChangedEvent> events)
             {
-                assertThat(vault.folder("Studios").get().document("MGM")).isPresent();
+                softly.assertThat(vault.folder("Studios").get().document("MGM")).isPresent();
                 softly.assertThat(events.stream().map(e -> (Class) e.getClass()))
                         .containsExactly(FolderAdded.class, DocumentAdded.class);
             }
@@ -167,18 +168,18 @@ class FileSystemVaultTest
     }
 
     @Test
-    @Tag("integration-test")
     void watchVaultForRenamedFolders()
     {
         whileWatchingForChanges(new TestCase()
         {
             @Override
-            public void changeFileSystem(FileSystem fileSystem)
+            public int changeFileSystem(FileSystem fileSystem)
                     throws IOException
             {
                 var oldPath = testVaultRoot.resolve("Actors");
                 var newPath = testVaultRoot.resolve("People");
                 Files.move(oldPath, newPath);
+                return 2;
             }
 
             @Override
@@ -194,16 +195,16 @@ class FileSystemVaultTest
     }
 
     @Test
-    @Tag("integration-test")
     void watchVaultForDeletedDocument()
     {
         whileWatchingForChanges(new TestCase()
         {
             @Override
-            public void changeFileSystem(FileSystem fileSystem)
+            public int changeFileSystem(FileSystem fileSystem)
                     throws IOException
             {
                 Files.delete(testVaultRoot.resolve("Characters/M.md"));
+                return 1;
             }
 
             @Override
@@ -218,7 +219,6 @@ class FileSystemVaultTest
     }
 
     @Test
-    @Tag("integration-test")
     void watchVaultForChangedDocument()
     {
         whileWatchingForChanges(new TestCase()
@@ -226,11 +226,12 @@ class FileSystemVaultTest
             private Document m;
 
             @Override
-            public void changeFileSystem(FileSystem fileSystem)
+            public int changeFileSystem(FileSystem fileSystem)
                     throws IOException
             {
                 m = vault.folder("Characters").orElseThrow().document("M").orElseThrow();
                 writeFile("Characters/M.md", "Played by several actors");
+                return 1;
             }
 
             @Override
@@ -251,13 +252,9 @@ class FileSystemVaultTest
         background.start();
         try
         {
-            testCase.changeFileSystem(testVaultRoot.getFileSystem());
-            TimeUnit.MILLISECONDS.sleep(FILESYSTEM_WAIT_TIME_MILLISECONDS);
-        }
-        catch (InterruptedException e)
-        {
-            Thread.currentThread().interrupt();
-            fail("Unexpected exception in test", e);
+            int expectedEventCount = testCase.changeFileSystem(testVaultRoot.getFileSystem());
+            await().atMost(FILESYSTEM_WAIT_TIME_MILLISECONDS, TimeUnit.MILLISECONDS)
+                    .until(() -> events.size() >= expectedEventCount);
         }
         catch (IOException e)
         {
@@ -278,7 +275,7 @@ class FileSystemVaultTest
 
     public interface TestCase
     {
-        void changeFileSystem(FileSystem fileSystem)
+        int changeFileSystem(FileSystem fileSystem)
                 throws IOException;
 
         void verify(List<VaultChangedEvent> events);

@@ -13,7 +13,7 @@ class EmojiFilterTest
     @Test
     void emptyString()
     {
-        assertThat(stripEmojis("")).isEqualTo("");
+        assertThat(stripEmojis("")).isEmpty();
     }
 
     @Test
