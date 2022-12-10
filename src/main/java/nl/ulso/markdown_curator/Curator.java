@@ -43,6 +43,7 @@ public class Curator
         implements VaultChangedCallback
 {
     private static final Logger LOGGER = getLogger(Curator.class);
+    private static final long COOL_OFF_PERIOD_IN_MILLISECONDS = 250;
 
     private final Vault vault;
     private final ExecutorService executor;
@@ -80,10 +81,14 @@ public class Curator
     public final void vaultChanged(VaultChangedEvent event)
     {
         refreshAllDataModels(event);
-        runAllQueries().entrySet().stream()
+        var changeset = runAllQueries().entrySet().stream()
                 .sorted(comparingInt(e -> e.getKey().resultStartIndex()))
-                .collect(groupingBy(e -> e.getKey().document()))
-                .forEach(this::writeDocument);
+                .collect(groupingBy(e -> e.getKey().document()));
+        if (!changeset.isEmpty())
+        {
+            coolOffToPreventConflictsInObsidian();
+            changeset.forEach(this::writeDocument);
+        }
     }
 
     private void refreshAllDataModels(VaultChangedEvent event)
@@ -136,7 +141,7 @@ public class Curator
             }
             if (result instanceof NoOpResult)
             {
-                LOGGER.debug(
+                LOGGER.trace(
                         "Ignoring output due to no-op result for query '{}'  in document: {}",
                         query.name(), queryBlock.document().name());
                 return;
@@ -149,7 +154,11 @@ public class Curator
                 writeQueue.put(queryBlock, output);
             }
         });
-        LOGGER.debug("Write queue item count: {}", writeQueue.size());
+        if (LOGGER.isDebugEnabled() && writeQueue.isEmpty())
+        {
+            LOGGER.debug("No new query output detected. Run done.");
+        }
+        LOGGER.trace("Write queue item count: {}", writeQueue.size());
         return writeQueue;
     }
 
@@ -234,6 +243,26 @@ public class Curator
         {
             Thread.currentThread().interrupt();
             throw new CuratorException(e);
+        }
+    }
+
+    /*
+     * If Obsidian does a massive rewrite - e.g. renaming a file or header with many links to it,
+     * resulting in all these references to be updated - sometimes the curator kicks in before
+     * Obsidian does, resulting in Obsidian updating a file incorrectly, in the wrong place. To
+     * prevent the nasty effects of this race condition from happening we give the curator some
+     * time to cool off. The curator will find that files have changed in the meantime, and will
+     * not write updates. Instead, it will reprocess the files automatically.
+     */
+    private static void coolOffToPreventConflictsInObsidian()
+    {
+        try
+        {
+            TimeUnit.MILLISECONDS.sleep(COOL_OFF_PERIOD_IN_MILLISECONDS);
+        }
+        catch (InterruptedException e)
+        {
+            Thread.currentThread().interrupt();
         }
     }
 
