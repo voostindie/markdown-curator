@@ -43,7 +43,7 @@ public class Curator
         implements VaultChangedCallback
 {
     private static final Logger LOGGER = getLogger(Curator.class);
-    private static final long COOL_OFF_PERIOD_IN_MILLISECONDS = 250;
+    private static final long COOL_OFF_PERIOD_IN_MILLISECONDS = 500;
 
     private final Vault vault;
     private final ExecutorService executor;
