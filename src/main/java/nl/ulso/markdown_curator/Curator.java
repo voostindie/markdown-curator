@@ -17,6 +17,7 @@ import static java.nio.file.Files.getLastModifiedTime;
 import static java.nio.file.Files.writeString;
 import static java.util.Comparator.comparingInt;
 import static java.util.concurrent.Executors.newFixedThreadPool;
+import static java.util.concurrent.Executors.newVirtualThreadPerTaskExecutor;
 import static java.util.stream.Collectors.groupingBy;
 import static nl.ulso.markdown_curator.vault.event.VaultChangedEvent.vaultRefreshed;
 import static org.slf4j.LoggerFactory.getLogger;
@@ -60,8 +61,22 @@ public class Curator
         this.documentPathResolver = documentPathResolver;
         this.queryCatalog = queryCatalog;
         this.dataModels = dataModels;
-        this.executor = newFixedThreadPool(Runtime.getRuntime().availableProcessors(),
-                new CuratorThreadFactory());
+        this.executor = createExecutor();
+    }
+
+    private static ExecutorService createExecutor()
+    {
+        try
+        {
+            LOGGER.debug("JDK 19 PREVIEW!: Creating virtual thread executor for concurrent tasks.");
+            return newVirtualThreadPerTaskExecutor();
+        }
+        catch (UnsupportedOperationException e)
+        {
+            LOGGER.debug("Creating fixed thread pool for concurrent tasks.");
+            return newFixedThreadPool(Runtime.getRuntime().availableProcessors(),
+                    new CuratorThreadFactory());
+        }
     }
 
     public void runOnce()
