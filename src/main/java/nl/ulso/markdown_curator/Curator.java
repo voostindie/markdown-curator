@@ -5,6 +5,7 @@ import nl.ulso.markdown_curator.query.*;
 import nl.ulso.markdown_curator.vault.*;
 import nl.ulso.markdown_curator.vault.event.VaultChangedEvent;
 import org.slf4j.Logger;
+import org.slf4j.MDC;
 
 import java.io.*;
 import java.util.*;
@@ -51,6 +52,7 @@ public class Curator
     private final QueryCatalog queryCatalog;
     private final Set<DataModel> dataModels;
     private final DocumentPathResolver documentPathResolver;
+    private final String curatorName;
 
     @Inject
     public Curator(
@@ -62,6 +64,7 @@ public class Curator
         this.queryCatalog = queryCatalog;
         this.dataModels = dataModels;
         this.executor = createExecutor();
+        this.curatorName = currentThread().getName();
     }
 
     private static ExecutorService createExecutor()
@@ -236,6 +239,7 @@ public class Curator
         {
             executor.submit(() ->
             {
+                MDC.put("curator", curatorName);
                 try
                 {
                     action.accept(item);
