@@ -10,21 +10,19 @@ import org.slf4j.MDC;
 import java.io.*;
 import java.util.*;
 import java.util.concurrent.*;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 
 import static java.lang.Thread.currentThread;
 import static java.nio.file.Files.getLastModifiedTime;
 import static java.nio.file.Files.writeString;
 import static java.util.Comparator.comparingInt;
-import static java.util.concurrent.Executors.newFixedThreadPool;
 import static java.util.concurrent.Executors.newVirtualThreadPerTaskExecutor;
 import static java.util.stream.Collectors.groupingBy;
 import static nl.ulso.markdown_curator.vault.event.VaultChangedEvent.vaultRefreshed;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
- * Markdown curator on top of a {@link Vault} and custom {@link DataModel}s and {@link Query}s..
+ * Markdown curator on top of a {@link Vault} and custom {@link DataModel}s and {@link Query}s.
  * <p/>
  * Whenever a change in the underlying vault is detected, the data models are refreshed, after
  * which all queries are collected from all documents in the vault, executed and compared to the
@@ -45,7 +43,6 @@ public class Curator
         implements VaultChangedCallback
 {
     private static final Logger LOGGER = getLogger(Curator.class);
-    private static final long COOL_OFF_PERIOD_IN_MILLISECONDS = 500;
 
     private final Vault vault;
     private final ExecutorService executor;
@@ -63,23 +60,8 @@ public class Curator
         this.documentPathResolver = documentPathResolver;
         this.queryCatalog = queryCatalog;
         this.dataModels = dataModels;
-        this.executor = createExecutor();
+        this.executor = newVirtualThreadPerTaskExecutor();
         this.curatorName = currentThread().getName();
-    }
-
-    private static ExecutorService createExecutor()
-    {
-        try
-        {
-            LOGGER.debug("JDK 19 PREVIEW!: Creating virtual thread executor for concurrent tasks.");
-            return newVirtualThreadPerTaskExecutor();
-        }
-        catch (UnsupportedOperationException e)
-        {
-            LOGGER.debug("Creating fixed thread pool for concurrent tasks.");
-            return newFixedThreadPool(Runtime.getRuntime().availableProcessors(),
-                    new CuratorThreadFactory());
-        }
     }
 
     public void runOnce()
@@ -99,12 +81,11 @@ public class Curator
     public final void vaultChanged(VaultChangedEvent event)
     {
         refreshAllDataModels(event);
-        var changeset = runAllQueries().entrySet().stream()
-                .sorted(comparingInt(e -> e.getKey().resultStartIndex()))
-                .collect(groupingBy(e -> e.getKey().document()));
+        var changeset = runAllQueries().stream()
+                .sorted(comparingInt(item -> item.queryBlock().resultStartIndex()))
+                .collect(groupingBy(item -> item.queryBlock().document()));
         if (!changeset.isEmpty())
         {
-            coolOffToPreventConflictsInObsidian();
             changeset.forEach(this::writeDocument);
         }
     }
@@ -129,10 +110,10 @@ public class Curator
      * Runs all queries in the vault and collects the queries whose outputs have changed compared
      * to what's in memory right now.
      */
-    Map<QueryBlock, String> runAllQueries()
+    Queue<WriteItem> runAllQueries()
     {
-        Map<QueryBlock, String> writeQueue = new ConcurrentHashMap<>();
-        Collection<QueryBlock> queryBlocks = vault.findAllQueryBlocks();
+        var writeQueue = new ConcurrentLinkedQueue<WriteItem>();
+        var queryBlocks = vault.findAllQueryBlocks();
         if (LOGGER.isDebugEnabled())
         {
             LOGGER.debug("Running {} queries", queryBlocks.size());
@@ -169,7 +150,8 @@ public class Curator
             {
                 LOGGER.debug("Query result change detected in document: {}",
                         queryBlock.document());
-                writeQueue.put(queryBlock, output);
+                var item = new WriteItem(queryBlock, output);
+                writeQueue.add(item);
             }
         });
         if (LOGGER.isDebugEnabled() && writeQueue.isEmpty())
@@ -180,17 +162,17 @@ public class Curator
         return writeQueue;
     }
 
-    void writeDocument(Document document, List<Map.Entry<QueryBlock, String>> outputs)
+    void writeDocument(Document document, List<WriteItem> items)
     {
         LOGGER.info("Rewriting document: {}", document);
         var writer = new StringWriter();
         var out = new PrintWriter(writer);
         int index = 0;
-        for (Map.Entry<QueryBlock, String> entry : outputs)
+        for (WriteItem item : items)
         {
-            var queryBlock = entry.getKey();
+            var queryBlock = item.queryBlock();
             printDocumentLines(out, document, index, queryBlock.resultStartIndex());
-            out.println(entry.getValue());
+            out.println(item.output());
             index = queryBlock.resultEndIndex();
         }
         printDocumentLines(out, document, index, -1);
@@ -265,36 +247,5 @@ public class Curator
         }
     }
 
-    /*
-     * If Obsidian does a massive rewrite - e.g. renaming a file or header with many links to it,
-     * resulting in all these references to be updated - sometimes the curator kicks in before
-     * Obsidian does, resulting in Obsidian updating a file incorrectly, in the wrong place. To
-     * prevent the nasty effects of this race condition from happening we give the curator some
-     * time to cool off. The curator will find that files have changed in the meantime, and will
-     * not write updates. Instead, it will reprocess the files automatically.
-     */
-    private static void coolOffToPreventConflictsInObsidian()
-    {
-        try
-        {
-            TimeUnit.MILLISECONDS.sleep(COOL_OFF_PERIOD_IN_MILLISECONDS);
-        }
-        catch (InterruptedException e)
-        {
-            Thread.currentThread().interrupt();
-        }
-    }
-
-    private static class CuratorThreadFactory
-            implements ThreadFactory
-    {
-        private final AtomicInteger threadNumber = new AtomicInteger(1);
-
-        @Override
-        public Thread newThread(Runnable runnable)
-        {
-            var name = currentThread().getName() + "-Curator-" + threadNumber.getAndIncrement();
-            return new Thread(runnable, name);
-        }
-    }
+    record WriteItem(QueryBlock queryBlock, String output) {}
 }

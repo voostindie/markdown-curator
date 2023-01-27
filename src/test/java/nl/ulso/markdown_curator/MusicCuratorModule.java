@@ -12,6 +12,8 @@ import java.nio.file.Paths;
 public class MusicCuratorModule
         extends InMemoryCuratorModule
 {
+    private boolean configured = false;
+
     @Override
     public String name()
     {
@@ -33,5 +35,11 @@ public class MusicCuratorModule
         registerQuery(MembersQuery.class);
         registerQuery(RecordingsQuery.class);
         registerQuery(NoOpQuery.class);
+        configured = true;
+    }
+
+    public boolean isConfigured()
+    {
+        return configured;
     }
 }

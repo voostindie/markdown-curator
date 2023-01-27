@@ -36,20 +36,22 @@ Put this snippet (without the code block) in a document in a directory tracked b
 
 The query syntax may seem a bit weird at first, but notice that it is built up of HTML comment tags. That means that the query definitions disappear from view when you preview the Markdown, or export it to some other format using the tool of your choice, leaving you with just the query output. In effect the query syntax is invisible to any tool that processes Markdown correctly.
 
-Whatever can you put in a query? Whatever you can come up with and code in Java. The internal API of this tool allows you to extract any kind of information from your documents or elsewhere and use them in queries.
+What can a query do? Whatever you can code in Java! The internal API of this tool allows you to extract any kind of information from your documents or elsewhere and use them in queries.
 
-Don't know which queries are available? Simply put a blank query in your content and save it:
+Don't know which queries are available? Simply put a blank query in a document in a vault and save it:
 
 ```
 <!--query-->
 <!--/query-->
 ```
 
-By default, this tool provides just a couple of built-in generic queries: `backlinks`, `deadlinks`, `list`, `table` and `toc`. To make this tool more useful, you will want to create your own queries. 
+By default, this tool provides just a couple of built-in generic queries. See the section on those below for more details. These are useful queries, but to make this tool really shine, you will want to create your own queries. 
 
 To use this library, you have to code your own Java application, define this tool as a dependency, and implement your own curator, custom data models and custom queries. See further on for an example.
 
 The [music](src/test/resources/music/README.md) test suite provides examples of what this tool can do and how it works. The test code contains a [MusicCuratorModule](src/test/java/nl/ulso/markdown_curator/MusicCuratorModule.java) that can serve as an example for building your own curator, on top of your own vault.
+
+[Vincent's Markdown Curator](https://github.com/voostindie/vincents-markdown-curator) (vmc) is my own, personal implementation that I use every day. It runs on top of 3 independent vaults - work, volunteering, personal - each with their own unique queries, and some shared across. You might find some inspiration in it!
 
 ## Obsidian users: Ye be warned!
 
@@ -68,7 +70,7 @@ Case in point: with the June 2022 release of [iA Writer 6](https://ia.net/writer
 This tool is specifically written for a variant of Markdown that I call *Vincent Flavored Markdown*. Basically VFM is the same as [Github Flavored Markdown (GFM)](https://github.github.com/gfm/) with the following constraints and additions:
 
 - A document can have YAML front matter, between `---`.
-- For headers only ATX (`#`) headers are used, without the optional closing sequence of `#`s. Setext-style headers are not supported.
+- For headers only ATX (`#`) headers are supported, without the optional closing sequence of `#`s. Setext-style headers are not supported.
 - Headers are always aligned to the left margin.
 - Code blocks are always surrounded with backticks, not indented.
 - Internal links - links to other documents in the same repository - use double square brackets. (`[[Like this]]`). The link always points to a file name within the repository. (This is what Obsidian and iA Writer do.)
@@ -89,7 +91,7 @@ If these limitations are not to your liking, then feel free to send me a pull re
 This library/application does **not** fully parse Markdown. It only does so on a line-by-line level. Documents are broken up in blocks of:
 
 - Front matter
-- Nested sections
+- Sections (these can be nested)
 - Code
 - Queries
 - Text
@@ -98,12 +100,67 @@ A text block is "anything *not* of the above". The content of a text block itsel
 
 I have some ideas to extend this further in order to make query construction easier, but I'm not planning on introducing a full Markdown parser.
 
-## Getting started
+## Built-in queries
+
+This section lists all built-in queries and explains what they do. Each query supports arguments to be passed to it. To know what they are, use the `help` query somewhere in a monitored repository. For example:
+
+```
+<!--query:help
+name: timeline
+-->
+<!--/query-->
+```
+
+This will write information on the selected query (in this case: `timeline`), including the parameters it supports as the query output.
+
+### `backlinks`
+
+Lists all backlinks to a document.
+
+...TODO!
+
+### `deadlinks`
+
+Lists all dead links from a document.
+
+...TODO!
+
+### `list`
+
+Generates a sorted list of pages in a folder.
+
+...TODO!
+
+### `timeline`
+
+The timeline query is inspired by [Logseq](https://logseq.com). I like the way Logseq puts emphasis on the daily log as the place to write notes. What I do not like about Logseq, however:
+
+- Everything is an outline. I prefer the freedom full Markdown gives me. When I write an article for example, I use sections and paragraphs, without bullets.
+- It's all dynamic, and therefore the functionality only works in Logseq itself. I like to be able to use any text editor.
+- All documents are stored in the same folder. I prefer using a couple of folders to categorize documents: "Projects", "Contacts", "Articles", and so on.
+
+...TODO!
+
+### `toc`
+
+Outputs a table of contents for the current document.
+
+...TODO!
+
+### `table`
+
+Generates a sorted table of pages, with optional front matter fields in additional columns.
+
+...TODO!
+
+## Creating your own application
+
+Creating your own application means that you'll need to:
 
 - Create a new Java artifact
-- Create and publish a custom curator.
-- Create and register one or more queries.
-- Create your own custom data models.
+- Create and publish a custom curator
+- Create and register one or more queries
+- Create your own custom data models
 
 ### Create a new Java artifact
 
@@ -119,7 +176,7 @@ A `mvn clean package` and `java -jar target/my-markdown-curator.jar` should resu
 - Extend the `CuratorModule` base class.
 - Add your implementation to `src/main/resources/META-INF/services/nl.ulso.markdown_curator.CuratorModule`.
 
-A `mvn clean package` and `java -jar target/myproject.jar` should result in the application starting up and staying up, monitoring the directory you provided in your own custom curator.
+A `mvn clean package` and `java -jar target/my-markdown-curator.jar` should result in the application starting up and staying up, monitoring the directory you provided in your own custom curator.
 
 Try changing a file in any Markdown document in your document repository now. For example, add the `toc` query. Magic should happen!
 
@@ -140,7 +197,7 @@ Once you've implemented a couple of queries you might run into one or two issues
 1. **Duplication**. Extracting specific values from documents might be complex, and might be needed across queries.
 2. **Heavy processing**. Running many queries across large data sets on every change, no matter how small, can be CPU intensive.
 
-To work around this you can create your own data models, which you can then build your queries upon.
+To solve these issues you can create your own data models, which you can then build your queries upon.
 
 To do so, implement the `DataModel` interface, register it in your curator module and share it with your own queries. Whenever a change is detected, the curator requests your data models to update themselves accordingly, through the `vaultChanged` method. 
 
@@ -162,3 +219,11 @@ My personal experience:
 - When run from within IntelliJ IDEA, changes to files with emoj's in their name where not detected.
 
 Adding the `LC_CTYPE` variable to the Run configuration environment fixed it. The command line already had it.
+
+### The application exits immediately after "Instantiating curator"
+
+Solution: apply the `--enable-preview` JVM setting.
+
+The latest version of this library uses virtual threads, introduced in JDK 19 as a preview. I tried implementing a fallback method, but that only makes the application hang if `--enable-preview` is not provided.
+
+Anyway, virtual threads seem to work really well! My own curator is running 900+ queries in parallel, in less than 20 milliseconds.

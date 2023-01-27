@@ -4,6 +4,8 @@ import javax.inject.Inject;
 import java.util.List;
 import java.util.Map;
 
+import static java.lang.System.lineSeparator;
+
 public final class QueryResultFactory
 {
     private final GeneralMessages messages;
@@ -80,5 +82,23 @@ public final class QueryResultFactory
             return empty();
         }
         return new UnorderedListResult(rows);
+    }
+
+    public QueryResult string(String output)
+    {
+        if (output.isBlank())
+        {
+            return empty();
+        }
+        return () -> output;
+    }
+
+    public QueryResult stringWithSummary(String output, int resultCount)
+    {
+        if (resultCount == 0)
+        {
+            return empty();
+        }
+        return () -> output + lineSeparator() + "(*" + messages.resultSummary(resultCount) + "*)";
     }
 }

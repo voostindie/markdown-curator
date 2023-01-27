@@ -12,7 +12,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 
 import java.io.IOException;
 import java.nio.file.Files;
-import java.util.Map;
+import java.util.Queue;
 
 import static com.google.inject.Guice.createInjector;
 import static nl.ulso.markdown_curator.vault.ElementCounter.countAll;
@@ -157,10 +157,10 @@ class MusicCuratorModuleTest
     void runAllQueries()
     {
         musicCurator.vaultChanged(vaultRefreshed());
-        Map<QueryBlock, String> map = musicCurator.runAllQueries();
+        Queue<Curator.WriteItem> items = musicCurator.runAllQueries();
         // We expect only (and all) queries in "queries-blank" to have new output:
-        var list = map.keySet().stream()
-                .map(block -> block.document().name())
+        var list = items.stream()
+                .map(item -> item.queryBlock().document().name())
                 .filter(name -> !name.contentEquals("queries-blank"))
                 .toList();
         softly.assertThat(list).isEmpty();

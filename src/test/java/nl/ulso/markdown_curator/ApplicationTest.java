@@ -1,29 +1,19 @@
 package nl.ulso.markdown_curator;
 
-import org.assertj.core.api.SoftAssertions;
-import org.assertj.core.api.junit.jupiter.InjectSoftAssertions;
 import org.assertj.core.api.junit.jupiter.SoftAssertionsExtension;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 import java.io.IOException;
-import java.lang.management.ManagementFactory;
 import java.nio.file.Path;
 import java.util.List;
-import java.util.ServiceLoader.Provider;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
 
 import static java.lang.System.getProperty;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.fail;
 
 @ExtendWith(SoftAssertionsExtension.class)
 class ApplicationTest
 {
-    @InjectSoftAssertions
-    private SoftAssertions softly;
-
     @Test
     void testVersion()
     {
@@ -64,13 +54,13 @@ class ApplicationTest
     }
 
     @Test
-    void oneThreadPerCurator()
+    void runCuratorOnce()
     {
-        List<CuratorModule> modules = List.of(new MusicCuratorModule());
-        var executor = new Application(null).runCuratorsInSeparateThreads(modules);
-        softly.assertThat(executor).isInstanceOf(ThreadPoolExecutor.class);
-        var threadPoolExecutor = (ThreadPoolExecutor) executor;
-        softly.assertThat(threadPoolExecutor.getActiveCount()).isEqualTo(modules.size());
+        var module = new MusicCuratorModule();
+        assertThat(module.isConfigured()).isFalse();
+        new Application(null).runCuratorsInSeparateThreads(List.of(module),
+                Application.RunMode.ONCE);
+        assertThat(module.isConfigured()).isTrue();
     }
 
     private Path tempPidPath()

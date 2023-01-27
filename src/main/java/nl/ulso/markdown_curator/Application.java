@@ -6,8 +6,6 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.util.*;
 import java.util.ServiceLoader.Provider;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 import static com.google.inject.Guice.createInjector;
 import static java.lang.System.getProperty;
@@ -16,6 +14,7 @@ import static java.lang.Thread.currentThread;
 import static java.nio.file.Files.writeString;
 import static java.nio.file.StandardOpenOption.CREATE_NEW;
 import static java.util.concurrent.Executors.callable;
+import static java.util.concurrent.Executors.newFixedThreadPool;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
@@ -33,6 +32,12 @@ public class Application
     static final String UNKNOWN_VERSION = "<UNKNOWN>";
     private final Path pid;
 
+    enum RunMode
+    {
+        ONCE,
+        DAEMON
+    }
+
     Application(Path pid)
     {
         this.pid = pid;
@@ -40,10 +45,15 @@ public class Application
 
     public static void main(String[] args)
     {
-        new Application(DEFAULT_PID).run();
+        var runMode = RunMode.DAEMON;
+        if (args.length > 0 && (args[0].contentEquals("--once") || args[0].contentEquals("-1")))
+        {
+            runMode = RunMode.ONCE;
+        }
+        new Application(DEFAULT_PID).run(runMode);
     }
 
-    void run()
+    void run(RunMode runMode)
     {
         if (!ensureNewPidFile())
         {
@@ -62,8 +72,7 @@ public class Application
             LOGGER.info("Press Ctrl+C to stop");
             LOGGER.info("-".repeat(76));
         }
-        var executor = runCuratorsInSeparateThreads(modules);
-        executor.shutdown();
+        runCuratorsInSeparateThreads(modules, runMode);
     }
 
     boolean ensureNewPidFile()
@@ -82,9 +91,8 @@ public class Application
 
     String resolveVersion()
     {
-        try (var inputStream =
-                     Application.class.getClassLoader()
-                             .getResourceAsStream("markdown-curator.properties"))
+        try (var inputStream = Application.class.getClassLoader()
+                .getResourceAsStream("markdown-curator.properties"))
         {
             var properties = new Properties();
             properties.load(inputStream);
@@ -97,37 +105,47 @@ public class Application
         }
     }
 
-    ExecutorService runCuratorsInSeparateThreads(List<CuratorModule> modules)
+    void runCuratorsInSeparateThreads(List<CuratorModule> modules, RunMode runMode)
     {
-        var executor = Executors.newFixedThreadPool(modules.size());
-        modules.forEach(module -> executor.submit(callable(() ->
+        try (var executor = newFixedThreadPool(modules.size()))
         {
-            var name = module.name();
-            currentThread().setName(name);
-            LOGGER.debug("Instantiating curator: {}", name);
-            Curator curator = null;
-            try
+            var curators = modules.stream().map(module -> callable(() ->
             {
-                curator = createInjector(module).getInstance(Curator.class);
-            }
-            catch (Exception e)
-            {
-                LOGGER.error("Could not create curator '{}'. It will not be run.", name, e);
-            }
-            if (curator != null)
-            {
+                var name = module.name();
+                currentThread().setName(name);
+                LOGGER.debug("Instantiating curator: {}", name);
+                Curator curator = null;
                 try
                 {
-                    curator.run();
+                    curator = createInjector(module).getInstance(Curator.class);
                 }
                 catch (Exception e)
                 {
-                    LOGGER.error("Curator '{}' errored out. It's non-functional from now on.",
-                            name, e);
+                    LOGGER.error("Could not create curator '{}'. It will not be run.", name, e);
                 }
+                if (curator != null)
+                {
+                    try
+                    {
+                        switch (runMode)
+                        {
+                            case DAEMON -> curator.run();
+                            case ONCE -> curator.runOnce();
+                        }
+                    }
+                    catch (Exception e)
+                    {
+                        LOGGER.error("Curator '{}' errored out. It's non-functional from now on.",
+                                name, e);
+                    }
 
-            }
-        })));
-        return executor;
+                }
+            })).toList();
+            executor.invokeAll(curators);
+        }
+        catch (InterruptedException e)
+        {
+            Thread.currentThread().interrupt();
+        }
     }
 }

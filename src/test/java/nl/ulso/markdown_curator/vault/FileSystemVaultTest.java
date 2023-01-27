@@ -24,7 +24,8 @@ import static org.awaitility.Awaitility.await;
 @ExtendWith(SoftAssertionsExtension.class)
 class FileSystemVaultTest
 {
-    private static final int FILESYSTEM_WAIT_TIME_MILLISECONDS = 1000; // "Works on my machine!"
+    private static final int WATCHER_INITIALIZATION_TIME_MILLISECONDS = 250;
+    private static final int FILESYSTEM_WAIT_TIME_MILLISECONDS = 1000;
 
     @InjectSoftAssertions
     private SoftAssertions softly;
@@ -125,7 +126,7 @@ class FileSystemVaultTest
                     throws IOException
             {
                 writeFile("Characters/Blofeld.md", "Ernst Stavro");
-                writeFile("Actors/Christopher Waltz.md", "");
+                writeFile("Actors/Christopher Waltz.md", "Played [[Ernst Stavro Blofeld]]");
                 return 2;
             }
 
@@ -248,8 +249,19 @@ class FileSystemVaultTest
     {
         var events = synchronizedList(new ArrayList<VaultChangedEvent>());
         vault.setVaultChangedCallback(events::add);
-        var background = new Thread(() -> vault.watchForChanges());
+
+        var background = Thread.ofVirtual().factory().newThread(() -> vault.watchForChanges());
         background.start();
+        try
+        {
+            // Needed because of https://github.com/gmethvin/directory-watcher/issues/87
+            // We must give the watcher time to finish initializing, or else we'll miss events
+            TimeUnit.MILLISECONDS.sleep(WATCHER_INITIALIZATION_TIME_MILLISECONDS);
+        }
+        catch (InterruptedException e)
+        {
+            Thread.currentThread().interrupt();
+        }
         try
         {
             int expectedEventCount = testCase.changeFileSystem(testVaultRoot.getFileSystem());

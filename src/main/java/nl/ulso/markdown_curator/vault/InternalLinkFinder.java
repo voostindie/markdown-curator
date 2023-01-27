@@ -28,6 +28,13 @@ public class InternalLinkFinder
         internalLinks = new ArrayList<>();
     }
 
+    public static List<InternalLink> findInternalLinks(Fragment fragment, String content)
+    {
+        var finder = new InternalLinkFinder();
+        finder.extractInternalLinks(fragment, content);
+        return finder.internalLinks();
+    }
+
     public List<InternalLink> internalLinks()
     {
         return internalLinks;

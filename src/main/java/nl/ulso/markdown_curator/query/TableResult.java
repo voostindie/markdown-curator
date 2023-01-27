@@ -14,7 +14,7 @@ public class TableResult
     private static final char NORMAL_HYPHEN = '-';
     private static final char NON_BREAKING_HYPHEN = '‑';
     private static final Predicate<String> DATE_PREDICATE =
-            compile("\\d{4}-\\d{2}-\\d{2}").asPredicate();
+            compile("^\\d{4}-\\d{2}-\\d{2}$").asPredicate();
 
     private final List<String> columns;
     private final List<Map<String, String>> rows;
