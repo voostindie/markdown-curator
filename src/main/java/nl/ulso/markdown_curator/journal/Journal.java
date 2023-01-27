@@ -44,14 +44,14 @@ public class Journal
 
     private final Vault vault;
     private final JournalSettings settings;
-    private final Map<LocalDate, JournalEntry> journal;
+    private final Map<LocalDate, JournalEntry> entries;
 
     @Inject
     Journal(Vault vault, JournalSettings settings)
     {
         this.vault = vault;
         this.settings = settings;
-        this.journal = new HashMap<>();
+        this.entries = new HashMap<>();
     }
 
     @Override
@@ -59,9 +59,9 @@ public class Journal
     {
         var builder = new JournalBuilder(settings);
         vault.accept(builder);
-        journal.clear();
-        builder.journal().forEach(entry -> journal.put(entry.date(), entry));
-        LOGGER.debug("Built a journal for {} days", journal.size());
+        entries.clear();
+        builder.entries().forEach(entry -> entries.put(entry.date(), entry));
+        LOGGER.debug("Built a journal for {} days", entries.size());
     }
 
     @Override
@@ -82,7 +82,7 @@ public class Journal
         {
             var builder = new JournalBuilder(settings);
             document.accept(builder);
-            builder.journal().forEach(entry -> journal.put(entry.date(), entry));
+            builder.entries().forEach(entry -> entries.put(entry.date(), entry));
             LOGGER.debug("Updated the journal for {}", document.name());
         }
     }
@@ -96,7 +96,7 @@ public class Journal
             var date = LocalDates.parseDateOrNull(document.name());
             if (date != null)
             {
-                journal.remove(date);
+                entries.remove(date);
                 LOGGER.debug("Removed date {} from the journal", date);
             }
         }
@@ -109,11 +109,10 @@ public class Journal
 
     public SortedMap<LocalDate, String> timelineFor(String documentName)
     {
-        var journal = new TreeMap<LocalDate, String>(reverseOrder());
+        var timeline = new TreeMap<LocalDate, String>(reverseOrder());
         journalEntriesFor(documentName)
-                .forEach(entry -> journal.put(entry.date(),
-                        entry.summaryFor(documentName)));
-        return journal;
+                .forEach(entry -> timeline.put(entry.date(), entry.summaryFor(documentName)));
+        return timeline;
     }
 
     public Optional<LocalDate> mostRecentMentionOf(String documentName)
@@ -125,7 +124,7 @@ public class Journal
 
     private Stream<JournalEntry> journalEntriesFor(String documentName)
     {
-        return journal.values().stream()
+        return entries.values().stream()
                 .filter(entry -> entry.refersTo(documentName));
     }
 

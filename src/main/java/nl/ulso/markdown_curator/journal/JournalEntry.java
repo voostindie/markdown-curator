@@ -47,6 +47,27 @@ public class JournalEntry
     }
 
     @Override
+    public boolean equals(Object o)
+    {
+        if (this == o)
+        {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass())
+        {
+            return false;
+        }
+        var entry = (JournalEntry) o;
+        return date.equals(entry.date);
+    }
+
+    @Override
+    public int hashCode()
+    {
+        return Objects.hash(date);
+    }
+
+    @Override
     public int compareTo(JournalEntry other)
     {
         return date.compareTo(other.date);

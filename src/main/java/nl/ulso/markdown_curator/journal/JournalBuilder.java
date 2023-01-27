@@ -10,7 +10,7 @@ import static nl.ulso.markdown_curator.journal.JournalEntry.parseJournalEntryFro
 class JournalBuilder
         extends BreadthFirstVaultVisitor
 {
-    private final Set<JournalEntry> journal = new HashSet<>();
+    private final Set<JournalEntry> entries = new HashSet<>();
     private final JournalSettings settings;
 
     JournalBuilder(JournalSettings settings)
@@ -30,12 +30,12 @@ class JournalBuilder
         if (section.level() == 2 &&
             section.sortableTitle().contentEquals(settings.activitiesSectionName()))
         {
-            parseJournalEntryFrom(section).ifPresent(journal::add);
+            parseJournalEntryFrom(section).ifPresent(entries::add);
         }
     }
 
-    Set<JournalEntry> journal()
+    Set<JournalEntry> entries()
     {
-        return journal;
+        return entries;
     }
 }
