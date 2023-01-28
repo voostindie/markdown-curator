@@ -112,5 +112,5 @@ You’ve got an hour before it’s dark…
 ## Recordings
 
 <!--query:recordings-->
-- Track 1 on [[An Hour Before It Gets Dark]]
+- Track 1 on [[An Hour Before It's Dark]]
 <!--/query-->

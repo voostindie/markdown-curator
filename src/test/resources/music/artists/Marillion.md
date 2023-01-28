@@ -23,6 +23,6 @@ Read more about them [on their own website](https://www.marillion.com).
 ## Albums
 
 <!--query:albums-->
-- [[An Hour Before It Gets Dark]], 2022
+- [[An Hour Before It's Dark]], 2022
 - [[F E A R]], 2016
 <!--/query-->

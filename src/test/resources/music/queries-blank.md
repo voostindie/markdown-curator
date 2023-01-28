@@ -47,7 +47,7 @@ without overwriting what was previously produced.
 ## Timeline
 
 <!--query:timeline
-document: "An Hour Before It Gets Dark"
+document: "An Hour Before It's Dark"
 -->
 Intentionally left blank...
 <!--/query-->

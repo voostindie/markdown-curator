@@ -14,7 +14,7 @@ This document is used for testing: all queries are run after which it is persist
 <!--query:albums
 artist: Marillion
 -->
-- [[An Hour Before It Gets Dark]], 2022
+- [[An Hour Before It's Dark]], 2022
 - [[F E A R]], 2016
 <!--/query-->
 
@@ -35,7 +35,7 @@ artist: Marillion
 <!--query:recordings
 song: Be Hard On Yourself
 -->
-- Track 1 on [[An Hour Before It Gets Dark]]
+- Track 1 on [[An Hour Before It's Dark]]
 <!--/query-->
 
 ## Backlinks
@@ -43,8 +43,8 @@ song: Be Hard On Yourself
 <!--query:backlinks
 document: Marillion
 -->
-- [[An Hour Before It Gets Dark]]
-    - [[An Hour Before It Gets Dark#About|About]]
+- [[An Hour Before It's Dark]]
+    - [[An Hour Before It's Dark#About|About]]
 - [[F E A R]]
     - [[F E A R#About|About]]
 - [[Ian Mosley]]
@@ -70,10 +70,10 @@ without overwriting what was previously produced.
 ## Timeline
 
 <!--query:timeline
-document: "An Hour Before It Gets Dark"
+document: "An Hour Before It's Dark"
 -->
 - **[[2023-01-28]]**:
-    - Listened to [[An Hour Before It Gets Dark]] once more.
+    - Listened to [[An Hour Before It's Dark]] once more.
 
 (*1 result*)
 <!--/query-->
