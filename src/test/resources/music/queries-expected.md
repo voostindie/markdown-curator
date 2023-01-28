@@ -6,6 +6,7 @@ This document is used for testing: all queries are run after which it is persist
 - [[#Recordings]]
 - [[#Backlinks]]
 - [[#No-op]]
+- [[#Timeline]]
 <!--/query-->
 
 ## Albums
@@ -64,4 +65,15 @@ document: Marillion
 Content placed inside this query is left intact, because the query returns a
 "no-op". This allows queries to basically turn themselves off in some cases,
 without overwriting what was previously produced.
+<!--/query-->
+
+## Timeline
+
+<!--query:timeline
+document: "An Hour Before It Gets Dark"
+-->
+- **[[2023-01-28]]**:
+    - Listened to [[An Hour Before It Gets Dark]] once more.
+
+(*1 result*)
 <!--/query-->

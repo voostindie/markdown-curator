@@ -45,20 +45,20 @@ class MusicCuratorModuleTest
         assertThat(vault.name()).endsWith("music");
         var statistics = countAll(vault);
         softly.assertThat(statistics.vaults()).isEqualTo(1);
-        softly.assertThat(statistics.folders()).isEqualTo(3);
-        softly.assertThat(statistics.documents()).isEqualTo(13);
-        softly.assertThat(statistics.frontMatters()).isEqualTo(13);
-        softly.assertThat(statistics.sections()).isEqualTo(39);
-        softly.assertThat(statistics.queries()).isEqualTo(16);
+        softly.assertThat(statistics.folders()).isEqualTo(4);
+        softly.assertThat(statistics.documents()).isEqualTo(14);
+        softly.assertThat(statistics.frontMatters()).isEqualTo(14);
+        softly.assertThat(statistics.sections()).isEqualTo(42);
+        softly.assertThat(statistics.queries()).isEqualTo(18);
         softly.assertThat(statistics.codeBlocks()).isEqualTo(5);
-        softly.assertThat(statistics.texts()).isEqualTo(56);
+        softly.assertThat(statistics.texts()).isEqualTo(62);
     }
 
     @Test
     void queryCatalog()
     {
         QueryCatalog catalog = injector.getInstance(QueryCatalog.class);
-        softly.assertThat(catalog.queries().size()).isEqualTo(10);
+        softly.assertThat(catalog.queries().size()).isEqualTo(11);
         Query dummy = catalog.query("dummy");
         QueryResult result = dummy.run(emptyQueryBlock());
         var markdown = result.toMarkdown();
@@ -71,7 +71,7 @@ class MusicCuratorModuleTest
     void queries()
     {
         var queries = injector.getInstance(Vault.class).findAllQueryBlocks();
-        softly.assertThat(queries.size()).isEqualTo(16);
+        softly.assertThat(queries.size()).isEqualTo(18);
     }
 
     @Test

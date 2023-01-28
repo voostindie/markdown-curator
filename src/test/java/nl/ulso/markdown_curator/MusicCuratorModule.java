@@ -1,5 +1,8 @@
 package nl.ulso.markdown_curator;
 
+import nl.ulso.markdown_curator.journal.JournalModule;
+import nl.ulso.markdown_curator.links.LinksModule;
+
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
@@ -31,6 +34,9 @@ public class MusicCuratorModule
     @Override
     protected void configureCurator()
     {
+
+        install(new LinksModule());
+        install(new JournalModule("journal", "Log"));
         registerQuery(AlbumsQuery.class);
         registerQuery(MembersQuery.class);
         registerQuery(RecordingsQuery.class);

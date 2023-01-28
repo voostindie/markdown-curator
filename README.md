@@ -51,7 +51,7 @@ To use this library, you have to code your own Java application, define this too
 
 The [music](src/test/resources/music/README.md) test suite provides examples of what this tool can do and how it works. The test code contains a [MusicCuratorModule](src/test/java/nl/ulso/markdown_curator/MusicCuratorModule.java) that can serve as an example for building your own curator, on top of your own vault.
 
-[Vincent's Markdown Curator](https://github.com/voostindie/vincents-markdown-curator) (vmc) is my own, personal implementation that I use every day. It runs on top of 3 independent vaults - work, volunteering, personal - each with their own unique queries, and some shared across. You might find some inspiration in it!
+[Vincent's Markdown Curator](https://github.com/voostindie/vincents-markdown-curator) (vmc) is my own, personal implementation that I use every day. It runs on top of 3 independent vaults - work, volunteering, personal - each with their own unique queries, and some shared across. You might find some inspiration in it.
 
 ## Obsidian users: Ye be warned!
 
@@ -59,7 +59,7 @@ If you're an Obsidian user, then note that most of the things this library does 
 
 With this library I have the best of both worlds: portable Markdown and "dynamic" content. Query output is embedded in the documents as Markdown content. As far as Obsidian concerns, this tool is not even there. 
 
-On the other hand, Obsidian plugins are much easier to install and use. This library requires you to get your hands dirty with Java. You must build your own Java application. That's not for everyone.
+On the other hand, Obsidian plugins are much easier to install and use. This library requires you to get your hands dirty with Java. You must build your own  application. That's not for everyone.
 
 Shouldn't I have built this library as an Obsidian plugin itself? Maybe. Probably. But, I didn't. Why not? Because I'm sure my use of Markdown will outlive my use of Obsidian. Also, being able to change files in a vault with any editor *and* have this library still work in the background leads to fewer surprises.
 
@@ -100,59 +100,6 @@ A text block is "anything *not* of the above". The content of a text block itsel
 
 I have some ideas to extend this further in order to make query construction easier, but I'm not planning on introducing a full Markdown parser.
 
-## Built-in queries
-
-This section lists all built-in queries and explains what they do. Each query supports arguments to be passed to it. To know what they are, use the `help` query somewhere in a monitored repository. For example:
-
-```
-<!--query:help
-name: timeline
--->
-<!--/query-->
-```
-
-This will write information on the selected query (in this case: `timeline`), including the parameters it supports as the query output.
-
-### `backlinks`
-
-Lists all backlinks to a document.
-
-...TODO!
-
-### `deadlinks`
-
-Lists all dead links from a document.
-
-...TODO!
-
-### `list`
-
-Generates a sorted list of pages in a folder.
-
-...TODO!
-
-### `timeline`
-
-The timeline query is inspired by [Logseq](https://logseq.com). I like the way Logseq puts emphasis on the daily log as the place to write notes. What I do not like about Logseq, however:
-
-- Everything is an outline. I prefer the freedom full Markdown gives me. When I write an article for example, I use sections and paragraphs, without bullets.
-- It's all dynamic, and therefore the functionality only works in Logseq itself. I like to be able to use any text editor.
-- All documents are stored in the same folder. I prefer using a couple of folders to categorize documents: "Projects", "Contacts", "Articles", and so on.
-
-...TODO!
-
-### `toc`
-
-Outputs a table of contents for the current document.
-
-...TODO!
-
-### `table`
-
-Generates a sorted table of pages, with optional front matter fields in additional columns.
-
-...TODO!
-
 ## Creating your own application
 
 Creating your own application means that you'll need to:
@@ -188,7 +135,7 @@ Try changing a file in any Markdown document in your document repository now. Fo
 - Implement the `Query` interface.
 - Register the query in your `CuratorModule` subclass, with `registerQuery`.
 
-Rebooting your application should result in the availability of the new queries.
+Rebooting your application should result in the availability of the new query.
 
 ### Create your own custom data models
 
@@ -205,7 +152,63 @@ To do so, implement the `DataModel` interface, register it in your curator modul
 
 By extending the `DataModelTemplate` class you get full refreshes basically for free, and an easy way to process events in a more granular fashion, if so desired: simply override the `process` methods of choice and provide your own implementation.
 
-As an example of a simple custom data model, see the built-in `LinksModel`, which is reused by the `backlinks` and `deadlinks` queries.
+As an example of a custom data model, see the built-in `JournalModel`, which is used by the `timeline` query to generate Logseq-like summaries.
+
+## Built-in queries
+
+This section lists all built-in queries and explains what they do. Each query supports arguments to be passed to it. To know what they are, use the `help` query somewhere in a monitored repository. For example:
+
+```
+<!--query:help
+name: timeline
+-->
+<!--/query-->
+```
+
+This will write information on the selected query (in this case: `timeline`), including the parameters it supports as the query output.
+
+### `backlinks`
+
+This is an optional query. To use it in your own vault, install the `LinksModule` in your Curator module.
+
+This query lists all documents that contain a link to this document.
+
+### `deadlinks`
+
+This is an optional query. To use it in your own vault, install the `LinksModule` in your Curator module.
+
+This query lists all dead links in a document. In other words: all links that refer to documents that do not exist within the vault.
+
+### `list`
+
+This query generates a sorted list of documents in a folder. Each item is a link to a document. Through the configuration the list can be reverse sorted, and documents in subfolders can be recursively added as well.
+
+### `timeline`
+
+This is an optional query. To use it in your own vault, install the `JournalModule` in your Curator module. 
+
+The timeline query is inspired by [Logseq](https://logseq.com). I like the way Logseq puts emphasis on the daily log as the place to write notes. What I do not like about Logseq, however:
+
+- Everything is an outline. I prefer the freedom full Markdown gives me. When I write an article for example, I use sections and paragraphs, without bullets.
+- It's all dynamic, and therefore the functionality only works in Logseq itself. I like to be able to use any text editor.
+- All documents are stored in the same folder. I prefer using a couple of folders to categorize documents: "Projects", "Contacts", "Articles", and so on.
+
+The timeline query solves that, by generating static timelines from the daily logs. 
+
+The `JournalModule` requires two configuration values on construction:
+
+1. The name of folder in which daily entries are stored. `Journal` is a good choice. This folder is expected to contain files in the format `<YYYY-mm-DD>.md`. (This is what Obsidian uses by default.)
+2. The name of the level-2 section in each daily entry that contains the outline. I use `Activities` myself. Journal entries are extracted only from this section.
+
+### `toc`
+
+This query generates a table of contents for the current document. You can tweak the table by configuring the minimum and maximum header levels to include.
+
+### `table`
+
+This query generates a sorted table of pages, with optional front matter fields in additional columns. This is a more powerful version of the `list` query.
+
+Through the configuration you can extract any front-matter field from the individual documents and add them to the table. Next to that you can (reverse) sort the table on any front-matter field.
 
 ## FAQ
 
@@ -224,6 +227,6 @@ Adding the `LC_CTYPE` variable to the Run configuration environment fixed it. Th
 
 Solution: apply the `--enable-preview` JVM setting.
 
-The latest version of this library uses virtual threads, introduced in JDK 19 as a preview. I tried implementing a fallback method, but that only makes the application hang if `--enable-preview` is not provided.
+The latest version of this library uses virtual threads, introduced in JDK 19 as a preview. I tried implementing a fallback method, but that only made the application hang if `--enable-preview` is not provided.
 
 Anyway, virtual threads seem to work really well! My own curator is running 900+ queries in parallel, in less than 20 milliseconds.

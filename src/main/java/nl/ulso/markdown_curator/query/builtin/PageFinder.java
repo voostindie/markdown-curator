@@ -20,7 +20,7 @@ class PageFinder
 
     private boolean inFolder;
 
-    public PageFinder(String selectedFolder, boolean recurse)
+    PageFinder(String selectedFolder, boolean recurse)
     {
         this.pages = new ArrayList<>();
         this.selectedFolder = selectedFolder;

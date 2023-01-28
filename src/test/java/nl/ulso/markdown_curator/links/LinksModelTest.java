@@ -1,22 +1,14 @@
-package nl.ulso.markdown_curator.query.builtin;
+package nl.ulso.markdown_curator.links;
 
 import nl.ulso.markdown_curator.vault.VaultStub;
-import org.assertj.core.api.SoftAssertions;
-import org.assertj.core.api.junit.jupiter.InjectSoftAssertions;
-import org.assertj.core.api.junit.jupiter.SoftAssertionsExtension;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 
 import static nl.ulso.markdown_curator.vault.event.VaultChangedEvent.*;
 import static org.assertj.core.api.Assertions.assertThat;
 
-@ExtendWith(SoftAssertionsExtension.class)
 class LinksModelTest
 {
-    @InjectSoftAssertions
-    private SoftAssertions softly;
-
     private VaultStub vault;
     private LinksModel model;
 

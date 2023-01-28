@@ -1,4 +1,4 @@
-package nl.ulso.markdown_curator.query.builtin;
+package nl.ulso.markdown_curator.links;
 
 import nl.ulso.markdown_curator.query.*;
 import nl.ulso.markdown_curator.vault.InternalLink;

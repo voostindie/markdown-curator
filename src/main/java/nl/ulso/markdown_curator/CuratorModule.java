@@ -80,9 +80,6 @@ public abstract class CuratorModule
         bind(GeneralMessages.class).to(ResourceBundledGeneralMessages.class);
         bind(QueryResultFactory.class);
         bind(Curator.class);
-        registerDataModel(LinksModel.class);
-        registerQuery(BacklinksQuery.class);
-        registerQuery(DeadLinksQuery.class);
         registerQuery(ListQuery.class);
         registerQuery(TableQuery.class);
         registerQuery(TableOfContentsQuery.class);
