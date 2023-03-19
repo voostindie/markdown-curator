@@ -28,7 +28,7 @@
         <dependency>
             <groupId>io.methvin</groupId>
             <artifactId>directory-watcher</artifactId>
-            <version>0.17.1</version>
+            <version>0.18.0</version>
         </dependency>
         <!-- Logging -->
         <dependency>
@@ -58,7 +58,7 @@
         <dependency>
             <groupId>nl.jqno.equalsverifier</groupId>
             <artifactId>equalsverifier</artifactId>
-            <version>3.12.3</version>
+            <version>3.14</version>
             <scope>test</scope>
         </dependency>
         <dependency>
