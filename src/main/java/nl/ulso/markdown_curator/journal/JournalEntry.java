@@ -8,7 +8,9 @@ import java.util.*;
 
 import static java.lang.System.lineSeparator;
 import static java.util.Collections.unmodifiableMap;
+import static java.util.Collections.unmodifiableSet;
 import static java.util.stream.Collectors.toSet;
+import static java.util.stream.IntStream.range;
 import static nl.ulso.markdown_curator.journal.Outline.newOutline;
 import static nl.ulso.markdown_curator.vault.InternalLinkFinder.findInternalLinks;
 
@@ -117,21 +119,22 @@ public class JournalEntry
         return documentReferences.containsKey(documentName);
     }
 
+    Set<String> referencedDocuments()
+    {
+        return unmodifiableSet(documentReferences.keySet());
+    }
+
     private Map<String, Set<Integer>> extractDocumentReferences(Section section)
     {
         var references = new HashMap<String, Set<Integer>>();
         var lines = section.lines();
-        var size = lines.size();
-        for (int i = 0; i < size; i++)
-        {
-            var referencedDocuments = findInternalLinks(section, lines.get(i)).stream()
-                    .map(InternalLink::targetDocument)
-                    .collect(toSet());
-            for (String documentName : referencedDocuments)
-            {
-                references.computeIfAbsent(documentName, (name -> new HashSet<>())).add(i);
-            }
-        }
+        range(0, lines.size()).forEach(index ->
+                findInternalLinks(section, lines.get(index)).stream()
+                        .map(InternalLink::targetDocument)
+                        .collect(toSet())
+                        .forEach(documentName ->
+                                references.computeIfAbsent(documentName, (name -> new HashSet<>()))
+                                        .add(index)));
         return unmodifiableMap(references);
     }
 }

@@ -65,7 +65,7 @@ public class FolderStub
                 break;
             }
             var folderName = path.substring(index, folderEnd);
-            folder = folders.get(folderName);
+            folder = folder.folders.get(folderName);
             if (folder == null)
             {
                 throw new IllegalStateException("Folder doesn't exist: " + folderName);

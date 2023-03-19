@@ -13,6 +13,7 @@ import java.util.stream.Stream;
 
 import static java.util.Comparator.naturalOrder;
 import static java.util.Comparator.reverseOrder;
+import static java.util.stream.Collectors.toUnmodifiableSet;
 import static org.slf4j.LoggerFactory.getLogger;
 
 @Singleton
@@ -83,7 +84,16 @@ public class Journal
 
     private boolean isJournalEntry(Document document)
     {
-        return document.folder().name().contentEquals(settings.journalFolderName());
+        var folder = document.folder();
+        while (folder != vault)
+        {
+            if (folder.name().contentEquals(settings.journalFolderName()))
+            {
+                return true;
+            }
+            folder = folder.parent();
+        }
+        return false;
     }
 
     public SortedMap<LocalDate, String> timelineFor(String documentName)
@@ -92,6 +102,19 @@ public class Journal
         journalEntriesFor(documentName)
                 .forEach(entry -> timeline.put(entry.date(), entry.summaryFor(documentName)));
         return timeline;
+    }
+
+    public Set<String> referencedDocumentsIn(LocalDate startDate, int numberOfDays)
+    {
+        if (numberOfDays < 1)
+        {
+            throw new IllegalStateException("Number of days must be positive: " + numberOfDays);
+        }
+        return startDate.datesUntil(startDate.plusDays(numberOfDays))
+                .map(entries::get)
+                .filter(Objects::nonNull)
+                .flatMap(entry -> entry.referencedDocuments().stream())
+                .collect(toUnmodifiableSet());
     }
 
     public Optional<LocalDate> mostRecentMentionOf(String documentName)
@@ -107,7 +130,7 @@ public class Journal
                 .filter(entry -> entry.refersTo(documentName));
     }
 
-    Vault vault()
+    public Vault vault()
     {
         return vault;
     }

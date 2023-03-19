@@ -41,7 +41,7 @@ class JournalTest
     {
         var journal = createTestJournal();
         var vault = (VaultStub) journal.vault();
-        var document = vault.addDocumentInPath("Journal/2023-01-28", """
+        var document = vault.addDocumentInPath("Journal/2023/2023-01-28", """
                 ## Log
                                 
                 - [[foo]]
@@ -55,7 +55,7 @@ class JournalTest
     {
         var journal = createTestJournal();
         var vault = (VaultStub) journal.vault();
-        var document = vault.addDocumentInPath("Journal/2023-01-25", """
+        var document = vault.addDocumentInPath("Journal/2023/2023-01-25", """
                 ## Log
                                 
                 - [[foo]]
@@ -69,7 +69,7 @@ class JournalTest
     {
         var journal = createTestJournal();
         var vault = (VaultStub) journal.vault();
-        var document = vault.resolveDocumentInPath("Journal/2023-01-25");
+        var document = vault.resolveDocumentInPath("Journal/2023/2023-01-25");
         journal.process(VaultChangedEvent.documentRemoved(document));
         assertThat(journal.timelineFor("foo")).hasSize(2);
     }
@@ -92,22 +92,31 @@ class JournalTest
         );
     }
 
+    @Test
+    void referencedDocuments()
+    {
+        var journal = createTestJournal();
+        var references = journal.referencedDocumentsIn(LocalDate.of(2023, 1, 25), 3);
+        assertThat(references).containsExactlyInAnyOrder("foo", "bar", "baz");
+
+    }
+
     static Journal createTestJournal()
     {
         var vault = new VaultStub();
-        vault.addDocumentInPath("Journal/2023-01-25", """
+        vault.addDocumentInPath("Journal/2023/2023-01-25", """
                 ## Log
                                 
                 - [[foo]]
                 - [[baz]]
                 """);
-        vault.addDocumentInPath("Journal/2023-01-26", """
+        vault.addDocumentInPath("Journal/2023/2023-01-26", """
                 ## Log
                                 
                 - [[foo]]
                 - [[bar]]
                 """);
-        vault.addDocumentInPath("Journal/2023-01-27", """
+        vault.addDocumentInPath("Journal/2023/2023-01-27", """
                 ## Log
                                 
                 - [[foo]]

@@ -10,6 +10,7 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
 import java.time.LocalDate;
+import java.util.Set;
 import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -95,5 +96,23 @@ class JournalEntryTest
                     - Reference to [[Z]]
                         - And another reference to [[X]]
                 """);
+    }
+
+    @Test
+    void referencedDocuments()
+    {
+        var vault = new VaultStub();
+        var document = vault.addDocument("2023-03-18", """
+                ## Activities
+                                
+                - [[X]], [[Y]] and [[Z]]
+                - [[foo]]
+                    - [[bar]]
+                        - [[baz]]
+                """);
+        var section = (Section) document.fragments().get(1);
+        var entry = JournalEntry.parseJournalEntryFrom(section);
+        assertThat(entry).map(JournalEntry::referencedDocuments).contains(
+                Set.of("X", "Y", "Z", "foo", "bar", "baz"));
     }
 }
