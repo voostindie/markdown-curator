@@ -11,7 +11,7 @@ See the [CHANGELOG](CHANGELOG.md) for releases and the roadmap.
 
 ## TL;DR
 
-- This is a Java 19+ library and small application framework for processing directories of Markdown documents.
+- This is a Java 20+ library and small application framework for processing directories of Markdown documents.
 - It is especially well suited for Obsidian vaults and iA Writer libraries.
 - It detects queries in the documents, runs them, and writes back the results.
 - As an application, it monitors and processes directories in the background.
