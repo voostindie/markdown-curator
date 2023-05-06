@@ -130,7 +130,6 @@ public final class FileSystemVault
                     };
             if (vaultChangedEvent != null)
             {
-                LOGGER.info("Change detected: {}", eventAbsolutePath);
                 callback.vaultChanged(vaultChangedEvent);
             }
         }
