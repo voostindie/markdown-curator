@@ -3,7 +3,7 @@ package nl.ulso.markdown_curator.query.builtin;
 import nl.ulso.markdown_curator.query.*;
 import nl.ulso.markdown_curator.vault.Vault;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 import java.util.*;
 
 import static java.util.Collections.reverse;

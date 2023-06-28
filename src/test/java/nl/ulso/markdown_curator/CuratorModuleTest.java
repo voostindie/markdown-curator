@@ -6,7 +6,7 @@ import org.assertj.core.api.junit.jupiter.SoftAssertionsExtension;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
-import javax.inject.Singleton;
+import jakarta.inject.Singleton;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Map;

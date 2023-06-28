@@ -1,6 +1,6 @@
 package nl.ulso.markdown_curator.query;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 import java.text.MessageFormat;
 import java.util.Locale;
 import java.util.ResourceBundle;

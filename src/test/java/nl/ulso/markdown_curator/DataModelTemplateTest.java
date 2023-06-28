@@ -7,12 +7,9 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
-import javax.inject.Singleton;
 import java.util.stream.Stream;
 
 import static nl.ulso.markdown_curator.vault.event.VaultChangedEvent.*;
-import static nl.ulso.markdown_curator.vault.event.VaultChangedEvent.folderAdded;
-import static nl.ulso.markdown_curator.vault.event.VaultChangedEvent.vaultRefreshed;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @ExtendWith(SoftAssertionsExtension.class)

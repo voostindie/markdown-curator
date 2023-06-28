@@ -2,7 +2,7 @@ package nl.ulso.markdown_curator.links;
 
 import nl.ulso.markdown_curator.query.*;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 import java.util.Map;
 
 public final class DeadLinksQuery
