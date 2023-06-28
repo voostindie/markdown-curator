@@ -11,6 +11,7 @@ import java.nio.file.Path;
 import java.util.Locale;
 
 import static com.google.inject.multibindings.Multibinder.newSetBinder;
+import static java.lang.System.getProperty;
 import static java.util.Locale.ENGLISH;
 
 /**
@@ -45,6 +46,7 @@ import static java.util.Locale.ENGLISH;
 public abstract class CuratorModule
         extends AbstractModule
 {
+    private static final String USER_HOME_SYSTEM_PROPERTY = "user.home";
     private Multibinder<Query> queryBinder;
     private Multibinder<DataModel> dataModelBinder;
 
@@ -116,6 +118,22 @@ public abstract class CuratorModule
 
     protected final Path pathInUserHome(String... path)
     {
-        return Path.of(java.lang.System.getProperty("user.home"), path);
+        return Path.of(getProperty(USER_HOME_SYSTEM_PROPERTY), path);
+    }
+
+    protected final Path iCloudObsidianVault(String vaultName)
+    {
+        return iCloudPath("iCloud~md~obsidian", vaultName);
+    }
+
+    protected final Path iCloudIAWriterFolder(String folderName)
+    {
+        return iCloudPath("27N4MQEA55~pro~writer", folderName);
+    }
+
+    private Path iCloudPath(String applicationName, String folderName)
+    {
+        return Path.of(getProperty(USER_HOME_SYSTEM_PROPERTY), "Library", "Mobile Documents",
+                applicationName, "Documents", folderName);
     }
 }

@@ -1,12 +1,12 @@
 package nl.ulso.markdown_curator;
 
+import jakarta.inject.Singleton;
 import nl.ulso.markdown_curator.query.*;
 import nl.ulso.markdown_curator.vault.event.VaultChangedEvent;
 import org.assertj.core.api.junit.jupiter.SoftAssertionsExtension;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
-import jakarta.inject.Singleton;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Map;
@@ -22,6 +22,24 @@ class CuratorModuleTest
     void createCuratorWithInjector()
     {
         assertThat(createInjector(new ModuleStub()).getInstance(Curator.class)).isNotNull();
+    }
+
+    @Test
+    void iCloudIAWriterFolder()
+    {
+        var path = new ModuleStub().iCloudIAWriterFolder("Test");
+        var home = System.getProperty("user.home");
+        assertThat(path.toString()).isEqualTo(
+                home + "/Library/Mobile Documents/27N4MQEA55~pro~writer/Documents/Test");
+    }
+
+    @Test
+    void iCloudObsidianFolder()
+    {
+        var path = new ModuleStub().iCloudObsidianVault("Test");
+        var home = System.getProperty("user.home");
+        assertThat(path.toString()).isEqualTo(
+                home + "/Library/Mobile Documents/iCloud~md~obsidian/Documents/Test");
     }
 
     private static class ModuleStub
