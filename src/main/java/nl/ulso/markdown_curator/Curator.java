@@ -1,6 +1,6 @@
 package nl.ulso.markdown_curator;
 
-import com.google.inject.Inject;
+import jakarta.inject.Inject;
 import nl.ulso.markdown_curator.query.*;
 import nl.ulso.markdown_curator.vault.*;
 import nl.ulso.markdown_curator.vault.event.VaultChangedEvent;
@@ -43,6 +43,7 @@ public class Curator
         implements VaultChangedCallback
 {
     private static final Logger LOGGER = getLogger(Curator.class);
+    private static final long COOL_OFF_PERIOD_IN_MILLISECONDS = 100;
 
     private final Vault vault;
     private final ExecutorService executor;
@@ -86,6 +87,7 @@ public class Curator
                 .collect(groupingBy(item -> item.queryBlock().document()));
         if (!changeset.isEmpty())
         {
+            coolOffToPreventConflicts();
             changeset.forEach(this::writeDocument);
         }
     }
@@ -150,8 +152,7 @@ public class Curator
             {
                 LOGGER.debug("Query result change detected in document: {}",
                         queryBlock.document());
-                var item = new WriteItem(queryBlock, output);
-                writeQueue.add(item);
+                writeQueue.add(new WriteItem(queryBlock, output));
             }
         });
         if (LOGGER.isDebugEnabled() && writeQueue.isEmpty())
@@ -168,12 +169,11 @@ public class Curator
         var writer = new StringWriter();
         var out = new PrintWriter(writer);
         int index = 0;
-        for (WriteItem item : items)
+        for (WriteItem(QueryBlock block, String output) : items)
         {
-            var queryBlock = item.queryBlock();
-            printDocumentLines(out, document, index, queryBlock.resultStartIndex());
-            out.println(item.output());
-            index = queryBlock.resultEndIndex();
+            printDocumentLines(out, document, index, block.resultStartIndex());
+            out.println(output);
+            index = block.resultEndIndex();
         }
         printDocumentLines(out, document, index, -1);
         try
@@ -244,6 +244,26 @@ public class Curator
         {
             Thread.currentThread().interrupt();
             throw new CuratorException(e);
+        }
+    }
+
+    /*
+     * Sometimes the curator kicks in too fast, resulting in an editor (e.g. Obsidian) still writing
+     * files from a work queue at the same time as the curator, resulting in corrupted files. It's
+     * all just text, but still... To prevent the nasty effects of this race condition from
+     * happening we give the curator some time to cool off. The curator will find that files have
+     * changed in the meantime, and will not write updates. Instead, it will reprocess the files
+     * automatically. Eventually the curator catches up to all changes anyway,
+     */
+    private static void coolOffToPreventConflicts()
+    {
+        try
+        {
+            TimeUnit.MILLISECONDS.sleep(COOL_OFF_PERIOD_IN_MILLISECONDS);
+        }
+        catch (InterruptedException e)
+        {
+            Thread.currentThread().interrupt();
         }
     }
 
