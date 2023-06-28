@@ -3,13 +3,12 @@ package nl.ulso.markdown_curator.vault;
 import com.google.inject.Inject;
 import io.methvin.watcher.DirectoryChangeEvent;
 import io.methvin.watcher.DirectoryWatcher;
-import io.methvin.watcher.hashing.FileHasher;
+import jakarta.inject.Singleton;
 import nl.ulso.markdown_curator.DocumentPathResolver;
 import nl.ulso.markdown_curator.VaultPath;
 import nl.ulso.markdown_curator.vault.event.VaultChangedEvent;
 import org.slf4j.Logger;
 
-import jakarta.inject.Singleton;
 import java.io.IOException;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
@@ -19,6 +18,8 @@ import java.util.Collection;
 import static java.nio.file.Files.getLastModifiedTime;
 import static java.nio.file.Files.readAllLines;
 import static java.nio.file.Files.walkFileTree;
+import static java.text.Normalizer.Form.NFC;
+import static java.text.Normalizer.normalize;
 import static java.util.Collections.reverse;
 import static java.util.Objects.requireNonNull;
 import static nl.ulso.markdown_curator.vault.Document.newDocument;
@@ -56,7 +57,6 @@ public final class FileSystemVault
                 .path(absolutePath)
                 .listener(this::processFileSystemEvent)
                 .watchService(watchServiceHolder.watchService)
-                .fileHasher(FileHasher.LAST_MODIFIED_TIME)
                 .build();
         if (LOGGER.isInfoEnabled())
         {
@@ -122,12 +122,12 @@ public final class FileSystemVault
         if (parent != null)
         {
             var vaultChangedEvent = switch (event.eventType())
-                    {
-                        case CREATE -> processFileCreationEvent(event, parent);
-                        case DELETE -> processFileDeletionEvent(event, parent);
-                        case MODIFY -> processFileModificationEvent(event, parent);
-                        default -> null;
-                    };
+            {
+                case CREATE -> processFileCreationEvent(event, parent);
+                case DELETE -> processFileDeletionEvent(event, parent);
+                case MODIFY -> processFileModificationEvent(event, parent);
+                default -> null;
+            };
             if (vaultChangedEvent != null)
             {
                 callback.vaultChanged(vaultChangedEvent);
@@ -255,7 +255,7 @@ public final class FileSystemVault
 
     private String folderName(Path absolutePath)
     {
-        return absolutePath.getFileName().toString();
+        return normalize(absolutePath.getFileName().toString(), NFC);
     }
 
     private String documentName(Path absolutePath)
@@ -263,7 +263,7 @@ public final class FileSystemVault
         var fileName = absolutePath.getFileName().toString();
         var extensionIndex = fileName.lastIndexOf('.');
         var endIndex = extensionIndex != -1 ? extensionIndex : fileName.length();
-        return fileName.substring(0, endIndex);
+        return normalize(fileName.substring(0, endIndex), NFC);
     }
 
     public Path resolveAbsolutePath(Document document)

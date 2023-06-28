@@ -11,10 +11,12 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.*;
+import java.text.Normalizer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
+import static java.text.Normalizer.normalize;
 import static java.util.Collections.synchronizedList;
 import static nl.ulso.markdown_curator.vault.ElementCounter.countAll;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -241,6 +243,54 @@ class FileSystemVaultTest
                 var newM = vault.folder("Characters").orElseThrow().document("M").orElseThrow();
                 softly.assertThat(newM).isNotSameAs(m);
                 softly.assertThat(newM.content()).isEqualTo("Played by several actors");
+            }
+        });
+    }
+
+    /**
+     * So, this was an evening of bug hunting... "All of a sudden" - which I know is never true when
+     * it comes to computers; something changed, but I can't figure out what - documents with
+     * diacritic characters in their names started to show up twice, leading to all kinds of issues,
+     * especially since the system expects document names to be globally unique.
+     * <p/>
+     * After doing some digging I discovered diacritic characters were represented by slightly
+     * different byte arrays. Doing some more digging I discovered this is a Unicade feature, where
+     * text can be represented in either a "composed" or a "decomposed" manner. That means that
+     * <code>"ë".contentEquals("ë")</code> might return <code>false</code>.
+     * <p/>
+     * The solution is to "normalize" the text to a specific form, where "NFC" is the W3C suggested
+     * preferred form. This is what the FileSystemVault now does when resolving folder and document
+     * names.
+     * <p/>
+     * Unfortunately I cannot test folders with diacritic characters, because writing folders with
+     * diacritic characters in this test, in a temporary directory, somehow doesn't work. Files do
+     * work, and this test indeed fails if document names are not normalized.
+     */
+    @Test
+    void handleUnicodeConsistently()
+    {
+        whileWatchingForChanges(new TestCase()
+        {
+            @Override
+            public int changeFileSystem(FileSystem fileSystem)
+                    throws IOException
+            {
+                writeFile(normalize("Unicode/éë - NFC.md", Normalizer.Form.NFC), "NFC");
+                writeFile(normalize("Unicode/éë - NFD.md", Normalizer.Form.NFD), "NFD");
+                writeFile(normalize("Unicode/éë - NFKC.md", Normalizer.Form.NFKC), "NFKC");
+                writeFile(normalize("Unicode/éë - NFKD.md", Normalizer.Form.NFKD), "NFKD");
+                return 4;
+            }
+
+            @Override
+            public void verify(List<VaultChangedEvent> events)
+            {
+                var expectedDocumentPrefix = normalize("éë - ", Normalizer.Form.NFC);
+                var folder = vault.folder("Unicode").orElseThrow();
+                softly.assertThat(folder.document(expectedDocumentPrefix + "NFC")).isPresent();
+                softly.assertThat(folder.document(expectedDocumentPrefix + "NFD")).isPresent();
+                softly.assertThat(folder.document(expectedDocumentPrefix + "NFKC")).isPresent();
+                softly.assertThat(folder.document(expectedDocumentPrefix + "NFKD")).isPresent();
             }
         });
     }
