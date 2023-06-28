@@ -89,7 +89,7 @@
             </resource>
         </resources>
         <plugins>
-            <!-- Require at least Maven 3.9 -->
+            <!-- Require at least Maven 3.8 -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-enforcer-plugin</artifactId>
