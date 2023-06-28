@@ -56,28 +56,28 @@ class TableOfContentsQueryTest
         return Stream.of(
                 Arguments.of(
                         emptyMap(), """
-                                - [[#Two]]
-                                - [[#Three]]
-                                    - [[#Four]]
-                                    - [[#Five]]
-                                - [[#Six]]
+                                - Two
+                                - Three
+                                    - Four
+                                    - Five
+                                - Six
                                 """
                 ),
                 Arguments.of(
                         Map.of("minimum-level", 1), """
-                                - [[#One]]
-                                    - [[#Two]]
-                                    - [[#Three]]
-                                        - [[#Four]]
-                                        - [[#Five]]
-                                    - [[#Six]]
+                                - One
+                                    - Two
+                                    - Three
+                                        - Four
+                                        - Five
+                                    - Six
                                 """
                 ),
                 Arguments.of(
                         Map.of("maximum-level", 2), """
-                                - [[#Two]]
-                                - [[#Three]]
-                                - [[#Six]]
+                                - Two
+                                - Three
+                                - Six
                                 """
                 )
         );
