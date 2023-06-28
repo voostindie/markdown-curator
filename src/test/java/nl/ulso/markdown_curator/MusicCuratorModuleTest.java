@@ -58,7 +58,7 @@ class MusicCuratorModuleTest
     void queryCatalog()
     {
         QueryCatalog catalog = injector.getInstance(QueryCatalog.class);
-        softly.assertThat(catalog.queries().size()).isEqualTo(11);
+        softly.assertThat(catalog.queries().size()).isEqualTo(12);
         Query dummy = catalog.query("dummy");
         QueryResult result = dummy.run(emptyQueryBlock());
         var markdown = result.toMarkdown();

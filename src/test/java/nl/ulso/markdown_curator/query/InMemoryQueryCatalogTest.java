@@ -42,22 +42,9 @@ class InMemoryQueryCatalogTest
         assertThat(catalog.queries()).hasSize(2);
     }
 
-    private static class DummyQuery
+    record DummyQuery(String name)
             implements Query
     {
-        private final String name;
-
-        public DummyQuery(String name)
-        {
-            this.name = name;
-        }
-
-        @Override
-        public String name()
-        {
-            return name;
-        }
-
         @Override
         public String description()
         {

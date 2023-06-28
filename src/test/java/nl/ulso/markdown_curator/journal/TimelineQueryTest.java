@@ -36,7 +36,7 @@ class TimelineQueryTest
     void supportedConfiguration()
     {
         var query = new TimelineQuery(null, new QueryResultFactory());
-        assertThat(query.supportedConfiguration()).isEmpty();
+        assertThat(query.supportedConfiguration().size()).isEqualTo(1);
     }
 
     @ParameterizedTest

@@ -44,7 +44,7 @@ class InternalLinkFinderTest
         var first = links.get(0);
         softly.assertThat(first.targetDocument()).isEqualTo("link");
         softly.assertThat(first.targetAnchor()).isPresent();
-        softly.assertThat(first.targetAnchor().get()).isEqualTo("anchor");
+        softly.assertThat(first.targetAnchor().orElseThrow()).isEqualTo("anchor");
         softly.assertThat(first.alias()).isNotPresent();
     }
 
@@ -68,9 +68,9 @@ class InternalLinkFinderTest
         var first = links.get(0);
         softly.assertThat(first.targetDocument()).isEqualTo("link");
         softly.assertThat(first.targetAnchor()).isPresent();
-        softly.assertThat(first.targetAnchor().get()).isEqualTo("anchor");
+        softly.assertThat(first.targetAnchor().orElseThrow()).isEqualTo("anchor");
         softly.assertThat(first.alias()).isPresent();
-        softly.assertThat(first.alias().get()).isEqualTo("alias");
+        softly.assertThat(first.alias().orElseThrow()).isEqualTo("alias");
     }
 
     private List<InternalLink> allLinks(String content)

@@ -105,17 +105,17 @@ class FileSystemVaultTest
     {
         softly.assertThat(vault.documents().size()).isEqualTo(1);
         softly.assertThat(vault.folders().size()).isEqualTo(3);
-        softly.assertThat(vault.folder("Movies").get().documents().size()).isEqualTo(5);
-        softly.assertThat(vault.folder("Characters").get().documents().size()).isEqualTo(3);
-        softly.assertThat(vault.folder("Actors").get().documents().size()).isEqualTo(4);
+        softly.assertThat(vault.folder("Movies").orElseThrow().documents().size()).isEqualTo(5);
+        softly.assertThat(vault.folder("Characters").orElseThrow().documents().size()).isEqualTo(3);
+        softly.assertThat(vault.folder("Actors").orElseThrow().documents().size()).isEqualTo(4);
     }
 
     @Test
     void readmeIsAvailable()
     {
         var document = vault.document("README").orElseThrow();
-        assertThat(document.frontMatter().listOfStrings("aliases"))
-                .containsExactly("Index", "Home");
+        assertThat(document.frontMatter().listOfStrings("aliases")).containsExactly("Index",
+                "Home");
     }
 
     @Test
@@ -163,7 +163,8 @@ class FileSystemVaultTest
             @Override
             public void verify(List<VaultChangedEvent> events)
             {
-                softly.assertThat(vault.folder("Studios").get().document("MGM")).isPresent();
+                softly.assertThat(vault.folder("Studios").orElseThrow().document("MGM"))
+                        .isPresent();
                 softly.assertThat(events.stream().map(e -> (Class) e.getClass()))
                         .containsExactly(FolderAdded.class, DocumentAdded.class);
             }
@@ -190,7 +191,8 @@ class FileSystemVaultTest
             {
                 softly.assertThat(vault.folder("Actors")).isNotPresent();
                 softly.assertThat(vault.folder("People")).isPresent();
-                softly.assertThat(vault.folder("People").get().documents().size()).isEqualTo(4);
+                softly.assertThat(vault.folder("People").orElseThrow().documents().size())
+                        .isEqualTo(4);
                 softly.assertThat(events.stream().map(e -> (Class) e.getClass()))
                         .contains(FolderRemoved.class, FolderAdded.class);
             }
@@ -213,8 +215,10 @@ class FileSystemVaultTest
             @Override
             public void verify(List<VaultChangedEvent> events)
             {
-                softly.assertThat(vault.folder("Characters").get().documents().size()).isEqualTo(2);
-                softly.assertThat(vault.folder("Characters").get().document("M")).isNotPresent();
+                softly.assertThat(vault.folder("Characters").orElseThrow().documents().size())
+                        .isEqualTo(2);
+                softly.assertThat(vault.folder("Characters").orElseThrow().document("M"))
+                        .isNotPresent();
                 softly.assertThat(events.stream().map(e -> (Class) e.getClass()))
                         .containsExactly(DocumentRemoved.class);
             }
@@ -331,8 +335,8 @@ class FileSystemVaultTest
     {
         var absolutePath = testVaultRoot.resolve(relativePath);
         Files.createDirectories(absolutePath.getParent());
-        Files.write(absolutePath,
-                List.of(content.split(System.lineSeparator())), StandardCharsets.UTF_8);
+        Files.write(absolutePath, List.of(content.split(System.lineSeparator())),
+                StandardCharsets.UTF_8);
     }
 
     public interface TestCase

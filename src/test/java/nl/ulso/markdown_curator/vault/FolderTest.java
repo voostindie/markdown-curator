@@ -48,7 +48,7 @@ class FolderTest
         var sub = root.addFolder("sub");
         softly.assertThat(sub.parent()).isSameAs(root);
         softly.assertThat(root.folders().size()).isEqualTo(1);
-        softly.assertThat(root.folder("sub").get()).isSameAs(sub);
+        softly.assertThat(root.folder("sub").orElseThrow()).isSameAs(sub);
     }
 
     @Test
@@ -58,7 +58,7 @@ class FolderTest
         root.addFolder("sub");
         var sub = root.addFolder("sub");
         softly.assertThat(root.folders().size()).isEqualTo(1);
-        softly.assertThat(root.folder("sub").get()).isSameAs(sub);
+        softly.assertThat(root.folder("sub").orElseThrow()).isSameAs(sub);
     }
 
     @Test
@@ -77,7 +77,7 @@ class FolderTest
         Document document = newDocument("empty", 0, Collections.emptyList());
         root.addDocument(document);
         softly.assertThat(root.documents().size()).isEqualTo(1);
-        softly.assertThat(root.document("empty").get()).isSameAs(document);
+        softly.assertThat(root.document("empty").orElseThrow()).isSameAs(document);
     }
 
     @Test
@@ -88,7 +88,7 @@ class FolderTest
         Document document = newDocument("empty", 0, Collections.emptyList());
         root.addDocument(document);
         softly.assertThat(root.documents().size()).isEqualTo(1);
-        softly.assertThat(root.document("empty").get()).isSameAs(document);
+        softly.assertThat(root.document("empty").orElseThrow()).isSameAs(document);
     }
 
     @Test
