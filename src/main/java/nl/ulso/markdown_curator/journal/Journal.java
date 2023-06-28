@@ -24,14 +24,14 @@ public class Journal
 
     private final Vault vault;
     private final JournalSettings settings;
-    private final Map<LocalDate, JournalEntry> entries;
+    private final NavigableMap<LocalDate, JournalEntry> entries;
 
     @Inject
     Journal(Vault vault, JournalSettings settings)
     {
         this.vault = vault;
         this.settings = settings;
-        this.entries = new HashMap<>();
+        this.entries = new TreeMap<>();
     }
 
     @Override
@@ -122,6 +122,16 @@ public class Journal
         return journalEntriesFor(documentName)
                 .map(JournalEntry::date)
                 .max(naturalOrder());
+    }
+
+    public Optional<LocalDate> entryBefore(LocalDate date)
+    {
+        return Optional.ofNullable(entries.lowerKey(date));
+    }
+
+    public Optional<LocalDate> entryAfter(LocalDate date)
+    {
+        return Optional.ofNullable(entries.higherKey(date));
     }
 
     private Stream<JournalEntry> journalEntriesFor(String documentName)

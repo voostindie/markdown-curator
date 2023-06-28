@@ -47,6 +47,7 @@ public class JournalModule
     {
         newSetBinder(binder(), DataModel.class).addBinding().to(Journal.class);
         newSetBinder(binder(), Query.class).addBinding().to(TimelineQuery.class);
+        newSetBinder(binder(), Query.class).addBinding().to(JournalNavigationQuery.class);
     }
 }
 
