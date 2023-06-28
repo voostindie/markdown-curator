@@ -60,7 +60,7 @@ final class YamlDictionary
         }
         catch (YamlEngineException | ClassCastException e)
         {
-            LOGGER.warn("Invalid YAML found; ignoring it");
+            LOGGER.warn("Invalid YAML found; ignoring it: {}", string);
         }
         if (yaml == null)
         {
