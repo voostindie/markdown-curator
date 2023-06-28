@@ -29,7 +29,7 @@ class CuratorModuleTest
     {
         var path = new ModuleStub().iCloudIAWriterFolder("Test");
         var home = System.getProperty("user.home");
-        assertThat(path.toString()).isEqualTo(
+        assertThat(path).hasToString(
                 home + "/Library/Mobile Documents/27N4MQEA55~pro~writer/Documents/Test");
     }
 
@@ -38,7 +38,7 @@ class CuratorModuleTest
     {
         var path = new ModuleStub().iCloudObsidianVault("Test");
         var home = System.getProperty("user.home");
-        assertThat(path.toString()).isEqualTo(
+        assertThat(path).hasToString(
                 home + "/Library/Mobile Documents/iCloud~md~obsidian/Documents/Test");
     }
 
