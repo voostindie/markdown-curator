@@ -54,9 +54,9 @@ class JournalNavigationQueryTest
     {
         return Stream.of(
                 Arguments.of("2023-01-25", Locale.ENGLISH,
-                        "# Wednesday, January 25, 2023 [[2023-01-26|➡️]]"),
+                        "# [[2023-01-26|➡️]] Wednesday, January 25, 2023"),
                 Arguments.of("2023-01-26", Locale.ENGLISH,
-                        "# [[2023-01-25|⬅️]] Thursday, January 26, 2023 [[2023-01-27|➡️]]"),
+                        "# [[2023-01-25|⬅️]] [[2023-01-27|➡️]] Thursday, January 26, 2023"),
                 Arguments.of("2023-01-27", Locale.ENGLISH,
                         "# [[2023-01-26|⬅️]] Friday, January 27, 2023"),
                 Arguments.of("2023-01-27", Locale.forLanguageTag("nl"),

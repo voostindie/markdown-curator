@@ -5,10 +5,10 @@ import jakarta.inject.Singleton;
 import nl.ulso.markdown_curator.query.*;
 import nl.ulso.markdown_curator.vault.LocalDates;
 
+import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.format.FormatStyle;
-import java.util.Locale;
-import java.util.Map;
+import java.util.*;
 
 import static java.util.Collections.emptyMap;
 
@@ -54,23 +54,19 @@ public class JournalNavigationQuery
         {
             return resultFactory.error("Document is not a daily journal!");
         }
-        var before = model.entryBefore(date);
-        var after = model.entryAfter(date);
         var result = new StringBuilder();
         result.append("# ");
-        before.ifPresent(d ->
-        {
-            result.append("[[");
-            result.append(d);
-            result.append("|⬅️]] ");
-        });
+        appendNavigator(result, model.entryBefore(date), "⬅️");
+        appendNavigator(result, model.entryAfter(date), "➡️");
         result.append(date.format(formatter));
-        after.ifPresent(d ->
-        {
-            result.append(" [[");
-            result.append(d);
-            result.append("|➡️]]");
-        });
         return resultFactory.string(result.toString());
+    }
+
+    private void appendNavigator(
+            StringBuilder builder, Optional<LocalDate> optionalDate, String label)
+    {
+        optionalDate.ifPresent(date ->
+                builder.append("[[").append(date).append("|").append(label).append("]] ")
+        );
     }
 }
