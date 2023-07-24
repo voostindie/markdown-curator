@@ -11,5 +11,5 @@ public interface QueryDefinition
 
     Document document();
 
-    String result();
+    String outputHash();
 }

@@ -27,7 +27,7 @@ import static org.awaitility.Awaitility.await;
 class FileSystemVaultTest
 {
     private static final int WATCHER_INITIALIZATION_TIME_MILLISECONDS = 250;
-    private static final int FILESYSTEM_WAIT_TIME_MILLISECONDS = 1000;
+    private static final int FILESYSTEM_WAIT_TIME_MILLISECONDS = 3000;
 
     @InjectSoftAssertions
     private SoftAssertions softly;

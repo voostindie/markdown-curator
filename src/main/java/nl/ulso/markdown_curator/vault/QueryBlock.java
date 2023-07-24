@@ -2,12 +2,14 @@ package nl.ulso.markdown_curator.vault;
 
 import nl.ulso.markdown_curator.query.QueryDefinition;
 
+import java.io.PrintWriter;
 import java.util.List;
 import java.util.Objects;
 
 import static java.lang.Character.isLetterOrDigit;
 import static java.lang.String.join;
 import static java.lang.System.lineSeparator;
+import static java.util.Collections.emptyList;
 import static nl.ulso.markdown_curator.vault.Dictionary.yamlDictionary;
 
 /**
@@ -20,12 +22,13 @@ import static nl.ulso.markdown_curator.vault.Dictionary.yamlDictionary;
  * <p/>
  * The informal BNF specification for queries is:
  * <pre>
- *     query ::= "&lt;!--query" (":" &lt;name>) (&lt;configuration>) "-->" &lt;newline>
+ *     query ::= "&lt;!--query:" &lt;name> (&lt;configuration>)? "-->" &lt;newline>
  *               &lt;output> &lt;newline>
- *               "&lt;!--/query-->"
+ *               "&lt;!--/query" (" (" &lt;hash> ")")? "-->"
  *     name ::= string of alphabetical characters
- *     configuration ::= YAML
+ *     configuration ::= YAML map
  *     output ::= arbitrary string
+ *     hash ::= hash of the output
  * </pre>
  * This format is processed by this tool; it's why this tool exists in this first place. It picks
  * up the {@code name} and {@code configuration}, interprets it, runs it, and writes the results
@@ -35,6 +38,9 @@ import static nl.ulso.markdown_curator.vault.Dictionary.yamlDictionary;
  * <p/>
  * The {@code configuration} is a YAML map. It can be omitted if the query needs no
  * configuration.
+ * <p/>
+ * The {@code hash} is hash computed of the output by this tool, used to check whether the output
+ * of a query has changed.
  * <p/>
  * The simplest way to add a new query to a page is to add an empty query block. After saving the
  * page, this tool will pick it up and insert the output, which consists of a list of available
@@ -47,23 +53,25 @@ public final class QueryBlock
     static final String QUERY_CONFIGURATION_PREFIX = "<!--query";
     private static final String QUERY_CONFIGURATION_POSTFIX = "-->";
     static final String QUERY_OUTPUT_PREFIX = "<!--/query";
+    private static final String QUERY_HASH_PREFIX = "(";
+    private static final String QUERY_HASH_POSTFIX = ")";
     static final String QUERY_OUTPUT_POSTFIX = "-->";
     private static final char QUERY_NAME_MARKER = ':';
     private static final String DEFAULT_NAME = "none";
 
     private final String queryName;
     private final Dictionary configuration;
-    private final String result;
+    private final String outputHash;
     private final int resultStartIndex;
     private final int resultEndIndex;
 
     QueryBlock(List<String> lines, int documentLineIndex)
     {
-        super(lines);
+        super(emptyList());
         var parser = new QueryParser(lines);
         queryName = parser.queryName();
         configuration = yamlDictionary(parser.configuration());
-        result = parser.result();
+        outputHash = parser.outputHash();
         resultStartIndex = documentLineIndex + parser.resultStartIndex() + 1;
         resultEndIndex = documentLineIndex + lines.size() - 1;
     }
@@ -78,9 +86,9 @@ public final class QueryBlock
         return configuration;
     }
 
-    public String result()
+    public String outputHash()
     {
-        return result;
+        return outputHash;
     }
 
     /**
@@ -110,7 +118,7 @@ public final class QueryBlock
         {
             return Objects.equals(queryName, queryBlock.queryName)
                     && Objects.equals(configuration, queryBlock.configuration)
-                    && Objects.equals(result, queryBlock.result)
+                    && Objects.equals(outputHash, queryBlock.outputHash)
                     && Objects.equals(resultStartIndex, queryBlock.resultStartIndex)
                     && Objects.equals(resultEndIndex, queryBlock.resultEndIndex);
         }
@@ -120,26 +128,49 @@ public final class QueryBlock
     @Override
     public int hashCode()
     {
-        return Objects.hash(queryName, configuration, result, resultStartIndex, resultEndIndex);
+        return Objects.hash(queryName, configuration, outputHash, resultStartIndex, resultEndIndex);
+    }
+
+    @Override
+    public List<String> lines()
+    {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public String content()
+    {
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public boolean isEmpty()
     {
-        return configuration.isEmpty() && result.isEmpty();
+        return configuration.isEmpty() && outputHash.isEmpty();
     }
 
     @Override
+
     public void accept(VaultVisitor visitor)
     {
         visitor.visit(this);
+    }
+
+    public static void writeQueryEndWithHash(PrintWriter writer, String hash)
+    {
+        writer.print(QUERY_OUTPUT_PREFIX);
+        writer.print(" ");
+        writer.print(QUERY_HASH_PREFIX);
+        writer.print(hash);
+        writer.print(QUERY_HASH_POSTFIX);
+        writer.println(QUERY_OUTPUT_POSTFIX);
     }
 
     private static final class QueryParser
     {
         private String queryName;
         private String configuration;
-        private String result;
+        private String outputHash;
         private int resultStartIndex;
 
         QueryParser(List<String> lines)
@@ -169,10 +200,19 @@ public final class QueryBlock
             if (split != -1)
             {
                 configuration = query.substring(0, split).trim();
-                result = query.substring(split + QUERY_CONFIGURATION_POSTFIX.length()).trim();
                 while (!lines.get(resultStartIndex).endsWith(QUERY_OUTPUT_POSTFIX))
                 {
                     resultStartIndex++;
+                }
+            }
+            var line = lines.get(lines.size() - 1);
+            int hashStart = line.indexOf(QUERY_HASH_PREFIX, QUERY_OUTPUT_PREFIX.length());
+            if (hashStart != -1)
+            {
+                int hashEnd = line.indexOf(QUERY_HASH_POSTFIX, hashStart);
+                if (hashEnd != -1)
+                {
+                    outputHash = line.substring(hashStart + 1, hashEnd);
                 }
             }
         }
@@ -187,10 +227,7 @@ public final class QueryBlock
             return configuration != null ? configuration : "";
         }
 
-        String result()
-        {
-            return result != null ? result : "";
-        }
+        String outputHash() { return outputHash != null ? outputHash : ""; }
 
         int resultStartIndex()
         {

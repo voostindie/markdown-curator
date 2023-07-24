@@ -118,7 +118,17 @@ class MarkdownTokenizerTest
     {
         assertSame("""
                         <!--query:TYPE CONFIGURATION-->
-                        <!--/query:HASH-->
+                        <!--/query-->
+                        """,
+                QUERY, QUERY, END_OF_DOCUMENT);
+    }
+
+    @Test
+    void queryHash()
+    {
+        assertSame("""
+                        <!--query:TYPE-->
+                        <!--/query (3adfe4)-->
                         """,
                 QUERY, QUERY, END_OF_DOCUMENT);
     }

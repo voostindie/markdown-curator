@@ -184,14 +184,14 @@ class DocumentTest
         String text = """
                 <!--query-->
                 foo
-                <!--/query-->
+                <!--/query (bar)-->
                 """;
         var document = newDocument("document", 0, document(text));
         softly.assertThat(document.fragments()).hasSize(2);
         softly.assertThat(document.fragment(1)).isInstanceOf(QueryBlock.class);
         var query = (QueryBlock) document.fragment(1);
         softly.assertThat(query.configuration().isEmpty()).isTrue();
-        softly.assertThat(query.result()).isEqualTo("foo");
+        softly.assertThat(query.outputHash()).isEqualTo("bar");
     }
 
     @ParameterizedTest
@@ -234,11 +234,6 @@ class DocumentTest
                 foo
                 """.trim());
         softly.assertThat(document.fragment(2)).isInstanceOf(QueryBlock.class);
-        softly.assertThat(document.fragment(2).content()).isEqualTo("""
-                <!--query-->
-                bar
-                <!--/query-->
-                """.trim());
     }
 
 

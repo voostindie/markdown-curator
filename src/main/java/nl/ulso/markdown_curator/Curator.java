@@ -18,6 +18,8 @@ import static java.nio.file.Files.writeString;
 import static java.util.Comparator.comparingInt;
 import static java.util.concurrent.Executors.newVirtualThreadPerTaskExecutor;
 import static java.util.stream.Collectors.groupingBy;
+import static nl.ulso.hash.Hasher.hash;
+import static nl.ulso.markdown_curator.vault.QueryBlock.writeQueryEndWithHash;
 import static nl.ulso.markdown_curator.vault.event.VaultChangedEvent.vaultRefreshed;
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -148,11 +150,12 @@ public class Curator
                 return;
             }
             var output = result.toMarkdown().trim();
-            if (!queryBlock.result().contentEquals(output))
+            var hash = hash(output);
+            if (!queryBlock.outputHash().contentEquals(hash))
             {
                 LOGGER.debug("Query result change detected in document: {}",
                         queryBlock.document());
-                writeQueue.add(new WriteItem(queryBlock, output));
+                writeQueue.add(new WriteItem(queryBlock, output, hash));
             }
         });
         if (LOGGER.isDebugEnabled() && writeQueue.isEmpty())
@@ -169,11 +172,12 @@ public class Curator
         var writer = new StringWriter();
         var out = new PrintWriter(writer);
         int index = 0;
-        for (WriteItem(QueryBlock block, String output) : items)
+        for (WriteItem(QueryBlock block, String output, String hash) : items)
         {
             printDocumentLines(out, document, index, block.resultStartIndex());
             out.println(output);
-            index = block.resultEndIndex();
+            writeQueryEndWithHash(out, hash);
+            index = block.resultEndIndex() + 1;
         }
         printDocumentLines(out, document, index, -1);
         try
@@ -267,5 +271,5 @@ public class Curator
         }
     }
 
-    record WriteItem(QueryBlock queryBlock, String output) {}
+    record WriteItem(QueryBlock queryBlock, String output, String hash) {}
 }

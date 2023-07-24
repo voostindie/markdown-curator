@@ -44,7 +44,7 @@ public class QueryDefinitionStub implements QueryDefinition
     }
 
     @Override
-    public String result()
+    public String outputHash()
     {
         return "";
     }

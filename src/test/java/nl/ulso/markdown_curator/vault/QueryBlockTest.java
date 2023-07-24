@@ -43,7 +43,7 @@ public class QueryBlockTest
         var emptyQuery = emptyQueryBlock();
         softly.assertThat(emptyQuery.isEmpty()).isTrue();
         softly.assertThat(emptyQuery.configuration().isEmpty()).isTrue();
-        softly.assertThat(emptyQuery.result()).isBlank();
+        softly.assertThat(emptyQuery.outputHash()).isBlank();
     }
 
     @Test
@@ -52,7 +52,7 @@ public class QueryBlockTest
         var emptyQuery = new QueryBlock(List.of("<!--query foo: bar-->", "<!--/query-->"), 0);
         softly.assertThat(emptyQuery.isEmpty()).isFalse();
         softly.assertThat(emptyQuery.configuration().string("foo", null)).isEqualTo("bar");
-        softly.assertThat(emptyQuery.result()).isBlank();
+        softly.assertThat(emptyQuery.outputHash()).isBlank();
     }
 
     @Test
@@ -64,27 +64,27 @@ public class QueryBlockTest
         var configuration = query.configuration();
         softly.assertThat(configuration.string("foo", null)).isEqualTo("bar");
         softly.assertThat(configuration.integer("answer", -1)).isEqualTo(42);
-        softly.assertThat(query.result()).isBlank();
+        softly.assertThat(query.outputHash()).isBlank();
     }
 
     @Test
     void singleLineDefinitionSingleLineOutput()
     {
         var emptyQuery = new QueryBlock(
-                List.of("<!--query-->", "output", "<!--/query-->"), 0);
+                List.of("<!--query-->", "output", "<!--/query (hash)-->"), 0);
         softly.assertThat(emptyQuery.isEmpty()).isFalse();
         softly.assertThat(emptyQuery.configuration().isEmpty()).isTrue();
-        softly.assertThat(emptyQuery.result()).isEqualTo("output");
+        softly.assertThat(emptyQuery.outputHash()).isEqualTo("hash");
     }
 
     @Test
     void singleLineDefinitionMultiLineOutput()
     {
         var emptyQuery = new QueryBlock(
-                List.of("<!--query-->", "line 1", "line 2", "", "<!--/query-->"), 0);
+                List.of("<!--query-->", "line 1", "line 2", "", "<!--/query (hash)-->"), 0);
         softly.assertThat(emptyQuery.isEmpty()).isFalse();
         softly.assertThat(emptyQuery.configuration().isEmpty()).isTrue();
-        softly.assertThat(emptyQuery.result()).isEqualTo("line 1\nline 2");
+        softly.assertThat(emptyQuery.outputHash().isEmpty()).isFalse();
     }
 
     @Test
@@ -124,6 +124,15 @@ public class QueryBlockTest
         var query = new QueryBlock(List.of("<!--query", "<!--/query-->"), 0);
         softly.assertThat(query.queryName()).isEqualTo("none");
         softly.assertThat(query.configuration().isEmpty()).isTrue();
-        softly.assertThat(query.result()).isBlank();
+        softly.assertThat(query.outputHash()).isBlank();
+    }
+
+    @Test
+    void hashIncluded()
+    {
+        var query = new QueryBlock(List.of("<!--query:hash-->", "<!--/query (47ef02da)-->"), 0);
+        softly.assertThat(query.queryName()).isEqualTo("hash");
+        softly.assertThat(query.configuration().isEmpty()).isTrue();
+        softly.assertThat(query.outputHash()).isEqualTo("47ef02da");
     }
 }

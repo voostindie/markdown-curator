@@ -55,7 +55,7 @@ abstract class LineContainer
         this.section = section;
     }
 
-    public final List<String> lines()
+    public List<String> lines()
     {
         return lines;
     }
@@ -65,7 +65,7 @@ abstract class LineContainer
         return lines.isEmpty();
     }
 
-    public final String content()
+    public String content()
     {
         return join(lineSeparator(), lines);
     }
