@@ -2,17 +2,22 @@ package nl.ulso.markdown_curator.vault;
 
 import java.util.*;
 
+import static java.lang.String.join;
+import static java.lang.System.lineSeparator;
+
 /**
  * Represents a block of text in a Markdown document. This is the default type of content, meaning
  * that anything not specifically handled differently is considered to be text.
  */
 public final class TextBlock
-        extends LineContainer
+        extends FragmentBase
         implements Fragment
 {
+    private final String markdown;
+
     TextBlock(List<String> lines)
     {
-        super(lines);
+        this.markdown = join(lineSeparator(), lines) + lineSeparator();
     }
 
     @Override
@@ -24,7 +29,7 @@ public final class TextBlock
         }
         if (o instanceof TextBlock textBlock)
         {
-            return Objects.equals(lines(), textBlock.lines());
+            return Objects.equals(markdown, textBlock.markdown);
         }
         return false;
     }
@@ -32,13 +37,18 @@ public final class TextBlock
     @Override
     public int hashCode()
     {
-        return Objects.hash(lines());
+        return Objects.hash(markdown);
     }
 
     @Override
     public void accept(VaultVisitor visitor)
     {
         visitor.visit(this);
+    }
+
+    public String markdown()
+    {
+        return markdown;
     }
 
     public List<InternalLink> findInternalLinks()

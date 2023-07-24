@@ -1,4 +1,3 @@
-
 This document is used for testing: all queries are run after which it is persisted (in memory). The output must then equal the content of the [[queries-expected]] document.
 
 <!--query:toc-->
@@ -6,9 +5,8 @@ This document is used for testing: all queries are run after which it is persist
 - Members
 - Recordings
 - Backlinks
-- No-op
 - Timeline
-<!--/query (fc7d18f8)-->
+<!--/query (ac109e33)-->
 
 ## Albums
 
@@ -59,14 +57,6 @@ document: Marillion
 - [[Steve Rothery]]
     - [[Steve Rothery#About|About]]
 <!--/query (71b5d8c5)-->
-
-## No-op
-
-<!--query:noop-->
-Content placed inside this query is left intact, because the query returns a
-"no-op". This allows queries to basically turn themselves off in some cases,
-without overwriting what was previously produced.
-<!--/query-->
 
 ## Timeline
 

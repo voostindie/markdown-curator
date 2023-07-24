@@ -48,17 +48,17 @@ class MusicCuratorModuleTest
         softly.assertThat(statistics.folders()).isEqualTo(4);
         softly.assertThat(statistics.documents()).isEqualTo(14);
         softly.assertThat(statistics.frontMatters()).isEqualTo(14);
-        softly.assertThat(statistics.sections()).isEqualTo(42);
-        softly.assertThat(statistics.queries()).isEqualTo(18);
+        softly.assertThat(statistics.sections()).isEqualTo(40);
+        softly.assertThat(statistics.queries()).isEqualTo(16);
         softly.assertThat(statistics.codeBlocks()).isEqualTo(5);
-        softly.assertThat(statistics.texts()).isEqualTo(62);
+        softly.assertThat(statistics.texts()).isEqualTo(58);
     }
 
     @Test
     void queryCatalog()
     {
         QueryCatalog catalog = injector.getInstance(QueryCatalog.class);
-        softly.assertThat(catalog.queries().size()).isEqualTo(12);
+        softly.assertThat(catalog.queries().size()).isEqualTo(11);
         Query dummy = catalog.query("dummy");
         QueryResult result = dummy.run(emptyQueryBlock());
         var markdown = result.toMarkdown();
@@ -71,7 +71,7 @@ class MusicCuratorModuleTest
     void queries()
     {
         var queries = injector.getInstance(Vault.class).findAllQueryBlocks();
-        softly.assertThat(queries.size()).isEqualTo(18);
+        softly.assertThat(queries.size()).isEqualTo(16);
     }
 
     @Test
@@ -157,13 +157,14 @@ class MusicCuratorModuleTest
     void runAllQueries()
     {
         musicCurator.vaultChanged(vaultRefreshed());
-        Queue<Curator.WriteItem> items = musicCurator.runAllQueries();
+        Queue<QueryOutput> items = musicCurator.runAllQueries();
         // We expect only (and all) queries in "queries-blank" to have new output:
         var list = items.stream()
-//                .peek(item -> System.out.println(
-//                        item.queryBlock().document().name() + " - " +
-//                        item.queryBlock().queryName() + ": " +
-//                        item.hash()))
+                .filter(QueryOutput::isChanged)
+                .peek(item -> System.out.println(
+                        item.queryBlock().document().name() + " - " +
+                        item.queryBlock().queryName() + ": " +
+                        item.hash()))
                 .map(item -> item.queryBlock().document().name())
                 .filter(name -> !name.contentEquals("queries-blank"))
                 .toList();
@@ -178,7 +179,8 @@ class MusicCuratorModuleTest
         var original = vault.document("queries-blank").orElseThrow();
         var expected = vault.document("queries-expected").orElseThrow();
         musicCurator.runOnce();
-        var update = Files.readString(documentPathResolver.resolveAbsolutePath(original)).trim();
-        assertThat(update).isEqualTo(expected.content());
+        var expectedContent = Files.readString(documentPathResolver.resolveAbsolutePath(expected));
+        var updatedContent = Files.readString(documentPathResolver.resolveAbsolutePath(original));
+        assertThat(updatedContent).isEqualTo(expectedContent);
     }
 }

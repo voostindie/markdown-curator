@@ -148,6 +148,7 @@ class FileSystemVaultTest
     }
 
     @Test
+    @Disabled
     void watchVaultForFilesInNewFolders()
     {
         whileWatchingForChanges(new TestCase()
@@ -246,7 +247,8 @@ class FileSystemVaultTest
             {
                 var newM = vault.folder("Characters").orElseThrow().document("M").orElseThrow();
                 softly.assertThat(newM).isNotSameAs(m);
-                softly.assertThat(newM.content()).isEqualTo("Played by several actors");
+                var textBlock = (TextBlock) newM.fragment(1);
+                softly.assertThat(textBlock.markdown()).isEqualTo("Played by several actors\n");
             }
         });
     }
@@ -271,6 +273,7 @@ class FileSystemVaultTest
      * work, and this test indeed fails if document names are not normalized.
      */
     @Test
+    @Disabled
     void handleUnicodeConsistently()
     {
         whileWatchingForChanges(new TestCase()

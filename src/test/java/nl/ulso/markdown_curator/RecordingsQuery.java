@@ -95,8 +95,7 @@ public class RecordingsQuery
             for (InternalLink track : tracks)
             {
                 var link = track.toMarkdown();
-                for (String line : textBlock.lines())
-                {
+                textBlock.markdown().lines().forEach(line -> {
                     if (line.endsWith(link))
                     {
                         var dot = line.indexOf('.');
@@ -109,7 +108,7 @@ public class RecordingsQuery
                             ));
                         }
                     }
-                }
+                });
             }
         }
     }

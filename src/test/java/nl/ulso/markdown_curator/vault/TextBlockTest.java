@@ -27,8 +27,8 @@ class TextBlockTest
                         newDocument("1", 0, Collections.emptyList()),
                         newDocument("2", 0, Collections.emptyList()))
                 .withPrefabValues(Section.class,
-                        new Section(1, "1", emptyList(), emptyList()),
-                        new Section(1, "2", emptyList(), emptyList()))
+                        new Section(1, "1", emptyList()),
+                        new Section(1, "2", emptyList()))
                 .withIgnoredFields("document", "section")
                 .verify();
     }
@@ -37,26 +37,20 @@ class TextBlockTest
     void empty()
     {
         TextBlock empty = new TextBlock(emptyList());
-        softly.assertThat(empty.isEmpty()).isTrue();
-        softly.assertThat(empty.lines()).isEmpty();
-        softly.assertThat(empty.content()).isEmpty();
+        softly.assertThat(empty.markdown()).isEqualTo("\n");
     }
 
     @Test
     void single()
     {
         var single = new TextBlock(List.of("foo bar"));
-        softly.assertThat(single.isEmpty()).isFalse();
-        softly.assertThat(single.lines().size()).isEqualTo(1);
-        softly.assertThat(single.content()).isEqualTo("foo bar");
+        softly.assertThat(single.markdown()).isEqualTo("foo bar\n");
     }
 
     @Test
-    void trimmedFullText()
+    void unTrimmedFullText()
     {
         var text = new TextBlock(List.of("", "foo", "bar", ""));
-        softly.assertThat(text.isEmpty()).isFalse();
-        softly.assertThat(text.lines()).containsExactly("foo", "bar");
-        softly.assertThat(text.content()).isEqualTo("foo\nbar");
+        softly.assertThat(text.markdown()).isEqualTo("\nfoo\nbar\n\n");
     }
 }

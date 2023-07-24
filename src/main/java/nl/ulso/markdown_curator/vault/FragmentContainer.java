@@ -9,13 +9,12 @@ import static java.util.Objects.requireNonNull;
  * Container for a list of {@link Fragment}s.
  */
 abstract class FragmentContainer
-        extends LineContainer
+        extends FragmentBase
 {
     private final List<Fragment> fragments;
 
-    FragmentContainer(List<String> lines, List<Fragment> fragments)
+    FragmentContainer(List<Fragment> fragments)
     {
-        super(lines);
         this.fragments = unmodifiableList(requireNonNull(fragments));
     }
 

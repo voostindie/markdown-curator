@@ -27,9 +27,9 @@ class CodeBlockTest
                         newDocument("1", 0, Collections.emptyList()),
                         newDocument("2", 0, Collections.emptyList()))
                 .withPrefabValues(Section.class,
-                        new Section(1, "1", emptyList(), emptyList()),
-                        new Section(1, "2", emptyList(), emptyList()))
-                .withIgnoredFields("document", "section", "lines")
+                        new Section(1, "1", emptyList()),
+                        new Section(1, "2", emptyList()))
+                .withIgnoredFields("document", "section")
                 .verify();
     }
 
@@ -37,7 +37,6 @@ class CodeBlockTest
     void empty()
     {
         CodeBlock markersOnly = new CodeBlock(List.of("```", "```"));
-        softly.assertThat(markersOnly.isEmpty()).isTrue();
         softly.assertThat(markersOnly.code()).isBlank();
         softly.assertThat(markersOnly.language()).isBlank();
     }
@@ -56,6 +55,6 @@ class CodeBlockTest
         var single = new CodeBlock(List.of("```foo", "bar", "```"));
         softly.assertThat(single.code()).isEqualTo("bar");
         softly.assertThat(single.language()).isEqualTo("foo");
-        softly.assertThat(single.content()).isEqualTo("```foo\nbar\n```");
+        softly.assertThat(single.markdown()).isEqualTo("```foo\nbar\n```\n");
     }
 }

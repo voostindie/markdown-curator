@@ -1,8 +1,10 @@
 package nl.ulso.markdown_curator.vault;
 
 import java.time.LocalDate;
-import java.util.*;
+import java.util.List;
+import java.util.Objects;
 
+import static java.lang.System.lineSeparator;
 import static nl.ulso.markdown_curator.vault.Dictionary.emptyDictionary;
 import static nl.ulso.markdown_curator.vault.Dictionary.yamlDictionary;
 
@@ -11,27 +13,30 @@ import static nl.ulso.markdown_curator.vault.Dictionary.yamlDictionary;
  * <strong>always</strong> has such a section (as the first object in the list of fragments),
  * even if the underlying document has none; in that case the front matter is empty.
  * <p/>
- * This class wraps a {@link nl.ulso.markdown_curator.vault.Dictionary}. For ease of use it implements its
+ * This class wraps a {@link nl.ulso.markdown_curator.vault.Dictionary}. For ease of use it
+ * implements its
  * interface as well.
  */
 public final class FrontMatter
-        extends LineContainer
+        extends FragmentBase
         implements Fragment, Dictionary
 {
     static final String FRONT_MATTER_MARKER = "---";
 
+    private final String markdown;
     private final Dictionary dictionary;
 
     FrontMatter(List<String> lines)
     {
-        super(lines);
         if (lines.isEmpty())
         {
             dictionary = emptyDictionary();
+            markdown = "";
         }
         else
         {
             dictionary = yamlDictionary(lines);
+            markdown = String.join(lineSeparator(), lines) + lineSeparator();
         }
     }
 
@@ -44,8 +49,8 @@ public final class FrontMatter
         }
         if (o instanceof FrontMatter frontMatter)
         {
-            return Objects.equals(dictionary, frontMatter.dictionary)
-                    && Objects.equals(lines(), frontMatter.lines());
+            return Objects.equals(markdown, frontMatter.markdown) &&
+                   Objects.equals(dictionary, frontMatter.dictionary);
         }
         return false;
     }
@@ -53,7 +58,12 @@ public final class FrontMatter
     @Override
     public int hashCode()
     {
-        return Objects.hash(dictionary, lines());
+        return Objects.hash(markdown, dictionary);
+    }
+
+    public String markdown()
+    {
+        return markdown;
     }
 
     @Override

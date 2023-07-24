@@ -17,7 +17,7 @@ public final class LocalDates
     {
     }
 
-    public static LocalDate parseDate(String dateString, Supplier<LocalDate> supplier)
+    public static LocalDate parseDate(String dateString, Supplier<LocalDate> defaultDateSupplier)
     {
         try
         {
@@ -25,7 +25,7 @@ public final class LocalDates
         }
         catch (DateTimeParseException e)
         {
-            return supplier.get();
+            return defaultDateSupplier.get();
         }
     }
 

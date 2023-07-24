@@ -7,7 +7,7 @@ import nl.ulso.markdown_curator.vault.event.VaultChangedEvent;
 import org.slf4j.Logger;
 import org.slf4j.MDC;
 
-import java.io.*;
+import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.function.Consumer;
@@ -15,11 +15,10 @@ import java.util.function.Consumer;
 import static java.lang.Thread.currentThread;
 import static java.nio.file.Files.getLastModifiedTime;
 import static java.nio.file.Files.writeString;
-import static java.util.Comparator.comparingInt;
 import static java.util.concurrent.Executors.newVirtualThreadPerTaskExecutor;
 import static java.util.stream.Collectors.groupingBy;
 import static nl.ulso.hash.Hasher.hash;
-import static nl.ulso.markdown_curator.vault.QueryBlock.writeQueryEndWithHash;
+import static nl.ulso.markdown_curator.DocumentWriter.writeUpdatedDocument;
 import static nl.ulso.markdown_curator.vault.event.VaultChangedEvent.vaultRefreshed;
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -84,14 +83,12 @@ public class Curator
     public final void vaultChanged(VaultChangedEvent event)
     {
         refreshAllDataModels(event);
-        var changeset = runAllQueries().stream()
-                .sorted(comparingInt(item -> item.queryBlock().resultStartIndex()))
-                .collect(groupingBy(item -> item.queryBlock().document()));
-        if (!changeset.isEmpty())
-        {
-            coolOffToPreventConflicts();
-            changeset.forEach(this::writeDocument);
-        }
+        var changeset =
+                runAllQueries().stream().collect(groupingBy(item -> item.queryBlock().document()));
+        coolOffToPreventConflicts();
+        changeset.entrySet().stream()
+                .filter(entry -> entry.getValue().stream().anyMatch(QueryOutput::isChanged))
+                .forEach(entry -> writeDocument(entry.getKey(), entry.getValue()));
     }
 
     private void refreshAllDataModels(VaultChangedEvent event)
@@ -114,9 +111,9 @@ public class Curator
      * Runs all queries in the vault and collects the queries whose outputs have changed compared
      * to what's in memory right now.
      */
-    Queue<WriteItem> runAllQueries()
+    Queue<QueryOutput> runAllQueries()
     {
-        var writeQueue = new ConcurrentLinkedQueue<WriteItem>();
+        var writeQueue = new ConcurrentLinkedQueue<QueryOutput>();
         var queryBlocks = vault.findAllQueryBlocks();
         if (LOGGER.isDebugEnabled())
         {
@@ -142,71 +139,31 @@ public class Curator
                         query.name(), queryBlock.document().name(), e);
                 return;
             }
-            if (result instanceof NoOpResult)
-            {
-                LOGGER.trace(
-                        "Ignoring output due to no-op result for query '{}'  in document: {}",
-                        query.name(), queryBlock.document().name());
-                return;
-            }
             var output = result.toMarkdown().trim();
             var hash = hash(output);
-            if (!queryBlock.outputHash().contentEquals(hash))
-            {
-                LOGGER.debug("Query result change detected in document: {}",
-                        queryBlock.document());
-                writeQueue.add(new WriteItem(queryBlock, output, hash));
-            }
+            var isChanged = !queryBlock.outputHash().contentEquals(hash);
+            writeQueue.add(new QueryOutput(queryBlock, output, hash, isChanged));
         });
-        if (LOGGER.isDebugEnabled() && writeQueue.isEmpty())
-        {
-            LOGGER.debug("No new query output detected. Run done.");
-        }
-        LOGGER.trace("Write queue item count: {}", writeQueue.size());
         return writeQueue;
     }
 
-    void writeDocument(Document document, List<WriteItem> items)
+    void writeDocument(Document document, List<QueryOutput> queryOutputs)
     {
         LOGGER.info("Rewriting document: {}", document);
-        var writer = new StringWriter();
-        var out = new PrintWriter(writer);
-        int index = 0;
-        for (WriteItem(QueryBlock block, String output, String hash) : items)
-        {
-            printDocumentLines(out, document, index, block.resultStartIndex());
-            out.println(output);
-            writeQueryEndWithHash(out, hash);
-            index = block.resultEndIndex() + 1;
-        }
-        printDocumentLines(out, document, index, -1);
+        var newDocumentContent = writeUpdatedDocument(document, queryOutputs);
         try
         {
             var path = documentPathResolver.resolveAbsolutePath(document);
             if (getLastModifiedTime(path).toMillis() != document.lastModified())
             {
-                LOGGER.warn("Skipping rewrite because document has changed on disk: {}",
-                        document);
+                LOGGER.warn("Skipping rewrite, document has changed on disk: {}", document);
                 return;
             }
-            writeString(path, writer.toString());
+            writeString(path, newDocumentContent);
         }
         catch (IOException e)
         {
             LOGGER.warn("Couldn't write document: {}", document);
-        }
-    }
-
-    private void printDocumentLines(PrintWriter out, Document document, int start, int end)
-    {
-        var lines = document.lines();
-        if (end == -1)
-        {
-            end = lines.size();
-        }
-        for (int i = start; i < end; i++)
-        {
-            out.println(lines.get(i));
         }
     }
 
@@ -257,7 +214,8 @@ public class Curator
      * all just text, but still... To prevent the nasty effects of this race condition from
      * happening we give the curator some time to cool off. The curator will find that files have
      * changed in the meantime, and will not write updates. Instead, it will reprocess the files
-     * automatically. Eventually the curator catches up to all changes anyway,
+     * automatically. Eventually the curator catches up to all changes anyway, so at some point all
+     * changes are written to disk.
      */
     private static void coolOffToPreventConflicts()
     {
@@ -270,6 +228,4 @@ public class Curator
             Thread.currentThread().interrupt();
         }
     }
-
-    record WriteItem(QueryBlock queryBlock, String output, String hash) {}
 }

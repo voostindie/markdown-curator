@@ -11,7 +11,7 @@ import static java.lang.System.lineSeparator;
  * backticks (```) on separate lines.
  */
 public final class CodeBlock
-        extends LineContainer
+        extends FragmentBase
         implements Fragment
 {
     static final String CODE_MARKER = "```";
@@ -21,9 +21,15 @@ public final class CodeBlock
 
     CodeBlock(List<String> lines)
     {
-        super(lines);
         language = lines.get(0).substring(CODE_MARKER.length());
         code = join(lineSeparator(), lines.subList(1, lines.size() - 1));
+    }
+
+    public String markdown()
+    {
+        return CODE_MARKER + language + lineSeparator() +
+               code + lineSeparator() +
+               CODE_MARKER + lineSeparator();
     }
 
     public String language()
@@ -46,7 +52,7 @@ public final class CodeBlock
         if (o instanceof CodeBlock codeBlock)
         {
             return Objects.equals(language, codeBlock.language)
-                    && Objects.equals(code, codeBlock.code);
+                   && Objects.equals(code, codeBlock.code);
         }
         return false;
     }
@@ -55,12 +61,6 @@ public final class CodeBlock
     public int hashCode()
     {
         return Objects.hash(language, code);
-    }
-
-    @Override
-    public boolean isEmpty()
-    {
-        return code.isEmpty();
     }
 
     @Override

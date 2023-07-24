@@ -34,8 +34,16 @@ public class JournalEntry
     {
         this.date = date;
         this.section = section;
-        this.documentReferences = extractDocumentReferences(section);
-        this.lineValues = newOutline(section.lines()).toLineValues();
+        var sectionLines = sectionLines(section);
+        this.documentReferences = extractDocumentReferences(section, sectionLines);
+        this.lineValues = newOutline(sectionLines).toLineValues();
+    }
+
+    private List<String> sectionLines(Section section)
+    {
+        var collector = new LinesCollector();
+        section.accept(collector);
+        return collector.lines;
     }
 
     public static Optional<JournalEntry> parseJournalEntryFrom(Section section)
@@ -94,6 +102,7 @@ public class JournalEntry
         var indexes = documentReferences.get(documentName).stream().sorted().toList();
         var usedIndexes = new HashSet<Integer>();
         var summary = new StringBuilder();
+        var sectionLines = sectionLines(section);
         for (Integer selectedIndex : indexes)
         {
             if (usedIndexes.contains(selectedIndex))
@@ -106,7 +115,7 @@ public class JournalEntry
             {
                 if (!usedIndexes.contains(i) && selectedLine.includesInSummary(lineValues.get(i)))
                 {
-                    summary.append(section.lines().get(i)).append(lineSeparator());
+                    summary.append(sectionLines.get(i)).append(lineSeparator());
                     usedIndexes.add(i);
                 }
             }
@@ -124,17 +133,28 @@ public class JournalEntry
         return unmodifiableSet(documentReferences.keySet());
     }
 
-    private Map<String, Set<Integer>> extractDocumentReferences(Section section)
+    private Map<String, Set<Integer>> extractDocumentReferences(Section section,
+            List<String> sectionLines)
     {
         var references = new HashMap<String, Set<Integer>>();
-        var lines = section.lines();
-        range(0, lines.size()).forEach(index ->
-                findInternalLinks(section, lines.get(index)).stream()
+        range(0, sectionLines.size()).forEach(index ->
+                findInternalLinks(section, sectionLines.get(index)).stream()
                         .map(InternalLink::targetDocument)
                         .collect(toSet())
                         .forEach(documentName ->
                                 references.computeIfAbsent(documentName, (name -> new HashSet<>()))
                                         .add(index)));
         return unmodifiableMap(references);
+    }
+
+    private static class LinesCollector extends BreadthFirstVaultVisitor
+    {
+        final List<String> lines = new ArrayList<>();
+
+        @Override
+        public void visit(TextBlock textBlock)
+        {
+            lines.addAll(textBlock.markdown().lines().toList());
+        }
     }
 }

@@ -3,6 +3,7 @@ package nl.ulso.markdown_curator.vault;
 import java.util.*;
 import java.util.regex.Pattern;
 
+import static java.lang.System.lineSeparator;
 import static java.util.Objects.requireNonNull;
 import static java.util.regex.Pattern.compile;
 import static nl.ulso.emoji.EmojiFilter.stripEmojis;
@@ -22,12 +23,12 @@ public final class Section
     private final String sortableTitle;
     private final String anchor;
 
-    Section(int level, String title, List<String> lines, List<Fragment> fragments)
+    Section(int level, String title, List<Fragment> fragments)
     {
-        super(lines, fragments);
-        if (level < 0)
+        super(fragments);
+        if (level < 1)
         {
-            throw new IllegalArgumentException("Minimum allowed section level is 0");
+            throw new IllegalArgumentException("Minimum allowed section level is 1");
         }
         this.level = level;
         this.title = requireNonNull(title);
@@ -46,7 +47,6 @@ public final class Section
         {
             return Objects.equals(level, section.level)
                     && Objects.equals(title, section.title)
-                    && Objects.equals(lines(), section.lines())
                     && Objects.equals(fragments(), section.fragments());
         }
         return false;
@@ -55,7 +55,7 @@ public final class Section
     @Override
     public int hashCode()
     {
-        return Objects.hash(level, title, lines(), fragments());
+        return Objects.hash(level, title, fragments());
     }
 
     public static String createAnchor(String title)
@@ -90,6 +90,11 @@ public final class Section
     public String anchor()
     {
         return anchor;
+    }
+
+    public String markdown()
+    {
+        return "#".repeat(level) + " " + title + lineSeparator();
     }
 
     @Override

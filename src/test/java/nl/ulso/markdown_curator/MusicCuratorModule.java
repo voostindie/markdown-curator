@@ -40,7 +40,6 @@ public class MusicCuratorModule
         registerQuery(AlbumsQuery.class);
         registerQuery(MembersQuery.class);
         registerQuery(RecordingsQuery.class);
-        registerQuery(NoOpQuery.class);
         configured = true;
     }
 

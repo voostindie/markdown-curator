@@ -1,6 +1,5 @@
 package nl.ulso.markdown_curator.vault;
 
-import java.util.List;
 import java.util.Optional;
 
 /**
@@ -16,12 +15,6 @@ public interface Fragment
     Document document();
 
     Optional<Section> parentSection();
-
-    List<String> lines();
-
-    String content();
-
-    boolean isEmpty();
 
     void accept(VaultVisitor visitor);
 }

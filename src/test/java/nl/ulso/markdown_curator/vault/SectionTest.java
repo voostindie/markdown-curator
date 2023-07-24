@@ -28,8 +28,8 @@ class SectionTest
                         newDocument("1", 0, Collections.emptyList()),
                         newDocument("2", 0, Collections.emptyList()))
                 .withPrefabValues(Section.class,
-                        new Section(1, "1", emptyList(), emptyList()),
-                        new Section(1, "2", emptyList(), emptyList()))
+                        new Section(1, "1", emptyList()),
+                        new Section(1, "2", emptyList()))
                 .withIgnoredFields("document", "section", "anchor", "sortableTitle")
                 .verify();
     }
@@ -41,16 +41,11 @@ class SectionTest
                 42,
                 "Section title",
                 List.of(
-                        "## Section title",
-                        "",
-                        "Lorem ipsum"),
-                List.of(
                         new TextBlock(List.of("", "Lorem ipsum"))
                 ));
         softly.assertThat(section.level()).isEqualTo(42);
         softly.assertThat(section.title()).isEqualTo("Section title");
         softly.assertThat(section.anchor()).isEqualTo("Section title");
-        softly.assertThat(section.lines()).containsExactly("## Section title", "", "Lorem ipsum");
         softly.assertThat(section.fragments())
                 .containsExactly(new TextBlock(List.of("", "Lorem ipsum")));
     }
@@ -58,22 +53,21 @@ class SectionTest
     @Test
     void cleanedUpAnchor()
     {
-        var section = new Section(0, "# {foo} > [bar] ;!@", emptyList(), emptyList());
+        var section = new Section(1, "# {foo} > [bar] ;!@", emptyList());
         assertThat(section.anchor()).isEqualTo("{foo} > bar ;!@");
     }
 
     @Test
     void emptySection()
     {
-        var section = new Section(0, "", emptyList(), emptyList());
-        softly.assertThat(section.lines()).isEmpty();
+        var section = new Section(1, "", emptyList());
         softly.assertThat(section.fragments()).isEmpty();
     }
 
     @Test
     void sortableTitle()
     {
-        var section = new Section(0, "🏃 Activity 😱", emptyList(), emptyList());
+        var section = new Section(1, "🏃 Activity 😱", emptyList());
         softly.assertThat(section.title()).isEqualTo("🏃 Activity 😱");
         softly.assertThat(section.sortableTitle()).isEqualTo("Activity");
     }

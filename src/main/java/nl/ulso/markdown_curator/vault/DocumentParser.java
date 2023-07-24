@@ -60,7 +60,7 @@ final class DocumentParser
                 var header = (HeaderLineToken) token;
                 while (header.level() <= level)
                 {
-                    level = processSection(lineIndex);
+                    level = processSection();
                 }
                 level = header.level();
                 fragments.put(level, new ArrayList<>());
@@ -72,7 +72,7 @@ final class DocumentParser
                 processText(level, startIndex, lineIndex);
                 while (!headers.isEmpty())
                 {
-                    processSection(lineIndex);
+                    processSection();
                 }
                 ensureFrontMatterIsPresent();
             }
@@ -87,18 +87,17 @@ final class DocumentParser
                 startIndex = lineIndex + 1;
             }
         }
-        var document = new Document(name, lastModified, fragments.get(0), lines);
+        var document = new Document(name, lastModified, fragments.get(0));
         updateInternalReferences(document);
         return document;
     }
 
-    private int processSection(int endLineIndex)
+    private int processSection()
     {
         var header = headers.pop();
         var previousLevel = headers.isEmpty() ? 0 : headers.peek().level();
-        fragments.get(previousLevel).add(new Section(header.level(), header.title(),
-                lines.subList(header.lineIndex(), endLineIndex),
-                fragments.get(header.level())));
+        fragments.get(previousLevel).add(
+                new Section(header.level(), header.title(), fragments.get(header.level())));
         return previousLevel;
     }
 
@@ -114,12 +113,12 @@ final class DocumentParser
     {
         var subList = lines.subList(startIndex, endIndex);
         var fragment = switch (type)
-                {
-                    case FRONT_MATTER -> new FrontMatter(subList);
-                    case CODE -> new CodeBlock(subList);
-                    case QUERY -> new QueryBlock(subList, startIndex);
-                    default -> throw new IllegalStateException("Unsupported type " + type);
-                };
+        {
+            case FRONT_MATTER -> new FrontMatter(subList);
+            case CODE -> new CodeBlock(subList);
+            case QUERY -> new QueryBlock(subList);
+            default -> throw new IllegalStateException("Unsupported type " + type);
+        };
         fragments.get(level).add(fragment);
     }
 
@@ -172,9 +171,9 @@ final class DocumentParser
                 linkFragment(textBlock);
             }
 
-            private void linkFragment(LineContainer lineContainer)
+            private void linkFragment(FragmentBase fragment)
             {
-                lineContainer.setInternalReferences(document, currentSection);
+                fragment.setInternalReferences(document, currentSection);
             }
         };
         document.accept(visitor);

@@ -2,14 +2,12 @@ package nl.ulso.markdown_curator.vault;
 
 import nl.ulso.markdown_curator.query.QueryDefinition;
 
-import java.io.PrintWriter;
 import java.util.List;
 import java.util.Objects;
 
 import static java.lang.Character.isLetterOrDigit;
 import static java.lang.String.join;
 import static java.lang.System.lineSeparator;
-import static java.util.Collections.emptyList;
 import static nl.ulso.markdown_curator.vault.Dictionary.yamlDictionary;
 
 /**
@@ -47,33 +45,45 @@ import static nl.ulso.markdown_curator.vault.Dictionary.yamlDictionary;
  * queries. Then go from there.
  */
 public final class QueryBlock
-        extends LineContainer
+        extends FragmentBase
         implements Fragment, QueryDefinition
 {
     static final String QUERY_CONFIGURATION_PREFIX = "<!--query";
     private static final String QUERY_CONFIGURATION_POSTFIX = "-->";
-    static final String QUERY_OUTPUT_PREFIX = "<!--/query";
-    private static final String QUERY_HASH_PREFIX = "(";
-    private static final String QUERY_HASH_POSTFIX = ")";
-    static final String QUERY_OUTPUT_POSTFIX = "-->";
+    public static final String QUERY_OUTPUT_PREFIX = "<!--/query";
+    public static final String QUERY_HASH_PREFIX = "(";
+    public static final String QUERY_HASH_POSTFIX = ")";
+    public static final String QUERY_OUTPUT_POSTFIX = "-->";
     private static final char QUERY_NAME_MARKER = ':';
     private static final String DEFAULT_NAME = "none";
 
+    private final String definitionString;
     private final String queryName;
     private final Dictionary configuration;
     private final String outputHash;
-    private final int resultStartIndex;
-    private final int resultEndIndex;
 
-    QueryBlock(List<String> lines, int documentLineIndex)
+    QueryBlock(List<String> lines)
     {
-        super(emptyList());
-        var parser = new QueryParser(lines);
+        var definitionEnd = findDefinitionEnd(lines);
+        definitionString = join(lineSeparator(), lines.subList(0, definitionEnd + 1));
+        var parser = new QueryParser(lines, definitionEnd);
         queryName = parser.queryName();
         configuration = yamlDictionary(parser.configuration());
         outputHash = parser.outputHash();
-        resultStartIndex = documentLineIndex + parser.resultStartIndex() + 1;
-        resultEndIndex = documentLineIndex + lines.size() - 1;
+    }
+
+    private int findDefinitionEnd(List<String> lines)
+    {
+        var i = 0;
+        for (var line : lines)
+        {
+            if (line.endsWith(QUERY_CONFIGURATION_POSTFIX))
+            {
+                return i;
+            }
+            i++;
+        }
+        throw new IllegalStateException("A query MUST have a definition ending");
     }
 
     public String queryName()
@@ -91,22 +101,6 @@ public final class QueryBlock
         return outputHash;
     }
 
-    /**
-     * @return The index of the line within the document that marks the start of the query result.
-     */
-    public int resultStartIndex()
-    {
-        return resultStartIndex;
-    }
-
-    /**
-     * @return The index of the line  within the document that marks the end of the query result.
-     */
-    public int resultEndIndex()
-    {
-        return resultEndIndex;
-    }
-
     @Override
     public boolean equals(Object o)
     {
@@ -117,10 +111,9 @@ public final class QueryBlock
         if (o instanceof QueryBlock queryBlock)
         {
             return Objects.equals(queryName, queryBlock.queryName)
-                    && Objects.equals(configuration, queryBlock.configuration)
-                    && Objects.equals(outputHash, queryBlock.outputHash)
-                    && Objects.equals(resultStartIndex, queryBlock.resultStartIndex)
-                    && Objects.equals(resultEndIndex, queryBlock.resultEndIndex);
+                   && Objects.equals(definitionString, queryBlock.definitionString)
+                   && Objects.equals(configuration, queryBlock.configuration)
+                   && Objects.equals(outputHash, queryBlock.outputHash);
         }
         return false;
     }
@@ -128,42 +121,22 @@ public final class QueryBlock
     @Override
     public int hashCode()
     {
-        return Objects.hash(queryName, configuration, outputHash, resultStartIndex, resultEndIndex);
+        return Objects.hash(queryName, definitionString, configuration, outputHash);
     }
 
     @Override
-    public List<String> lines()
-    {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public String content()
-    {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public boolean isEmpty()
-    {
-        return configuration.isEmpty() && outputHash.isEmpty();
-    }
-
-    @Override
-
     public void accept(VaultVisitor visitor)
     {
         visitor.visit(this);
     }
 
-    public static void writeQueryEndWithHash(PrintWriter writer, String hash)
+    public String markdown(String queryResultOutput, String queryResultHash)
     {
-        writer.print(QUERY_OUTPUT_PREFIX);
-        writer.print(" ");
-        writer.print(QUERY_HASH_PREFIX);
-        writer.print(hash);
-        writer.print(QUERY_HASH_POSTFIX);
-        writer.println(QUERY_OUTPUT_POSTFIX);
+        return definitionString + lineSeparator() +
+               queryResultOutput + lineSeparator() +
+               QUERY_OUTPUT_PREFIX + " " +
+               QUERY_HASH_PREFIX + queryResultHash + QUERY_HASH_POSTFIX +
+               QUERY_OUTPUT_POSTFIX + lineSeparator();
     }
 
     private static final class QueryParser
@@ -171,11 +144,10 @@ public final class QueryBlock
         private String queryName;
         private String configuration;
         private String outputHash;
-        private int resultStartIndex;
 
-        QueryParser(List<String> lines)
+        QueryParser(List<String> lines, int definitionEnd)
         {
-            var query = join(lineSeparator(), lines.subList(0, lines.size() - 1))
+            var query = join(lineSeparator(), lines.subList(0, definitionEnd + 1))
                     .substring(QUERY_CONFIGURATION_PREFIX.length())
                     .trim();
             if (query.length() > 0 && query.charAt(0) == QUERY_NAME_MARKER)
@@ -200,19 +172,15 @@ public final class QueryBlock
             if (split != -1)
             {
                 configuration = query.substring(0, split).trim();
-                while (!lines.get(resultStartIndex).endsWith(QUERY_OUTPUT_POSTFIX))
-                {
-                    resultStartIndex++;
-                }
             }
-            var line = lines.get(lines.size() - 1);
-            int hashStart = line.indexOf(QUERY_HASH_PREFIX, QUERY_OUTPUT_PREFIX.length());
+            var lastLine = lines.get(lines.size() - 1);
+            int hashStart = lastLine.indexOf(QUERY_HASH_PREFIX, QUERY_OUTPUT_PREFIX.length());
             if (hashStart != -1)
             {
-                int hashEnd = line.indexOf(QUERY_HASH_POSTFIX, hashStart);
+                int hashEnd = lastLine.indexOf(QUERY_HASH_POSTFIX, hashStart);
                 if (hashEnd != -1)
                 {
-                    outputHash = line.substring(hashStart + 1, hashEnd);
+                    outputHash = lastLine.substring(hashStart + 1, hashEnd);
                 }
             }
         }
@@ -227,11 +195,6 @@ public final class QueryBlock
             return configuration != null ? configuration : "";
         }
 
-        String outputHash() { return outputHash != null ? outputHash : ""; }
-
-        int resultStartIndex()
-        {
-            return resultStartIndex;
-        }
+        String outputHash() {return outputHash != null ? outputHash : "";}
     }
 }

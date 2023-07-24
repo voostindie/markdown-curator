@@ -31,8 +31,8 @@ class DocumentTest
                         newDocument("1", 0, Collections.emptyList()),
                         newDocument("2", 0, Collections.emptyList()))
                 .withPrefabValues(Section.class,
-                        new Section(1, "1", emptyList(), emptyList()),
-                        new Section(1, "2", emptyList(), emptyList()))
+                        new Section(1, "1", emptyList()),
+                        new Section(1, "2", emptyList()))
                 .withIgnoredFields("document", "section", "title", "folder", "sortableTitle")
                 .verify();
     }
@@ -43,7 +43,7 @@ class DocumentTest
         var document = newDocument("document", 0, Collections.emptyList());
         softly.assertThat(document.title()).isEqualTo("document");
         softly.assertThat(document.frontMatter().isEmpty()).isTrue();
-        softly.assertThat(document.lines()).isEmpty();
+        softly.assertThat(document.fragments().size()).isEqualTo(1);
     }
 
     @Test
@@ -52,7 +52,8 @@ class DocumentTest
         var document = newDocument("document", 0, document("One-liner"));
         softly.assertThat(document.title()).isEqualTo("document");
         softly.assertThat(document.frontMatter().isEmpty()).isTrue();
-        softly.assertThat(document.lines().get(0)).isEqualTo("One-liner");
+        softly.assertThat(document.fragment(1)).isInstanceOf(TextBlock.class);
+        softly.assertThat(((TextBlock) document.fragment(1)).markdown()).isEqualTo("One-liner\n");
     }
 
     @Test
@@ -94,8 +95,14 @@ class DocumentTest
         softly.assertThat(document.frontMatter().integer("priority", -1)).isEqualTo(100);
         softly.assertThat(document.frontMatter().date("date", null).toString())
                 .isEqualTo("1976-11-30");
-        softly.assertThat(document.fragment(1).content())
-                .isEqualTo("# title\n\n## foo bar\n\nlorem ipsum");
+        var mainSection = (Section) document.fragment(1);
+        softly.assertThat(mainSection.title()).isEqualTo("title");
+        softly.assertThat(mainSection.level()).isEqualTo(1);
+        var subSection = (Section) mainSection.fragment(1);
+        softly.assertThat(subSection.title()).isEqualTo("foo bar");
+        softly.assertThat(subSection.level()).isEqualTo(2);
+        var textBlock = (TextBlock) subSection.fragment(0);
+        softly.assertThat(textBlock.markdown()).isEqualTo("\nlorem ipsum\n\n\n");
     }
 
     @Test
@@ -125,10 +132,12 @@ class DocumentTest
                 ---
                 foo: bar
                         
-                # Title""";
+                # Title
+                """;
         var document = newDocument("document", 0, document(text));
         softly.assertThat(document.title()).isEqualTo("document");
-        softly.assertThat(document.content()).isEqualTo(text);
+        var textBlock = (TextBlock) document.fragment(1);
+        softly.assertThat(textBlock.markdown()).isEqualTo(text);
     }
 
     @Test
@@ -142,7 +151,9 @@ class DocumentTest
         var document = newDocument("document", 0, document(text));
         softly.assertThat(document.frontMatter().isEmpty()).isTrue();
         softly.assertThat(document.title()).isEqualTo("Title");
-        softly.assertThat(document.content()).isEqualTo("---\n42\n---\n# Title");
+        var section = (Section) document.fragment(1);
+        softly.assertThat(section.level()).isEqualTo(1);
+        softly.assertThat(section.title()).isEqualTo("Title");
     }
 
     @Test
@@ -229,10 +240,6 @@ class DocumentTest
                 """));
         softly.assertThat(document.fragments()).hasSize(3);
         softly.assertThat(document.fragment(1)).isInstanceOf(TextBlock.class);
-        softly.assertThat(document.fragment(1).content()).isEqualTo("""
-                <!--query-->
-                foo
-                """.trim());
         softly.assertThat(document.fragment(2)).isInstanceOf(QueryBlock.class);
     }
 

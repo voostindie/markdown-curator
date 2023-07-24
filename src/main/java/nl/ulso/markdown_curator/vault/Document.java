@@ -11,9 +11,6 @@ import static nl.ulso.emoji.EmojiFilter.stripEmojis;
  * <p/>
  * Every document has at least 1 fragment, which is the document's {@link FrontMatter} (which
  * might be empty, but always exists).
- * <p/>
- * A document is constructed from a list of {@link String} lines. These lines are kept, next to
- * the fragments Each fragment in turn gives access to the underlying lines that it captures.
  */
 public final class Document
         extends FragmentContainer
@@ -24,9 +21,9 @@ public final class Document
     private final String sortableTitle;
     private final long lastModified;
 
-    Document(String name, long lastModified, List<Fragment> fragments, List<String> lines)
+    Document(String name, long lastModified, List<Fragment> fragments)
     {
-        super(lines, fragments);
+        super(fragments);
         this.name = name;
         this.title = resolveTitle(name, fragments);
         this.sortableTitle = stripEmojis(title).trim();
@@ -53,7 +50,6 @@ public final class Document
         {
             return Objects.equals(name, document.name)
                    && Objects.equals(lastModified, document.lastModified)
-                   && Objects.equals(lines(), document.lines())
                    && Objects.equals(fragments(), document.fragments());
         }
         return false;
@@ -62,7 +58,7 @@ public final class Document
     @Override
     public int hashCode()
     {
-        return Objects.hash(name, lastModified, lines(), fragments());
+        return Objects.hash(name, lastModified, fragments());
     }
 
     private String resolveTitle(String name, List<Fragment> fragments)

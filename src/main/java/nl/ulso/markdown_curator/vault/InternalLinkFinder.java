@@ -50,7 +50,7 @@ public class InternalLinkFinder
     @Override
     public void visit(TextBlock textBlock)
     {
-        extractInternalLinks(textBlock, textBlock.content());
+        extractInternalLinks(textBlock, textBlock.markdown());
     }
 
     protected void extractInternalLinks(Fragment fragment, String content)

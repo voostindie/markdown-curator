@@ -127,7 +127,7 @@ public class AlbumsQuery
             if (found)
             {
                 String year;
-                var matcher = YEAR_PATTERN.matcher(textBlock.content());
+                var matcher = YEAR_PATTERN.matcher(textBlock.markdown());
                 if (matcher.find())
                 {
                     year = matcher.group(1);

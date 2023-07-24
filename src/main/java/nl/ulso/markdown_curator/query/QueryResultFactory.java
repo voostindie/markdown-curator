@@ -41,18 +41,6 @@ public final class QueryResultFactory
     }
 
     /**
-     * Creates a no-op result; it throws an exception when asked for its Markdown content. When a
-     * query returns this output, the curator will do nothing and keep the existing content in
-     * place.
-     *
-     * @return QueryResult that represents a no-op.
-     */
-    public QueryResult noOp()
-    {
-        return new NoOpResult();
-    }
-
-    /**
      * Creates a Markdown table, nicely formatted.
      *
      * @param columns Columns to show in the table, in this order.
