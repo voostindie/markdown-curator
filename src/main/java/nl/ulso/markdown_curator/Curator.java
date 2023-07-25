@@ -75,6 +75,7 @@ public class Curator
     public void run()
     {
         refreshAllDataModels(vaultRefreshed());
+        System.gc();
         vault.setVaultChangedCallback(this);
         vault.watchForChanges();
     }
