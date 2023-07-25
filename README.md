@@ -7,8 +7,6 @@
 
 # Markdown Curator
 
-See the [CHANGELOG](CHANGELOG.md) for releases and the roadmap.
-
 ## TL;DR
 
 - This is a Java 20+ library and small application framework for processing directories of Markdown documents.
@@ -167,12 +165,6 @@ name: timeline
 
 This will write information on the selected query (in this case: `timeline`), including the parameters it supports as the query output.
 
-### `backlinks`
-
-This is an optional query. To use it in your own vault, install the `LinksModule` in your Curator module.
-
-This query lists all documents that contain a link to this document.
-
 ### `deadlinks`
 
 This is an optional query. To use it in your own vault, install the `LinksModule` in your Curator module.
@@ -230,3 +222,11 @@ Solution: apply the `--enable-preview` JVM setting.
 The latest version of this library uses virtual threads, introduced in JDK 19 as a preview. I tried implementing a fallback method, but that only made the application hang if `--enable-preview` is not provided.
 
 Anyway, virtual threads seem to work really well! My own curator is running 900+ queries in parallel, in less than 20 milliseconds.
+
+## How do I force a query to re-generate its output?
+
+This shouldn't be needed, but when in doubt, it's easy: remove or change the hash at the bottom of the query definition. 
+
+The curator uses the hash to detect changes in query output; not the query output itself. It does this because query output is not actually stored in memory. That's why you see these hashes show up in the query output (as part of the closing HTML comment).
+
+When you change the hash in any way, the curator will assume the content has changed, and will replace it with a fresh query result.
