@@ -7,7 +7,7 @@ import java.util.Objects;
 
 public final class Hasher
 {
-    private static final String DIGEST_ALGORITHM = "SHA-1";
+    private static final String DIGEST_ALGORITHM = "SHA-256";
     private static final int HASH_LENGTH = 8;
 
     private Hasher()

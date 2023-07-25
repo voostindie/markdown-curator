@@ -21,13 +21,13 @@ class HasherTest
     void emptyString()
     {
         var hash = hash("");
-        assertThat(hash).isEqualTo("da39a3ee");
+        assertThat(hash).isEqualTo("e3b0c442");
     }
 
     @Test
     void string()
     {
         var hash = hash("Vincent Oostindie");
-        assertThat(hash).isEqualTo("2acfbf4c");
+        assertThat(hash).isEqualTo("e32a0c07");
     }
 }
