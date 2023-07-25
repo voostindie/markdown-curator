@@ -28,7 +28,7 @@ public class JournalEntry
     private final LocalDate date;
     private final Section section;
     private final List<LineValues> lineValues;
-    private final Map<String, Set<Integer>> documentReferences;
+    private final Map<String, BitSet> documentReferences;
 
     private JournalEntry(LocalDate date, Section section)
     {
@@ -99,11 +99,12 @@ public class JournalEntry
      */
     public String summaryFor(String documentName)
     {
-        var indexes = documentReferences.get(documentName).stream().sorted().toList();
+        var indexes = documentReferences.get(documentName);
         var usedIndexes = new HashSet<Integer>();
         var summary = new StringBuilder();
         var sectionLines = sectionLines(section);
-        for (Integer selectedIndex : indexes)
+        for (int selectedIndex = indexes.nextSetBit(0); selectedIndex >= 0;
+             selectedIndex = indexes.nextSetBit(selectedIndex + 1))
         {
             if (usedIndexes.contains(selectedIndex))
             {
@@ -133,21 +134,24 @@ public class JournalEntry
         return unmodifiableSet(documentReferences.keySet());
     }
 
-    private Map<String, Set<Integer>> extractDocumentReferences(Section section,
+    private Map<String, BitSet> extractDocumentReferences(
+            Section section,
             List<String> sectionLines)
     {
-        var references = new HashMap<String, Set<Integer>>();
-        range(0, sectionLines.size()).forEach(index ->
+        var references = new HashMap<String, BitSet>();
+        var size = sectionLines.size();
+        range(0, size).forEach(index ->
                 findInternalLinks(section, sectionLines.get(index)).stream()
                         .map(InternalLink::targetDocument)
                         .collect(toSet())
                         .forEach(documentName ->
-                                references.computeIfAbsent(documentName, (name -> new HashSet<>()))
-                                        .add(index)));
+                                references.computeIfAbsent(documentName,
+                                        (name -> new BitSet(size))).set(index)));
         return unmodifiableMap(references);
     }
 
-    private static class LinesCollector extends BreadthFirstVaultVisitor
+    private static class LinesCollector
+            extends BreadthFirstVaultVisitor
     {
         final List<String> lines = new ArrayList<>();
 
