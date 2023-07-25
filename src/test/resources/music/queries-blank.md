@@ -28,14 +28,6 @@ song: Be Hard On Yourself
 Intentionally left blank...
 <!--/query-->
 
-## Backlinks
-
-<!--query:backlinks
-document: Marillion
--->
-Intentionally left blank...
-<!--/query-->
-
 ## Timeline
 
 <!--query:timeline

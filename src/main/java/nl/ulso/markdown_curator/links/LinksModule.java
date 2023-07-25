@@ -8,8 +8,7 @@ import nl.ulso.markdown_curator.query.Query;
 import static com.google.inject.multibindings.Multibinder.newSetBinder;
 
 /**
- * Module that adds the {@link LinksModel} and two queries on top of it: {@link DeadLinksQuery}
- * and {@link BacklinksQuery}.
+ * Module that adds the {@link LinksModel} and one query on top of it: {@link DeadLinksQuery}.
  * <p/>
  * To use this module, install it in your own curator.
  */
@@ -21,7 +20,6 @@ public class LinksModule
     {
         newSetBinder(binder(), DataModel.class).addBinding().to(LinksModel.class);
         Multibinder<Query> queryBinder = newSetBinder(binder(), Query.class);
-        queryBinder.addBinding().to(BacklinksQuery.class);
         queryBinder.addBinding().to(DeadLinksQuery.class);
     }
 }

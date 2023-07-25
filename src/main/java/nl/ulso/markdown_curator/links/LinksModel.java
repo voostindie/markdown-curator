@@ -1,11 +1,11 @@
 package nl.ulso.markdown_curator.links;
 
+import jakarta.inject.Inject;
+import jakarta.inject.Singleton;
 import nl.ulso.markdown_curator.DataModelTemplate;
 import nl.ulso.markdown_curator.vault.*;
 import nl.ulso.markdown_curator.vault.event.*;
 
-import jakarta.inject.Inject;
-import jakarta.inject.Singleton;
 import java.util.*;
 
 import static java.util.Collections.emptyList;
@@ -15,30 +15,26 @@ public final class LinksModel
         extends DataModelTemplate
 {
     private final Vault vault;
-    private final Set<String> documents;
-    private final Map<String, List<InternalLink>> outgoingLinks;
-    private final Map<String, List<InternalLink>> incomingLinks;
+    private final Map<String, Document> documentIndex;
 
     @Inject
     public LinksModel(Vault vault)
     {
         this.vault = vault;
-        documents = new HashSet<>();
-        outgoingLinks = new HashMap<>();
-        incomingLinks = new HashMap<>();
-    }
-
-    List<InternalLink> incomingLinksFor(String documentName)
-    {
-        return incomingLinks.getOrDefault(documentName, emptyList());
+        this.documentIndex = new HashMap<>();
     }
 
     List<String> deadLinksFor(String documentName)
     {
-        return outgoingLinks.getOrDefault(documentName, emptyList()).stream()
+        var source = documentIndex.get(documentName);
+        if (source == null)
+        {
+            return emptyList();
+        }
+        return source.findInternalLinks().stream()
                 .map(InternalLink::targetDocument)
                 .filter(document -> !document.isBlank())
-                .filter(document -> !documents.contains(document))
+                .filter(document -> !documentIndex.containsKey(document))
                 .sorted()
                 .distinct()
                 .toList();
@@ -47,80 +43,62 @@ public final class LinksModel
     @Override
     protected void fullRefresh()
     {
-        documents.clear();
-        incomingLinks.clear();
-        outgoingLinks.clear();
-        processLinks(vault);
+        documentIndex.clear();
+        indexDocuments(vault);
     }
 
     @Override
     public void process(DocumentAdded event)
     {
-        processLinks(event.document());
+        indexDocuments(event.document());
     }
 
     @Override
     public void process(DocumentChanged event)
     {
-        outgoingLinks.remove(event.document().name());
-        processLinks(event.document());
+        indexDocuments(event.document());
     }
 
     @Override
     public void process(DocumentRemoved event)
     {
         var documentName = event.document().name();
-        documents.remove(documentName);
-        outgoingLinks.remove(documentName);
+        documentIndex.remove(documentName);
     }
 
     @Override
     public void process(FolderAdded event)
     {
-        processLinks(event.folder());
+        indexDocuments(event.folder());
     }
 
     @Override
     public void process(FolderRemoved event)
     {
-        var finder = new Finder();
+        var finder = new DocumentFinder();
         event.folder().accept(finder);
-        for (String document : finder.documents)
+        for (String document : finder.documents.keySet())
         {
-            documents.remove(document);
-            outgoingLinks.remove(document);
+            documentIndex.remove(document);
         }
     }
 
-    private void processLinks(Visitable visitable)
+    private void indexDocuments(Visitable visitable)
     {
-        var finder = new Finder();
+        var finder = new DocumentFinder();
         visitable.accept(finder);
-        documents.addAll(finder.documents());
-        for (InternalLink link : finder.internalLinks())
-        {
-            var sourceDocument = link.sourceLocation().document().name();
-            var targetDocument = link.targetDocument();
-            outgoingLinks.computeIfAbsent(sourceDocument, key -> new ArrayList<>()).add(link);
-            incomingLinks.computeIfAbsent(targetDocument, key -> new ArrayList<>()).add(link);
-        }
+        documentIndex.putAll(finder.documents);
     }
 
-    private static class Finder
-            extends InternalLinkFinder
+    private static class DocumentFinder
+            extends BreadthFirstVaultVisitor
     {
-        private final Set<String> documents = new HashSet<>();
+        private final Map<String, Document> documents = new HashMap<>();
 
         @Override
         public void visit(Document document)
         {
-            documents.add(document.name());
-            super.visit(document);
-        }
-
-        public Set<String> documents()
-        {
-            return documents;
+            documents.put(document.name(), document);
         }
     }
 }

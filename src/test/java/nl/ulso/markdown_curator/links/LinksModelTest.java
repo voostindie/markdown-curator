@@ -23,22 +23,9 @@ class LinksModelTest
     }
 
     @Test
-    void barHasIncomingLinks()
-    {
-        assertThat(model.incomingLinksFor("bar"))
-                .hasSize(1);
-    }
-
-    @Test
     void barHasNoDeadLinks()
     {
         assertThat(model.deadLinksFor("bar")).isEmpty();
-    }
-
-    @Test
-    void fooHasNoIncomingLinks()
-    {
-        assertThat(model.incomingLinksFor("foo")).isEmpty();
     }
 
     @Test

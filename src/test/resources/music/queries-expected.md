@@ -4,9 +4,8 @@ This document is used for testing: all queries are run after which it is persist
 - Albums
 - Members
 - Recordings
-- Backlinks
 - Timeline
-<!--/query (ac109e33)-->
+<!--/query (dd810767)-->
 
 ## Albums
 
@@ -36,27 +35,6 @@ song: Be Hard On Yourself
 -->
 - Track 1 on [[An Hour Before It's Dark]]
 <!--/query (ea7d2944)-->
-
-## Backlinks
-
-<!--query:backlinks
-document: Marillion
--->
-- [[An Hour Before It's Dark]]
-    - [[An Hour Before It's Dark#About|About]]
-- [[F E A R]]
-    - [[F E A R#About|About]]
-- [[Ian Mosley]]
-    - [[Ian Mosley#About|About]]
-- [[Mark Kelly]]
-    - [[Mark Kelly#About|About]]
-- [[Pete Trewavas]]
-    - [[Pete Trewavas#About|About]]
-- [[Steve Hogarth]]
-    - [[Steve Hogarth#About|About]]
-- [[Steve Rothery]]
-    - [[Steve Rothery#About|About]]
-<!--/query (71b5d8c5)-->
 
 ## Timeline
 
