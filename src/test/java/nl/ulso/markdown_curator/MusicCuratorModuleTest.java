@@ -161,10 +161,10 @@ class MusicCuratorModuleTest
         // We expect only (and all) queries in "queries-blank" to have new output:
         var list = items.stream()
                 .filter(QueryOutput::isChanged)
-                .peek(item -> System.out.println(
-                        item.queryBlock().document().name() + " - " +
-                        item.queryBlock().queryName() + ": " +
-                        item.hash()))
+//                .peek(item -> System.out.println(
+//                        item.queryBlock().document().name() + " - " +
+//                        item.queryBlock().queryName() + ": " +
+//                        item.hash()))
                 .map(item -> item.queryBlock().document().name())
                 .filter(name -> !name.contentEquals("queries-blank"))
                 .toList();
