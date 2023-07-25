@@ -90,6 +90,7 @@ public class Curator
         changeset.entrySet().stream()
                 .filter(entry -> entry.getValue().stream().anyMatch(QueryOutput::isChanged))
                 .forEach(entry -> writeDocument(entry.getKey(), entry.getValue()));
+        System.gc();
     }
 
     private void refreshAllDataModels(VaultChangedEvent event)
