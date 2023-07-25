@@ -223,7 +223,7 @@ The latest version of this library uses virtual threads, introduced in JDK 19 as
 
 Anyway, virtual threads seem to work really well! My own curator is running 900+ queries in parallel, in less than 20 milliseconds.
 
-## How do I force a query to re-generate its output?
+### How do I force a query to re-generate its output?
 
 This shouldn't be needed, but when in doubt, it's easy: remove or change the hash at the bottom of the query definition. 
 
