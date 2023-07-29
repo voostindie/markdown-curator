@@ -170,7 +170,7 @@ public final class FileSystemVault
         if (isDocument(eventAbsolutePath))
         {
             var document = newDocumentFromAbsolutePath(eventAbsolutePath);
-            LOGGER.debug("Detected changes to document: {}", document);
+            LOGGER.info("Detected changes to document {}.", document);
             parent.addDocument(document);
             return documentChanged(document);
         }
