@@ -45,4 +45,10 @@ public class ResourceBundledGeneralMessages
             return MessageFormat.format(bundle.getString("results.many"), resultCount);
         }
     }
+
+    @Override
+    public String performanceWarning()
+    {
+        return bundle.getString("results.performance_warning");
+    }
 }

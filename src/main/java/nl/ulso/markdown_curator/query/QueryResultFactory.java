@@ -1,13 +1,16 @@
 package nl.ulso.markdown_curator.query;
 
 import jakarta.inject.Inject;
+
 import java.util.List;
 import java.util.Map;
 
 import static java.lang.System.lineSeparator;
 
-public final class QueryResultFactory
+public class QueryResultFactory
 {
+    private static final String COMMENT_START = "<!-- ";
+    private static final String COMMENT_END = " -->";
     private final GeneralMessages messages;
 
     public QueryResultFactory()
@@ -89,4 +92,70 @@ public final class QueryResultFactory
         }
         return () -> output + lineSeparator() + "(*" + messages.resultSummary(resultCount) + "*)";
     }
+
+    public QueryResult withPerformanceWarning(QueryResult slowQueryResult)
+    {
+        return wrapSlowQueryResult(slowQueryResult);
+    }
+
+    public QueryResultFactory withPerformanceWarning()
+    {
+        return new QueryResultFactory()
+        {
+            @Override
+            public QueryResult empty()
+            {
+                return super.empty();
+            }
+
+            @Override
+            public QueryResult error(String errorMessage)
+            {
+                return super.error(errorMessage);
+            }
+
+            @Override
+            public QueryResult table(List<String> columns, List<Map<String, String>> rows)
+            {
+                return wrapSlowQueryResult(super.table(columns, rows));
+            }
+
+            @Override
+            public QueryResult unorderedList(List<String> rows)
+            {
+                return wrapSlowQueryResult(super.unorderedList(rows));
+            }
+
+            @Override
+            public QueryResult string(String output)
+            {
+                return wrapSlowQueryResult(super.string(output));
+            }
+
+            @Override
+            public QueryResult stringWithSummary(String output, int resultCount)
+            {
+                return wrapSlowQueryResult(super.stringWithSummary(output, resultCount));
+            }
+
+            @Override
+            public QueryResultFactory withPerformanceWarning()
+            {
+                return this;
+            }
+
+            @Override
+            public QueryResult withPerformanceWarning(QueryResult slowQueryResult)
+            {
+                return slowQueryResult;
+            }
+        };
+    }
+
+    private QueryResult wrapSlowQueryResult(QueryResult slowQueryResult)
+    {
+        return () -> slowQueryResult.toMarkdown().trim() + lineSeparator() + lineSeparator() +
+                     COMMENT_START + messages.performanceWarning() + COMMENT_END;
+    }
+
 }
