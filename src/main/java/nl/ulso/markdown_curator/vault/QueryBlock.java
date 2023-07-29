@@ -130,12 +130,12 @@ public final class QueryBlock
         visitor.visit(this);
     }
 
-    public String markdown(String queryResultOutput, String queryResultHash)
+    public String markdown(String newQueryResultOutput, String newQueryResultHash)
     {
         return definitionString + lineSeparator() +
-               queryResultOutput + lineSeparator() +
+               newQueryResultOutput + lineSeparator() +
                QUERY_OUTPUT_PREFIX + " " +
-               QUERY_HASH_PREFIX + queryResultHash + QUERY_HASH_POSTFIX +
+               QUERY_HASH_PREFIX + newQueryResultHash + QUERY_HASH_POSTFIX +
                QUERY_OUTPUT_POSTFIX + lineSeparator();
     }
 

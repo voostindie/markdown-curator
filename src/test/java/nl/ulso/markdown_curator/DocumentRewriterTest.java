@@ -10,11 +10,11 @@ import org.junit.jupiter.params.provider.MethodSource;
 import java.util.Collections;
 import java.util.stream.Stream;
 
-import static nl.ulso.markdown_curator.DocumentWriter.writeUpdatedDocument;
+import static nl.ulso.markdown_curator.DocumentRewriter.rewriteDocument;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @ExtendWith(SoftAssertionsExtension.class)
-class DocumentWriterTest
+class DocumentRewriterTest
 {
     @ParameterizedTest
     @MethodSource("provideDocuments")
@@ -22,7 +22,7 @@ class DocumentWriterTest
     {
         var vault = new VaultStub();
         var document = vault.addDocument("test", expected);
-        var content = writeUpdatedDocument(document, Collections.emptyList());
+        var content = rewriteDocument(document, Collections.emptyList());
         assertThat(content).isEqualTo(expected);
     }
 

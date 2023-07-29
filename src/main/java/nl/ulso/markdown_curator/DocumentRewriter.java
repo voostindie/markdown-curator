@@ -11,25 +11,27 @@ import static java.util.stream.Collectors.toMap;
 
 /**
  * Writes a Markdown version of a Document in memory, with new query outputs. Everything but the
- * query output should be written as is; there should be no changes with the file on disk.
+ * query output is written as is; there should be no other changes compared to the file on disk,
+ * with one minor exception; see below.
  * <p/>
  * Two things to note:
  * <ul>
  *     <li>Every query in the document MUST be provided with new output, otherwise this is
  *     an error.</li>
- *     <li>An end-of-file newline is ALWAYS written.</li>
+ *     <li>A newline is ALWAYS written at the end of the file, even if the source document didn't
+ *     have one.</li>
  * </ul>
  */
-final class DocumentWriter
+final class DocumentRewriter
         extends BreadthFirstVaultVisitor
 {
     private final StringWriter out;
     private final Map<QueryBlock, QueryOutput> queryOutputs;
 
-    public DocumentWriter(List<QueryOutput> queryOutputs)
+    public DocumentRewriter(List<QueryOutput> queryOutputs)
     {
-        this.queryOutputs = queryOutputs.stream().collect(
-                toMap(QueryOutput::queryBlock, Function.identity()));
+        this.queryOutputs = queryOutputs.stream()
+                .collect(toMap(QueryOutput::queryBlock, Function.identity()));
         this.out = new StringWriter();
     }
 
@@ -69,9 +71,9 @@ final class DocumentWriter
         out.write(textBlock.markdown());
     }
 
-    static String writeUpdatedDocument(Document document, List<QueryOutput> queryOutputs)
+    static String rewriteDocument(Document document, List<QueryOutput> queryOutputs)
     {
-        var writer = new DocumentWriter(queryOutputs);
+        var writer = new DocumentRewriter(queryOutputs);
         document.accept(writer);
         return writer.out.toString();
     }

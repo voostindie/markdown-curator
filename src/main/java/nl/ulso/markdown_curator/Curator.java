@@ -3,6 +3,7 @@ package nl.ulso.markdown_curator;
 import jakarta.inject.Inject;
 import nl.ulso.markdown_curator.query.*;
 import nl.ulso.markdown_curator.vault.*;
+import nl.ulso.markdown_curator.vault.event.DocumentChanged;
 import nl.ulso.markdown_curator.vault.event.VaultChangedEvent;
 import org.slf4j.Logger;
 import org.slf4j.MDC;
@@ -18,7 +19,7 @@ import static java.nio.file.Files.writeString;
 import static java.util.concurrent.Executors.newVirtualThreadPerTaskExecutor;
 import static java.util.stream.Collectors.groupingBy;
 import static nl.ulso.hash.Hasher.hash;
-import static nl.ulso.markdown_curator.DocumentWriter.writeUpdatedDocument;
+import static nl.ulso.markdown_curator.DocumentRewriter.rewriteDocument;
 import static nl.ulso.markdown_curator.vault.event.VaultChangedEvent.vaultRefreshed;
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -47,10 +48,11 @@ public class Curator
     private static final long COOL_OFF_PERIOD_IN_MILLISECONDS = 100;
 
     private final Vault vault;
-    private final ExecutorService executor;
+    private final DocumentPathResolver documentPathResolver;
     private final QueryCatalog queryCatalog;
     private final Set<DataModel> dataModels;
-    private final DocumentPathResolver documentPathResolver;
+    private final Set<String> writtenDocuments;
+    private final ExecutorService executor;
     private final String curatorName;
 
     @Inject
@@ -62,6 +64,7 @@ public class Curator
         this.documentPathResolver = documentPathResolver;
         this.queryCatalog = queryCatalog;
         this.dataModels = dataModels;
+        this.writtenDocuments = new HashSet<>();
         this.executor = newVirtualThreadPerTaskExecutor();
         this.curatorName = currentThread().getName();
     }
@@ -83,14 +86,34 @@ public class Curator
     @Override
     public final void vaultChanged(VaultChangedEvent event)
     {
+        if (checkSelfTriggeredUpdate(event))
+        {
+            return;
+        }
         refreshAllDataModels(event);
-        var changeset =
-                runAllQueries().stream().collect(groupingBy(item -> item.queryBlock().document()));
+        var changeset = runAllQueries().stream()
+                .collect(groupingBy(item -> item.queryBlock().document()));
         coolOffToPreventConflicts();
         changeset.entrySet().stream()
                 .filter(entry -> entry.getValue().stream().anyMatch(QueryOutput::isChanged))
                 .forEach(entry -> writeDocument(entry.getKey(), entry.getValue()));
+        LOGGER.info("Curator run done. Going back to sleep.");
         System.gc();
+    }
+
+    private boolean checkSelfTriggeredUpdate(VaultChangedEvent event)
+    {
+        if (event instanceof DocumentChanged changeEvent)
+        {
+            var documentName = changeEvent.document().name();
+            if (writtenDocuments.contains(documentName))
+            {
+                LOGGER.info("Ignoring change on {} because this curator caused it.", documentName);
+                writtenDocuments.remove(documentName);
+                return true;
+            }
+        }
+        return false;
     }
 
     private void refreshAllDataModels(VaultChangedEvent event)
@@ -152,16 +175,16 @@ public class Curator
     void writeDocument(Document document, List<QueryOutput> queryOutputs)
     {
         LOGGER.info("Rewriting document: {}", document);
-        var newDocumentContent = writeUpdatedDocument(document, queryOutputs);
+        var newDocumentContent = rewriteDocument(document, queryOutputs);
         try
         {
             var path = documentPathResolver.resolveAbsolutePath(document);
             if (getLastModifiedTime(path).toMillis() != document.lastModified())
             {
                 LOGGER.warn("Skipping rewrite, document has changed on disk: {}", document);
-                return;
             }
             writeString(path, newDocumentContent);
+            writtenDocuments.add(document.name());
         }
         catch (IOException e)
         {
