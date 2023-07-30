@@ -97,7 +97,7 @@ public class Curator
         changeset.entrySet().stream()
                 .filter(entry -> entry.getValue().stream().anyMatch(QueryOutput::isChanged))
                 .forEach(entry -> writeDocument(entry.getKey(), entry.getValue()));
-        LOGGER.info("Curator run done. Going back to sleep.");
+        LOGGER.info("Curator run done. Going back to waiting for incoming changes.");
         System.gc();
     }
 

@@ -5,6 +5,4 @@ public interface GeneralMessages
     String noResults();
 
     String resultSummary(int resultCount);
-
-    String performanceWarning();
 }

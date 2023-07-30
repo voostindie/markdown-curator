@@ -11,6 +11,8 @@ public class QueryResultFactory
 {
     private static final String COMMENT_START = "<!-- ";
     private static final String COMMENT_END = " -->";
+    private static final String PERFORMANCE_WARNING =
+            "WARNING: do not overuse this query; it is slow!";
     private final GeneralMessages messages;
 
     public QueryResultFactory()
@@ -155,7 +157,7 @@ public class QueryResultFactory
     private QueryResult wrapSlowQueryResult(QueryResult slowQueryResult)
     {
         return () -> slowQueryResult.toMarkdown().trim() + lineSeparator() + lineSeparator() +
-                     COMMENT_START + messages.performanceWarning() + COMMENT_END;
+                     COMMENT_START + PERFORMANCE_WARNING + COMMENT_END;
     }
 
 }

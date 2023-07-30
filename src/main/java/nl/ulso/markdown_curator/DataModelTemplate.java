@@ -10,7 +10,7 @@ import static nl.ulso.markdown_curator.vault.event.VaultChangedEvent.vaultRefres
  * Base class for {@link DataModel} that can handle granular event change events.
  * <p/>
  * The default implementation for each change event is to dispatch to
- * {@link #process(VaultRefreshed)}, which in turns call {@link #fullRefresh()}. In other words,
+ * {@link #process(VaultRefreshed)}, which in turn calls {@link #fullRefresh()}. In other words,
  * just implementing {@link #fullRefresh()} already works for all events. Override one of the
  * other {@code process} methods to make the refresh more granular and efficient for that
  * specific event.
