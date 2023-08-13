@@ -3,12 +3,8 @@ package nl.ulso.markdown_curator.journal;
 import nl.ulso.markdown_curator.query.QueryDefinitionStub;
 import nl.ulso.markdown_curator.query.QueryResultFactory;
 import nl.ulso.markdown_curator.vault.VaultStub;
-import org.assertj.core.api.SoftAssertions;
-import org.assertj.core.api.junit.jupiter.InjectSoftAssertions;
-import org.assertj.core.api.junit.jupiter.SoftAssertionsExtension;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -82,4 +78,5 @@ class WeeklyQueryTest
         return new WeeklyQuery(journal,
                 new JournalSettings("Journal", "Activities", "Projects", WeekFields.ISO),
                 new QueryResultFactory());
-    }}
+    }
+}

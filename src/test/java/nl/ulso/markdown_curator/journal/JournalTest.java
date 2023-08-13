@@ -15,7 +15,6 @@ import java.util.Comparator;
 import java.util.Map;
 import java.util.stream.Stream;
 
-import static java.time.temporal.WeekFields.ISO;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @ExtendWith(SoftAssertionsExtension.class)

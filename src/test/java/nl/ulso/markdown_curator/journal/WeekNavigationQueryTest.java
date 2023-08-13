@@ -1,22 +1,14 @@
 package nl.ulso.markdown_curator.journal;
 
 import nl.ulso.markdown_curator.query.*;
-import org.assertj.core.api.SoftAssertions;
-import org.assertj.core.api.junit.jupiter.InjectSoftAssertions;
-import org.assertj.core.api.junit.jupiter.SoftAssertionsExtension;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 
 import java.util.Locale;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@ExtendWith(SoftAssertionsExtension.class)
 class WeekNavigationQueryTest
 {
-    @InjectSoftAssertions
-    private SoftAssertions softly;
-
     @Test
     void name()
     {
@@ -70,7 +62,7 @@ class WeekNavigationQueryTest
         assertThat(result.toMarkdown().trim())
                 .isEqualTo("""
                         ### Error
-                        
+                                                
                         Document is not a weekly journal!
                         """.trim());
     }

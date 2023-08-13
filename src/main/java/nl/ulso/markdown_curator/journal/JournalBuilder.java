@@ -49,14 +49,11 @@ class JournalBuilder
     public void visit(Document document)
     {
         var weekly = parseWeeklyFrom(document);
-        weekly.ifPresentOrElse(weeklies::add, () ->
-        {
-            parseDateFrom(document).ifPresent(date ->
-            {
-                this.currentDate = date;
-                super.visit(document);
-            });
-        });
+        weekly.ifPresentOrElse(weeklies::add,
+                () -> parseDateFrom(document).ifPresent(date -> {
+                    this.currentDate = date;
+                    super.visit(document);
+                }));
     }
 
     @Override
