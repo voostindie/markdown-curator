@@ -243,6 +243,19 @@ class DocumentTest
         softly.assertThat(document.fragment(2)).isInstanceOf(QueryBlock.class);
     }
 
+    @Test
+    void namedQuery()
+    {
+        var document = newDocument("document", 0, document("""
+                <!--query:name-->
+                foo
+                <!--/query-->
+                """));
+        softly.assertThat(document.fragments()).hasSize(2);
+        softly.assertThat(document.fragment(1)).isInstanceOf(QueryBlock.class);
+        var block = (QueryBlock) document.fragment(1);
+        assertThat(block.queryName()).isEqualTo("name");
+    }
 
     @Test
     void sortableTitle()

@@ -13,10 +13,12 @@ import java.time.LocalDate;
 import java.util.Set;
 import java.util.stream.Stream;
 
+import static nl.ulso.markdown_curator.journal.Daily.parseDailiesFrom;
+import static nl.ulso.markdown_curator.journal.JournalBuilder.parseDateFrom;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @ExtendWith(SoftAssertionsExtension.class)
-class JournalEntryTest
+class DailyTest
 {
     @Test
     void emptySection()
@@ -24,8 +26,8 @@ class JournalEntryTest
         var vault = new VaultStub();
         var document = vault.addDocument("2023-01-27", "## Activities");
         var section = (Section) document.fragments().get(1);
-        var entry = JournalEntry.parseJournalEntryFrom(section);
-        assertThat(entry).map(JournalEntry::date).map(LocalDate::toString).hasValue("2023-01-27");
+        var entry = parseDailiesFrom(section);
+        assertThat(entry).map(Daily::date).map(LocalDate::toString).hasValue("2023-01-27");
     }
 
     @Test
@@ -33,9 +35,8 @@ class JournalEntryTest
     {
         var vault = new VaultStub();
         var document = vault.addDocument("Not a date", "## Activities");
-        var section = (Section) document.fragments().get(1);
-        var entry = JournalEntry.parseJournalEntryFrom(section);
-        assertThat(entry).isEmpty();
+        var date = parseDateFrom(document);
+        assertThat(date.isPresent()).isFalse();
     }
 
     @ParameterizedTest
@@ -54,8 +55,8 @@ class JournalEntryTest
                         - baz
                 """);
         var section = (Section) document.fragments().get(1);
-        var entry = JournalEntry.parseJournalEntryFrom(section);
-        assertThat(entry).map(e -> e.refersTo(documentName)).hasValue(hasReference);
+        var daily = parseDailiesFrom(section);
+        assertThat(daily).map(e -> e.refersTo(documentName)).hasValue(hasReference);
     }
 
     public static Stream<Arguments> provideDocumentNames()
@@ -88,8 +89,8 @@ class JournalEntryTest
                         - And another reference to [[Y]]
                 """);
         var section = (Section) document.fragments().get(1);
-        var entry = JournalEntry.parseJournalEntryFrom(section);
-        assertThat(entry).map(e -> e.summaryFor("X")).hasValue("""
+        var daily = parseDailiesFrom(section);
+        assertThat(daily).map(e -> e.summaryFor("X")).hasValue("""
                 - Top item
                     - Reference to [[X]]
                         - And a child for [[X]]
@@ -111,8 +112,8 @@ class JournalEntryTest
                         - [[baz]]
                 """);
         var section = (Section) document.fragments().get(1);
-        var entry = JournalEntry.parseJournalEntryFrom(section);
-        assertThat(entry).map(JournalEntry::referencedDocuments).contains(
+        var daily = parseDailiesFrom(section);
+        assertThat(daily).map(Daily::referencedDocuments).contains(
                 Set.of("X", "Y", "Z", "foo", "bar", "baz"));
     }
 }

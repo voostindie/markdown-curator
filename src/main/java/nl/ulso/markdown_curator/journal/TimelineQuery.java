@@ -16,13 +16,13 @@ import static java.util.stream.Collectors.joining;
 public class TimelineQuery
         implements Query
 {
-    private final Journal model;
+    private final Journal journal;
     private final QueryResultFactory resultFactory;
 
     @Inject
-    TimelineQuery(Journal model, QueryResultFactory resultFactory)
+    TimelineQuery(Journal journal, QueryResultFactory resultFactory)
     {
-        this.model = model;
+        this.journal = journal;
         this.resultFactory = resultFactory;
     }
 
@@ -50,7 +50,7 @@ public class TimelineQuery
     {
         var documentName =
                 definition.configuration().string("document", definition.document().name());
-        var timeline = model.timelineFor(documentName);
+        var timeline = journal.timelineFor(documentName);
         var result = timeline.entrySet().stream()
                 .map(entry -> "- **[[" + entry.getKey() + "]]**:" + lineSeparator() +
                               entry.getValue().indent(4))

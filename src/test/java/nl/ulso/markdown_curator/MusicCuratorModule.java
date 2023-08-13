@@ -5,6 +5,7 @@ import nl.ulso.markdown_curator.links.LinksModule;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.temporal.WeekFields;
 
 /**
  * Module for testing. All testing is done in memory. All files in the "music" directory from this
@@ -36,7 +37,7 @@ public class MusicCuratorModule
     {
 
         install(new LinksModule());
-        install(new JournalModule("journal", "Log"));
+        install(new JournalModule("journal", "Log", "songs"));
         registerQuery(AlbumsQuery.class);
         registerQuery(MembersQuery.class);
         registerQuery(RecordingsQuery.class);

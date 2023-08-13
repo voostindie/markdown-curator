@@ -97,6 +97,14 @@ public class FileSystemFolder
     }
 
     @Override
+    public Optional<Document> findDocument(String name)
+    {
+        var finder = new DocumentFinder(name);
+        this.accept(finder);
+        return finder.document();
+    }
+
+    @Override
     public void accept(VaultVisitor visitor)
     {
         visitor.visit(this);

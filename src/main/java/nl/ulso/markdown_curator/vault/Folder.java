@@ -20,4 +20,6 @@ public interface Folder
     Collection<Document> documents();
 
     Optional<Document> document(String name);
+
+    Optional<Document> findDocument(String name);
 }

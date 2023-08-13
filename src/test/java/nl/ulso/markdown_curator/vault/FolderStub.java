@@ -124,6 +124,14 @@ public class FolderStub
     }
 
     @Override
+    public Optional<Document> findDocument(String name)
+    {
+        var finder = new DocumentFinder(name);
+        accept(finder);
+        return finder.document();
+    }
+
+    @Override
     public String toString()
     {
         return name;

@@ -12,8 +12,7 @@ import org.slf4j.Logger;
 import java.io.IOException;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
-import java.util.ArrayList;
-import java.util.Collection;
+import java.util.*;
 
 import static java.nio.file.Files.getLastModifiedTime;
 import static java.nio.file.Files.readAllLines;
@@ -103,7 +102,7 @@ public final class FileSystemVault
     public Collection<QueryBlock> findAllQueryBlocks()
     {
         var finder = new QueryBlockFinder();
-        this.accept(finder);
+        accept(finder);
         return finder.queries();
     }
 

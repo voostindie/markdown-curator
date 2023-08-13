@@ -70,7 +70,12 @@ class MapDictionary
     @Override
     public LocalDate date(String property, LocalDate defaultDate)
     {
-        return safeGet(property, LocalDate.class, defaultDate);
+        var dates = listOfDates(property);
+        if (dates.isEmpty())
+        {
+            return defaultDate;
+        }
+        return dates.get(0);
     }
 
     @Override
@@ -94,7 +99,10 @@ class MapDictionary
     @Override
     public List<LocalDate> listOfDates(String property)
     {
-        return safeGetList(property, LocalDate.class);
+        return safeGetList(property, String.class).stream()
+                .map(LocalDates::parseDateOrNull)
+                .filter(Objects::nonNull)
+                .toList();
     }
 
     @Override

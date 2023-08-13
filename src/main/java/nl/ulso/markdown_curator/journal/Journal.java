@@ -1,16 +1,21 @@
 package nl.ulso.markdown_curator.journal;
 
+import jakarta.inject.Inject;
+import jakarta.inject.Singleton;
 import nl.ulso.markdown_curator.DataModelTemplate;
-import nl.ulso.markdown_curator.vault.*;
+import nl.ulso.markdown_curator.vault.Document;
+import nl.ulso.markdown_curator.vault.Vault;
 import nl.ulso.markdown_curator.vault.event.*;
 import org.slf4j.Logger;
 
-import jakarta.inject.Inject;
-import jakarta.inject.Singleton;
 import java.time.LocalDate;
+import java.time.temporal.ChronoField;
 import java.util.*;
 import java.util.stream.Stream;
 
+import static java.time.temporal.ChronoField.ALIGNED_WEEK_OF_YEAR;
+import static java.time.temporal.ChronoField.DAY_OF_WEEK;
+import static java.time.temporal.ChronoField.DAY_OF_YEAR;
 import static java.util.Comparator.naturalOrder;
 import static java.util.Comparator.reverseOrder;
 import static java.util.stream.Collectors.toUnmodifiableSet;
@@ -24,14 +29,16 @@ public class Journal
 
     private final Vault vault;
     private final JournalSettings settings;
-    private final NavigableMap<LocalDate, JournalEntry> entries;
+    private final NavigableMap<LocalDate, Daily> dailies;
+    private final NavigableSet<Weekly> weeklies;
 
     @Inject
     Journal(Vault vault, JournalSettings settings)
     {
         this.vault = vault;
         this.settings = settings;
-        this.entries = new TreeMap<>();
+        this.dailies = new TreeMap<>();
+        this.weeklies = new TreeSet<>();
     }
 
     @Override
@@ -39,9 +46,15 @@ public class Journal
     {
         var builder = new JournalBuilder(settings);
         vault.accept(builder);
-        entries.clear();
-        builder.entries().forEach(entry -> entries.put(entry.date(), entry));
-        LOGGER.debug("Built a journal for {} days", entries.size());
+        dailies.clear();
+        weeklies.clear();
+        builder.dailies().forEach(daily -> dailies.put(daily.date(), daily));
+        weeklies.addAll(builder.weeklies());
+        if (LOGGER.isDebugEnabled())
+        {
+            LOGGER.debug("Built a journal for {} days and {} weeks",
+                    dailies.size(), weeklies.size());
+        }
     }
 
     @Override
@@ -62,7 +75,8 @@ public class Journal
         {
             var builder = new JournalBuilder(settings);
             document.accept(builder);
-            builder.entries().forEach(entry -> entries.put(entry.date(), entry));
+            builder.dailies().forEach(daily -> dailies.put(daily.date(), daily));
+            weeklies.addAll(builder.weeklies());
             LOGGER.debug("Updated the journal for {}", document.name());
         }
     }
@@ -73,12 +87,18 @@ public class Journal
         var document = event.document();
         if (isJournalEntry(document))
         {
-            var date = LocalDates.parseDateOrNull(document.name());
-            if (date != null)
+            var weekly = JournalBuilder.parseWeeklyFrom(document);
+            weekly.ifPresentOrElse((w) -> {
+                weeklies.remove(w);
+                LOGGER.debug("Removed weekly {} from the journal", w);
+            }, () ->
             {
-                entries.remove(date);
-                LOGGER.debug("Removed date {} from the journal", date);
-            }
+                var date = JournalBuilder.parseDateFrom(document);
+                date.ifPresent(d -> {
+                    dailies.remove(d);
+                    LOGGER.debug("Removed date {} from the journal", d);
+                });
+            });
         }
     }
 
@@ -99,45 +119,85 @@ public class Journal
     public SortedMap<LocalDate, String> timelineFor(String documentName)
     {
         var timeline = new TreeMap<LocalDate, String>(reverseOrder());
-        journalEntriesFor(documentName)
-                .forEach(entry -> timeline.put(entry.date(), entry.summaryFor(documentName)));
+        dailiesFor(documentName)
+                .forEach(daily -> timeline.put(daily.date(), daily.summaryFor(documentName)));
         return timeline;
     }
 
-    public Set<String> referencedDocumentsIn(LocalDate startDate, int numberOfDays)
+    public Stream<Daily> entriesUntilIncluding(LocalDate start, LocalDate end)
     {
-        if (numberOfDays < 1)
-        {
-            throw new IllegalStateException("Number of days must be positive: " + numberOfDays);
-        }
-        return startDate.datesUntil(startDate.plusDays(numberOfDays))
-                .map(entries::get)
-                .filter(Objects::nonNull)
-                .flatMap(entry -> entry.referencedDocuments().stream())
+        return start.datesUntil(end.plusDays(1))
+                .map(dailies::get)
+                .filter(Objects::nonNull);
+    }
+
+    public Set<String> referencedDocumentsIn(Collection<Daily> entries)
+    {
+        return entries.stream()
+                .flatMap(daily -> daily.referencedDocuments().stream())
                 .collect(toUnmodifiableSet());
     }
 
     public Optional<LocalDate> mostRecentMentionOf(String documentName)
     {
-        return journalEntriesFor(documentName)
-                .map(JournalEntry::date)
+        return dailiesFor(documentName)
+                .map(Daily::date)
                 .max(naturalOrder());
     }
 
-    public Optional<LocalDate> entryBefore(LocalDate date)
+    public Optional<LocalDate> dailyBefore(LocalDate date)
     {
-        return Optional.ofNullable(entries.lowerKey(date));
+        return Optional.ofNullable(dailies.lowerKey(date));
     }
 
-    public Optional<LocalDate> entryAfter(LocalDate date)
+    public Optional<LocalDate> dailyAfter(LocalDate date)
     {
-        return Optional.ofNullable(entries.higherKey(date));
+        return Optional.ofNullable(dailies.higherKey(date));
     }
 
-    private Stream<JournalEntry> journalEntriesFor(String documentName)
+    public Optional<Weekly> weeklyBefore(Weekly weekly)
     {
-        return entries.values().stream()
+        return Optional.ofNullable(weeklies.lower(weekly));
+    }
+
+    public Optional<Weekly> weeklyAfter(Weekly weekly)
+    {
+        return Optional.ofNullable(weeklies.higher(weekly));
+    }
+
+    public Optional<Weekly> weeklyFor(LocalDate date)
+    {
+        var year = date.get(settings.weekFields().weekBasedYear());
+        var week = date.get(settings.weekFields().weekOfWeekBasedYear());
+        var weekly = new Weekly(year, week);
+        if (weeklies.contains(weekly))
+        {
+            return Optional.of(weekly);
+        }
+        return Optional.empty();
+    }
+
+    private Stream<Daily> dailiesFor(String documentName)
+    {
+        return dailies.values().stream()
                 .filter(entry -> entry.refersTo(documentName));
+    }
+
+    public Stream<Daily> dailiesForWeek(Weekly weekly)
+    {
+        var weekFields = settings.weekFields();
+        var firstDayOfWeek = LocalDate.now()
+                .with(weekFields.weekBasedYear(), weekly.year())
+                .with(weekFields.weekOfWeekBasedYear(), weekly.week())
+                .with(weekFields.dayOfWeek(), weekFields.getFirstDayOfWeek().getValue());
+        return firstDayOfWeek.datesUntil(firstDayOfWeek.plusDays(7))
+                .map(dailies::get)
+                .filter(Objects::nonNull);
+    }
+
+    public int dayOfWeekNumberFor(LocalDate date)
+    {
+        return date.get(settings.weekFields().dayOfWeek());
     }
 
     public Vault vault()

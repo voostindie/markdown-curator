@@ -13,6 +13,7 @@ import static java.util.stream.Collectors.toSet;
 import static java.util.stream.IntStream.range;
 import static nl.ulso.markdown_curator.journal.Outline.newOutline;
 import static nl.ulso.markdown_curator.vault.InternalLinkFinder.findInternalLinks;
+import static nl.ulso.markdown_curator.vault.LocalDates.parseDateOrNull;
 
 /**
  * Represents a single journal entry: on outline of lines for a certain date that reference other
@@ -21,16 +22,18 @@ import static nl.ulso.markdown_curator.vault.InternalLinkFinder.findInternalLink
  * When parsing a section into a journal entry, the lines in the section are temporarily mapped
  * to a tree structure ({@link Outline}, in order to compute {@link LineValues}. These line values
  * are used when generating summaries for a document quickly.
+ * <p/>
+ * The name of a daily in the vault MUST be formatted like "yyyy-MM-dd".
  */
-public class JournalEntry
-        implements Comparable<JournalEntry>
+public class Daily
+        implements Comparable<Daily>
 {
     private final LocalDate date;
     private final Section section;
     private final List<LineValues> lineValues;
     private final Map<String, BitSet> documentReferences;
 
-    private JournalEntry(LocalDate date, Section section)
+    private Daily(LocalDate date, Section section)
     {
         this.date = date;
         this.section = section;
@@ -46,14 +49,22 @@ public class JournalEntry
         return collector.lines;
     }
 
-    public static Optional<JournalEntry> parseJournalEntryFrom(Section section)
+    public static Optional<Daily> parseDailiesFrom(Section section)
     {
-        var date = LocalDates.parseDateOrNull(section.document().name());
+        return parseDailiesFrom(section, null);
+    }
+
+    public static Optional<Daily> parseDailiesFrom(Section section, LocalDate date)
+    {
         if (date == null)
         {
-            return Optional.empty();
+            date = parseDateOrNull(section.document().name());
+            if (date == null)
+            {
+                return Optional.empty();
+            }
         }
-        return Optional.of(new JournalEntry(date, section));
+        return Optional.of(new Daily(date, section));
     }
 
     @Override
@@ -67,8 +78,8 @@ public class JournalEntry
         {
             return false;
         }
-        var entry = (JournalEntry) o;
-        return date.equals(entry.date);
+        var daily = (Daily) o;
+        return date.equals(daily.date);
     }
 
     @Override
@@ -78,7 +89,7 @@ public class JournalEntry
     }
 
     @Override
-    public int compareTo(JournalEntry other)
+    public int compareTo(Daily other)
     {
         return date.compareTo(other.date);
     }

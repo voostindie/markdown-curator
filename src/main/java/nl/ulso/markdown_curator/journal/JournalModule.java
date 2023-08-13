@@ -2,8 +2,11 @@ package nl.ulso.markdown_curator.journal;
 
 import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
+import com.google.inject.multibindings.Multibinder;
 import nl.ulso.markdown_curator.DataModel;
 import nl.ulso.markdown_curator.query.Query;
+
+import java.time.temporal.WeekFields;
 
 import static com.google.inject.multibindings.Multibinder.newSetBinder;
 
@@ -28,26 +31,38 @@ public class JournalModule
 {
     private final String journalFolder;
     private final String activitiesSection;
+    private final String projectFolder;
+    private final WeekFields weekFields;
 
-    public JournalModule(String journalFolder, String activitiesSection)
+    public JournalModule(String journalFolder, String activitiesSection, String projectFolder)
     {
+        this(journalFolder, activitiesSection, projectFolder, WeekFields.ISO);
+    }
 
+    public JournalModule(String journalFolder, String activitiesSection, String projectFolder, WeekFields weekFields)
+    {
         this.journalFolder = journalFolder;
         this.activitiesSection = activitiesSection;
+        this.projectFolder = projectFolder;
+        this.weekFields = weekFields;
     }
 
     @Provides
     JournalSettings journalSettings()
     {
-        return new JournalSettings(journalFolder, activitiesSection);
+        return new JournalSettings(journalFolder, activitiesSection, projectFolder, weekFields);
     }
 
     @Override
     protected void configure()
     {
         newSetBinder(binder(), DataModel.class).addBinding().to(Journal.class);
-        newSetBinder(binder(), Query.class).addBinding().to(TimelineQuery.class);
-        newSetBinder(binder(), Query.class).addBinding().to(JournalNavigationQuery.class);
+        Multibinder<Query> queryBinder = newSetBinder(binder(), Query.class);
+        queryBinder.addBinding().to(TimelineQuery.class);
+        queryBinder.addBinding().to(PeriodQuery.class);
+        queryBinder.addBinding().to(WeeklyQuery.class);
+        queryBinder.addBinding().to(DayNavigationQuery.class);
+        queryBinder.addBinding().to(WeekNavigationQuery.class);
     }
 }
 

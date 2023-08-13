@@ -10,10 +10,12 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
 import java.time.LocalDate;
+import java.time.temporal.WeekFields;
 import java.util.Comparator;
 import java.util.Map;
 import java.util.stream.Stream;
 
+import static java.time.temporal.WeekFields.ISO;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @ExtendWith(SoftAssertionsExtension.class)
@@ -96,14 +98,19 @@ class JournalTest
     void referencedDocuments()
     {
         var journal = createTestJournal();
-        var references = journal.referencedDocumentsIn(LocalDate.of(2023, 1, 25), 3);
+        var entries = journal.entriesUntilIncluding(
+                LocalDate.of(2023, 1, 25),
+                LocalDate.of(2023, 1, 27)).toList();
+        var references = journal.referencedDocumentsIn(entries);
         assertThat(references).containsExactlyInAnyOrder("foo", "bar", "baz");
-
     }
 
     static Journal createTestJournal()
     {
         var vault = new VaultStub();
+        vault.addDocumentInPath("Projects/foo", "Project 'foo'");
+        vault.addDocumentInPath("Projects/bar", "Project 'bar'");
+        vault.addDocumentInPath("Projects/baz", "Project 'baz'");
         vault.addDocumentInPath("Journal/2023/2023-01-25", """
                 ## Log
                                 
@@ -122,7 +129,10 @@ class JournalTest
                 - [[foo]]
                 - [[baz]]
                 """);
-        var journal = new Journal(vault, new JournalSettings("Journal", "Log"));
+        vault.addDocumentInPath("Journal/2023/2023 Week 04", "");
+        vault.addDocumentInPath("Journal/2023/2023 Week 05", "");
+        var journal = new Journal(vault, new JournalSettings("Journal", "Log", "Projects",
+                WeekFields.ISO));
         journal.fullRefresh();
         return journal;
     }
