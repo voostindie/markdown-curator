@@ -33,7 +33,7 @@ public class DayNavigationQuery
     public QueryResult run(QueryDefinition definition)
     {
         var document = definition.document();
-        return parseDateFrom(document).map((date) ->
+        return parseDateFrom(document).map(date ->
         {
             var builder = new StringBuilder();
             builder.append("# ");

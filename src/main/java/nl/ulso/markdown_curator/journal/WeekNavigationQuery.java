@@ -34,7 +34,7 @@ public class WeekNavigationQuery
     public QueryResult run(QueryDefinition definition)
     {
         var document = definition.document();
-        return parseWeeklyFrom(document).map((weekly) ->
+        return parseWeeklyFrom(document).map(weekly ->
         {
             var builder = new StringBuilder();
             builder.append("# ");

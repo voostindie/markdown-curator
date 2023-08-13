@@ -84,7 +84,7 @@ public class Journal
         if (isJournalEntry(document))
         {
             var weekly = JournalBuilder.parseWeeklyFrom(document);
-            weekly.ifPresentOrElse((w) -> {
+            weekly.ifPresentOrElse(w -> {
                 weeklies.remove(w);
                 LOGGER.debug("Removed weekly {} from the journal", w);
             }, () ->

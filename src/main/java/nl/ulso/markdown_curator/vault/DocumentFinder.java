@@ -18,7 +18,7 @@ public class DocumentFinder
     public void visit(Folder folder)
     {
         folder.document(documentName).ifPresentOrElse(
-                document -> this.document = document,
+                d -> this.document = d,
                 () -> {
                     for (var subfolder : folder.folders())
                     {

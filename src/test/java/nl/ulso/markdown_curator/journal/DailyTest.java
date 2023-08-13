@@ -36,7 +36,7 @@ class DailyTest
         var vault = new VaultStub();
         var document = vault.addDocument("Not a date", "## Activities");
         var date = parseDateFrom(document);
-        assertThat(date.isPresent()).isFalse();
+        assertThat(date).isNotPresent();
     }
 
     @ParameterizedTest

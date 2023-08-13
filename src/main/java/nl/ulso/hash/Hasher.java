@@ -25,7 +25,8 @@ public final class Hasher
         }
         catch (NoSuchAlgorithmException e)
         {
-            throw new RuntimeException("No " + DIGEST_ALGORITHM + "? That's a required algorithm!");
+            throw new IllegalArgumentException(
+                    "No " + DIGEST_ALGORITHM + "? That's a required algorithm!");
         }
     }
 }

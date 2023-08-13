@@ -78,7 +78,6 @@ public class Curator
     public void run()
     {
         refreshAllDataModels(vaultRefreshed());
-        System.gc();
         vault.setVaultChangedCallback(this);
         vault.watchForChanges();
     }
@@ -98,7 +97,6 @@ public class Curator
                 .filter(entry -> entry.getValue().stream().anyMatch(QueryOutput::isChanged))
                 .forEach(entry -> writeDocument(entry.getKey(), entry.getValue()));
         LOGGER.info("Curator run done. Going back to waiting for incoming changes.");
-        System.gc();
     }
 
     private boolean checkSelfTriggeredUpdate(VaultChangedEvent event)

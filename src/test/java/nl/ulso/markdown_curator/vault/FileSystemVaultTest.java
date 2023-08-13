@@ -148,7 +148,7 @@ class FileSystemVaultTest
     }
 
     @Test
-    @Disabled
+    @Disabled("Unpredictable; don't know why. Use only when needed. Or fix.")
     void watchVaultForFilesInNewFolders()
     {
         whileWatchingForChanges(new TestCase()
@@ -273,7 +273,7 @@ class FileSystemVaultTest
      * work, and this test indeed fails if document names are not normalized.
      */
     @Test
-    @Disabled
+    @Disabled("Unpredictable; don't know why. Use only when needed. Or fix.")
     void handleUnicodeConsistently()
     {
         whileWatchingForChanges(new TestCase()

@@ -105,18 +105,6 @@ public class QueryResultFactory
         return new QueryResultFactory()
         {
             @Override
-            public QueryResult empty()
-            {
-                return super.empty();
-            }
-
-            @Override
-            public QueryResult error(String errorMessage)
-            {
-                return super.error(errorMessage);
-            }
-
-            @Override
             public QueryResult table(List<String> columns, List<Map<String, String>> rows)
             {
                 return wrapSlowQueryResult(super.table(columns, rows));
@@ -132,12 +120,6 @@ public class QueryResultFactory
             public QueryResult string(String output)
             {
                 return wrapSlowQueryResult(super.string(output));
-            }
-
-            @Override
-            public QueryResult stringWithSummary(String output, int resultCount)
-            {
-                return wrapSlowQueryResult(super.stringWithSummary(output, resultCount));
             }
 
             @Override
