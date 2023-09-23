@@ -51,7 +51,7 @@ public class Curator
     private final DocumentPathResolver documentPathResolver;
     private final QueryCatalog queryCatalog;
     private final Set<DataModel> dataModels;
-    private final Set<String> writtenDocuments;
+    private final Map<String, Long> writtenDocuments;
     private final ExecutorService executor;
     private final String curatorName;
 
@@ -64,7 +64,7 @@ public class Curator
         this.documentPathResolver = documentPathResolver;
         this.queryCatalog = queryCatalog;
         this.dataModels = dataModels;
-        this.writtenDocuments = new HashSet<>();
+        this.writtenDocuments = new HashMap<>();
         this.executor = newVirtualThreadPerTaskExecutor();
         this.curatorName = currentThread().getName();
     }
@@ -101,17 +101,24 @@ public class Curator
 
     private boolean checkSelfTriggeredUpdate(VaultChangedEvent event)
     {
-        if (event instanceof DocumentChanged changeEvent)
+        if (!(event instanceof DocumentChanged changeEvent))
         {
-            var documentName = changeEvent.document().name();
-            if (writtenDocuments.contains(documentName))
-            {
-                LOGGER.info("Ignoring change on {} because this curator caused it.", documentName);
-                writtenDocuments.remove(documentName);
-                return true;
-            }
+            return false;
         }
-        return false;
+        var document = changeEvent.document();
+        var documentName = document.name();
+        var timestamp = writtenDocuments.get(documentName);
+        if (timestamp == null)
+        {
+            return false;
+        }
+        writtenDocuments.remove(documentName);
+        if (document.lastModified() != timestamp)
+        {
+            return false;
+        }
+        LOGGER.info("Ignoring change on {} because this curator caused it.", documentName);
+        return true;
     }
 
     private void refreshAllDataModels(VaultChangedEvent event)
@@ -177,12 +184,13 @@ public class Curator
         try
         {
             var path = documentPathResolver.resolveAbsolutePath(document);
-            if (getLastModifiedTime(path).toMillis() != document.lastModified())
+            if (document.lastModified() != getLastModifiedTime(path).toMillis())
             {
                 LOGGER.warn("Skipping rewrite, document has changed on disk: {}", document);
+                return;
             }
             writeString(path, newDocumentContent);
-            writtenDocuments.add(document.name());
+            writtenDocuments.put(document.name(), getLastModifiedTime(path).toMillis());
         }
         catch (IOException e)
         {
