@@ -9,7 +9,7 @@
 
 ## TL;DR
 
-- This is a Java 20+ library and small application framework for processing directories of Markdown documents.
+- This is a Java 21+ library and small application framework for processing directories of Markdown documents.
 - It is especially well suited for Obsidian vaults and iA Writer libraries.
 - It detects queries in the documents, runs them, and writes back the results.
 - As an application, it monitors and processes directories in the background.
@@ -214,14 +214,6 @@ My personal experience:
 - When run from within IntelliJ IDEA, changes to files with emoj's in their name where not detected.
 
 Adding the `LC_CTYPE` variable to the Run configuration environment fixed it. The command line already had it.
-
-### The application exits immediately after "Instantiating curator"
-
-Solution: apply the `--enable-preview` JVM setting.
-
-The latest version of this library uses virtual threads, introduced in JDK 19 as a preview. I tried implementing a fallback method, but that only made the application hang if `--enable-preview` is not provided.
-
-Anyway, virtual threads seem to work really well! My own curator is running 900+ queries in parallel, in less than 20 milliseconds.
 
 ### How do I force a query to re-generate its output?
 
