@@ -55,6 +55,6 @@ class CodeBlockTest
         var single = new CodeBlock(List.of("```foo", "bar", "```"));
         softly.assertThat(single.code()).isEqualTo("bar");
         softly.assertThat(single.language()).isEqualTo("foo");
-        softly.assertThat(single.markdown()).isEqualTo("```foo\nbar\n```\n");
+        softly.assertThat(single.toMarkdown()).isEqualTo("```foo\nbar\n```\n");
     }
 }

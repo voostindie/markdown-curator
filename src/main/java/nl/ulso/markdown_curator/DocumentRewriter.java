@@ -10,9 +10,9 @@ import java.util.function.Function;
 import static java.util.stream.Collectors.toMap;
 
 /**
- * Writes a Markdown version of a Document in memory, with new query outputs. Everything but the
- * query output is written as is; there should be no other changes compared to the file on disk,
- * with one minor exception; see below.
+ * Writes a Markdown version of a Document, with new query outputs. Everything but the query output
+ * is written as is; there are no other changes compared to the file on disk, with one minor
+ * exception; see below.
  * <p/>
  * Two things to note:
  * <ul>
@@ -38,7 +38,7 @@ final class DocumentRewriter
     @Override
     public void visit(Section section)
     {
-        out.write(section.markdown());
+        out.write(section.toMarkdown());
         super.visit(section);
     }
 
@@ -51,7 +51,7 @@ final class DocumentRewriter
     @Override
     public void visit(CodeBlock codeBlock)
     {
-        out.write(codeBlock.markdown());
+        out.write(codeBlock.toMarkdown());
     }
 
     @Override
@@ -62,7 +62,7 @@ final class DocumentRewriter
         {
             throw new IllegalStateException("Missing output for query block");
         }
-        out.write(queryBlock.markdown(queryOutput.content(), queryOutput.hash()));
+        out.write(queryBlock.toMarkdown(queryOutput.content(), queryOutput.hash()));
     }
 
     @Override

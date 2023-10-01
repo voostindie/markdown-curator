@@ -25,7 +25,7 @@ public final class CodeBlock
         code = join(lineSeparator(), lines.subList(1, lines.size() - 1));
     }
 
-    public String markdown()
+    public String toMarkdown()
     {
         return CODE_MARKER + language + lineSeparator() +
                code + lineSeparator() +

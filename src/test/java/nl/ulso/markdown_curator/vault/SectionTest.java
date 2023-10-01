@@ -30,7 +30,7 @@ class SectionTest
                 .withPrefabValues(Section.class,
                         new Section(1, "1", emptyList()),
                         new Section(1, "2", emptyList()))
-                .withIgnoredFields("document", "section", "anchor", "sortableTitle")
+                .withIgnoredFields("document", "section", "sortableTitle")
                 .verify();
     }
 
@@ -45,7 +45,7 @@ class SectionTest
                 ));
         softly.assertThat(section.level()).isEqualTo(42);
         softly.assertThat(section.title()).isEqualTo("Section title");
-        softly.assertThat(section.anchor()).isEqualTo("Section title");
+        softly.assertThat(section.createAnchor()).isEqualTo("Section title");
         softly.assertThat(section.fragments())
                 .containsExactly(new TextBlock(List.of("", "Lorem ipsum")));
     }
@@ -54,7 +54,7 @@ class SectionTest
     void cleanedUpAnchor()
     {
         var section = new Section(1, "# {foo} > [bar] ;!@", emptyList());
-        assertThat(section.anchor()).isEqualTo("{foo} > bar ;!@");
+        assertThat(section.createAnchor()).isEqualTo("{foo} > bar ;!@");
     }
 
     @Test

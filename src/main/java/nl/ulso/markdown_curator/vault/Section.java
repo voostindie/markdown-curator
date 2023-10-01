@@ -21,7 +21,6 @@ public final class Section
     private final int level;
     private final String title;
     private final String sortableTitle;
-    private final String anchor;
 
     Section(int level, String title, List<Fragment> fragments)
     {
@@ -33,7 +32,6 @@ public final class Section
         this.level = level;
         this.title = requireNonNull(title);
         this.sortableTitle = stripEmojis(title).trim();
-        this.anchor = createAnchor(title);
     }
 
     @Override
@@ -58,16 +56,16 @@ public final class Section
         return Objects.hash(level, title, fragments());
     }
 
-    public static String createAnchor(String title)
+    public String createAnchor()
     {
-        return title.chars().filter(Section::isValidAnchorCharacter)
+        return title.chars().filter(this::isValidAnchorCharacter)
                 .collect(StringBuilder::new, StringBuilder::appendCodePoint, StringBuilder::append)
                 .toString()
                 .trim()
                 .replaceAll("\\s+"," ");
     }
 
-    private static boolean isValidAnchorCharacter(int c)
+    private boolean isValidAnchorCharacter(int c)
     {
         return !INVALID_ANCHOR_CHARACTERS.contains((char) c);
     }
@@ -87,12 +85,7 @@ public final class Section
         return sortableTitle;
     }
 
-    public String anchor()
-    {
-        return anchor;
-    }
-
-    public String markdown()
+    public String toMarkdown()
     {
         return "#".repeat(level) + " " + title + lineSeparator();
     }

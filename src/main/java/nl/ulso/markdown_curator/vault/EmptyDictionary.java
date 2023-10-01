@@ -5,9 +5,13 @@ import java.util.Collections;
 import java.util.List;
 
 final class EmptyDictionary
-        implements nl.ulso.markdown_curator.vault.Dictionary
+        implements Dictionary
 {
     static final Dictionary INSTANCE = new EmptyDictionary();
+
+    private EmptyDictionary()
+    {
+    }
 
     @Override
     public boolean equals(Object o)

@@ -130,7 +130,7 @@ public final class QueryBlock
         visitor.visit(this);
     }
 
-    public String markdown(String newQueryResultOutput, String newQueryResultHash)
+    public String toMarkdown(String newQueryResultOutput, String newQueryResultHash)
     {
         return definitionString + lineSeparator() +
                newQueryResultOutput + lineSeparator() +
@@ -150,7 +150,7 @@ public final class QueryBlock
             var query = join(lineSeparator(), lines.subList(0, definitionEnd + 1))
                     .substring(QUERY_CONFIGURATION_PREFIX.length())
                     .trim();
-            if (query.length() > 0 && query.charAt(0) == QUERY_NAME_MARKER)
+            if (!query.isEmpty() && query.charAt(0) == QUERY_NAME_MARKER)
             {
                 var end = 1;
                 while (true)
