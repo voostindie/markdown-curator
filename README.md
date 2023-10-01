@@ -22,7 +22,7 @@ This is a Java library and application framework that spins up a daemon. This da
 
 Here's an example of what you can write in a Markdown document:
 
-```
+```markdown
 <!--query:list
 folder: Articles
 -->
@@ -38,7 +38,7 @@ What can a query do? Whatever you can code in Java! The internal API of this too
 
 Don't know which queries are available? Simply put a blank query in a document in a vault and save it:
 
-```
+```markdown
 <!--query-->
 <!--/query-->
 ```
@@ -72,7 +72,7 @@ This tool is specifically written for a variant of Markdown that I call *Vincent
 - Headers are always aligned to the left margin.
 - Code blocks are always surrounded with backticks, not indented.
 - Internal links - links to other documents in the same repository - use double square brackets. (`[[Like this]]`). The link always points to a file name within the repository. (This is what Obsidian and iA Writer do.)
-- File names are considered to be globally unique within the repository.    Surprises might happen otherwise.
+- File names are considered to be globally unique within the repository. Surprises might happen otherwise.
 - The document's title is, in this order of preference:
 	- The title of the first level 1 header, if present and at the top of the document.
 	- The value of the YAML front matter field `title`, if present
@@ -80,7 +80,7 @@ This tool is specifically written for a variant of Markdown that I call *Vincent
 - The file extension is `.md`.
 - Queries can be defined in HTML comments, for this tool to process. See below.
 
-In practice I only use level 1 headers or the `title` property if the filename is not a good title. In 99% of the cases it is. I do not duplicate the filename inside the document, because, well, that's duplication.
+In practice, I only use level 1 headers or the `title` property if the filename is not a good title. In 99% of the cases it is. I do not duplicate the filename inside the document, because, well, that's duplication.
 
 If these limitations are not to your liking, then feel free to send me a pull request to support your own personal preferences.
 
@@ -94,7 +94,7 @@ This library/application does **not** fully parse Markdown. It only does so on a
 - Queries
 - Text
 
-A text block is "anything *not* of the above". The content of a text block itself is not parsed. Whether text is in bold or italic, is in a list or in a table, uses CriticMarkup or some other extension: it's all oblivious to the internal parser; it's all just text. When you build your own queries, it's up to you to extract content out of the various blocks, as you see fit. 
+A text block is "anything *not* of the above". The content of a text block itself is not parsed. Whether text is in bold or italic, is in a list or in a table, uses CriticMarkup or some other extension: the internal parser is oblivious to it; it's all just text. When you build your own queries, it's up to you to extract content out of the various blocks, as you see fit. 
 
 I have some ideas to extend this further in order to make query construction easier, but I'm not planning on introducing a full Markdown parser.
 
@@ -125,8 +125,10 @@ A `mvn clean package` and `java -jar target/my-markdown-curator.jar` should resu
 
 Try changing a file in any Markdown document in your document repository now. For example, add the `toc` query. Magic should happen!
 
-    <!--query:toc-->
-    <!--/query-->
+```markdown
+<!--query:toc-->
+<!--/query-->
+```
 
 ### Create and register one or more queries
 
@@ -152,11 +154,11 @@ By extending the `DataModelTemplate` class you get full refreshes basically for 
 
 As an example of a custom data model, see the built-in `JournalModel`, which is used by the `timeline` query to generate Logseq-like summaries.
 
-## Built-in queries
+## Query collections
 
-This section lists all built-in queries and explains what they do. Each query supports arguments to be passed to it. To know what they are, use the `help` query somewhere in a monitored repository. For example:
+This section lists all readily available queries and explains what they do. Each query supports arguments to be passed to it. To know what they are, use the `help` query somewhere in a monitored repository. For example:
 
-```
+```markdown
 <!--query:help
 name: timeline
 -->
@@ -165,42 +167,133 @@ name: timeline
 
 This will write information on the selected query (in this case: `timeline`), including the parameters it supports as the query output.
 
-### `deadlinks`
+### Built-in queries
 
-This is an optional query. To use it in your own vault, install the `LinksModule` in your Curator module.
+Built-in queries are always available and cannot be disabled.
 
-This query lists all dead links in a document. In other words: all links that refer to documents that do not exist within the vault.
-
-### `list`
+#### `list`
 
 This query generates a sorted list of documents in a folder. Each item is a link to a document. Through the configuration the list can be reverse sorted, and documents in subfolders can be recursively added as well.
 
-### `timeline`
+#### `table`
 
-This is an optional query. To use it in your own vault, install the `JournalModule` in your Curator module. 
+This query generates a sorted table of pages, with optional front matter fields in additional columns. This is a more powerful version of the `list` query.
 
-The timeline query is inspired by [Logseq](https://logseq.com). I like the way Logseq puts emphasis on the daily log as the place to write notes. What I do not like about Logseq, however:
+Through the configuration you can extract any front-matter field from the individual documents and add them to the table. Next to that you can (reverse) sort the table on any front-matter field.
+
+#### `toc`
+
+This query generates a table of contents for the current document. You can tweak the table by configuring the minimum and maximum header levels to include.
+
+### Links module queries
+
+By enabling the `LinksModule` in your Curator module, the queries in this section become available.
+
+```java
+public class MyCuratorModule
+		extends CuratorModule
+{
+    @Override
+    protected void configureCurator()
+    {
+        install(new LinksModule());
+		// Additional configuration...
+    }
+}
+```
+
+#### `deadlinks`
+
+This query lists all dead links in a document. In other words: all links that refer to documents that do not exist within the vault.
+
+### Journal module queries
+
+The Journal module supports [Logseq](https://logseq.com)-like daily outlines, and has a number of queries to slice and dice information from these outlines.
+
+I like the way Logseq puts emphasis on the daily log as the place to write notes. What I do not like about Logseq, however:
 
 - Everything is an outline. I prefer the freedom full Markdown gives me. When I write an article for example, I use sections and paragraphs, without bullets.
 - It's all dynamic, and therefore the functionality only works in Logseq itself. I like to be able to use any text editor.
 - All documents are stored in the same folder. I prefer using a couple of folders to categorize documents: "Projects", "Contacts", "Articles", and so on.
 
-The timeline query solves that, by generating static timelines from the daily logs. 
+This module addresses that, by generating static timelines from the daily logs. The journal looks only at a specific section in the daily log, where it expects an outline. That means the daily log may contain other content as well.
 
-The `JournalModule` requires two configuration values on construction:
+For example, here is the template I currently use for my daily notes:
 
-1. The name of folder in which daily entries are stored. `Journal` is a good choice. This folder is expected to contain files in the format `<YYYY-mm-DD>.md`. (This is what Obsidian uses by default.)
-2. The name of the level-2 section in each daily entry that contains the outline. I use `Activities` myself. Journal entries are extracted only from this section.
+```markdown
+<!--query:dayNav-->
+<!--/query-->
 
-### `toc`
+## 🏃 Activities
 
-This query generates a table of contents for the current document. You can tweak the table by configuring the minimum and maximum header levels to include.
+-
 
-### `table`
+## 🗓️ On the agenda
 
-This query generates a sorted table of pages, with optional front matter fields in additional columns. This is a more powerful version of the `list` query.
+<!--query:timeline-->
+<!--/query-->
 
-Through the configuration you can extract any front-matter field from the individual documents and add them to the table. Next to that you can (reverse) sort the table on any front-matter field.
+## 🧠 Retrospective
+
+...
+```
+
+To enable the module in your Curator, you have to install it:  
+
+```java
+public class MyCuratorModule
+		extends CuratorModule
+{
+    @Override
+    protected void configureCurator()
+    {
+        install(new JournalModule(
+                "Journal", 		// Where daily journal pages are kept 
+				"Activities", 	// Name of the section with the outline
+				"Projects"      // Where project notes are kept
+		));
+		// Additional configuration...
+    }
+}
+```
+
+#### `timeline`
+
+The `timeline` query generates a timeline on a certain topic; by default this is the page the timeline query is added to. The timeline is sorted by date, newest first. Each entry for the selected topic contains the context from the daily journal, similar as to how Logseq does it.
+
+#### `period`
+
+The `period` query generates a list of notes from a specific folder that were referenced in a certain period. For example:
+
+```
+<!--query:period
+start: 2023-09-01
+end: 2023-09-30
+folder: 'Contacts'
+-->
+- [[Contact A]]
+- [[Contact D]]
+- [[Contact M]] 
+<!--/query-->
+```
+
+This example shows all contacts that were references from the daily log in September 2023, in a sorted list.
+
+#### `weekly`
+
+The `weekly` query is a specialization of the `period` query. It picks a specific week of a specific year. If your weekly notes are named `YYYY Week ww` (e.g. `2023 Week 42`) and you place this query in that note, then no configuration is necessary. It will list all projects referenced in that week.   
+
+#### `dayNav`
+
+Put this query at the top of the daily log pages.
+
+The `dayNav` query generates a set of links to the previous and next daily entry in the journal, as well as to the weekly entry that the day's entry belongs to. It also prints the date as a readable text, like "Sunday, October 1 2023"
+
+#### `weekNav`
+
+Put this query at the top of the weekly log pages.
+
+The `weekNav` query generates a set of links to the previous and next weekly entry in the journal, as well as to each of the individual entries in the week. It also prints the week as a readable text, like "2023,  Week 39".
 
 ## FAQ
 
