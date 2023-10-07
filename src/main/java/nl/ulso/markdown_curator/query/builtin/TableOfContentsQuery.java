@@ -49,7 +49,7 @@ public final class TableOfContentsQuery
                         var indentLevel = (section.level() - tocBuilder.minimumLevel) * 4;
                         builder.append(" ".repeat(indentLevel))
                                 .append("- ")
-                                .append(section.createAnchor())
+                                .append(section.title())
                                 .append(lineSeparator());
                     }
             );
