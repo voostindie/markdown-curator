@@ -54,14 +54,14 @@ class DayNavigationQueryTest
     {
         return Stream.of(
                 Arguments.of("2023-01-25", Locale.ENGLISH,
-                        "# [[2023-01-26|➡️]] [[2023 Week 04|⬆️]] Wednesday, January 25, 2023"),
+                        "# [[2023-01-26|→]] [[2023 Week 04|↑]] Wednesday, January 25, 2023"),
                 Arguments.of("2023-01-26", Locale.ENGLISH,
-                        "# [[2023-01-25|⬅️]] [[2023-01-27|➡️]] [[2023 Week 04|⬆️]] Thursday, " +
+                        "# [[2023-01-25|←]] [[2023-01-27|→]] [[2023 Week 04|↑]] Thursday, " +
                         "January 26, 2023"),
                 Arguments.of("2023-01-27", Locale.ENGLISH,
-                        "# [[2023-01-26|⬅️]] [[2023 Week 04|⬆️]] Friday, January 27, 2023"),
+                        "# [[2023-01-26|←]] [[2023 Week 04|↑]] Friday, January 27, 2023"),
                 Arguments.of("2023-01-27", Locale.forLanguageTag("nl"),
-                        "# [[2023-01-26|⬅️]] [[2023 Week 04|⬆️]] vrijdag 27 januari 2023")
+                        "# [[2023-01-26|←]] [[2023 Week 04|↑]] vrijdag 27 januari 2023")
         );
     }
 
