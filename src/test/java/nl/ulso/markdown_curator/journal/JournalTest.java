@@ -104,6 +104,17 @@ class JournalTest
         assertThat(references).containsExactlyInAnyOrder("foo", "bar", "baz");
     }
 
+    @Test
+    void emptyJournalIsIncluded()
+    {
+        var journal = createTestJournal();
+        var entries = journal.entriesUntilIncluding(
+                LocalDate.of(2023, 12, 25),
+                LocalDate.of(2023, 12, 25)).toList();
+        assertThat(entries.size()).isEqualTo(1);
+        assertThat(journal.dailyAfter(LocalDate.of(2013, 1, 27))).isPresent();
+    }
+
     static Journal createTestJournal()
     {
         var vault = new VaultStub();
@@ -130,6 +141,11 @@ class JournalTest
                 """);
         vault.addDocumentInPath("Journal/2023/2023 Week 04", "");
         vault.addDocumentInPath("Journal/2023/2023 Week 05", "");
+        vault.addDocumentInPath("Journal/2023/2023-12-25", """
+                ## No log
+                
+                No entries in this one!
+                """);
         var journal = new Journal(vault, new JournalSettings("Journal", "Log", "Projects",
                 WeekFields.ISO));
         journal.fullRefresh();

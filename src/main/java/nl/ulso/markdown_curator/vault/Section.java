@@ -4,6 +4,7 @@ import java.util.*;
 import java.util.regex.Pattern;
 
 import static java.lang.System.lineSeparator;
+import static java.util.Collections.emptyList;
 import static java.util.Objects.requireNonNull;
 import static java.util.regex.Pattern.compile;
 import static nl.ulso.emoji.EmojiFilter.stripEmojis;
@@ -17,6 +18,8 @@ public final class Section
     // These characters are filtered out by Obsidian in anchors; reverse engineered!
     // As of Obsidian 1.0 this list is a lot shorter; just a few characters are problematic.
     private static final Set<Character> INVALID_ANCHOR_CHARACTERS = Set.of('#', '*', '[', ']', '`');
+
+    public static final Section EMPTY_SECTION = new Section(2, "", emptyList());
 
     private final int level;
     private final String title;

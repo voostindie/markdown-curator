@@ -8,6 +8,7 @@ import java.util.*;
 import static java.lang.Integer.parseInt;
 import static nl.ulso.markdown_curator.journal.Daily.parseDailiesFrom;
 import static nl.ulso.markdown_curator.journal.Weekly.DOCUMENT_NAME_PATTERN;
+import static nl.ulso.markdown_curator.vault.Section.EMPTY_SECTION;
 
 class JournalBuilder
         extends BreadthFirstVaultVisitor
@@ -16,6 +17,7 @@ class JournalBuilder
     private final Set<Weekly> weeklies = new HashSet<>();
     private final JournalSettings settings;
     private LocalDate currentDate = null;
+    private boolean dailyFound = false;
 
     JournalBuilder(JournalSettings settings)
     {
@@ -52,7 +54,13 @@ class JournalBuilder
         weekly.ifPresentOrElse(weeklies::add,
                 () -> parseDateFrom(document).ifPresent(date -> {
                     this.currentDate = date;
+                    dailyFound = false;
                     super.visit(document);
+                    if (!dailyFound)
+                    {
+                        dailies.add(parseDailiesFrom(EMPTY_SECTION, date)
+                                .orElseThrow());
+                    }
                 }));
     }
 
@@ -62,6 +70,7 @@ class JournalBuilder
         if (section.level() == 2 &&
             section.sortableTitle().contentEquals(settings.activitiesSectionName()))
         {
+            dailyFound = true;
             parseDailiesFrom(section, currentDate).ifPresent(dailies::add);
         }
     }
