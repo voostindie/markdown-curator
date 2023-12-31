@@ -23,6 +23,13 @@
             <artifactId>guice</artifactId>
             <version>7.0.0</version>
         </dependency>
+        <!-- Guice 7.0.0 depends on an older version of Guava 32.0.0,
+             which has a vulnerability. This forces a newer version -->
+        <dependency>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+            <version>32.0.1-jre</version>
+        </dependency>
         <!-- Native directory watching for macOS
              https://github.com/gmethvin/directory-watcher -->
         <dependency>
