@@ -176,7 +176,7 @@ public final class QueryBlock
             {
                 configuration = query.substring(0, split).trim();
             }
-            var lastLine = lines.get(lines.size() - 1);
+            var lastLine = lines.getLast();
             int hashStart = lastLine.indexOf(QUERY_HASH_PREFIX, QUERY_OUTPUT_PREFIX.length());
             if (hashStart != -1)
             {
