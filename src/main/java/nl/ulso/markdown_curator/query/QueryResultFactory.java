@@ -59,7 +59,7 @@ public class QueryResultFactory
         {
             return empty();
         }
-        return new TableResult(columns, rows, messages.resultSummary(rows.size()));
+        return new TableResult(columns, rows);
     }
 
     /**
@@ -84,15 +84,6 @@ public class QueryResultFactory
             return empty();
         }
         return () -> output;
-    }
-
-    public QueryResult stringWithSummary(String output, int resultCount)
-    {
-        if (resultCount == 0)
-        {
-            return empty();
-        }
-        return () -> output + lineSeparator() + "(*" + messages.resultSummary(resultCount) + "*)";
     }
 
     public QueryResult withPerformanceWarning(QueryResult slowQueryResult)

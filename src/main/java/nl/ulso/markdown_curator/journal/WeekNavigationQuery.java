@@ -48,7 +48,7 @@ public class WeekNavigationQuery
                 var label = messages.journalWeekDay(journal.dayOfWeekNumberFor(date));
                 appendLinkTo(builder, date.toString(), label);
             });
-            return resultFactory.string(builder.toString());
+            return resultFactory.string(builder.toString().trim());
 
         }).orElseGet(() ->
                 resultFactory.error("Document is not a weekly journal!")

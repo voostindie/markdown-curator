@@ -38,13 +38,13 @@ class QueryResultTest
                         Map.of("Title", "Spectre", "Year", "2015"),
                         Map.of("Title", "Skyfall", "Year", "2012")));
         assertThat(table.toMarkdown()).isEqualTo("""
+                
                 | Title          | Year |
                 | -------------- | ---- |
                 | No Time To Die | 2021 |
                 | Spectre        | 2015 |
                 | Skyfall        | 2012 |
 
-                (*3 results*)
                 """);
     }
 
@@ -56,11 +56,11 @@ class QueryResultTest
                 List.of(Map.of("Name", "No Time To Die"))
         );
         assertThat(table.toMarkdown()).isEqualTo("""
+                
                 | Title |
                 | ----- |
                 |       |
 
-                (*1 result*)
                 """);
     }
 

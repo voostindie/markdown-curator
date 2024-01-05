@@ -46,22 +46,22 @@ class TableQueryTest
         return Stream.of(
                 Arguments.of(
                         emptyMap(), """
+                                
                                 | Name |
                                 | ---- |
                                 | [[M]] |
                                 | [[V]] |
                                 
-                                (*2 results*)
                                 """
                 ),
                 Arguments.of(
                         Map.of("columns", List.of("date")), """
+                                
                                 | Name  | Date |
                                 | ----- | ---- |
                                 | [[M]] | 1977‑11‑11 |
                                 | [[V]] | 1976‑11‑30 |
-
-                                (*2 results*)
+                                
                                 """
                 ),
                 Arguments.of(
@@ -69,13 +69,13 @@ class TableQueryTest
                                 "sort", "date",
                                 "recurse", true,
                                 "reverse", true), """
+                                
                                 | Date       | Name |
                                 | ---------- | ---- |
                                 | 2003‑08‑05 | [[Y]] |
                                 | 1977‑11‑11 | [[M]] |
                                 | 1976‑11‑30 | [[V]] |
-
-                                (*3 results*)
+                                
                                 """
                 ),
                 Arguments.of(

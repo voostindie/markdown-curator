@@ -18,13 +18,11 @@ public class TableResult
 
     private final List<String> columns;
     private final List<Map<String, String>> rows;
-    private final String summaryText;
 
-    TableResult(List<String> columns, List<Map<String, String>> rows, String summaryText)
+    TableResult(List<String> columns, List<Map<String, String>> rows)
     {
         this.columns = unmodifiableList(columns);
         this.rows = unmodifiableList(rows);
-        this.summaryText = summaryText;
     }
 
     @Override
@@ -33,7 +31,7 @@ public class TableResult
         var widths = findColumnWidths();
         var width = columns.size();
         var builder = new StringBuilder();
-        builder.append("|");
+        builder.append(lineSeparator()).append("|");
         for (var i = 0; i < width; i++)
         {
             builder.append(" ");
@@ -66,10 +64,6 @@ public class TableResult
             builder.append(lineSeparator());
         }
         builder.append(lineSeparator());
-        builder.append("(*")
-                .append(summaryText)
-                .append("*)")
-                .append(lineSeparator());
         return builder.toString();
     }
 

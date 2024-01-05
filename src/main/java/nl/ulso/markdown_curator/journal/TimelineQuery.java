@@ -55,6 +55,6 @@ public class TimelineQuery
                 .map(entry -> "- **[[" + entry.getKey() + "]]**:" + lineSeparator() +
                               entry.getValue().indent(4))
                 .collect(joining());
-        return resultFactory.stringWithSummary(result, timeline.size());
+        return resultFactory.string(result);
     }
 }

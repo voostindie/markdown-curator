@@ -32,24 +32,7 @@ public class ResourceBundledGeneralMessages
     @Override
     public String noResults()
     {
-        return bundle.getString("results.zero");
-    }
-
-    @Override
-    public String resultSummary(int resultCount)
-    {
-        if (resultCount == 0)
-        {
-            return noResults();
-        }
-        else if (resultCount == 1)
-        {
-            return bundle.getString("results.one");
-        }
-        else
-        {
-            return MessageFormat.format(bundle.getString("results.many"), resultCount);
-        }
+        return bundle.getString("results.none");
     }
 
     @Override

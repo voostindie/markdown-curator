@@ -6,8 +6,6 @@ public interface GeneralMessages
 {
     String noResults();
 
-    String resultSummary(int resultCount);
-
     String journalDay(LocalDate date);
 
     String journalWeek(int year, int week);

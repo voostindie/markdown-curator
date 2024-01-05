@@ -43,6 +43,4 @@ document: "An Hour Before It's Dark"
 -->
 - **[[2023-01-28]]**:
     - Listened to [[An Hour Before It's Dark]] once more.
-
-(*1 result*)
-<!--/query (ab896847)-->
+<!--/query (ed7dde60)-->

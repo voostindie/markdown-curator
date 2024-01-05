@@ -49,7 +49,7 @@ class TimelineQueryTest
         var definition = new QueryDefinitionStub(query, vault.addDocument("query", ""))
                 .withConfiguration("document", documentName);
         var result = query.run(definition);
-        assertThat(result.toMarkdown()).isEqualTo(expectedSummary.trim());
+        assertThat(result.toMarkdown()).isEqualTo(expectedSummary);
     }
 
     public static Stream<Arguments> documentSummaries()
@@ -62,18 +62,12 @@ class TimelineQueryTest
                             - [[foo]]
                         - **[[2023-01-25]]**:
                             - [[foo]]
-                                                
-                        (*3 results*)
                         """),
                 Arguments.of("bar", """
                         - **[[2023-01-26]]**:
                             - [[bar]]
-                                                
-                        (*1 result*)
                         """),
-                Arguments.of("nothing", """
-                        No results
-                        """)
+                Arguments.of("nothing", "No results")
         );
     }
 }
