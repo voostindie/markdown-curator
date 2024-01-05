@@ -132,8 +132,11 @@ public final class QueryBlock
 
     public String toMarkdown(String newQueryResultOutput, String newQueryResultHash)
     {
+        var suffix = newQueryResultOutput.endsWith(lineSeparator())
+                     ? ""
+                     : lineSeparator();
         return definitionString + lineSeparator() +
-               newQueryResultOutput + lineSeparator() +
+               newQueryResultOutput + suffix +
                QUERY_OUTPUT_PREFIX + " " +
                QUERY_HASH_PREFIX + newQueryResultHash + QUERY_HASH_POSTFIX +
                QUERY_OUTPUT_POSTFIX + lineSeparator();

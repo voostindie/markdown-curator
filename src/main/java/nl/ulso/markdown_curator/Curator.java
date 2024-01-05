@@ -169,7 +169,7 @@ public class Curator
                         query.name(), queryBlock.document().name(), e);
                 return;
             }
-            var output = result.toMarkdown().trim();
+            var output = result.toMarkdown();
             var hash = hash(output);
             var isChanged = !queryBlock.outputHash().contentEquals(hash);
             writeQueue.add(new QueryOutput(queryBlock, output, hash, isChanged));
