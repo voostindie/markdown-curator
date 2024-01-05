@@ -63,7 +63,6 @@ public class TableResult
             }
             builder.append(lineSeparator());
         }
-        builder.append(lineSeparator());
         return builder.toString();
     }
 

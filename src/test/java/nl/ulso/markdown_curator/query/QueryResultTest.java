@@ -44,7 +44,6 @@ class QueryResultTest
                 | No Time To Die | 2021 |
                 | Spectre        | 2015 |
                 | Skyfall        | 2012 |
-
                 """);
     }
 
@@ -60,7 +59,6 @@ class QueryResultTest
                 | Title |
                 | ----- |
                 |       |
-
                 """);
     }
 
