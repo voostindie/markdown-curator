@@ -62,10 +62,12 @@ class TimelineQueryTest
                             - [[foo]]
                         - **[[2023-01-25]]**:
                             - [[foo]]
+                        
                         """),
                 Arguments.of("bar", """
                         - **[[2023-01-26]]**:
                             - [[bar]]
+                        
                         """),
                 Arguments.of("nothing", "No results")
         );
