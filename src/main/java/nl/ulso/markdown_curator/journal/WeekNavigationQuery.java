@@ -4,6 +4,10 @@ import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 import nl.ulso.markdown_curator.query.*;
 
+import java.util.Optional;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
 import static java.lang.System.lineSeparator;
 import static nl.ulso.markdown_curator.journal.JournalBuilder.parseWeeklyFrom;
 
@@ -36,19 +40,26 @@ public class WeekNavigationQuery
         var document = definition.document();
         return parseWeeklyFrom(document).map(weekly ->
         {
-            var builder = new StringBuilder();
-            builder.append("# ");
-            appendLinkTo(builder, journal.weeklyBefore(weekly), messages.journalPrevious());
-            appendLinkTo(builder, journal.weeklyAfter(weekly), messages.journalNext());
-            builder.append(messages.journalWeek(weekly.year(), weekly.week()))
-                    .append(lineSeparator()).append(lineSeparator())
-                    .append("## ");
-            journal.dailiesForWeek(weekly).forEach(daily -> {
-                var date = daily.date();
-                var label = messages.journalWeekDay(journal.dayOfWeekNumberFor(date));
-                appendLinkTo(builder, date.toString(), label);
-            });
-            return resultFactory.string(builder.toString().trim());
+            var title = Stream.of(
+                            toLink(journal.weeklyBefore(weekly), messages.journalPrevious()),
+                            toLink(journal.weeklyAfter(weekly), messages.journalNext()),
+                            Optional.of(messages.journalWeek(weekly.year(), weekly.week())))
+                    .filter(Optional::isPresent)
+                    .map(Optional::get)
+                    .collect(Collectors.joining(" "));
+            var subtitle = journal.dailiesForWeek(weekly)
+                    .map(daily ->
+                    {
+                        var date = daily.date();
+                        var label = messages.journalWeekDay(journal.dayOfWeekNumberFor(date));
+                        return toLink(Optional.of(date), label);
+                    })
+                    .filter(Optional::isPresent)
+                    .map(Optional::get)
+                    .collect(Collectors.joining(" | "));
+            return resultFactory.string("# " + title + lineSeparator() +
+                                        lineSeparator() +
+                                        "## " + subtitle);
 
         }).orElseGet(() ->
                 resultFactory.error("Document is not a weekly journal!")

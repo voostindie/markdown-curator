@@ -4,6 +4,10 @@ import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 import nl.ulso.markdown_curator.query.*;
 
+import java.util.Optional;
+import java.util.stream.Stream;
+
+import static java.util.stream.Collectors.joining;
 import static nl.ulso.markdown_curator.journal.JournalBuilder.parseDateFrom;
 
 @Singleton
@@ -35,13 +39,15 @@ public class DayNavigationQuery
         var document = definition.document();
         return parseDateFrom(document).map(date ->
         {
-            var builder = new StringBuilder();
-            builder.append("# ");
-            appendLinkTo(builder, journal.dailyBefore(date), messages.journalPrevious());
-            appendLinkTo(builder, journal.dailyAfter(date), messages.journalNext());
-            appendLinkTo(builder, journal.weeklyFor(date), messages.journalUp());
-            builder.append(messages.journalDay(date));
-            return resultFactory.string(builder.toString());
+            var title = Stream.of(
+                            toLink(journal.dailyBefore(date), messages.journalPrevious()),
+                            toLink(journal.dailyAfter(date), messages.journalNext()),
+                            toLink(journal.weeklyFor(date), messages.journalUp()),
+                            Optional.of(messages.journalDay(date)))
+                    .filter(Optional::isPresent)
+                    .map(Optional::get)
+                    .collect(joining(" "));
+            return resultFactory.string("# " + title);
         }).orElseGet(() ->
                 resultFactory.error("Document is not a daily journal!")
         );

@@ -46,7 +46,7 @@ class WeekNavigationQueryTest
                 .isEqualTo("""
                         # [[2023 Week 05|→]] 2023, Week 4
                                                         
-                        ## [[2023-01-25|Wed]] [[2023-01-26|Thu]] [[2023-01-27|Fri]]
+                        ## [[2023-01-25|Wednesday]] | [[2023-01-26|Thursday]] | [[2023-01-27|Friday]]
                         """.trim());
     }
 

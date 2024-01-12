@@ -28,21 +28,8 @@ abstract class NavigationQueryTemplate
         return emptyMap();
     }
 
-    protected void appendLinkTo(StringBuilder builder, Optional<?> documentName, String label)
+    protected Optional<String> toLink(Optional<?> documentName, String label)
     {
-        documentName.ifPresent(name -> appendLinkInternal(builder, name, label));
-    }
-
-    protected void appendLinkTo(StringBuilder builder, String documentName, String label)
-    {
-        if (documentName != null)
-        {
-            appendLinkInternal(builder, documentName, label);
-        }
-    }
-
-    private void appendLinkInternal(StringBuilder builder, Object documentName, String label)
-    {
-        builder.append("[[").append(documentName).append("|").append(label).append("]] ");
+        return documentName.map(name -> "[[" + name + "|" + label + "]]");
     }
 }
