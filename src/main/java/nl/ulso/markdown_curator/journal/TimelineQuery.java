@@ -42,7 +42,8 @@ public class TimelineQuery
     @Override
     public Map<String, String> supportedConfiguration()
     {
-        return Map.of("document", "Name of the document; defaults to the current document");
+        return Map.of("document", "Name of the document; defaults to the current document",
+                "limit", "Maximum number of entries to include; defaults to all");
     }
 
     @Override
@@ -50,8 +51,14 @@ public class TimelineQuery
     {
         var documentName =
                 definition.configuration().string("document", definition.document().name());
+        var limit = definition.configuration().integer("limit", -1);
         var timeline = journal.timelineFor(documentName);
-        var result = timeline.entrySet().stream()
+        var stream = timeline.entrySet().stream();
+        if (limit > 0)
+        {
+            stream = stream.limit(limit);
+        }
+        var result = stream
                 .map(entry -> "- **[[" + entry.getKey() + "]]**:" + lineSeparator() +
                               entry.getValue().indent(4))
                 .collect(joining());

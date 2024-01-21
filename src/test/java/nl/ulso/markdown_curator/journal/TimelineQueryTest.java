@@ -36,18 +36,19 @@ class TimelineQueryTest
     void supportedConfiguration()
     {
         var query = new TimelineQuery(null, new QueryResultFactory());
-        assertThat(query.supportedConfiguration()).hasSize(1);
+        assertThat(query.supportedConfiguration()).hasSize(2);
     }
 
     @ParameterizedTest
     @MethodSource("documentSummaries")
-    void timelines(String documentName, String expectedSummary)
+    void timelines(String documentName, int limit, String expectedSummary)
     {
         var journal = createTestJournal();
         var vault = (VaultStub) journal.vault();
         var query = new TimelineQuery(journal, new QueryResultFactory());
         var definition = new QueryDefinitionStub(query, vault.addDocument("query", ""))
-                .withConfiguration("document", documentName);
+                .withConfiguration("document", documentName)
+                .withConfiguration("limit", limit);
         var result = query.run(definition);
         assertThat(result.toMarkdown()).isEqualTo(expectedSummary);
     }
@@ -55,7 +56,7 @@ class TimelineQueryTest
     public static Stream<Arguments> documentSummaries()
     {
         return Stream.of(
-                Arguments.of("foo", """
+                Arguments.of("foo", -1, """
                         - **[[2023-01-27]]**:
                             - [[foo]]
                         - **[[2023-01-26]]**:
@@ -64,12 +65,19 @@ class TimelineQueryTest
                             - [[foo]]
                         
                         """),
-                Arguments.of("bar", """
+                Arguments.of("bar", -1, """
                         - **[[2023-01-26]]**:
                             - [[bar]]
                         
                         """),
-                Arguments.of("nothing", "No results")
+                Arguments.of("nothing", -1, "No results"),
+                Arguments.of("foo", 2, """
+                        - **[[2023-01-27]]**:
+                            - [[foo]]
+                        - **[[2023-01-26]]**:
+                            - [[foo]]
+                        
+                        """)
         );
     }
 }
