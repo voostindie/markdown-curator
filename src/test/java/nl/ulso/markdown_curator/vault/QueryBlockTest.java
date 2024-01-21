@@ -27,13 +27,13 @@ public class QueryBlockTest
     void equalsContract()
     {
         EqualsVerifier.forClass(QueryBlock.class)
+                .withOnlyTheseFields("id")
                 .withPrefabValues(Document.class,
                         newDocument("1", 0, emptyList()),
                         newDocument("2", 0, emptyList()))
                 .withPrefabValues(Section.class,
                         new Section(1, "1", emptyList()),
                         new Section(1, "2", emptyList()))
-                .withIgnoredFields("document", "section")
                 .verify();
     }
 

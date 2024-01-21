@@ -2,8 +2,7 @@ package nl.ulso.markdown_curator.vault;
 
 import nl.ulso.markdown_curator.query.QueryDefinition;
 
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 import static java.lang.Character.isLetterOrDigit;
 import static java.lang.String.join;
@@ -57,6 +56,7 @@ public final class QueryBlock
     private static final char QUERY_NAME_MARKER = ':';
     private static final String DEFAULT_NAME = "none";
 
+    private final String id;
     private final String definitionString;
     private final String queryName;
     private final Dictionary configuration;
@@ -64,6 +64,7 @@ public final class QueryBlock
 
     QueryBlock(List<String> lines)
     {
+        id = UUID.randomUUID().toString();
         var definitionEnd = findDefinitionEnd(lines);
         definitionString = join(lineSeparator(), lines.subList(0, definitionEnd + 1));
         var parser = new QueryParser(lines, definitionEnd);
@@ -110,10 +111,7 @@ public final class QueryBlock
         }
         if (o instanceof QueryBlock queryBlock)
         {
-            return Objects.equals(queryName, queryBlock.queryName)
-                   && Objects.equals(definitionString, queryBlock.definitionString)
-                   && Objects.equals(configuration, queryBlock.configuration)
-                   && Objects.equals(outputHash, queryBlock.outputHash);
+            return Objects.equals(id, queryBlock.id);
         }
         return false;
     }
@@ -121,7 +119,7 @@ public final class QueryBlock
     @Override
     public int hashCode()
     {
-        return Objects.hash(queryName, definitionString, configuration, outputHash);
+        return Objects.hash(id);
     }
 
     @Override
