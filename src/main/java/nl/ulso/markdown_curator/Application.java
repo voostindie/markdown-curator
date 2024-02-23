@@ -1,6 +1,7 @@
 package nl.ulso.markdown_curator;
 
 import org.slf4j.Logger;
+import org.slf4j.MDC;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -113,6 +114,7 @@ public class Application
             {
                 var name = module.name();
                 currentThread().setName(name);
+                MDC.put("curator", name);
                 LOGGER.debug("Instantiating curator: {}", name);
                 Curator curator = null;
                 try
@@ -145,7 +147,7 @@ public class Application
         }
         catch (InterruptedException e)
         {
-            Thread.currentThread().interrupt();
+            currentThread().interrupt();
         }
     }
 }
