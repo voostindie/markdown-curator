@@ -9,6 +9,7 @@ import java.time.format.FormatStyle;
 import java.util.Locale;
 import java.util.ResourceBundle;
 
+import static java.lang.Character.toTitleCase;
 import static java.util.ResourceBundle.getBundle;
 
 public class ResourceBundledGeneralMessages
@@ -40,7 +41,8 @@ public class ResourceBundledGeneralMessages
     {
         // MessageFormat doesn't support LocalDate. And it never will.
         // Converting to a legacy Date is not the right approach, so instead:
-        return dayFormatter.format(date);
+        var day = dayFormatter.format(date);
+        return toTitleCase(day.charAt(0)) + day.substring(1);
     }
 
     @Override
