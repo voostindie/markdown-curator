@@ -121,20 +121,22 @@ public class Curator
         return true;
     }
 
+    /**
+     * Refresh all data models for the incoming event.
+     * <p/>
+     * Refreshing of data models must be done sequentially, because models are able to depend on
+     * each other. The order of data models *should* be okay, but I'm not sure if this is guaranteed
+     * at the moment...
+     *
+     * @param event The event to process.
+     */
     private void refreshAllDataModels(VaultChangedEvent event)
     {
         if (LOGGER.isDebugEnabled())
         {
             LOGGER.debug("Refreshing {} data model(s)", dataModels.size());
         }
-        runInParallel(dataModels, model ->
-        {
-            if (LOGGER.isTraceEnabled())
-            {
-                LOGGER.trace("Refreshing data model: {}", model.getClass().getSimpleName());
-            }
-            model.vaultChanged(event);
-        });
+        dataModels.forEach(model -> model.vaultChanged(event));
     }
 
     /**
