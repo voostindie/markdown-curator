@@ -16,7 +16,9 @@ import java.util.function.Consumer;
 import static java.lang.Thread.currentThread;
 import static java.nio.file.Files.getLastModifiedTime;
 import static java.nio.file.Files.writeString;
+import static java.util.concurrent.Executors.newScheduledThreadPool;
 import static java.util.concurrent.Executors.newVirtualThreadPerTaskExecutor;
+import static java.util.concurrent.TimeUnit.SECONDS;
 import static java.util.stream.Collectors.groupingBy;
 import static nl.ulso.hash.Hasher.hash;
 import static nl.ulso.markdown_curator.DocumentRewriter.rewriteDocument;
@@ -31,28 +33,38 @@ import static org.slf4j.LoggerFactory.getLogger;
  * existing query results as stored inside the documents. If a query result has changed, the
  * document that contains it is rewritten to disk, with the old query result replaced.
  * <p/>
- * This curator applies parallelism by first refreshing all data models in parallel, waiting for
- * that to complete, and then running all queries in parallel. Once all queries have completed the
- * documents whose contents have changed are written back to disk, sequentially. In practice
- * there are many queries embedded in documents, while the number of documents that need updating
- * is limited.
+ * Queries are not executed after every detected change. Instead, the running of queries and writing
+ * of documents to disk is scheduled to take place after a short delay. If during this delay new
+ * changes come in the task is rescheduled. This prevents superfluous query execution and writes to
+ * disk, at the cost of the user having to wait a little while after saving the last change. This
+ * is especially useful when using Obsidian, which automatically write changes to disk every few
+ * seconds.
+ * <p/>
+ * This curator runs all queries, of which there can be many, in parallel. Once all queries have
+ * completed the documents whose contents have changed are written back to disk, sequentially. In
+ * practice there are many queries embedded in documents, while the number of documents that need
+ * updating is limited, because most queries won't have new output.
  * <p/>
  * I haven't taken the time to prove that this parallel implementation is faster than a sequential
  * one. I applied parallelism simply because I don't want the 10 cores of the M1 Pro processor in
- * my MacBook Pro go to waste. And because it was fun to do.
+ * my MacBook Pro go to waste. And because it was fun to do. Nice tidbit: one of my vaults has
+ * 3250 embedded queries, across 2850 documents. Running those takes a little over 40 milliseconds;
+ * the CPU doesn't break a sweat.
  */
 public class Curator
         implements VaultChangedCallback
 {
     private static final Logger LOGGER = getLogger(Curator.class);
-    private static final long COOL_OFF_PERIOD_IN_MILLISECONDS = 100;
+    private static final long SCHEDULE_TIMEOUT_IN_SECONDS = 3;
 
     private final Vault vault;
     private final DocumentPathResolver documentPathResolver;
     private final QueryCatalog queryCatalog;
     private final Set<DataModel> dataModels;
     private final Map<String, Long> writtenDocuments;
-    private final ExecutorService executor;
+    private final ExecutorService parallelExecutor;
+    private final ScheduledExecutorService delayedExecutor;
+    private ScheduledFuture<?> runTask;
     private final String curatorName;
 
     @Inject
@@ -65,7 +77,9 @@ public class Curator
         this.queryCatalog = queryCatalog;
         this.dataModels = dataModels;
         this.writtenDocuments = new HashMap<>();
-        this.executor = newVirtualThreadPerTaskExecutor();
+        this.parallelExecutor = newVirtualThreadPerTaskExecutor();
+        this.delayedExecutor = newScheduledThreadPool(1);
+        this.runTask = null;
         this.curatorName = currentThread().getName();
     }
 
@@ -73,6 +87,8 @@ public class Curator
     {
         LOGGER.info("Running this curator once");
         vaultChanged(vaultRefreshed());
+        cancelQueryWriteRunIfPresent();
+        performQueryWriteRun();
     }
 
     public void run()
@@ -89,14 +105,9 @@ public class Curator
         {
             return;
         }
+        cancelQueryWriteRunIfPresent();
         refreshAllDataModels(event);
-        var changeset = runAllQueries().stream()
-                .collect(groupingBy(item -> item.queryBlock().document()));
-        coolOffToPreventConflicts();
-        changeset.entrySet().stream()
-                .filter(entry -> entry.getValue().stream().anyMatch(QueryOutput::isChanged))
-                .forEach(entry -> writeDocument(entry.getKey(), entry.getValue()));
-        LOGGER.info("Curator run done.");
+        scheduleQueryWriteRun();
     }
 
     private boolean checkSelfTriggeredUpdate(VaultChangedEvent event)
@@ -117,8 +128,38 @@ public class Curator
         {
             return false;
         }
-        LOGGER.info("Ignoring change on {} because this curator caused it.", documentName);
+        LOGGER.debug("Ignoring change on {} because this curator caused it.", documentName);
         return true;
+    }
+
+    private void cancelQueryWriteRunIfPresent()
+    {
+        if (runTask != null)
+        {
+            LOGGER.trace("Cancelling currently scheduled task");
+            runTask.cancel(false);
+        }
+    }
+
+    private void scheduleQueryWriteRun()
+    {
+        LOGGER.debug(
+                "Scheduling query processing and document writing task to run in {} seconds",
+                SCHEDULE_TIMEOUT_IN_SECONDS);
+        runTask = delayedExecutor.schedule(this::performQueryWriteRun,
+                SCHEDULE_TIMEOUT_IN_SECONDS, SECONDS);
+    }
+
+    private void performQueryWriteRun()
+    {
+        MDC.put("curator", curatorName);
+        LOGGER.info("Running all queries and writing document updates to disk");
+        var changeset = runAllQueries().stream()
+                .collect(groupingBy(item -> item.queryBlock().document()));
+        changeset.entrySet().stream()
+                .filter(entry -> entry.getValue().stream().anyMatch(QueryOutput::isChanged))
+                .forEach(entry -> writeDocument(entry.getKey(), entry.getValue()));
+        LOGGER.info("Curator run done.");
     }
 
     /**
@@ -213,7 +254,7 @@ public class Curator
         var latch = new CountDownLatch(items.size());
         for (I item : items)
         {
-            executor.submit(() ->
+            parallelExecutor.submit(() ->
             {
                 MDC.put("curator", curatorName);
                 try
@@ -238,27 +279,6 @@ public class Curator
         {
             Thread.currentThread().interrupt();
             throw new CuratorException(e);
-        }
-    }
-
-    /*
-     * Sometimes the curator kicks in too fast, resulting in an editor (e.g. Obsidian) still writing
-     * files from a work queue at the same time as the curator, resulting in corrupted files. It's
-     * all just text, but still... To prevent the nasty effects of this race condition from
-     * happening we give the curator some time to cool off. The curator will find that files have
-     * changed in the meantime, and will not write updates. Instead, it will reprocess the files
-     * automatically. Eventually the curator catches up to all changes anyway, so at some point all
-     * changes are written to disk.
-     */
-    private static void coolOffToPreventConflicts()
-    {
-        try
-        {
-            TimeUnit.MILLISECONDS.sleep(COOL_OFF_PERIOD_IN_MILLISECONDS);
-        }
-        catch (InterruptedException e)
-        {
-            Thread.currentThread().interrupt();
         }
     }
 }
