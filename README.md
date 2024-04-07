@@ -152,7 +152,7 @@ To do so, implement the `DataModel` interface, register it in your curator modul
 
 By extending the `DataModelTemplate` class you get full refreshes basically for free, and an easy way to process events in a more granular fashion, if so desired: simply override the `process` methods of choice and provide your own implementation.
 
-As an example of a custom data model, see the built-in `JournalModel`, which is used by the `timeline` query to generate Logseq-like summaries.
+As an example of a custom data model, see the built-in `Journal` model, which is used by the `timeline` query to generate Logseq-like summaries.
 
 ## Query collections
 
@@ -197,7 +197,7 @@ public class MyCuratorModule
     protected void configureCurator()
     {
         install(new LinksModule());
-		// Additional configuration...
+        // Additional configuration...
     }
 }
 ```
@@ -226,7 +226,7 @@ For example, here is the template I currently use for my daily notes:
 
 ## 🏃 Activities
 
--
+- *Put your outline here!*
 
 ## 🗓️ On the agenda
 
@@ -248,11 +248,11 @@ public class MyCuratorModule
     protected void configureCurator()
     {
         install(new JournalModule(
-                "Journal", 		// Where daily journal pages are kept 
-				"Activities", 	// Name of the section with the outline
-				"Projects"      // Where project notes are kept
-		));
-		// Additional configuration...
+                "Journal",      // Where daily journal pages are kept 
+                "Activities",   // Name of the section with the outline
+                "Projects"      // Where project notes are kept
+        ));
+        // Additional configuration...
     }
 }
 ```
@@ -277,7 +277,7 @@ folder: 'Contacts'
 <!--/query-->
 ```
 
-This example shows all contacts that were references from the daily log in September 2023, in a sorted list.
+This example shows all contacts that were referenced from the daily log in September 2023, in a sorted list.
 
 #### `weekly`
 
