@@ -169,7 +169,7 @@ public class Daily
         @Override
         public void visit(TextBlock textBlock)
         {
-            lines.addAll(textBlock.markdown().lines().toList());
+            textBlock.markdown().lines().forEach(lines::add);
         }
     }
 }
