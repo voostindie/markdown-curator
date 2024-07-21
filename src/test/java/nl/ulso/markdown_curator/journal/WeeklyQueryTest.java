@@ -76,7 +76,7 @@ class WeeklyQueryTest
     private WeeklyQuery createQuery()
     {
         return new WeeklyQuery(journal,
-                new JournalSettings("Journal", "Activities", "Projects", WeekFields.ISO),
+                new JournalSettings("Journal", "Markers", "Activities", "Projects", WeekFields.ISO),
                 new QueryResultFactory());
     }
 }

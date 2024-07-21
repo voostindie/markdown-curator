@@ -249,6 +249,7 @@ public class MyCuratorModule
     {
         install(new JournalModule(
                 "Journal",      // Where daily journal pages are kept 
+				"Markers",      // Where marker descriptions are kept
                 "Activities",   // Name of the section with the outline
                 "Projects"      // Where project notes are kept
         ));
@@ -260,6 +261,65 @@ public class MyCuratorModule
 #### `timeline`
 
 The `timeline` query generates a timeline on a certain topic; by default this is the page the timeline query is added to. The timeline is sorted by date, newest first. Each entry for the selected topic contains the context from the daily journal, similar as to how Logseq does it.
+
+### `marked`
+
+The `marked` query generates a selection of lines annotated with a specific marker, one section per marker, on a certain topic. By default, the topic is the page the query is added to. Lines in each section are ordered according to the timeline; oldest first. The markers themselves are removed from each line.
+
+A marker is nothing more than a reference to a document. That can be *any* document. The document might not even exist; the functionality still works. Markers are useful to collect specific segments from the timeline and show them promimently, for example at the top of a document.
+
+Markers only apply to a topic if they are *exactly* one level lower than the topic itself. This is so you can reuse markers for different topics, even when the topics are nested. 
+
+For example, let's say you have a timeline somewhere that looks like this:
+
+```
+- Important meeting on [[Topic 1]].
+	- Meeting note 1
+	- [[❗️]] Important meeting note 2
+	- We also discussed [[Topic 2]].
+		- [[❗️]] We shouldn't forget this!
+```
+
+If you now put the following query on the page of "Topic 1":
+
+```
+<!--query:markers
+markers: ❗️
+-->
+<!--/query-->
+```
+
+...this query will produce the output:
+
+```
+## ❗️
+
+- Important meeting note 2
+```
+
+So, it lists all lines marked with a reference to ❗️ and collects them in a single section. It doesn't show "We shouldn't forget about this!", because the marker there applies to Topic 2.
+
+You can change the header titles of the section in the query output by adding a `title` property to the marker document themselves. This ensures consistency across the vault and simplifies the query definition.
+
+So, in this example, if you were to define the page `❗️` as follows:
+
+```
+---
+title: ❗️ Important!
+---
+
+(Here it's useful to explain what the marker is used for.)
+```
+
+...then the section title in all query outputs would include the text "Important !".
+
+Creating marker documents has more advantages than just being able to specify a custom title:
+
+- They're documents like any other, so things like backlinks "just work".
+- They can define aliases in their front matter, natively supported by Obsidian.
+- They prevent dead links in your vault.
+- They allow you to explain what a marker is supposed to be used for, for future reference.
+- ...they could even have their own timeline!
 
 #### `period`
 
@@ -287,7 +347,7 @@ The `weekly` query is a specialization of the `period` query. It picks a specifi
 
 Put this query at the top of the daily log pages.
 
-The `dayNav` query generates a set of links to the previous and next daily entry in the journal, as well as to the weekly entry that the day's entry belongs to. It also prints the date as a readable text, like "Sunday, October 1 2023"
+The `dayNav` query generates a set of links to the previous and next daily entry in the journal, as well as to the weekly entry that the day's entry belongs to. It also prints the date as a readable text, like "Sunday, October 1, 2023"
 
 #### `weekNav`
 

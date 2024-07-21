@@ -24,12 +24,14 @@ class Outline
     private static final char TAB = '\t';
     private final Outline parent;
     private final List<Outline> children;
+    private final int depth;
     private int left;
     private int right;
 
     private Outline(Outline parent)
     {
         this.parent = parent;
+        this.depth = parent == null ? 0 : parent.depth + 1;
         this.children = new ArrayList<>();
         this.left = -1;
         this.right = -1;
@@ -39,16 +41,16 @@ class Outline
     {
         var root = new Outline(null);
         var activeNode = root;
-        var activeIndent = 0;
+        var activeDepth = 0;
         for (String line : lines)
         {
-            var indent = computeIndent(line);
-            while (indent <= activeIndent && activeNode != root)
+            var depth = computeDepth(line);
+            while (depth <= activeDepth && activeNode != root)
             {
                 activeNode = activeNode.parent;
-                activeIndent--;
+                activeDepth--;
             }
-            activeIndent = indent;
+            activeDepth = depth;
             activeNode = activeNode.addChild();
         }
         root.computeLineValues(0);
@@ -59,7 +61,7 @@ class Outline
     {
         var list = new ArrayList<LineValues>();
         appendLineInfoTo(list);
-        list.remove(0);
+        list.removeFirst();
         return unmodifiableList(list);
     }
 
@@ -81,7 +83,7 @@ class Outline
         return right;
     }
 
-    private static int computeIndent(String line)
+    private static int computeDepth(String line)
     {
         var spaces = 0;
         var tabs = 0;
@@ -106,19 +108,19 @@ class Outline
 
     private void appendLineInfoTo(List<LineValues> list)
     {
-        list.add(new LineValues(left, right));
+        list.add(new LineValues(left, right, depth));
         for (Outline node : children)
         {
             node.appendLineInfoTo(list);
         }
     }
 
-    record LineValues(int left, int right)
+    record LineValues(int left, int right, int depth)
     {
         @Override
         public String toString()
         {
-            return "(" + left + ", " + right + ")";
+            return "(" + left + ", " + right + ") at depth " + depth;
         }
 
         public boolean includesInSummary(LineValues other)
@@ -126,9 +128,14 @@ class Outline
             return isChildOf(other) || isSelected(other) || isParentOf(other);
         }
 
-        private boolean isChildOf(LineValues other)
+        public boolean isDirectChildOf(LineValues other)
         {
-            return left > other.left() && right < other.right();
+            return depth == other.depth + 1 && left > other.left && right < other.right;
+        }
+
+        boolean isChildOf(LineValues other)
+        {
+            return left > other.left && right < other.right;
         }
 
         private boolean isSelected(LineValues other)
@@ -138,7 +145,7 @@ class Outline
 
         private boolean isParentOf(LineValues other)
         {
-            return left < other.left() && right > other.right();
+            return left < other.left && right > other.right;
         }
     }
 }

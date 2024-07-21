@@ -30,18 +30,24 @@ public class JournalModule
         extends AbstractModule
 {
     private final String journalFolder;
+    private final String markerSubFolder;
     private final String activitiesSection;
     private final String projectFolder;
     private final WeekFields weekFields;
 
-    public JournalModule(String journalFolder, String activitiesSection, String projectFolder)
+    public JournalModule(
+            String journalFolder, String markerSubFolder, String activitiesSection,
+            String projectFolder)
     {
-        this(journalFolder, activitiesSection, projectFolder, WeekFields.ISO);
+        this(journalFolder, markerSubFolder, activitiesSection, projectFolder, WeekFields.ISO);
     }
 
-    public JournalModule(String journalFolder, String activitiesSection, String projectFolder, WeekFields weekFields)
+    public JournalModule(
+            String journalFolder, String markerSubFolder, String activitiesSection,
+            String projectFolder, WeekFields weekFields)
     {
         this.journalFolder = journalFolder;
+        this.markerSubFolder = markerSubFolder;
         this.activitiesSection = activitiesSection;
         this.projectFolder = projectFolder;
         this.weekFields = weekFields;
@@ -50,7 +56,8 @@ public class JournalModule
     @Provides
     JournalSettings journalSettings()
     {
-        return new JournalSettings(journalFolder, activitiesSection, projectFolder, weekFields);
+        return new JournalSettings(journalFolder, markerSubFolder, activitiesSection, projectFolder,
+                weekFields);
     }
 
     @Override
@@ -63,6 +70,7 @@ public class JournalModule
         queryBinder.addBinding().to(WeeklyQuery.class);
         queryBinder.addBinding().to(DayNavigationQuery.class);
         queryBinder.addBinding().to(WeekNavigationQuery.class);
+        queryBinder.addBinding().to(MarkedQuery.class);
     }
 }
 

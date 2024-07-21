@@ -59,13 +59,22 @@ class TimelineQueryTest
                 Arguments.of("foo", -1, """
                         - **[[2023-01-27]]**:
                             - [[foo]]
+                                - [[❓]] Important question!
                         - **[[2023-01-26]]**:
                             - [[foo]]
+                                - [[❗️|Important!]] Remember this too
                         - **[[2023-01-25]]**:
                             - [[foo]]
+                                - [[❗️]] Remember this
                         
                         """),
                 Arguments.of("bar", -1, """
+                        - **[[2024-07-21]]**:
+                            - [[bar]]
+                                - [[❗️]] baR marker
+                                - [[baz]]
+                                    - [[❗️]] baZ marker
+                                - [[❌]] Special marker
                         - **[[2023-01-26]]**:
                             - [[bar]]
                         
@@ -74,8 +83,10 @@ class TimelineQueryTest
                 Arguments.of("foo", 2, """
                         - **[[2023-01-27]]**:
                             - [[foo]]
+                                - [[❓]] Important question!
                         - **[[2023-01-26]]**:
                             - [[foo]]
+                                - [[❗️|Important!]] Remember this too
                         
                         """)
         );

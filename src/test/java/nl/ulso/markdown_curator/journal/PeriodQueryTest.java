@@ -83,7 +83,7 @@ class PeriodQueryTest
     private PeriodQuery createQuery()
     {
         return new PeriodQuery(journal,
-                new JournalSettings("Journal", "Activities", "Projects", WeekFields.ISO),
+                new JournalSettings("Journal", "Markers", "Activities", "Projects", WeekFields.ISO),
                 new QueryResultFactory());
     }
 }

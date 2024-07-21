@@ -63,7 +63,7 @@ class DayNavigationQueryTest
                 Arguments.of("2023-01-27", Locale.forLanguageTag("nl"),
                         "# [[2023-01-26|←]] [[2023-12-25|→]] [[2023 Week 04|↑]] Vrijdag 27 januari 2023"),
                 Arguments.of("2023-12-25", Locale.ENGLISH,
-                        "# [[2023-01-27|←]] Monday, December 25, 2023")
+                        "# [[2023-01-27|←]] [[2024-07-21|→]] Monday, December 25, 2023")
         );
     }
 

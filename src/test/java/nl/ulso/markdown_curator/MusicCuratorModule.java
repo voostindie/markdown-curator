@@ -36,7 +36,7 @@ public class MusicCuratorModule
     {
 
         install(new LinksModule());
-        install(new JournalModule("journal", "Log", "songs"));
+        install(new JournalModule("journal", "Markers", "Log", "songs"));
         registerQuery(AlbumsQuery.class);
         registerQuery(MembersQuery.class);
         registerQuery(RecordingsQuery.class);

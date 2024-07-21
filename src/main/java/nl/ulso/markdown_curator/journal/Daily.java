@@ -6,6 +6,7 @@ import nl.ulso.markdown_curator.vault.*;
 import java.time.LocalDate;
 import java.util.*;
 
+import static java.lang.Character.isWhitespace;
 import static java.lang.System.lineSeparator;
 import static java.util.Collections.unmodifiableMap;
 import static java.util.Collections.unmodifiableSet;
@@ -133,6 +134,59 @@ public class Daily
             }
         }
         return summary.toString();
+    }
+
+    /**
+     * Selects and transforms all lines for a document that have a specific marker in them; the
+     * results are grouped by marker, and the markers themselves are removed from the lines.
+     *
+     * @param documentName Name of the document to select all marked lines for.
+     * @param markerNames Names of the markers to collect.
+     * @return A map of markers to lines.
+     */
+    public Map<String, List<String>> markedLinesFor(String documentName, Set<String> markerNames)
+    {
+        var result = new HashMap<String, List<String>>();
+        var indexes = documentReferences.get(documentName);
+        var sectionLines = sectionLines(section);
+        for (int selectedIndex = indexes.nextSetBit(0); selectedIndex >= 0;
+             selectedIndex = indexes.nextSetBit(selectedIndex + 1))
+        {
+            var selectedLine = lineValues.get(selectedIndex);
+            for (String marker : markerNames)
+            {
+                var markerIndexes = documentReferences.get(marker);
+                if (markerIndexes == null)
+                {
+                    continue;
+                }
+                for (int markerIndex = markerIndexes.nextSetBit(0); markerIndex >= 0;
+                     markerIndex = markerIndexes.nextSetBit(markerIndex + 1))
+                {
+                    var markerLine = lineValues.get(markerIndex);
+                    if (!markerLine.isDirectChildOf(selectedLine))
+                    {
+                        continue;
+                    }
+                    var line = removeMarker(sectionLines.get(markerIndex).trim(), marker);
+                    var list = result.computeIfAbsent(marker, key -> new ArrayList<>());
+                    list.add(line);
+                }
+            }
+        }
+        return result;
+    }
+
+    private String removeMarker(String line, String marker)
+    {
+        var start = line.indexOf("[[" + marker);
+        var end = line.indexOf("]]", start + marker.length()) + 2;
+        var length = line.length();
+        while (end < length && isWhitespace(line.charAt(end)))
+        {
+            end++;
+        }
+        return line.substring(0, start) + line.substring(end);
     }
 
     public boolean refersTo(String documentName)

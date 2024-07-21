@@ -7,8 +7,8 @@ import java.time.temporal.WeekFields;
  * <p/>
  * Make sure to include an instance of this class in your Guice context!
  */
-record JournalSettings(String journalFolderName, String activitiesSectionName, String projectFolderName,
+record JournalSettings(String journalFolderName, String markerSubFolderName,
+                       String activitiesSectionName, String projectFolderName,
                        WeekFields weekFields)
 {
-
 }

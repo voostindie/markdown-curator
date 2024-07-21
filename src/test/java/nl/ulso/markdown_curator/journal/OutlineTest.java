@@ -32,7 +32,7 @@ class OutlineTest
                 Arguments.of("""
                         - Node
                         """, """
-                        (1, 2)
+                        (1, 2) at depth 1
                         """),
                 Arguments.of("""
                         - Node
@@ -42,25 +42,25 @@ class OutlineTest
                         - Node
                             - Node
                         """, """
-                        (1, 8)
-                        (2, 3)
-                        (4, 7)
-                        (5, 6)
-                        (9, 12)
-                        (10, 11)
+                        (1, 8) at depth 1
+                        (2, 3) at depth 2
+                        (4, 7) at depth 2
+                        (5, 6) at depth 3
+                        (9, 12) at depth 1
+                        (10, 11) at depth 2
                         """),
                 Arguments.of("""
                         ## Section
-                                                
+                        
                         Paragraph
-                                                
+                        
                         Another paragraph
                         """, """
-                        (1, 2)
-                        (3, 4)
-                        (5, 6)
-                        (7, 8)
-                        (9, 10)
+                        (1, 2) at depth 1
+                        (3, 4) at depth 1
+                        (5, 6) at depth 1
+                        (7, 8) at depth 1
+                        (9, 10) at depth 1
                         """),
                 Arguments.of("""
                         - Node
@@ -68,10 +68,10 @@ class OutlineTest
                         \t    - Node
                         \t\t- Node
                         """, """
-                        (1, 8)
-                        (2, 7)
-                        (3, 4)
-                        (5, 6)
+                        (1, 8) at depth 1
+                        (2, 7) at depth 2
+                        (3, 4) at depth 3
+                        (5, 6) at depth 3
                         """)
         );
     }

@@ -10,10 +10,12 @@ import org.slf4j.Logger;
 
 import java.time.LocalDate;
 import java.util.*;
+import java.util.Map.Entry;
 import java.util.stream.Stream;
 
 import static java.util.Comparator.naturalOrder;
 import static java.util.Comparator.reverseOrder;
+import static java.util.stream.Collectors.toMap;
 import static java.util.stream.Collectors.toUnmodifiableSet;
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -120,6 +122,21 @@ public class Journal
         return timeline;
     }
 
+    public Map<String, List<String>> markedLinesFor(String documentName, Set<String> markerNames)
+    {
+        return dailiesFor(documentName)
+                .flatMap(daily -> daily
+                        .markedLinesFor(documentName, markerNames).entrySet()
+                        .stream())
+                .collect(toMap(Entry::getKey, Entry::getValue, Journal::mergeLists, TreeMap::new));
+    }
+
+    private static List<String> mergeLists(List<String> first, List<String> second)
+    {
+        first.addAll(second);
+        return first;
+    }
+
     public Stream<Daily> entriesUntilIncluding(LocalDate start, LocalDate end)
     {
         return start.datesUntil(end.plusDays(1))
@@ -194,6 +211,16 @@ public class Journal
     public int dayOfWeekNumberFor(LocalDate date)
     {
         return date.get(settings.weekFields().dayOfWeek());
+    }
+
+    public String markerTitle(String markerName)
+    {
+        return vault.folder(settings.journalFolderName())
+                .flatMap(journalFolder -> journalFolder.folder(settings.markerSubFolderName())
+                        .flatMap(markerFolder -> markerFolder.document(markerName).map(document ->
+                                document.frontMatter().string("title", markerName)
+                        )))
+                .orElse(markerName);
     }
 
     public Vault vault()
