@@ -1,14 +1,10 @@
 package nl.ulso.markdown_curator.journal;
 
-import com.google.inject.AbstractModule;
-import com.google.inject.Provides;
-import com.google.inject.multibindings.Multibinder;
+import dagger.Binds;
+import dagger.Module;
+import dagger.multibindings.IntoSet;
 import nl.ulso.markdown_curator.DataModel;
 import nl.ulso.markdown_curator.query.Query;
-
-import java.time.temporal.WeekFields;
-
-import static com.google.inject.multibindings.Multibinder.newSetBinder;
 
 /**
  * Extracts journal information from daily logs.
@@ -26,51 +22,34 @@ import static com.google.inject.multibindings.Multibinder.newSetBinder;
  * <p/>
  * To use this journal in your own curator, you have to do install it in your Guice module.
  */
-public class JournalModule
-        extends AbstractModule
+@Module
+public abstract class JournalModule
 {
-    private final String journalFolder;
-    private final String markerSubFolder;
-    private final String activitiesSection;
-    private final String projectFolder;
-    private final WeekFields weekFields;
+    @Binds
+    @IntoSet
+    abstract DataModel bindDataModel(Journal journal);
 
-    public JournalModule(
-            String journalFolder, String markerSubFolder, String activitiesSection,
-            String projectFolder)
-    {
-        this(journalFolder, markerSubFolder, activitiesSection, projectFolder, WeekFields.ISO);
-    }
+    @Binds
+    @IntoSet
+    abstract Query bindTimelineQuery(TimelineQuery timelineQuery);
 
-    public JournalModule(
-            String journalFolder, String markerSubFolder, String activitiesSection,
-            String projectFolder, WeekFields weekFields)
-    {
-        this.journalFolder = journalFolder;
-        this.markerSubFolder = markerSubFolder;
-        this.activitiesSection = activitiesSection;
-        this.projectFolder = projectFolder;
-        this.weekFields = weekFields;
-    }
+    @Binds
+    @IntoSet
+    abstract Query bindPeriodQuery(PeriodQuery periodQuery);
 
-    @Provides
-    JournalSettings journalSettings()
-    {
-        return new JournalSettings(journalFolder, markerSubFolder, activitiesSection, projectFolder,
-                weekFields);
-    }
+    @Binds
+    @IntoSet
+    abstract Query bindWeeklyQuery(WeeklyQuery weeklyQuery);
 
-    @Override
-    protected void configure()
-    {
-        newSetBinder(binder(), DataModel.class).addBinding().to(Journal.class);
-        Multibinder<Query> queryBinder = newSetBinder(binder(), Query.class);
-        queryBinder.addBinding().to(TimelineQuery.class);
-        queryBinder.addBinding().to(PeriodQuery.class);
-        queryBinder.addBinding().to(WeeklyQuery.class);
-        queryBinder.addBinding().to(DayNavigationQuery.class);
-        queryBinder.addBinding().to(WeekNavigationQuery.class);
-        queryBinder.addBinding().to(MarkedQuery.class);
-    }
+    @Binds
+    @IntoSet
+    abstract Query bindDayNavigationQuery(DayNavigationQuery dayNavigationQuery);
+
+    @Binds
+    @IntoSet
+    abstract Query bindWeekNavigationQuery(WeekNavigationQuery weekNavigationQuery);
+
+    @Binds
+    @IntoSet
+    abstract Query bindMarkedQuery(MarkedQuery markedQuery);
 }
-

@@ -56,11 +56,9 @@ class ApplicationTest
     @Test
     void runCuratorOnce()
     {
-        var module = new MusicCuratorModule();
-        assertThat(module.isConfigured()).isFalse();
-        new Application(null).runCuratorsInSeparateThreads(List.of(module),
+        CuratorFactory factory = new MusicCuratorFactory();
+        new Application(null).runCuratorsInSeparateThreads(List.of(factory),
                 Application.RunMode.ONCE);
-        assertThat(module.isConfigured()).isTrue();
     }
 
     private Path tempPidPath()

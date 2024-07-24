@@ -1,9 +1,9 @@
 package nl.ulso.markdown_curator.journal;
 
-import jakarta.inject.Inject;
 import nl.ulso.markdown_curator.query.*;
 import nl.ulso.markdown_curator.vault.*;
 
+import javax.inject.Inject;
 import java.time.LocalDate;
 import java.util.*;
 import java.util.stream.Stream;

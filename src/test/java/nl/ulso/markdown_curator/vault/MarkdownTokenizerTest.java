@@ -56,13 +56,13 @@ class MarkdownTokenizerTest
     {
         assertSame("""
                         # Title
-                                        
+                        
                         ## Section
-                                        
+                        
                         ### Subsection
-                                        
+                        
                         Text
-                                        
+                        
                         """,
                 HEADER, TEXT, HEADER, TEXT, HEADER, TEXT, TEXT, TEXT, END_OF_DOCUMENT);
     }

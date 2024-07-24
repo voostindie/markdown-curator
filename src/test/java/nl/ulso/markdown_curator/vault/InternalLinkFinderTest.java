@@ -21,7 +21,7 @@ class InternalLinkFinderTest
     {
         var links = allLinks("A single [[link]] in a line");
         softly.assertThat(links.size()).isEqualTo(1);
-        var first = links.get(0);
+        var first = links.getFirst();
         softly.assertThat(first.targetDocument()).isEqualTo("link");
         softly.assertThat(first.alias()).isNotPresent();
         softly.assertThat(first.targetAnchor()).isNotPresent();
@@ -41,7 +41,7 @@ class InternalLinkFinderTest
     {
         var links = allLinks("[[link#anchor]]");
         softly.assertThat(links.size()).isEqualTo(1);
-        var first = links.get(0);
+        var first = links.getFirst();
         softly.assertThat(first.targetDocument()).isEqualTo("link");
         softly.assertThat(first.targetAnchor()).isPresent();
         softly.assertThat(first.targetAnchor().orElseThrow()).isEqualTo("anchor");
@@ -53,7 +53,7 @@ class InternalLinkFinderTest
     {
         var links = allLinks("[[link|alias]]");
         softly.assertThat(links.size()).isEqualTo(1);
-        var first = links.get(0);
+        var first = links.getFirst();
         softly.assertThat(first.targetDocument()).isEqualTo("link");
         softly.assertThat(first.targetAnchor()).isNotPresent();
         softly.assertThat(first.alias()).isPresent();
@@ -65,7 +65,7 @@ class InternalLinkFinderTest
     {
         var links = allLinks("[[link#anchor|alias]]");
         softly.assertThat(links.size()).isEqualTo(1);
-        var first = links.get(0);
+        var first = links.getFirst();
         softly.assertThat(first.targetDocument()).isEqualTo("link");
         softly.assertThat(first.targetAnchor()).isPresent();
         softly.assertThat(first.targetAnchor().orElseThrow()).isEqualTo("anchor");

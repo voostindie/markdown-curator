@@ -84,12 +84,12 @@ class DocumentTest
                 title: ignored
                 ---
                 # title
-                        
+                
                 ## foo bar
-                        
+                
                 lorem ipsum
-                        
-                        
+                
+                
                 """));
         softly.assertThat(document.title()).isEqualTo("title");
         softly.assertThat(document.frontMatter().integer("priority", -1)).isEqualTo(100);
@@ -131,7 +131,7 @@ class DocumentTest
         String text = """
                 ---
                 foo: bar
-                        
+                
                 # Title
                 """;
         var document = newDocument("document", 0, document(text));

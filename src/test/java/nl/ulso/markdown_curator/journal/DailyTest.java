@@ -46,7 +46,7 @@ class DailyTest
         var vault = new VaultStub();
         var document = vault.addDocument("2023-01-27", """
                 ## Activities
-                                
+                
                 - [[X]]
                     - Y
                     - Z
@@ -77,7 +77,7 @@ class DailyTest
         var vault = new VaultStub();
         var document = vault.addDocument("2023-01-27", """
                 ## Activities
-                                
+                
                 - Top item
                     - Reference to [[X]]
                         - And a child for [[X]]
@@ -105,7 +105,7 @@ class DailyTest
         var vault = new VaultStub();
         var document = vault.addDocument("2023-03-18", """
                 ## Activities
-                                
+                
                 - [[X]], [[Y]] and [[Z]]
                 - [[foo]]
                     - [[bar]]

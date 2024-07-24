@@ -1,17 +1,18 @@
 package nl.ulso.markdown_curator;
 
-import jakarta.inject.Singleton;
+import dagger.Module;
+import dagger.*;
 import nl.ulso.markdown_curator.query.*;
 import nl.ulso.markdown_curator.vault.event.VaultChangedEvent;
 import org.assertj.core.api.junit.jupiter.SoftAssertionsExtension;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
+import javax.inject.Singleton;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Map;
 
-import static com.google.inject.Guice.createInjector;
 import static java.util.Collections.emptyMap;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -21,13 +22,15 @@ class CuratorModuleTest
     @Test
     void createCuratorWithInjector()
     {
-        assertThat(createInjector(new ModuleStub()).getInstance(Curator.class)).isNotNull();
+        var factory = DaggerCuratorModuleTest_FactoryStub.create();
+        var curator = factory.createCurator();
+        assertThat(curator).isNotNull();
     }
 
     @Test
     void iCloudIAWriterFolder()
     {
-        var path = new ModuleStub().iCloudIAWriterFolder("Test");
+        var path = VaultPaths.iCloudIAWriterFolder("Test");
         var home = System.getProperty("user.home");
         assertThat(path).hasToString(
                 home + "/Library/Mobile Documents/27N4MQEA55~pro~writer/Documents/Test");
@@ -36,33 +39,31 @@ class CuratorModuleTest
     @Test
     void iCloudObsidianFolder()
     {
-        var path = new ModuleStub().iCloudObsidianVault("Test");
+        var path = VaultPaths.iCloudObsidianVault("Test");
         var home = System.getProperty("user.home");
         assertThat(path).hasToString(
                 home + "/Library/Mobile Documents/iCloud~md~obsidian/Documents/Test");
     }
 
-    private static class ModuleStub
-            extends CuratorModule
+    @Singleton
+    @Component(modules = ModuleStub.class)
+    public interface FactoryStub
+            extends CuratorFactory
     {
         @Override
-        public String name()
+        default String name()
         {
             return "Stub";
         }
+    }
 
-        @Override
+    @Module(includes = CuratorModule.class)
+    static class ModuleStub
+    {
+        @Provides
         public Path vaultPath()
         {
             return Paths.get("").toAbsolutePath().resolve("src/test/resources/music");
-        }
-
-        @Override
-        protected void configureCurator()
-        {
-            super.configureCurator();
-            registerDataModel(DataModelStub.class);
-            registerQuery(QueryStub.class);
         }
     }
 

@@ -21,7 +21,7 @@ public final class CodeBlock
 
     CodeBlock(List<String> lines)
     {
-        language = lines.get(0).substring(CODE_MARKER.length());
+        language = lines.getFirst().substring(CODE_MARKER.length());
         code = join(lineSeparator(), lines.subList(1, lines.size() - 1));
     }
 

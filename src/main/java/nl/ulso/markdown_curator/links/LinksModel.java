@@ -1,11 +1,11 @@
 package nl.ulso.markdown_curator.links;
 
-import jakarta.inject.Inject;
-import jakarta.inject.Singleton;
 import nl.ulso.markdown_curator.DataModelTemplate;
 import nl.ulso.markdown_curator.vault.*;
 import nl.ulso.markdown_curator.vault.event.*;
 
+import javax.inject.Inject;
+import javax.inject.Singleton;
 import java.util.*;
 
 import static java.util.Collections.emptyList;
@@ -41,7 +41,7 @@ public final class LinksModel
     }
 
     @Override
-    protected void fullRefresh()
+    public void fullRefresh()
     {
         documentIndex.clear();
         indexDocuments(vault);

@@ -44,7 +44,7 @@ class DataModelTemplateTest
         private boolean refreshed = false;
 
         @Override
-        protected void fullRefresh()
+        public void fullRefresh()
         {
             refreshed = true;
         }

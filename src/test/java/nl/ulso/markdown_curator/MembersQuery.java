@@ -3,7 +3,7 @@ package nl.ulso.markdown_curator;
 import nl.ulso.markdown_curator.query.*;
 import nl.ulso.markdown_curator.vault.*;
 
-import jakarta.inject.Inject;
+import javax.inject.Inject;
 import java.util.*;
 
 import static java.util.Comparator.comparing;
@@ -76,9 +76,9 @@ public class MembersQuery
         {
             if (section.level() == 2
                 && section.title().startsWith("About")
-                && section.fragments().size() > 0)
+                && !section.fragments().isEmpty())
             {
-                section.fragments().get(0).accept(this);
+                section.fragments().getFirst().accept(this);
             }
         }
 

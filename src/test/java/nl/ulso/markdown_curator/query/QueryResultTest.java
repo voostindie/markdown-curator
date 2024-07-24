@@ -85,7 +85,7 @@ class QueryResultTest
         var list = factory.withPerformanceWarning().unorderedList(List.of("Foo"));
         assertThat(list.toMarkdown()).isEqualTo("""
                 - Foo
-                                
+                
                 <!-- WARNING: do not overuse this query; it is slow! -->
                 """.trim());
     }
@@ -96,7 +96,7 @@ class QueryResultTest
         var list = factory.withPerformanceWarning(factory.unorderedList(List.of("Foo")));
         assertThat(list.toMarkdown()).isEqualTo("""
                 - Foo
-                                
+                
                 <!-- WARNING: do not overuse this query; it is slow! -->
                 """.trim());
     }

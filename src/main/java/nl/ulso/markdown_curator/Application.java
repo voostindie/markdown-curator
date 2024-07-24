@@ -8,7 +8,6 @@ import java.nio.file.Path;
 import java.util.*;
 import java.util.ServiceLoader.Provider;
 
-import static com.google.inject.Guice.createInjector;
 import static java.lang.System.getProperty;
 import static java.lang.System.lineSeparator;
 import static java.lang.Thread.currentThread;
@@ -61,8 +60,8 @@ public class Application
             LOGGER.error("Couldn't write PID. Another Markdown Curator is running. Exiting.");
             return;
         }
-        var modules = ServiceLoader.load(CuratorModule.class).stream().map(Provider::get).toList();
-        if (modules.isEmpty())
+        var factories = ServiceLoader.load(CuratorFactory.class).stream().map(Provider::get).toList();
+        if (factories.isEmpty())
         {
             LOGGER.error("No curators are available in the system. Nothing to do!");
             return;
@@ -73,7 +72,7 @@ public class Application
             LOGGER.info("Press Ctrl+C to stop");
             LOGGER.info("-".repeat(76));
         }
-        runCuratorsInSeparateThreads(modules, runMode);
+        runCuratorsInSeparateThreads(factories, runMode);
     }
 
     boolean ensureNewPidFile()
@@ -106,20 +105,20 @@ public class Application
         }
     }
 
-    void runCuratorsInSeparateThreads(List<CuratorModule> modules, RunMode runMode)
+    void runCuratorsInSeparateThreads(List<CuratorFactory> factories, RunMode runMode)
     {
-        try (var executor = newFixedThreadPool(modules.size()))
+        try (var executor = newFixedThreadPool(factories.size()))
         {
-            var curators = modules.stream().map(module -> callable(() ->
+            var curators = factories.stream().map(factory -> callable(() ->
             {
-                var name = module.name();
+                var name = factory.name();
                 currentThread().setName(name);
                 MDC.put("curator", name);
                 LOGGER.debug("Instantiating curator: {}", name);
                 Curator curator = null;
                 try
                 {
-                    curator = createInjector(module).getInstance(Curator.class);
+                    curator = factory.createCurator();
                 }
                 catch (Exception e)
                 {

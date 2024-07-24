@@ -118,8 +118,12 @@ A `mvn clean package` and `java -jar target/my-markdown-curator.jar` should resu
 
 ### Create and publish a custom curator
 
-- Extend the `CuratorModule` base class.
+- Implement the `CuratorFactory` base class.
 - Add your implementation to `src/main/resources/META-INF/services/nl.ulso.markdown_curator.CuratorModule`.
+- Use [Dagger 2](https://dagger.dev) to define:
+	- A `@Module` to include and configure everything you need
+	- A `@Component` to publish your curator
+- (See the [markdown-curator-demo](https://github.com/voostindie/markdown-curator-demo) for a minimal example.)
 
 A `mvn clean package` and `java -jar target/my-markdown-curator.jar` should result in the application starting up and staying up, monitoring the directory you provided in your own custom curator.
 

@@ -33,15 +33,15 @@ class TableOfContentsQueryTest
         var folder = new FolderStub(null, "root");
         var document = folder.addDocument("toc", """
                 # One
-                            
+                
                 ## Two
-                            
+                
                 ## Three
-                            
+                
                 ### Four
-                            
+                
                 ### Five
-                            
+                
                 ## Six
                 """);
         var query = new TableOfContentsQuery();

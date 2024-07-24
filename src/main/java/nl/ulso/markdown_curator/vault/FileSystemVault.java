@@ -1,14 +1,13 @@
 package nl.ulso.markdown_curator.vault;
 
-import com.google.inject.Inject;
 import io.methvin.watcher.DirectoryChangeEvent;
 import io.methvin.watcher.DirectoryWatcher;
-import jakarta.inject.Singleton;
 import nl.ulso.markdown_curator.DocumentPathResolver;
-import nl.ulso.markdown_curator.VaultPath;
 import nl.ulso.markdown_curator.vault.event.VaultChangedEvent;
 import org.slf4j.Logger;
 
+import javax.inject.Inject;
+import javax.inject.Singleton;
 import java.io.IOException;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
@@ -21,6 +20,7 @@ import static java.text.Normalizer.Form.NFC;
 import static java.text.Normalizer.normalize;
 import static java.util.Collections.reverse;
 import static java.util.Objects.requireNonNull;
+import static java.util.Optional.empty;
 import static nl.ulso.markdown_curator.vault.Document.newDocument;
 import static nl.ulso.markdown_curator.vault.event.VaultChangedEvent.*;
 import static org.slf4j.LoggerFactory.getLogger;
@@ -44,19 +44,26 @@ public final class FileSystemVault
     private VaultChangedCallback callback;
 
     @Inject
-    public FileSystemVault(@VaultPath Path absolutePath, WatchServiceHolder watchServiceHolder)
-            throws IOException
+    public FileSystemVault(Path absolutePath, Optional<WatchService> watchService)
     {
         super(absolutePath.toString());
         this.callback = (VaultChangedEvent changeEvent) -> { /* Default: No-op */ };
         this.absolutePath = absolutePath;
         VaultBuilder vaultBuilder = new VaultBuilder(this, absolutePath);
-        walkFileTree(absolutePath, vaultBuilder);
-        this.watcher = DirectoryWatcher.builder()
-                .path(absolutePath)
-                .listener(this::processFileSystemEvent)
-                .watchService(watchServiceHolder.watchService)
-                .build();
+        try
+        {
+            walkFileTree(absolutePath, vaultBuilder);
+            this.watcher = DirectoryWatcher.builder()
+                    .path(absolutePath)
+                    .listener(this::processFileSystemEvent)
+                    .watchService(watchService.orElse(null))
+                    .build();
+        }
+        catch (IOException e)
+        {
+            throw new RuntimeException("Could not instantiate vault on path '"
+                                       + absolutePath + "'", e);
+        }
         if (LOGGER.isInfoEnabled())
         {
             var statistics = ElementCounter.countFoldersAndDocuments(this);
@@ -66,24 +73,17 @@ public final class FileSystemVault
     }
 
     public FileSystemVault(Path absolutePath)
-            throws IOException
     {
         // This forces the directory watcher to deduce itself which WatchService to use.
         // On macOS, this results in a native, non-polling service. Nice and fast.
         // However, this service doesn't work with the JimFS filesystem, used in tests.
         // That's why there's a constructor for an "optional" WatchService.
-        this(absolutePath, new WatchServiceHolder());
+        this(absolutePath, empty());
     }
 
     public Path root()
     {
         return absolutePath;
-    }
-
-    static class WatchServiceHolder
-    {
-        @Inject(optional = true)
-        WatchService watchService = null;
     }
 
     @Override

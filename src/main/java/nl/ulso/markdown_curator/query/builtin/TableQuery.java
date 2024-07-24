@@ -3,7 +3,7 @@ package nl.ulso.markdown_curator.query.builtin;
 import nl.ulso.markdown_curator.query.*;
 import nl.ulso.markdown_curator.vault.Vault;
 
-import jakarta.inject.Inject;
+import javax.inject.Inject;
 import java.util.*;
 
 import static java.util.Collections.reverse;
@@ -83,7 +83,7 @@ public final class TableQuery
         if (i > 0)
         {
             columns.remove(i);
-            columns.add(0, sort);
+            columns.addFirst(sort);
         }
         return resultFactory.table(columns, table);
     }

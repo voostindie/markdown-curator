@@ -17,18 +17,11 @@
     </properties>
 
     <dependencies>
-        <!-- Guice for modularity -->
+        <!-- Dagger for modularity -->
         <dependency>
-            <groupId>com.google.inject</groupId>
-            <artifactId>guice</artifactId>
-            <version>7.0.0</version>
-        </dependency>
-        <!-- Guice 7.0.0 depends on an older version of Guava 32.0.0,
-             which has a vulnerability. This forces a newer version -->
-        <dependency>
-            <groupId>com.google.guava</groupId>
-            <artifactId>guava</artifactId>
-            <version>33.0.0-jre</version>
+            <groupId>com.google.dagger</groupId>
+            <artifactId>dagger</artifactId>
+            <version>2.51.1</version>
         </dependency>
         <!-- Native directory watching for macOS
              https://github.com/gmethvin/directory-watcher -->
@@ -117,13 +110,21 @@
                     </execution>
                 </executions>
             </plugin>
-            <!-- Java 20 preview support for virtual threads -->
+            <!-- Java 21 for virtual threads
+                 Dagger for modularity -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>3.11.0</version>
                 <configuration>
                     <release>21</release>
+                    <annotationProcessorPaths>
+                        <path>
+                            <groupId>com.google.dagger</groupId>
+                            <artifactId>dagger-compiler</artifactId>
+                            <version>2.51.1</version>
+                        </path>
+                    </annotationProcessorPaths>
                 </configuration>
             </plugin>
             <!-- JUnit 5 support -->

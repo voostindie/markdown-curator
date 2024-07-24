@@ -125,9 +125,9 @@ final class DocumentParser
     private void ensureFrontMatterIsPresent()
     {
         var toplevel = fragments.get(0);
-        if (toplevel.isEmpty() || !(toplevel.get(0) instanceof FrontMatter))
+        if (toplevel.isEmpty() || !(toplevel.getFirst() instanceof FrontMatter))
         {
-            toplevel.add(0, new FrontMatter(emptyList()));
+            toplevel.addFirst(new FrontMatter(emptyList()));
         }
     }
 

@@ -23,7 +23,7 @@ public abstract class DataModelTemplate
     /**
      * Fully refreshes the data model from the vault.
      */
-    protected abstract void fullRefresh();
+    public abstract void fullRefresh();
 
     @Override
     public final void vaultChanged(VaultChangedEvent event)

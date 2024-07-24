@@ -75,7 +75,7 @@ class MapDictionary
         {
             return defaultDate;
         }
-        return dates.get(0);
+        return dates.getFirst();
     }
 
     @Override
@@ -124,7 +124,7 @@ class MapDictionary
             {
                 return defaultValue;
             }
-            value = list.get(0);
+            value = list.getFirst();
         }
         if (!propertyClass.isInstance(value))
         {
@@ -150,7 +150,7 @@ class MapDictionary
         {
             return emptyList();
         }
-        var first = list.get(0);
+        var first = list.getFirst();
         if (!propertyClass.isInstance(first))
         {
             return emptyList();

@@ -50,13 +50,21 @@
                     </execution>
                 </executions>
             </plugin>
-            <!-- Java 20 preview support for virtual threads -->
+            <!-- Java 21 for virtual threads
+                 Dagger for modularity -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>3.11.0</version>
                 <configuration>
                     <release>21</release>
+                    <annotationProcessorPaths>
+                        <path>
+                            <groupId>com.google.dagger</groupId>
+                            <artifactId>dagger-compiler</artifactId>
+                            <version>2.51.1</version>
+                        </path>
+                    </annotationProcessorPaths>
                 </configuration>
             </plugin>
             <!-- JUnit 5 support -->

@@ -1,6 +1,5 @@
 package nl.ulso.markdown_curator;
 
-import com.google.inject.Injector;
 import nl.ulso.markdown_curator.query.*;
 import nl.ulso.markdown_curator.vault.*;
 import org.assertj.core.api.SoftAssertions;
@@ -14,7 +13,6 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.util.Queue;
 
-import static com.google.inject.Guice.createInjector;
 import static nl.ulso.markdown_curator.vault.ElementCounter.countAll;
 import static nl.ulso.markdown_curator.vault.QueryBlockTest.emptyQueryBlock;
 import static nl.ulso.markdown_curator.vault.event.VaultChangedEvent.vaultRefreshed;
@@ -23,8 +21,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 @ExtendWith(SoftAssertionsExtension.class)
 class MusicCuratorModuleTest
 {
-    private Injector injector;
     private Curator musicCurator;
+    private Vault vault;
+    private QueryCatalog queryCatalog;
     private DocumentPathResolver documentPathResolver;
 
     @InjectSoftAssertions
@@ -33,15 +32,16 @@ class MusicCuratorModuleTest
     @BeforeEach
     void constructSystem()
     {
-        injector = createInjector(new MusicCuratorModule());
-        musicCurator = injector.getInstance(Curator.class);
-        documentPathResolver = injector.getInstance(DocumentPathResolver.class);
+        var component = DaggerMusicCurator.create();
+        musicCurator = component.curator();
+        queryCatalog = component.queryCatalog();
+        vault = component.vault();
+        documentPathResolver = component.documentPathResolver();
     }
 
     @Test
     void statistics()
     {
-        var vault = injector.getInstance(Vault.class);
         assertThat(vault.name()).endsWith("music");
         var statistics = countAll(vault);
         softly.assertThat(statistics.vaults()).isEqualTo(1);
@@ -57,9 +57,8 @@ class MusicCuratorModuleTest
     @Test
     void queryCatalog()
     {
-        QueryCatalog catalog = injector.getInstance(QueryCatalog.class);
-        softly.assertThat(catalog.queries().size()).isEqualTo(14);
-        Query dummy = catalog.query("dummy");
+        softly.assertThat(queryCatalog.queries().size()).isEqualTo(14);
+        Query dummy = queryCatalog.query("dummy");
         QueryResult result = dummy.run(emptyQueryBlock());
         var markdown = result.toMarkdown();
         softly.assertThat(markdown).contains("albums");
@@ -70,7 +69,7 @@ class MusicCuratorModuleTest
     @Test
     void queries()
     {
-        var queries = injector.getInstance(Vault.class).findAllQueryBlocks();
+        var queries = vault.findAllQueryBlocks();
         softly.assertThat(queries.size()).isEqualTo(14);
     }
 
@@ -150,7 +149,7 @@ class MusicCuratorModuleTest
                 softly.assertThat(section).isEqualTo(currentSection);
             }
         };
-        injector.getInstance(Vault.class).accept(visitor);
+        vault.accept(visitor);
     }
 
     @Test
@@ -175,7 +174,6 @@ class MusicCuratorModuleTest
     void writeDocument()
             throws IOException
     {
-        var vault = injector.getInstance(Vault.class);
         var original = vault.document("queries-blank").orElseThrow();
         var expected = vault.document("queries-expected").orElseThrow();
         musicCurator.runOnce();

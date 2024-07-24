@@ -2,7 +2,7 @@
 
 ## Status
 
-Adopted
+Superseded by ADR0005
 
 ## Decision
 

@@ -4,8 +4,8 @@ import nl.ulso.markdown_curator.query.builtin.HelpQuery;
 import nl.ulso.markdown_curator.query.builtin.UnknownQuery;
 import org.slf4j.Logger;
 
-import jakarta.inject.Inject;
-import jakarta.inject.Singleton;
+import javax.inject.Inject;
+import javax.inject.Singleton;
 import java.util.*;
 
 import static java.util.Collections.unmodifiableMap;

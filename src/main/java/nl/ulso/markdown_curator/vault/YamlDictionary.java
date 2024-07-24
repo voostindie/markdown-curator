@@ -55,8 +55,7 @@ final class YamlDictionary
         Map<String, ?> yaml = null;
         try
         {
-            //noinspection unchecked
-            yaml = (Map<String, ?>) load.loadFromString(string);
+            yaml = loadYaml(string, load);
         }
         catch (YamlEngineException | ClassCastException e)
         {
@@ -71,11 +70,17 @@ final class YamlDictionary
                 .collect(toMap(Map.Entry::getKey, Map.Entry::getValue));
     }
 
+    @SuppressWarnings("unchecked")
+    private static Map<String, ?> loadYaml(String string, Load load)
+    {
+        return (Map<String, ?>) load.loadFromString(string);
+    }
+
     private static List<String> singleYamlNode(List<String> lines)
     {
         int from = 0;
         int to = lines.size();
-        if (to > 0 && lines.get(0).contentEquals(DOCUMENT_SEPARATOR))
+        if (to > 0 && lines.getFirst().contentEquals(DOCUMENT_SEPARATOR))
         {
             from = 1;
         }
@@ -94,7 +99,7 @@ final class YamlDictionary
         {
             return defaultValue;
         }
-        return dates.get(0);
+        return dates.getFirst();
     }
 
     @Override

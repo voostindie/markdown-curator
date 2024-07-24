@@ -1,10 +1,17 @@
 package nl.ulso.markdown_curator;
 
+import dagger.Module;
+import dagger.*;
+import dagger.multibindings.IntoSet;
 import nl.ulso.markdown_curator.journal.JournalModule;
+import nl.ulso.markdown_curator.journal.JournalSettings;
 import nl.ulso.markdown_curator.links.LinksModule;
+import nl.ulso.markdown_curator.query.Query;
 
-import java.nio.file.Path;
-import java.nio.file.Paths;
+import java.nio.file.*;
+import java.util.Locale;
+
+import static java.util.Locale.ENGLISH;
 
 /**
  * Module for testing. All testing is done in memory. All files in the "music" directory from this
@@ -12,39 +19,49 @@ import java.nio.file.Paths;
  * on top of this file system. This ensures that the real file system stays intact. The vault on
  * disk is there to make it easy to maintain and use: just fire up Obsidian on top of it.
  */
-public class MusicCuratorModule
+@Module(includes = {CuratorModule.class, JournalModule.class, LinksModule.class})
+abstract class MusicCuratorModule
         extends InMemoryCuratorModule
 {
-    private boolean configured = false;
-
-    @Override
-    public String name()
+    @Provides
+    static Path vaultPath()
     {
-        return "music";
-    }
-
-    @Override
-    public Path vaultPath()
-    {
-        var sourceRoot = Paths.get("").toAbsolutePath()
-                .resolve("src/test/resources/music");
+        var sourceRoot = Paths.get("").toAbsolutePath().resolve("src/test/resources/music");
         return copyVaultToMemory(sourceRoot, "/music");
     }
 
-    @Override
-    protected void configureCurator()
+    @Provides
+    static WatchService watchService(Path vaultPath)
     {
-
-        install(new LinksModule());
-        install(new JournalModule("journal", "Markers", "Log", "songs"));
-        registerQuery(AlbumsQuery.class);
-        registerQuery(MembersQuery.class);
-        registerQuery(RecordingsQuery.class);
-        configured = true;
+        return createWatchService(vaultPath);
     }
 
-    public boolean isConfigured()
+    @Provides
+    static Locale locale()
     {
-        return configured;
+        return ENGLISH;
     }
+
+    @Provides
+    static JournalSettings journalSettings()
+    {
+        return new JournalSettings(
+                "journal",
+                "markers",
+                "Log",
+                "projects"
+        );
+    }
+
+    @Binds
+    @IntoSet
+    abstract Query bindAlbumsQuery(AlbumsQuery albumsQuery);
+
+    @Binds
+    @IntoSet
+    abstract Query bindMembersQuery(MembersQuery membersQuery);
+
+    @Binds
+    @IntoSet
+    abstract Query bindRecordingsQuery(RecordingsQuery recordingsQuery);
 }

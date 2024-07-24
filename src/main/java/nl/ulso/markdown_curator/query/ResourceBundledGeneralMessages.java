@@ -1,13 +1,11 @@
 package nl.ulso.markdown_curator.query;
 
-import jakarta.inject.Inject;
-
+import javax.inject.Inject;
 import java.text.MessageFormat;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.format.FormatStyle;
-import java.util.Locale;
-import java.util.ResourceBundle;
+import java.util.*;
 
 import static java.lang.Character.toTitleCase;
 import static java.util.ResourceBundle.getBundle;
@@ -20,12 +18,17 @@ public class ResourceBundledGeneralMessages
 
     public ResourceBundledGeneralMessages()
     {
-        this(Locale.ENGLISH);
+        this(Optional.empty());
+    }
+
+    public ResourceBundledGeneralMessages(Locale locale) {
+        this(Optional.of(locale));
     }
 
     @Inject
-    public ResourceBundledGeneralMessages(Locale locale)
+    ResourceBundledGeneralMessages(Optional<Locale> optionalLocale)
     {
+        var locale = optionalLocale.orElse(Locale.ENGLISH);
         this.bundle = getBundle("GeneralMessages", locale);
         this.dayFormatter = DateTimeFormatter.ofLocalizedDate(FormatStyle.FULL).withLocale(locale);
     }
