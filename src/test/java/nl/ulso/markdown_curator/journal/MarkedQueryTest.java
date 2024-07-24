@@ -28,7 +28,6 @@ class MarkedQueryTest
     @Test
     void name()
     {
-        var query = createQuery();
         assertThat(query.name()).isEqualTo("marked");
     }
 

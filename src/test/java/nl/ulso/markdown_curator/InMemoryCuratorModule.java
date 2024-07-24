@@ -9,7 +9,7 @@ import java.nio.file.attribute.BasicFileAttributes;
 
 abstract class InMemoryCuratorModule
 {
-    static protected Path copyVaultToMemory(Path sourceRoot, String targetPath)
+    protected static Path copyVaultToMemory(Path sourceRoot, String targetPath)
     {
         var configuration = Configuration.unix().toBuilder().build();
         var targetFileSystem = Jimfs.newFileSystem(configuration);

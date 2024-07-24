@@ -60,7 +60,8 @@ public class Application
             LOGGER.error("Couldn't write PID. Another Markdown Curator is running. Exiting.");
             return;
         }
-        var factories = ServiceLoader.load(CuratorFactory.class).stream().map(Provider::get).toList();
+        var factories =
+                ServiceLoader.load(CuratorFactory.class).stream().map(Provider::get).toList();
         if (factories.isEmpty())
         {
             LOGGER.error("No curators are available in the system. Nothing to do!");
@@ -132,6 +133,8 @@ public class Application
                         {
                             case DAEMON -> curator.run();
                             case ONCE -> curator.runOnce();
+                            default ->
+                                    throw new RuntimeException("Unsupported run mode: " + runMode);
                         }
                     }
                     catch (Exception e)
