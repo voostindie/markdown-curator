@@ -35,7 +35,7 @@ public class MarkedQuery
     @Override
     public String description()
     {
-        return "Generates an overview of the marked lines for the selected document, with entries extracted from the journal. Each marker gets its own section. The title of the section defaults to the name of the marker, but this can be overruled by setting the 'title' property of the marker document itself (if present). If a marker is not present for the selected document, the section is left out.";
+        return "Generates an overview of the marked lines for the selected document, with entries extracted from the journal. Each marker gets its own section. The title of the section defaults demoto the name of the marker, but this can be overruled by setting the 'title' property of the marker document itself (if present). If a marker is not present for the selected document, the section is left out.";
     }
 
     @Override
