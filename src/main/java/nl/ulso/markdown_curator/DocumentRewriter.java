@@ -17,7 +17,7 @@ import static java.util.stream.Collectors.toMap;
  * Two things to note:
  * <ul>
  *     <li>Every query in the document MUST be provided with new output, otherwise this is
- *     an error.</li>
+ *     a programming error.</li>
  *     <li>A newline is ALWAYS written at the end of the file, even if the source document didn't
  *     have one.</li>
  * </ul>

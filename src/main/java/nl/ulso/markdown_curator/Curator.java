@@ -47,9 +47,7 @@ import static org.slf4j.LoggerFactory.getLogger;
  * <p/>
  * I haven't taken the time to prove that this parallel implementation is faster than a sequential
  * one. I applied parallelism simply because I don't want the 10 cores of the M1 Pro processor in
- * my MacBook Pro go to waste. And because it was fun to do. Nice tidbit: one of my vaults has
- * 3250 embedded queries, across 2850 documents. Running those takes a little over 40 milliseconds;
- * the CPU doesn't break a sweat.
+ * my MacBook Pro go to waste. And because it was fun to do.
  */
 public class Curator
         implements VaultChangedCallback
@@ -110,6 +108,15 @@ public class Curator
         scheduleQueryWriteRun();
     }
 
+    /**
+     * A change is self-triggered if it was the result of the curator writing a file to disk. To
+     * cancel out those changes - no query will produce different output, guaranteed - the curator
+     * keeps track of the files it changed, and then compares them with the changes it detects.
+     * If they match, the change was self-triggered.
+     *
+     * @param event Event that triggered the curator.
+     * @return {@code true} if the change was self-triggered, {@code false} otherwise.
+     */
     private boolean checkSelfTriggeredUpdate(VaultChangedEvent event)
     {
         if (!(event instanceof DocumentChanged changeEvent))
@@ -132,6 +139,10 @@ public class Curator
         return true;
     }
 
+    /**
+     * Since there is an incoming change, there's no need to write changes to disk from the previous
+     * processing run; a new one will be scheduled shortly.
+     */
     private void cancelQueryWriteRunIfPresent()
     {
         if (runTask != null)
@@ -141,6 +152,11 @@ public class Curator
         }
     }
 
+    /**
+     * A change was detected, which means all queries need to be executed, and changes written to
+     * disk. That work is scheduled for a few seconds from now. If new changes come in in the
+     * meantime, the task will be cancelled and replaced by a new one.
+     */
     private void scheduleQueryWriteRun()
     {
         LOGGER.debug(
@@ -150,6 +166,10 @@ public class Curator
                 SCHEDULE_TIMEOUT_IN_SECONDS, SECONDS);
     }
 
+    /**
+     * Run all queries, collect all output, throw away all output except from the ones that changed,
+     * and write the changes back to disk.
+     */
     private void performQueryWriteRun()
     {
         MDC.put("curator", curatorName);
@@ -165,9 +185,8 @@ public class Curator
     /**
      * Refresh all data models for the incoming event.
      * <p/>
-     * Refreshing of data models must be done sequentially, because models are able to depend on
-     * each other. The order of data models *should* be okay, but I'm not sure if this is guaranteed
-     * at the moment...
+     * Refreshing of data models must be done sequentially, because models can depend on other
+     * models, and they are not necessarily protected against and built for concurrency.
      *
      * @param event The event to process.
      */
@@ -181,8 +200,13 @@ public class Curator
     }
 
     /**
-     * Runs all queries in the vault and collects the queries whose outputs have changed compared
+     * Run all queries in the vault and collect the queries whose outputs have changed compared
      * to what's in memory right now.
+     * <p/>
+     * Note that we have to collect and keep the output of all queries, even the ones that didn't
+     * change. Query output is not kept in memory between runs. Documents may embed more than
+     * one query, and documents are written to disks a whole. So, the outputs of all embedded
+     * queries need to be available.
      */
     Queue<QueryOutput> runAllQueries()
     {
@@ -220,6 +244,12 @@ public class Curator
         return writeQueue;
     }
 
+    /**
+     * Write a document to disk, but only if it hasn't changed since the start of the run.
+     *
+     * @param document     The document to write.
+     * @param queryOutputs The fresh output of all queries on the page.
+     */
     void writeDocument(Document document, List<QueryOutput> queryOutputs)
     {
         LOGGER.info("Rewriting document: {}", document);
@@ -242,7 +272,7 @@ public class Curator
     }
 
     /**
-     * Runs an action against each of the items in the collection in parallel and waits for all
+     * Run an action against each of the items in the collection in parallel and wait for all
      * actions to finish.
      *
      * @param items  Collection of items to apply an action on.

@@ -22,6 +22,12 @@ import static org.slf4j.LoggerFactory.getLogger;
  * <p/>
  * If a single curator cannot be instantiated, its thread is basically dead; it won't work. The
  * other curators (if any) will still work though.
+ * <p/>
+ * The application writes a PID-file to the temporary directory and deletes it again when the
+ * application is stopped. If a PIF-file already exists at startup, the application fails to
+ * startup. This is to prevent multiple curators processing the same directories independently.
+ * Having the same curator multiple times leads to all kinds of interesting race conditions, so
+ * it's worth preventing that.
  */
 public class Application
 {
@@ -101,7 +107,7 @@ public class Application
         }
         catch (IOException e)
         {
-            LOGGER.warn("Can't read properties file from classpath", e);
+            LOGGER.warn("Couldn't read properties file from classpath", e);
             return UNKNOWN_VERSION;
         }
     }

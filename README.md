@@ -10,7 +10,7 @@
 ## TL;DR
 
 - This is a Java 21+ library and small application framework for processing directories of Markdown documents.
-- It is especially well suited for Obsidian vaults and iA Writer libraries.
+- It is especially well suited for [Obsidian](https://obsidian.md) vaults and [iA Writer](https://ia.net/writer) libraries.
 - It detects queries in the documents, runs them, and writes back the results.
 - As an application, it monitors and processes directories in the background.
 
@@ -18,7 +18,7 @@ Okay, that probably doesn't tell you much.
 
 ## The 5-minute introduction
 
-This is a Java library and application framework that spins up a daemon. This daemon monitors one or more directories of Markdown documents, like [Obsidian](https://obsidian.md) vaults or [iA Writer](https://ia.net/writer) libraries. Based on changes happening in the directories, it detects and runs queries embedded in the documents, generates Markdown output for these queries and embeds this output in the documents themselves.
+This is a Java library and application framework that spins up a daemon. This daemon monitors one or more directories of Markdown documents, like [Obsidian](https://obsidian.md) vaults or [iA Writer](https://ia.net/writer) libraries. Based on changes happening in the directories and their Markdown documents, it detects and runs queries embedded in the documents, generates Markdown output for these queries and embeds this output in the documents themselves.
 
 Here's an example of what you can write in a Markdown document:
 
@@ -30,7 +30,9 @@ THE OUTPUT WILL GO HERE
 <!--/query-->
 ```
 
-Put this snippet (without the code block) in a document in a directory tracked by this tool, save it and watch `THE OUTPUT WILL GO HERE` be magically replaced with a sorted list of links to documents in the `Articles` subdirectory. Add a new article there, delete one, or update an existing one, and watch the list get updated instantly.
+Put this snippet (without the code block) in a document in a directory tracked by this tool, save it and watch `THE OUTPUT WILL GO HERE` be magically replaced with a sorted list of links to documents in the `Articles` subdirectory. Add a new article there, delete one, or update an existing one, and watch the list get updated instantly. 
+
+> Or, I should say: after 3 seconds. This is the built-in delay for processing files after changes were detected. This delay is needed for Obsidian, which automatically saves files every few seconds when you're typing in them. If in the space of the 3 second delay another change is detected, the processing run is cancelled, and a new one is scheduled to run, again in 3 seconds. This little trick ensures the processing doesn't happen unnecessarily often.  
 
 The query syntax may seem a bit weird at first, but notice that it is built up of HTML comment tags. That means that the query definitions disappear from view when you preview the Markdown, or export it to some other format using the tool of your choice, leaving you with just the query output. In effect the query syntax is invisible to any tool that processes Markdown correctly.
 
@@ -47,15 +49,19 @@ By default, this tool provides just a couple of built-in generic queries. See th
 
 To use this library, you have to code your own Java application, define this tool as a dependency, and implement your own curator, custom data models and custom queries. See further on for an example.
 
-The [music](src/test/resources/music/README.md) test suite provides examples of what this tool can do and how it works. The test code contains a [MusicCuratorModule](src/test/java/nl/ulso/markdown_curator/MusicCuratorModule.java) that can serve as an example for building your own curator, on top of your own vault.
+The [markdown-demo-curator](https://github.com/voostindie/markdown-curator-demo) provides a simple example of a repository of notes and an application on top of it to monitor it for changes and process queries.
+
+The [template-application](template-application/) folder holds a minimal template for creating your own curator.
+
+The [music](src/test/resources/music/README.md) test suite provides more examples of what this tool can do and how it works. The test code contains a [MusicCurator](src/test/java/nl/ulso/markdown_curator/MusicCurator.java) that can serve as an example for building your own curator, on top of your own vault.
 
 [Vincent's Markdown Curator](https://github.com/voostindie/vincents-markdown-curator) (vmc) is my own, personal implementation that I use every day. It runs on top of 3 independent vaults - work, volunteering, personal - each with their own unique queries, and some shared across. You might find some inspiration in it.
 
 ## Obsidian users: Ye be warned!
 
-If you're an Obsidian user, then note that most of the things this library does can also be achieved using plugins, like [Dataview](https://github.com/blacksmithgu/obsidian-dataview). I do not like those kinds of plugins. I believe they defeat Obsidian's purpose. For me Obsidian is all about storing knowledge in *portable* Markdown files. Sprinkling those same files with code (queries) that only Obsidian with a specific plugin installed can understand is not the right idea, I think.
+If you're an Obsidian user, then note that most of the things this library does can also be achieved using plugins, like [Dataview](https://github.com/blacksmithgu/obsidian-dataview). I do not like those kinds of plugins. I believe they defeat Obsidian's purpose. For me Obsidian is all about storing knowledge in *portable* Markdown files. Sprinkling those same files with code (queries) that only Obsidian, with specific plugins installed can understand is not the right idea, I think.
 
-With this library I have the best of both worlds: portable Markdown and "dynamic" content. Query output is embedded in the documents as Markdown content. As far as Obsidian concerns, this tool is not even there. 
+With this library I get the best of both worlds: portable Markdown and "dynamic" content. Query output is embedded in the documents as Markdown content. As far as Obsidian concerns, this tool is not even there. 
 
 On the other hand, Obsidian plugins are much easier to install and use. This library requires you to get your hands dirty with Java. You must build your own  application. That's not for everyone.
 
@@ -94,7 +100,7 @@ This library/application does **not** fully parse Markdown. It only does so on a
 - Queries
 - Text
 
-A text block is "anything *not* of the above". The content of a text block itself is not parsed. Whether text is in bold or italic, is in a list or in a table, uses CriticMarkup or some other extension: the internal parser is oblivious to it; it's all just text. When you build your own queries, it's up to you to extract content out of the various blocks, as you see fit. 
+A text block is "anything *not* of the above". The content of a text block itself is not parsed. Whether text is in bold or italic, holds a list or a table, uses CriticMarkup or some other format: the internal parser is oblivious to it; it's all just text. When you build your own queries, it's up to you to extract content out of the various blocks, as you see fit. 
 
 I have some ideas to extend this further in order to make query construction easier, but I'm not planning on introducing a full Markdown parser.
 
@@ -116,16 +122,19 @@ Creating your own application means that you'll need to:
 
 A `mvn clean package` and `java -jar target/my-markdown-curator.jar` should result in the application starting up and exiting immediately, telling you that it can't find any curators.
 
+> Because I have not published his library to Maven central yet, or anywhere else, you have to install this library in your local repository first. To do so: clone it and do an `mvn install`. 
+
 ### Create and publish a custom curator
 
-- Implement the `CuratorFactory` base class.
-- Add your implementation to `src/main/resources/META-INF/services/nl.ulso.markdown_curator.CuratorModule`.
-- Use [Dagger 2](https://dagger.dev) to define:
-	- A `@Module` to include and configure everything you need
-	- A `@Component` to publish your curator
-- (See the [markdown-curator-demo](https://github.com/voostindie/markdown-curator-demo) for a minimal example.)
+- Define a [Dagger](https://dagger.dev) `@Module` to set up the context of your curator. In the module include *at least* the `nl.ulso.markdown_curator.CuratorModule`.
+- Define a Dagger `@Component` that depends on your module and that exposes your `Curator` instance. Typically this is in an interface with just one method.
+- Compile your code with Maven or in your IDE. If all was well you'll end up with extra code generated by Dagger. If you named your component `MyComponent`, there will be a `DaggerMyComponent` now too.
+- Implement the `CuratorFactory` interface. In its implementation use the Dagger-generated code to create and return your `Curator` instance. 
+- Add the `CuratorFactory` implementation to `src/main/resources/META-INF/services/nl.ulso.markdown_curator.CuratorModule`.
 
-A `mvn clean package` and `java -jar target/my-markdown-curator.jar` should result in the application starting up and staying up, monitoring the directory you provided in your own custom curator.
+> See the [markdown-curator-demo](https://github.com/voostindie/markdown-curator-demo) for an example.
+
+An `mvn package` and `java -jar target/my-markdown-curator.jar` should result in the application starting up and staying up, monitoring the directory you provided in your own custom curator.
 
 Try changing a file in any Markdown document in your document repository now. For example, add the `toc` query. Magic should happen!
 
@@ -137,7 +146,11 @@ Try changing a file in any Markdown document in your document repository now. Fo
 ### Create and register one or more queries
 
 - Implement the `Query` interface.
-- Register the query in your `CuratorModule` subclass, with `registerQuery`.
+- Register the query in your own module, by binding the concrete instance into a `Query` set:
+
+```java
+@Binds @IntoSet abstract Query bindMyOwnCustomQuery(MyOwnCustomQuery query);
+```
 
 Rebooting your application should result in the availability of the new query.
 
@@ -145,18 +158,26 @@ Rebooting your application should result in the availability of the new query.
 
 Once you've implemented a couple of queries you might run into one or two issues:
 
-1. **Duplication**. Extracting specific values from documents might be complex, and might be needed across queries.
+1. **Duplication**. Extracting specific values from documents might be complex, and the same values might be needed across queries.
 2. **Heavy processing**. Running many queries across large data sets on every change, no matter how small, can be CPU intensive.
 
 To solve these issues you can create your own data models, which you can then build your queries upon.
 
-To do so, implement the `DataModel` interface, register it in your curator module and share it with your own queries. Whenever a change is detected, the curator requests your data models to update themselves accordingly, through the `vaultChanged` method. 
+To do so, implement the `DataModel` interface and register it in your curator module:
+
+```java
+@Binds @IntoSet abstract DataModel bindMyOwnCustomDataModel(MyOwnCustomDataModel dataModel);
+```
+
+Now you can use (inject) it in your own queries. Whenever a change is detected, the curator requests your data models to update themselves accordingly, through the `vaultChanged` method. It runs the queries afterwards. 
+
+> The curator *always* runs all queries. It's not smart enough to detect that a query depends on a specific `DataModel` and that the `DataModel` might not have changed internally. This would require information that is not available at run-time, except through reflection, which this library is not using. A possible solution is to build a Dagger plugin that extracts the necessary information. That would be cool, but would also be solving a problem that I currently do not have; see the FAQ.
 
 **IMPORTANT**: make sure your data models are registered as `@Singleton`s!
 
 By extending the `DataModelTemplate` class you get full refreshes basically for free, and an easy way to process events in a more granular fashion, if so desired: simply override the `process` methods of choice and provide your own implementation.
 
-As an example of a custom data model, see the built-in `Journal` model, which is used by the `timeline` query to generate Logseq-like summaries.
+As an example of a custom data model, see the built-in `Journal` model, which is used by a number of queries.
 
 ## Query collections
 
@@ -191,18 +212,13 @@ This query generates a table of contents for the current document. You can tweak
 
 ### Links module queries
 
-By enabling the `LinksModule` in your Curator module, the queries in this section become available.
+By including the `LinksModule` to your Curator module, the queries in this section become available.
 
 ```java
-public class MyCuratorModule
-		extends CuratorModule
+@Module(includes = {CuratorModule.class, LinksModule.class})
+abstract class MyCuratorModule
 {
-    @Override
-    protected void configureCurator()
-    {
-        install(new LinksModule());
-        // Additional configuration...
-    }
+    // Your code here
 }
 ```
 
@@ -242,23 +258,24 @@ For example, here is the template I currently use for my daily notes:
 ...
 ```
 
-To enable the module in your Curator, you have to install it:  
+To enable the module in your Curator, you have to include it:  
 
 ```java
-public class MyCuratorModule
-		extends CuratorModule
+@Module(includes = {CuratorModule.class, JournalModule.class})
+abstract class MyCuratorModule
 {
-    @Override
-    protected void configureCurator()
-    {
-        install(new JournalModule(
-                "Journal",      // Where daily journal pages are kept 
-				"Markers",      // Where marker descriptions are kept
-                "Activities",   // Name of the section with the outline
-                "Projects"      // Where project notes are kept
-        ));
-        // Additional configuration...
-    }
+    @Provides
+    static JournalSettings journalSettings() 
+	{
+        return new JournalSettings(
+            "Journal",      // Where daily journal pages are kept 
+            "Markers",      // Where marker descriptions are kept
+            "Activities",   // Name of the section with the outline
+            "Projects"      // Where project notes are kept
+		);
+	}
+    
+    // Your code here
 }
 ```
 
@@ -270,7 +287,7 @@ The `timeline` query generates a timeline on a certain topic; by default this is
 
 The `marked` query generates a selection of lines annotated with a specific marker, one section per marker, on a certain topic. By default, the topic is the page the query is added to. Lines in each section are ordered according to the timeline; oldest first. The markers themselves are removed from each line.
 
-A marker is nothing more than a reference to a document. That can be *any* document. The document might not even exist; the functionality still works. Markers are useful to collect specific segments from the timeline and show them promimently, for example at the top of a document.
+A marker is nothing more than a reference to a document. That can be *any* document. The document might not even exist; the functionality still works. Markers are useful to collect specific segments from the timeline and show them promimently in their own section, for example at the top of a document.
 
 Markers only apply to a topic if they are *exactly* one level lower than the topic itself. This is so you can reuse markers for different topics, even when the topics are nested. 
 
@@ -301,9 +318,9 @@ markers: ❗️
 - Important meeting note 2
 ```
 
-So, it lists all lines marked with a reference to ❗️ and collects them in a single section. It doesn't show "We shouldn't forget about this!", because the marker there applies to Topic 2.
+So, it lists all lines marked with a reference to ❗️ and collects them in a single section. It doesn't show "We shouldn't forget about this!", because the marker on that line applies to Topic 2.
 
-You can change the header titles of the section in the query output by adding a `title` property to the marker document themselves. This ensures consistency across the vault and simplifies the query definition.
+You can change the header titles of the section in the query output by adding a `title` property to the marker document. This ensures consistency across the vault and simplifies the query definition.
 
 So, in this example, if you were to define the page `❗️` as follows:
 
@@ -379,3 +396,27 @@ This shouldn't be needed, but when in doubt, it's easy: remove or change the has
 The curator uses the hash to detect changes in query output; not the query output itself. It does this because query output is not actually stored in memory. That's why you see these hashes show up in the query output (as part of the closing HTML comment).
 
 When you change the hash in any way, the curator will assume the content has changed, and will replace it with a fresh query result.
+
+### Can I run the application not as a daemon, but just once, for example in a build pipeline?
+
+Yes, you can! By providing argument "-1" or "--once" at start-up, the curator will do its work once and then quit.
+
+### How hungry on resources is this tool?
+
+I've gone out of my way to limit both the amount of memory and CPU it uses. This is a Java application, so there's that; there's a minimal memory footprint. But on top of that I aim to use as little as possible.
+
+However, this application reads *all* Markdown files in memory, and keeps them there. (Without the content of the query blocks in the content; those are only kept in memory during a processing run.) I made this choice explicitly; see ADR00003. This means that the amount of memory used grows with the amount of documents in a repository. Since those documents are normally written by hand, I figured it would take about forever to use more memory than is available in modern hardware. And by that time the amount of memory will likely have doubled at least. 
+
+When changes are detected the application kicks in by first refreshing all data models, then running all queries embedded in the content, and finally writing to disk only those files that have changed. The queries run in parallel, using Java virtual threads.
+
+This is all nice and good, but what does it actually mean?
+
+Well, I use [vincents-markdown-curator](https://github.com/voostindie/vincents-markdown-curator) (*vmc*) all day, every day. It sits on top of 4 repositories, with around 5000 Markdown documents in there. My work repository is the largest by far, with over 3500 documents. In those documents there are over 3600 embedded queries. And its growing, because I create at least one document for every working day to hold the daily log, and every daily log embeds at least 2 queries.
+
+I've limited *vmc* to use at most 128 MB of memory. When it's not doing anything it currently uses a little over 65 MB, according to jconsole. When it's running queries in my work repository this spikes to about twice that, but then quickly comes down again.
+
+CPU-wise I don't get to see it use more than 5% of my M1 Pro and then only during processing. Otherwise it's using around 0.3%.
+
+Running all 3600 queries takes less than 75 milliseconds.
+
+All in all I basically don't notice that *vmc* is running all the time. It will be many years from now that I'll have so many documents with so many embedded queries in them that performance becomes an issue. So, that's a challenge for another day.

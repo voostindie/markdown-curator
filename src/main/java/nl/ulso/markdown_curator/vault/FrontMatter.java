@@ -14,8 +14,12 @@ import static nl.ulso.markdown_curator.vault.Dictionary.yamlDictionary;
  * even if the underlying document has none; in that case the front matter is empty.
  * <p/>
  * This class wraps a {@link nl.ulso.markdown_curator.vault.Dictionary}. For ease of use it
- * implements its
- * interface as well.
+ * implements its interface as well.
+ * <p/>
+ * This implementation holds both the original content (a {@link String}) as well as the processed
+ * content (a {@link Dictionary}) of the front matter in memory. The original content is needed
+ * to ensure that front matter is written back to disk unchanged, however the document author
+ * formatted it.
  */
 public final class FrontMatter
         extends FragmentBase

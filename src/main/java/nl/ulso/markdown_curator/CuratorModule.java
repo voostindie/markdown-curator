@@ -22,8 +22,8 @@ import java.util.Set;
  *     <li>Provide a {@code Path}. This is the path on disk to the vault (repository) with Markdown
  *     files.</li>
  *     <li>(Optional): provide a {@link java.util.Locale}. This will be used for translations in
- *     normal output. The default is English.
- *     (Instructions and error messages are all in English, hard-coded.)</li>
+ *     normal output. The default is English. (Instructions and error messages are all in
+ *     English, hard-coded.)</li>
  *     <li>(Optional): register custom {@link DataModel}s: Create an abstract method for every
  *     concrete implementation that binds it to the {@code DataModel} interface. Note that
  *     every data model must be a singleton.</li>
