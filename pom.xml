@@ -21,7 +21,7 @@
         <dependency>
             <groupId>com.google.dagger</groupId>
             <artifactId>dagger</artifactId>
-            <version>2.51.1</version>
+            <version>2.52</version>
         </dependency>
         <!-- Native directory watching for macOS
              https://github.com/gmethvin/directory-watcher -->
@@ -34,7 +34,7 @@
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
-            <version>2.0.12</version>
+            <version>2.0.15</version>
         </dependency>
         <!-- YAML processing -->
         <dependency>
@@ -46,19 +46,19 @@
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter</artifactId>
-            <version>5.10.2</version>
+            <version>5.10.3</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.assertj</groupId>
             <artifactId>assertj-core</artifactId>
-            <version>3.25.3</version>
+            <version>3.26.3</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>nl.jqno.equalsverifier</groupId>
             <artifactId>equalsverifier</artifactId>
-            <version>3.15.6</version>
+            <version>3.16.1</version>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -70,13 +70,13 @@
         <dependency>
             <groupId>org.awaitility</groupId>
             <artifactId>awaitility</artifactId>
-            <version>4.2.0</version>
+            <version>4.2.2</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>ch.qos.logback</groupId>
             <artifactId>logback-classic</artifactId>
-            <version>1.5.0</version>
+            <version>1.5.6</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
@@ -89,7 +89,7 @@
             </resource>
         </resources>
         <plugins>
-            <!-- Require at least Maven 3.8 -->
+            <!-- Require at least Maven 3.9 -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-enforcer-plugin</artifactId>
@@ -103,7 +103,7 @@
                         <configuration>
                             <rules>
                                 <requireMavenVersion>
-                                    <version>3.8</version>
+                                    <version>3.9</version>
                                 </requireMavenVersion>
                             </rules>
                         </configuration>
@@ -122,7 +122,7 @@
                         <path>
                             <groupId>com.google.dagger</groupId>
                             <artifactId>dagger-compiler</artifactId>
-                            <version>2.51.1</version>
+                            <version>2.52</version>
                         </path>
                     </annotationProcessorPaths>
                 </configuration>
