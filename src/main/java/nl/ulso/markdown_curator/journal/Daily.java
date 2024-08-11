@@ -144,9 +144,9 @@ public class Daily
      * @param markerNames Names of the markers to collect.
      * @return A map of markers to lines.
      */
-    public Map<String, List<String>> markedLinesFor(String documentName, Set<String> markerNames)
+    public Map<String, List<MarkedLine>> markedLinesFor(LocalDate date, String documentName, Set<String> markerNames)
     {
-        var result = new HashMap<String, List<String>>();
+        var result = new HashMap<String, List<MarkedLine>>();
         var indexes = documentReferences.get(documentName);
         var sectionLines = sectionLines(section);
         for (int selectedIndex = indexes.nextSetBit(0); selectedIndex >= 0;
@@ -170,7 +170,7 @@ public class Daily
                     }
                     var line = removeMarker(sectionLines.get(markerIndex).trim(), marker);
                     var list = result.computeIfAbsent(marker, key -> new ArrayList<>());
-                    list.add(line);
+                    list.add(new MarkedLine(date, line));
                 }
             }
         }

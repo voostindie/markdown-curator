@@ -304,9 +304,7 @@ For example, let's say you have a timeline somewhere that looks like this:
 If you now put the following query on the page of "Topic 1":
 
 ```
-<!--query:markers
-markers: ❗️
--->
+<!--query:markers markers: [❗]️-->
 <!--/query-->
 ```
 
@@ -318,11 +316,11 @@ markers: ❗️
 - Important meeting note 2
 ```
 
-So, it lists all lines marked with a reference to ❗️ and collects them in a single section. It doesn't show "We shouldn't forget about this!", because the marker on that line applies to Topic 2.
+It lists all lines marked with a reference to ❗️ and collects them in a single section. It doesn't show "We shouldn't forget about this!", because the marker on that line applies to Topic 2.
 
-You can change the header titles of the section in the query output by adding a `title` property to the marker document. This ensures consistency across the vault and simplifies the query definition.
+You can change the header titles of the section for each marker in the query output by adding a `title` property to the marker document. This ensures consistency across the vault and simplifies the query definition.
 
-So, in this example, if you were to define the page `❗️` as follows:
+In this example, if you were to define the page `❗️` as follows:
 
 ```
 ---
@@ -334,7 +332,9 @@ title: ❗️ Important!
 
 ...then the section title in all query outputs would include the text "Important !".
 
-Creating marker documents has more advantages than just being able to specify a custom title:
+If you want to group the entries for a marker by date in the output, then add the front matter variable `group-by-date` with a value of `true`.
+
+Creating marker documents has more advantages than just being able to influence the query output:
 
 - They're documents like any other, so things like backlinks "just work".
 - They can define aliases in their front matter, natively supported by Obsidian.

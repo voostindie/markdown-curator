@@ -141,8 +141,12 @@ class JournalTest
     {
         var journal = createTestJournal();
         var markedLines = journal.markedLinesFor("foo", Set.of("❗️", "❓"));
-        var importantLines = Strings.join(markedLines.get("❗️")).with("\n");
-        var questionLines = Strings.join(markedLines.get("❓")).with("\n");
+        var importantLines =
+                Strings.join(markedLines.get("❗️").stream().map(MarkedLine::line).toList())
+                        .with("\n");
+        var questionLines =
+                Strings.join(markedLines.get("❓").stream().map(MarkedLine::line).toList())
+                        .with("\n");
         assertThat(importantLines).isEqualTo("- Remember this\n- Remember this too");
         assertThat(questionLines).isEqualTo("- Important question!");
     }
@@ -194,6 +198,29 @@ class JournalTest
                 ---
                 title: CUSTOM TITLE
                 ---
+                """);
+        vault.addDocumentInPath("Journal/Markers/🪵", """
+                ---
+                title: Status log
+                group-by-date: true
+                ---
+                """);
+        vault.addDocumentInPath("Journal/2024/2024-08-11", """
+                ## Log
+                
+                - [[Project 42]]
+                    - [[🪵]] Entry one
+                    - [[🪵]] Entry two
+                """);
+        vault.addDocumentInPath("Journal/2024/2024-08-12", """
+                ## Log
+                
+                - [[Project 42]]
+                    - [[🪵]] Entry three
+                """);
+        vault.addDocumentInPath("Projects/Project 42", """
+                <!--query:marked markers: [🪵]-->
+                <!--/query-->
                 """);
         var journal =
                 new Journal(vault, new JournalSettings("Journal", "Markers", "Log", "Projects",

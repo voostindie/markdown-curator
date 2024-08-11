@@ -1,7 +1,6 @@
 package nl.ulso.markdown_curator.journal;
 
-import nl.ulso.markdown_curator.query.QueryDefinitionStub;
-import nl.ulso.markdown_curator.query.QueryResultFactory;
+import nl.ulso.markdown_curator.query.*;
 import nl.ulso.markdown_curator.vault.VaultStub;
 import org.assertj.core.api.junit.jupiter.SoftAssertionsExtension;
 import org.junit.jupiter.api.BeforeEach;
@@ -93,6 +92,25 @@ class MarkedQueryTest
                 - Special marker
                 
                 """);
+    }
+
+    @Test
+    void groupByDateMarker()
+    {
+        var document = ((VaultStub) journal.vault()).resolveDocumentInPath("Projects/Project 42");
+        var definition = (QueryDefinition) document.fragments().get(1);
+        var result = query.run(definition);
+        assertThat(result.toMarkdown()).isEqualTo("""
+                ## Status log
+                
+                - [[2024-08-11]]:
+                    - Entry one
+                    - Entry two
+                - [[2024-08-12]]:
+                    - Entry three
+               
+                """);
+
     }
 
     private MarkedQuery createQuery()

@@ -1,8 +1,8 @@
 package nl.ulso.markdown_curator.journal;
 
 import nl.ulso.markdown_curator.DataModelTemplate;
-import nl.ulso.markdown_curator.vault.Document;
-import nl.ulso.markdown_curator.vault.Vault;
+import nl.ulso.markdown_curator.vault.*;
+import nl.ulso.markdown_curator.vault.Dictionary;
 import nl.ulso.markdown_curator.vault.event.*;
 import org.slf4j.Logger;
 
@@ -17,6 +17,7 @@ import static java.util.Comparator.naturalOrder;
 import static java.util.Comparator.reverseOrder;
 import static java.util.stream.Collectors.toMap;
 import static java.util.stream.Collectors.toUnmodifiableSet;
+import static nl.ulso.markdown_curator.vault.Dictionary.emptyDictionary;
 import static org.slf4j.LoggerFactory.getLogger;
 
 @Singleton
@@ -122,16 +123,16 @@ public class Journal
         return timeline;
     }
 
-    public Map<String, List<String>> markedLinesFor(String documentName, Set<String> markerNames)
+    public Map<String, List<MarkedLine>> markedLinesFor(String documentName, Set<String> markerNames)
     {
         return dailiesFor(documentName)
                 .flatMap(daily -> daily
-                        .markedLinesFor(documentName, markerNames).entrySet()
+                        .markedLinesFor(daily.date(), documentName, markerNames).entrySet()
                         .stream())
                 .collect(toMap(Entry::getKey, Entry::getValue, Journal::mergeLists, TreeMap::new));
     }
 
-    private static List<String> mergeLists(List<String> first, List<String> second)
+    private static <T> List<T> mergeLists(List<T> first, List<T> second)
     {
         first.addAll(second);
         return first;
@@ -213,14 +214,12 @@ public class Journal
         return date.get(settings.weekFields().dayOfWeek());
     }
 
-    public String markerTitle(String markerName)
-    {
+    public Dictionary markerSettings(String markerName) {
         return vault.folder(settings.journalFolderName())
                 .flatMap(journalFolder -> journalFolder.folder(settings.markerSubFolderName())
-                        .flatMap(markerFolder -> markerFolder.document(markerName).map(document ->
-                                document.frontMatter().string("title", markerName)
-                        )))
-                .orElse(markerName);
+                        .flatMap(markerFolder -> markerFolder.document(markerName)
+                                .map(Document::frontMatter)))
+                .orElse(emptyDictionary());
     }
 
     public Vault vault()

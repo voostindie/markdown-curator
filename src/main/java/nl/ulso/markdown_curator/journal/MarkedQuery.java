@@ -4,6 +4,7 @@ import nl.ulso.markdown_curator.query.*;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
+import java.time.LocalDate;
 import java.util.HashSet;
 import java.util.Map;
 
@@ -57,14 +58,29 @@ public class MarkedQuery
         var result = new StringBuilder();
         for (var markerEntry : markedLines.entrySet())
         {
+            var markerName = markerEntry.getKey();
+            var markerSettings = journal.markerSettings(markerName);
             result.append(level)
                     .append(" ")
-                    .append(journal.markerTitle(markerEntry.getKey()))
+                    .append(markerSettings.string("title", markerName))
                     .append(lineSeparator())
                     .append(lineSeparator());
-            for (var line : markerEntry.getValue())
+            var groupByDate = markerSettings.bool("group-by-date", false);
+            LocalDate currentDate = null;
+            for (var markedLine : markerEntry.getValue())
             {
-                result.append(line).append(lineSeparator());
+                if (groupByDate) {
+                    if (!markedLine.date().equals(currentDate))
+                    {
+                        currentDate = markedLine.date();
+                        result.append("- [[")
+                                .append(currentDate)
+                                .append("]]:")
+                                .append(lineSeparator());
+                    }
+                    result.append("    ");
+                }
+                result.append(markedLine.line()).append(lineSeparator());
             }
             result.append(lineSeparator());
         }
