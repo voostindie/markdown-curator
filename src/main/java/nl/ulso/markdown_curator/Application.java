@@ -2,6 +2,7 @@ package nl.ulso.markdown_curator;
 
 import org.slf4j.Logger;
 import org.slf4j.MDC;
+import org.slf4j.helpers.Reporter;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -10,6 +11,7 @@ import java.util.ServiceLoader.Provider;
 
 import static java.lang.System.getProperty;
 import static java.lang.System.lineSeparator;
+import static java.lang.System.setProperty;
 import static java.lang.Thread.currentThread;
 import static java.nio.file.Files.writeString;
 import static java.nio.file.StandardOpenOption.CREATE_NEW;
@@ -31,11 +33,21 @@ import static org.slf4j.LoggerFactory.getLogger;
  */
 public class Application
 {
-    private static final Logger LOGGER = getLogger(Application.class);
+    private static final Logger LOGGER;
+
+    static
+    {
+        // Make sure we disable SLF4J's useless logging before it initializes itself.
+        // Because the application's main method is in this class, this is how that needs happen.
+        setProperty(Reporter.SLF4J_INTERNAL_VERBOSITY_KEY, "ERROR");
+        LOGGER = getLogger(Application.class);
+    }
+
     private static final Path
             DEFAULT_PID = Path.of(getProperty("java.io.tmpdir"), "markdown-curator.pid");
 
     static final String UNKNOWN_VERSION = "<UNKNOWN>";
+
     private final Path pid;
 
     enum RunMode
