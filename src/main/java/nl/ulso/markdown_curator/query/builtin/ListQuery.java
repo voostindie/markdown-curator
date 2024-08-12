@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.Map;
 
 import static java.util.Collections.reverse;
+import static java.util.Comparator.comparing;
 
 public final class ListQuery
         implements Query
@@ -56,7 +57,10 @@ public final class ListQuery
         var reverse = configuration.bool("reverse", false);
         var finder = new PageFinder(folder, recurse);
         vault.accept(finder);
-        var list = new ArrayList<>(finder.pages().stream().map(Document::link).sorted().toList());
+        var list = new ArrayList<>(finder.pages().stream()
+                .sorted(comparing(Document::sortableTitle))
+                .map(Document::link)
+                .toList());
         if (reverse)
         {
             reverse(list);
