@@ -212,11 +212,7 @@ public class Curator
     {
         var writeQueue = new ConcurrentLinkedQueue<QueryOutput>();
         var queryBlocks = vault.findAllQueryBlocks();
-        if (LOGGER.isDebugEnabled())
-        {
-            LOGGER.debug("Running {} queries", queryBlocks.size());
-        }
-        runInParallel(queryBlocks, queryBlock ->
+        var duration = runInParallel(queryBlocks, queryBlock ->
         {
             var query = queryCatalog.query(queryBlock.queryName());
             if (LOGGER.isTraceEnabled())
@@ -241,6 +237,7 @@ public class Curator
             var isChanged = !queryBlock.outputHash().contentEquals(hash);
             writeQueue.add(new QueryOutput(queryBlock, output, hash, isChanged));
         });
+        LOGGER.info("Executed {} queries in {} ms", queryBlocks.size(), duration);
         return writeQueue;
     }
 
@@ -278,10 +275,12 @@ public class Curator
      * @param items  Collection of items to apply an action on.
      * @param action Action to apply to each item.
      * @param <I>    Class of the item.
+     * @return The duration of the run in milliseconds
      */
-    private <I> void runInParallel(Collection<I> items, Consumer<I> action)
+    private <I> long runInParallel(Collection<I> items, Consumer<I> action)
     {
         var latch = new CountDownLatch(items.size());
+        var startTime = System.currentTimeMillis();
         for (I item : items)
         {
             parallelExecutor.submit(() ->
@@ -310,5 +309,6 @@ public class Curator
             Thread.currentThread().interrupt();
             throw new CuratorException(e);
         }
+        return System.currentTimeMillis() - startTime;
     }
 }

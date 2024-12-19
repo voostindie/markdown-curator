@@ -43,6 +43,7 @@ public final class FileSystemVault
     private final DirectoryWatcher watcher;
     private VaultChangedCallback callback;
 
+    @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
     @Inject
     public FileSystemVault(Path absolutePath, Optional<WatchService> watchService)
     {
@@ -169,7 +170,7 @@ public final class FileSystemVault
         if (isDocument(eventAbsolutePath))
         {
             var document = newDocumentFromAbsolutePath(eventAbsolutePath);
-            LOGGER.info("Detected changes to document {}.", document);
+            LOGGER.debug("Detected changes to document {}.", document);
             parent.addDocument(document);
             return documentChanged(document);
         }
