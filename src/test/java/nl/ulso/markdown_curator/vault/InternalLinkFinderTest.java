@@ -9,6 +9,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import java.util.List;
 
 import static nl.ulso.markdown_curator.vault.Document.newDocument;
+import static org.assertj.core.api.Assertions.assertThat;
 
 @ExtendWith(SoftAssertionsExtension.class)
 class InternalLinkFinderTest
@@ -71,6 +72,13 @@ class InternalLinkFinderTest
         softly.assertThat(first.targetAnchor().orElseThrow()).isEqualTo("anchor");
         softly.assertThat(first.alias()).isPresent();
         softly.assertThat(first.alias().orElseThrow()).isEqualTo("alias");
+    }
+
+    @Test
+    void targetDocumentNames()
+    {
+        var content = "[[Link]] to [[Document|Alias]] with an [[Anchor#Header]] and an [[OtherDocument#Header|OtherAlias]]";
+        assertThat(InternalLinkFinder.parseInternalLinkTargetNames(content)).containsExactlyInAnyOrder("Link", "Document", "Anchor", "OtherDocument");
     }
 
     private List<InternalLink> allLinks(String content)

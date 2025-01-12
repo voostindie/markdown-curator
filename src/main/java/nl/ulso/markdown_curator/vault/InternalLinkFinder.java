@@ -2,6 +2,8 @@ package nl.ulso.markdown_curator.vault;
 
 import java.util.*;
 
+import static java.util.stream.Collectors.toSet;
+
 /**
  * Finds all internal links in the WikiLink format.
  * <p/>
@@ -28,6 +30,23 @@ public class InternalLinkFinder
         internalLinks = new ArrayList<>();
     }
 
+    public List<InternalLink> internalLinks()
+    {
+        return internalLinks;
+    }
+
+    /**
+     * Extracts all references to internal documents - target names only - from a chunk of Markdown.
+     * @param content Markdown text to extract internal links from.
+     * @return Set of references to internal documents.
+     */
+    public static Set<String> parseInternalLinkTargetNames(String content)
+    {
+        return parseInternalLinks(null, content).stream()
+                .map(InternalLink::targetDocument)
+                .collect(toSet());
+    }
+
     public static List<InternalLink> findInternalLinks(Fragment fragment, String content)
     {
         var finder = new InternalLinkFinder();
@@ -35,9 +54,47 @@ public class InternalLinkFinder
         return finder.internalLinks();
     }
 
-    public List<InternalLink> internalLinks()
+    private static List<InternalLink> parseInternalLinks(Fragment fragment, String content)
     {
-        return internalLinks;
+        var result = new ArrayList<InternalLink>();
+        var index = 0;
+        var length = content.length();
+        while (index < length)
+        {
+            var start = content.indexOf(LINK_START, index);
+            if (start == -1)
+            {
+                break;
+            }
+            var end = content.indexOf(LINK_END, start + LINK_START_LENGTH);
+            if (end == -1)
+            {
+                break;
+            }
+            var link = content.substring(start + LINK_START_LENGTH, end);
+            Optional<String> alias = Optional.empty();
+            var marker = link.indexOf(ALIAS_MARKER);
+            if (marker != -1)
+            {
+                alias = Optional.of(link.substring(marker + 1));
+                link = link.substring(0, marker);
+            }
+            Optional<String> anchor = Optional.empty();
+            marker = link.indexOf(ANCHOR_MARKER);
+            if (marker != -1)
+            {
+                anchor = Optional.of(link.substring(marker + 1));
+                link = link.substring(0, marker);
+            }
+            result.add(new InternalLink(
+                    fragment,
+                    link,
+                    anchor,
+                    alias
+            ));
+            index = end + LINK_END_LENGTH;
+        }
+        return result;
     }
 
     @Override
@@ -55,42 +112,6 @@ public class InternalLinkFinder
 
     protected void extractInternalLinks(Fragment fragment, String content)
     {
-        var index = 0;
-        var length = content.length();
-        while (index < length)
-        {
-            var start = content.indexOf(LINK_START, index);
-            if (start == -1)
-            {
-                return;
-            }
-            var end = content.indexOf(LINK_END, start + LINK_START_LENGTH);
-            if (end == -1)
-            {
-                return;
-            }
-            var link = content.substring(start + LINK_START_LENGTH, end);
-            Optional<String> alias = Optional.empty();
-            var marker = link.indexOf(ALIAS_MARKER);
-            if (marker != -1)
-            {
-                alias = Optional.of(link.substring(marker + 1));
-                link = link.substring(0, marker);
-            }
-            Optional<String> anchor = Optional.empty();
-            marker = link.indexOf(ANCHOR_MARKER);
-            if (marker != -1)
-            {
-                anchor = Optional.of(link.substring(marker + 1));
-                link = link.substring(0, marker);
-            }
-            internalLinks.add(new InternalLink(
-                    fragment,
-                    link,
-                    anchor,
-                    alias
-            ));
-            index = end + LINK_END_LENGTH;
-        }
+        internalLinks.addAll(parseInternalLinks(fragment, content));
     }
 }
