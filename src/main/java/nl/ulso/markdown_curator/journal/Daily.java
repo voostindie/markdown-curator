@@ -141,10 +141,11 @@ public class Daily
      * results are grouped by marker, and the markers themselves are removed from the lines.
      *
      * @param documentName Name of the document to select all marked lines for.
-     * @param markerNames Names of the markers to collect.
+     * @param markerNames  Names of the markers to collect.
      * @return A map of markers to lines.
      */
-    public Map<String, List<MarkedLine>> markedLinesFor(LocalDate date, String documentName, Set<String> markerNames)
+    public Map<String, List<MarkedLine>> markedLinesFor(
+            LocalDate date, String documentName, Set<String> markerNames)
     {
         var result = new HashMap<String, List<MarkedLine>>();
         var indexes = documentReferences.get(documentName);

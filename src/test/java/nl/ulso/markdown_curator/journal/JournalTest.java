@@ -151,6 +151,57 @@ class JournalTest
         assertThat(questionLines).isEqualTo("- Important question!");
     }
 
+    @Test
+    void documentSectionsForOneDay()
+    {
+        var journal = createTestJournal();
+        var markedLines = journal.markedLinesFor("foo", Set.of("❗️"), LocalDate.of(2023, 1,25));
+        var lines = Strings.join(markedLines.get("❗️").stream().map(MarkedLine::line).toList())
+                .with("\n");
+        assertThat(lines).isEqualTo("- Remember this");
+    }
+
+    @Test
+    void documentSectionsForOneDayNoDaily()
+    {
+        var journal = createTestJournal();
+        var markedLines = journal.markedLinesFor("foo", Set.of("❗️"), LocalDate.of(2025, 1,12));
+        assertThat(markedLines).isEmpty();
+    }
+
+    @Test
+    void documentSectionsForOneDayNoEntries()
+    {
+        var journal = createTestJournal();
+        var markedLines = journal.markedLinesFor("bar", Set.of("❗️"), LocalDate.of(2023, 1,25));
+        assertThat(markedLines).isEmpty();
+    }
+
+    @Test
+    void markers()
+    {
+        var journal = createTestJournal();
+        var markers = journal.markers();
+        assertThat(markers.keySet()).containsExactly("❌", "🪵");
+    }
+
+    @Test
+    void validMarkerDocument()
+    {
+        var journal = createTestJournal();
+        var markers = journal.markers();
+        var marker = markers.values().stream().findFirst().get();
+        assertThat(journal.isMarkerDocument(marker)).isTrue();
+    }
+
+    @Test
+    void invalidMarkerDocument()
+    {
+        var journal = createTestJournal();
+        var project = journal.vault().folder("Projects").get().document("foo").get();
+        assertThat(journal.isMarkerDocument(project)).isFalse();
+    }
+
     static Journal createTestJournal()
     {
         var vault = new VaultStub();
