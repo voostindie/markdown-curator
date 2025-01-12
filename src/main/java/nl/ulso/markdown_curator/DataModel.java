@@ -20,5 +20,19 @@ import nl.ulso.markdown_curator.vault.event.VaultChangedEvent;
  */
 public interface DataModel
 {
+    int ORDER_FIRST = 0;
+
     void vaultChanged(VaultChangedEvent event);
+
+    /**
+     * If your model depends on other models, make sure you return a higher order here.
+     * If your model doesn't depend on any other model, use {@link #ORDER_FIRST}; this is the
+     * default.
+     *
+     * @return This model's order, used to sort all data models when refreshing them;
+     */
+    default int order()
+    {
+        return ORDER_FIRST;
+    }
 }

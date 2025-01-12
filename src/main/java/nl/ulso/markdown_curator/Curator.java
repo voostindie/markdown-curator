@@ -12,6 +12,7 @@ import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 import static java.lang.Thread.currentThread;
 import static java.nio.file.Files.getLastModifiedTime;
@@ -58,7 +59,7 @@ public class Curator
     private final Vault vault;
     private final DocumentPathResolver documentPathResolver;
     private final QueryCatalog queryCatalog;
-    private final Set<DataModel> dataModels;
+    private final List<DataModel> dataModels;
     private final Map<String, Long> writtenDocuments;
     private final ExecutorService parallelExecutor;
     private final ScheduledExecutorService delayedExecutor;
@@ -73,12 +74,25 @@ public class Curator
         this.vault = vault;
         this.documentPathResolver = documentPathResolver;
         this.queryCatalog = queryCatalog;
-        this.dataModels = dataModels;
+        this.dataModels = orderDataModels(dataModels);
         this.writtenDocuments = new HashMap<>();
         this.parallelExecutor = newVirtualThreadPerTaskExecutor();
         this.delayedExecutor = newScheduledThreadPool(1);
         this.runTask = null;
         this.curatorName = currentThread().getName();
+    }
+
+    private static List<DataModel> orderDataModels(Set<DataModel> dataModels)
+    {
+        var list = new ArrayList<>(dataModels);
+        list.sort(Comparator.comparing(DataModel::order));
+        if (LOGGER.isDebugEnabled())
+        {
+            LOGGER.debug("{} data models will be refreshed in this order: {}", list.size(),
+                    list.stream().map(model -> model.getClass().getSimpleName()).collect(
+                            Collectors.joining(", ")));
+        }
+        return Collections.unmodifiableList(list);
     }
 
     public void runOnce()
@@ -103,9 +117,11 @@ public class Curator
         {
             return;
         }
+        LOGGER.debug(">".repeat(80));
         cancelQueryWriteRunIfPresent();
         refreshAllDataModels(event);
         scheduleQueryWriteRun();
+        LOGGER.debug("<".repeat(80));
     }
 
     /**
@@ -173,13 +189,12 @@ public class Curator
     private void performQueryWriteRun()
     {
         MDC.put("curator", curatorName);
-        LOGGER.info("Running all queries and writing document updates to disk");
+        LOGGER.debug("Running all queries and writing document updates to disk");
         var changeset = runAllQueries().stream()
                 .collect(groupingBy(item -> item.queryBlock().document()));
         changeset.entrySet().stream()
                 .filter(entry -> entry.getValue().stream().anyMatch(QueryOutput::isChanged))
                 .forEach(entry -> writeDocument(entry.getKey(), entry.getValue()));
-        LOGGER.info("Curator run done.");
     }
 
     /**
@@ -196,7 +211,22 @@ public class Curator
         {
             LOGGER.debug("Refreshing {} data model(s)", dataModels.size());
         }
-        dataModels.forEach(model -> model.vaultChanged(event));
+        dataModels.forEach(model -> {
+
+            try
+            {
+                model.vaultChanged(event);
+                if (LOGGER.isDebugEnabled())
+                {
+                    LOGGER.debug("Refreshed data model {}", model.getClass().getSimpleName());
+                }
+            }
+            catch (RuntimeException e)
+            {
+                LOGGER.error("Caught runtime exception while refreshing data model {}",
+                        model.getClass().getSimpleName(), e);
+            }
+        });
     }
 
     /**
@@ -265,6 +295,7 @@ public class Curator
         catch (IOException e)
         {
             LOGGER.warn("Couldn't write document: {}", document);
+            LOGGER.error(e.getMessage(), e);
         }
     }
 
