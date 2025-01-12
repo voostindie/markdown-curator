@@ -39,14 +39,12 @@ class VaultChangedEventHandlerTest
         vault.addDocumentInPath("foo/bar", "Dummy!");
         var folder = vault.folder("foo").orElseThrow();
         var document = folder.document("bar").orElseThrow();
-        return Stream.of(
-                Arguments.of(vaultRefreshed(), "vault refreshed", null),
+        return Stream.of(Arguments.of(vaultRefreshed(), "vault refreshed", null),
                 Arguments.of(folderAdded(folder), "folder added", Folder.class),
                 Arguments.of(folderRemoved(folder), "folder removed", Folder.class),
                 Arguments.of(documentAdded(document), "document added", Document.class),
                 Arguments.of(documentChanged(document), "document changed", Document.class),
-                Arguments.of(documentRemoved(document), "document removed", Document.class)
-        );
+                Arguments.of(documentRemoved(document), "document removed", Document.class));
     }
 
     private static class EventRecorder

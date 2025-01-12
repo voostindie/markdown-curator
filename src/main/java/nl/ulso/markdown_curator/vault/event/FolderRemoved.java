@@ -7,7 +7,8 @@ public final class FolderRemoved
 {
     private final Folder folder;
 
-    FolderRemoved(Folder folder) {
+    FolderRemoved(Folder folder)
+    {
         this.folder = folder;
     }
 

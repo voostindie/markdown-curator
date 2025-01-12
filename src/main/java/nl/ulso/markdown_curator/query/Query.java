@@ -8,7 +8,13 @@ import java.util.Map;
  * Represents a single query that can be executed against a {@link QueryBlock}; the configuration
  * of the query comes from the block.
  * <p/>
- * Important: queries may be run in parallel and must therefore be thread-safe.
+ * Important:
+ * <ul>
+ * <li>Queries are run in parallel and must therefore be thread-safe.</li>
+ * <li>For the same input, the query must consistently generate the same output. The curator
+ * internally uses hashes computed from the query output to determine whether a document must
+ * be updated with new output.</li>
+ * </ul>
  */
 public interface Query
 {

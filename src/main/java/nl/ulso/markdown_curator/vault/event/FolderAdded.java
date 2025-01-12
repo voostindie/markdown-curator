@@ -7,7 +7,8 @@ public final class FolderAdded
 {
     private final Folder folder;
 
-    FolderAdded(Folder folder) {
+    FolderAdded(Folder folder)
+    {
         this.folder = folder;
     }
 
