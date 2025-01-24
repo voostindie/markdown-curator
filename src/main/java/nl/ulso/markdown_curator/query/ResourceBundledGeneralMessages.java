@@ -21,7 +21,8 @@ public class ResourceBundledGeneralMessages
         this(Optional.empty());
     }
 
-    public ResourceBundledGeneralMessages(Locale locale) {
+    public ResourceBundledGeneralMessages(Locale locale)
+    {
         this(Optional.of(locale));
     }
 
@@ -81,5 +82,11 @@ public class ResourceBundledGeneralMessages
             throw new IllegalStateException("Day must be in range [1, 7]");
         }
         return bundle.getString("journal.weekday." + day);
+    }
+
+    @Override
+    public String journalLatest()
+    {
+        return bundle.getString("journal.latest");
     }
 }

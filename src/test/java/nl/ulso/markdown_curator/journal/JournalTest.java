@@ -155,7 +155,7 @@ class JournalTest
     void documentSectionsForOneDay()
     {
         var journal = createTestJournal();
-        var markedLines = journal.markedLinesFor("foo", Set.of("❗️"), LocalDate.of(2023, 1,25));
+        var markedLines = journal.markedLinesFor("foo", Set.of("❗️"), LocalDate.of(2023, 1, 25));
         var lines = Strings.join(markedLines.get("❗️").stream().map(MarkedLine::line).toList())
                 .with("\n");
         assertThat(lines).isEqualTo("- Remember this");
@@ -165,7 +165,7 @@ class JournalTest
     void documentSectionsForOneDayNoDaily()
     {
         var journal = createTestJournal();
-        var markedLines = journal.markedLinesFor("foo", Set.of("❗️"), LocalDate.of(2025, 1,12));
+        var markedLines = journal.markedLinesFor("foo", Set.of("❗️"), LocalDate.of(2025, 1, 12));
         assertThat(markedLines).isEmpty();
     }
 
@@ -173,8 +173,26 @@ class JournalTest
     void documentSectionsForOneDayNoEntries()
     {
         var journal = createTestJournal();
-        var markedLines = journal.markedLinesFor("bar", Set.of("❗️"), LocalDate.of(2023, 1,25));
+        var markedLines = journal.markedLinesFor("bar", Set.of("❗️"), LocalDate.of(2023, 1, 25));
         assertThat(markedLines).isEmpty();
+    }
+
+    @Test
+    void latestJournalEntry()
+    {
+        var journal = createTestJournal();
+        var latest = journal.latest();
+        assertThat(latest.get().date()).isEqualTo(LocalDate.of(2024, 8, 12));
+    }
+
+    @Test
+    void latestJournalEntryInEmptyJournal()
+    {
+        var vault = new VaultStub();
+        var journal = new Journal(vault,
+                new JournalSettings("Journal", "Markers", "Activities", "Projects"));
+        var latest = journal.latest();
+        assertThat(latest).isEmpty();
     }
 
     @Test

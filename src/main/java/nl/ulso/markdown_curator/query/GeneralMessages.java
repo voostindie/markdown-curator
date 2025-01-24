@@ -17,4 +17,6 @@ public interface GeneralMessages
     String journalUp();
 
     String journalWeekDay(int day);
+
+    String journalLatest();
 }

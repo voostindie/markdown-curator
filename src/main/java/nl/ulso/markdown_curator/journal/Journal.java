@@ -179,6 +179,16 @@ public class Journal
         return start.datesUntil(end.plusDays(1)).map(dailies::get).filter(Objects::nonNull);
     }
 
+    public Optional<Daily> latest()
+    {
+        var latest = dailies.lastEntry();
+        if (latest == null)
+        {
+            return Optional.empty();
+        }
+        return Optional.of(latest.getValue());
+    }
+
     public Set<String> referencedDocumentsIn(Collection<Daily> entries)
     {
         return entries.stream().flatMap(daily -> daily.referencedDocuments().stream())

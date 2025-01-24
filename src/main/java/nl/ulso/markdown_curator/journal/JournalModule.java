@@ -51,5 +51,9 @@ public abstract class JournalModule
 
     @Binds
     @IntoSet
+    abstract Query bindLatestJournalNavigationQuery(LatestJournalNavigationQuery markedQuery);
+
+    @Binds
+    @IntoSet
     abstract Query bindMarkedQuery(MarkedQuery markedQuery);
 }
