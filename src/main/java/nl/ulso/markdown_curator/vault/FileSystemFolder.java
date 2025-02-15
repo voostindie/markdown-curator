@@ -100,7 +100,7 @@ public class FileSystemFolder
     public Optional<Document> findDocument(String name)
     {
         var finder = new DocumentFinder(name);
-        this.accept(finder);
+        accept(finder);
         return finder.document();
     }
 

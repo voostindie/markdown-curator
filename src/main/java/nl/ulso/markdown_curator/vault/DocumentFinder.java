@@ -15,6 +15,12 @@ public class DocumentFinder
     }
 
     @Override
+    public void visit(Vault vault)
+    {
+        visit((Folder) vault);
+    }
+
+    @Override
     public void visit(Folder folder)
     {
         folder.document(documentName).ifPresentOrElse(

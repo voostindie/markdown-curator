@@ -18,9 +18,11 @@ public class FolderStub
         this.name = name;
     }
 
-    public Folder addFolder(String name)
+    public FolderStub addFolder(String name)
     {
-        return folders.put(name, new FolderStub(this, name));
+        var folder = new FolderStub(this, name);
+        folders.put(name, folder);
+        return folder;
     }
 
     public Document addDocumentInPath(String path, String content)
