@@ -6,8 +6,7 @@ import dagger.multibindings.IntoSet;
 import dagger.multibindings.Multibinds;
 import nl.ulso.markdown_curator.query.*;
 import nl.ulso.markdown_curator.query.builtin.*;
-import nl.ulso.markdown_curator.vault.FileSystemVault;
-import nl.ulso.markdown_curator.vault.Vault;
+import nl.ulso.markdown_curator.vault.*;
 
 import java.nio.file.WatchService;
 import java.util.Locale;
@@ -53,6 +52,9 @@ public abstract class CuratorModule
 
     @Binds
     abstract DocumentPathResolver bindDocumentPathResolver(FileSystemVault vault);
+
+    @Binds
+    abstract VaultRefresher bindVaultRefresher(FileSystemVault vault);
 
     @Binds
     abstract QueryCatalog bindQueryCatalog(InMemoryQueryCatalog queryCatalog);

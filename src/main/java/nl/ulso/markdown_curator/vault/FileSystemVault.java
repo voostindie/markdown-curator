@@ -35,7 +35,7 @@ import static org.slf4j.LoggerFactory.getLogger;
 @Singleton
 public final class FileSystemVault
         extends FileSystemFolder
-        implements Vault, DocumentPathResolver
+        implements Vault, DocumentPathResolver, VaultRefresher
 {
     private static final Logger LOGGER = getLogger(FileSystemVault.class);
 
@@ -91,6 +91,12 @@ public final class FileSystemVault
     public void setVaultChangedCallback(VaultChangedCallback callback)
     {
         this.callback = requireNonNull(callback);
+    }
+
+    @Override
+    public void triggerRefresh()
+    {
+        callback.vaultChanged(externalChange());
     }
 
     @Override

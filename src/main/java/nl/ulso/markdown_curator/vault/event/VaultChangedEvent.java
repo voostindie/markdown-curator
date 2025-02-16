@@ -15,7 +15,7 @@ import nl.ulso.markdown_curator.vault.Folder;
  */
 public sealed interface VaultChangedEvent
         permits VaultRefreshed, FolderAdded, FolderRemoved, DocumentAdded, DocumentChanged,
-        DocumentRemoved
+        DocumentRemoved, ExternalChange
 {
     void dispatch(VaultChangedEventHandler handler);
 
@@ -47,5 +47,10 @@ public sealed interface VaultChangedEvent
     static DocumentRemoved documentRemoved(Document document)
     {
         return new DocumentRemoved(document);
+    }
+
+    static ExternalChange externalChange()
+    {
+        return ExternalChange.INSTANCE;
     }
 }

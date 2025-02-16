@@ -111,7 +111,7 @@ public class Curator
     }
 
     @Override
-    public final void vaultChanged(VaultChangedEvent event)
+    public final synchronized void vaultChanged(VaultChangedEvent event)
     {
         if (checkSelfTriggeredUpdate(event))
         {

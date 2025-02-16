@@ -17,4 +17,6 @@ public interface VaultChangedEventHandler
     void process(DocumentChanged event);
 
     void process(DocumentRemoved event);
+
+    void process(ExternalChange event);
 }

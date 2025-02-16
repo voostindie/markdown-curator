@@ -44,7 +44,8 @@ class VaultChangedEventHandlerTest
                 Arguments.of(folderRemoved(folder), "folder removed", Folder.class),
                 Arguments.of(documentAdded(document), "document added", Document.class),
                 Arguments.of(documentChanged(document), "document changed", Document.class),
-                Arguments.of(documentRemoved(document), "document removed", Document.class));
+                Arguments.of(documentRemoved(document), "document removed", Document.class),
+                Arguments.of(externalChange(), "external change", null));
     }
 
     private static class EventRecorder
@@ -93,6 +94,13 @@ class VaultChangedEventHandlerTest
         {
             action = "document removed";
             object = event.document();
+        }
+
+        @Override
+        public void process(ExternalChange event)
+        {
+            action = "external change";
+            object = null;
         }
     }
 }

@@ -75,4 +75,10 @@ public abstract class DataModelTemplate
     {
         process(vaultRefreshed());
     }
+
+    @Override
+    public void process(ExternalChange event)
+    {
+        // Do nothing by default, since no content in the vault itself changed.
+    }
 }
