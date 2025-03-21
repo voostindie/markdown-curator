@@ -52,14 +52,14 @@ class MarkedQueryTest
                 .withConfiguration("markers", List.of("❗️", "❓"));
         var result = query.run(definition);
         assertThat(result.toMarkdown()).isEqualTo("""
-                ## ❓
-                
-                - Important question!
-                
                 ## ❗️
                 
                 - Remember this
                 - Remember this too
+                
+                ## ❓
+                
+                - Important question!
                 
                 """);
     }

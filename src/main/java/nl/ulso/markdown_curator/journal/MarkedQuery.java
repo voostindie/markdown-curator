@@ -5,7 +5,7 @@ import nl.ulso.markdown_curator.query.*;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 import java.time.LocalDate;
-import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.Map;
 
 import static java.lang.System.lineSeparator;
@@ -36,7 +36,11 @@ public class MarkedQuery
     @Override
     public String description()
     {
-        return "Generates an overview of the marked lines for the selected document, with entries extracted from the journal. Each marker gets its own section. The title of the section defaults to the name of the marker, but this can be overruled by setting the 'title' property of the marker document itself (if present). If a marker is not present for the selected document, the section is left out.";
+        return "Generates an overview of the marked lines for the selected document, with entries" +
+               " extracted from the journal. Each marker gets its own section. The title of the " +
+               "section defaults to the name of the marker, but this can be overruled by setting " +
+               "the 'title' property of the marker document itself (if present). If a marker is " +
+               "not present for the selected document, the section is left out.";
     }
 
     @Override
@@ -52,13 +56,17 @@ public class MarkedQuery
     {
         var documentName =
                 definition.configuration().string("document", definition.document().name());
-        var markers = new HashSet<>(definition.configuration().listOfStrings("markers"));
+        var markers = new LinkedHashSet<>(definition.configuration().listOfStrings("markers"));
         var level = "#".repeat(definition.configuration().integer("level", 2));
         var markedLines = journal.markedLinesFor(documentName, markers);
         var result = new StringBuilder();
-        for (var markerEntry : markedLines.entrySet())
+        for (var markerName : markers) // Retain the order of the markers in the configuration
         {
-            var markerName = markerEntry.getKey();
+            var lines = markedLines.get(markerName);
+            if (lines == null)
+            {
+                continue;
+            }
             var markerSettings = journal.markerSettings(markerName);
             result.append(level)
                     .append(" ")
@@ -67,12 +75,13 @@ public class MarkedQuery
                     .append(lineSeparator());
             var groupByDate = markerSettings.bool("group-by-date", false);
             LocalDate currentDate = null;
-            for (var markedLine : markerEntry.getValue())
+            for (var line : lines)
             {
-                if (groupByDate) {
-                    if (!markedLine.date().equals(currentDate))
+                if (groupByDate)
+                {
+                    if (!line.date().equals(currentDate))
                     {
-                        currentDate = markedLine.date();
+                        currentDate = line.date();
                         result.append("- [[")
                                 .append(currentDate)
                                 .append("]]:")
@@ -80,7 +89,7 @@ public class MarkedQuery
                     }
                     result.append("    ");
                 }
-                result.append(markedLine.line()).append(lineSeparator());
+                result.append(line.line()).append(lineSeparator());
             }
             result.append(lineSeparator());
         }
