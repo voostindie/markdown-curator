@@ -19,9 +19,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 @ExtendWith(SoftAssertionsExtension.class)
 class FrontMatterAttributeValueResolverTest
 {
-    @InjectSoftAssertions
-    private SoftAssertions softly;
-
     private VaultStub vault;
     private AttributeValueResolverRegistry registry;
     private Project project;

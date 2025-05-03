@@ -91,7 +91,7 @@ public final class FrontMatterAttributeValueResolver<T>
         }
         @SuppressWarnings("unchecked")
         var date = (T) result;
-        return Optional.of((T) date);
+        return Optional.of(date);
     }
 
     @Override

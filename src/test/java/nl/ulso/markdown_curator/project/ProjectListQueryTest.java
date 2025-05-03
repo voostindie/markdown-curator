@@ -19,10 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 @ExtendWith(SoftAssertionsExtension.class)
 class ProjectListQueryTest
 {
-    @InjectSoftAssertions
-    private SoftAssertions softly;
     private VaultStub vault;
-    private ProjectRepository repository;
     private ProjectListQuery query;
 
     @BeforeEach
@@ -30,7 +27,7 @@ class ProjectListQueryTest
     {
         vault = createTestVault();
         var registry = createTestAttributeValueResolverRegistry(vault);
-        repository = createRepository(vault, registry);
+        var repository = createRepository(vault, registry);
         query = new ProjectListQuery(repository, new ResourceBundledGeneralMessages(Locale.ENGLISH),
                 new QueryResultFactory());
     }
