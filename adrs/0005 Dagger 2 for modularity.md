@@ -6,7 +6,7 @@ Adopted
 
 ## Decision
 
-For better modularity and a more consistent API to implementors, the curator framework uses [Dagger 2](https://dagger.dev) as its dependency injection framework, and will require developers to use it too. 
+For better modularity and a more consistent API to implementors, the curator framework uses [Dagger 2](https://dagger.dev) as its dependency injection framework and will require developers to use it too. 
 
 ## Context
 
@@ -16,7 +16,7 @@ Up to July 24, 2024 this system used Guice as its DI framework. Dagger 2 promise
   - Errors show up during compilation, not at start-up of the code, therefore earlier.
 - It generates (readable) code, which means:
   - No reflection, therefore faster, especially at start-up.
-  - Shorter, simpler stacktraces.
+  - Shorter, simpler stack traces.
   - Less memory usage.
 - It has a smaller footprint:
   - The run-time JAR is just 34 kB. 

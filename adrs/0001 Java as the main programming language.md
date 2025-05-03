@@ -14,7 +14,7 @@ I need to pick a programming language for this tool that I intend to run continu
 
 ## Consequences
 
-I'll mostly feel like a fish in the water and will be able to focus on adding functionality (over learning new stuff) and I'll have fun doing it, but I shouldn't expect this project to attract many users besides myself.   
+I'll mostly feel like a fish in the water and will be able to focus on adding functionality over learning new stuff. And I'll have fun doing it. But I shouldn't expect this project to attract many users next to myself.   
 
 ## Options considered
 
@@ -35,7 +35,7 @@ I'll mostly feel like a fish in the water and will be able to focus on adding fu
 #### Cons
 
 - A JVM-language is probably not the best solution for a macOS desktop app, even if it is a daemon. People will have to install a JVM on their machine. I shouldn't expect many people to use or contribute to this project.
-- The JVM requires a fair amount of memory. I think I can get it at an acceptable level though.
+- The JVM requires a fair amount of memory. I think I can get it at an acceptable level.
 - Startup time of a JVM is typically low. But since this is a daemon application, that's not a real con. Actually, the "warming up" the JVM does might even be a pro.
 
 ### Ruby
@@ -66,7 +66,7 @@ I'll mostly feel like a fish in the water and will be able to focus on adding fu
 
 #### Pros
 
-- Go compiles to a single binary, for easy deployment. No extras needed.
+- Go compiles to a single binary, for easy deployment. No runtimes needed.
 - It's cross-platform, so I can deliver binaries for macOS, Windows and Linux easily.
 
 #### Cons

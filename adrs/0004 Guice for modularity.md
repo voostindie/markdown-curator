@@ -6,7 +6,7 @@ Superseded by ADR0005
 
 ## Decision
 
-For better modularity and a more consistent API to implementors, the curator framework will use Google Guice as its dependency injection framework, and will require developers to use it. 
+For better modularity and a more consistent API to implementors, the curator framework will use Google Guice as its dependency injection framework and will require developers to use it. 
 
 ## Context
 
@@ -42,11 +42,11 @@ Lastly, but certainly not least: who are we kidding here? "Developers using the 
 
 ### Pros
 
-Simple, small, light library with a very clear purpose: dependency injection. It's well known.
+Simple, small, light library with a very clear purpose: dependency injection. It's well-known.
 
 ### Cons
 
-Curator implementors must use Guice; they do not have the choice not to. Guice is not just an implementation detail, of the curator framework internally, it's also intentionally exposed. This takes away some freedom.
+Curator implementors must use Guice; they do not have the choice not to. Guice is not just an implementation detail of the curator framework, it's also intentionally exposed. This takes away some freedom.
 
 ### No dependency injection framework at all (current setup)
 

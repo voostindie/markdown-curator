@@ -6,7 +6,7 @@ Adopted
 
 ## Decision
 
-Everything this application does, except for producing output, is done in memory. Nothing is persisted to disk or stored elsewhere using some external service (like a database). Only output is stored to disk, where the user wants it.
+Everything this application does except for producing output is done in memory. Nothing is persisted to disk or stored elsewhere using some external service (like a database). Only output is stored to disk, where the user wants it.
 
 ## Context
 
@@ -14,7 +14,7 @@ This program processes Markdown files on disk. It extracts information from plai
 
 ## Consequences
 
-The maximum size of the vaults this application can process is limited by the available memory. The larger the vault, the more memory that is required.
+The available memory limits the maximum size of the vaults this application can process. The larger the vault, the more memory is required.
 
 Because vaults contain human-written notes only (the human being me, typically), it will take many years before the amount of memory required outgrows the amount of memory available. If that happens to me, by then I'll just buy a bigger machine.
 
@@ -39,7 +39,7 @@ Because vaults contain human-written notes only (the human being me, typically),
 
 #### Pros
 
-- Faster startup (maybe): just read the cache and the program is ready to go. But this is premature optimization. In my first tests I was able to load all documents in my biggest vault (52 MB, maintained since 2017) in less than a quarter of a second.
+- Faster startup (maybe): restore the cache, and the program is ready to go. But this is premature optimization. In my first tests I was able to load all documents in my biggest vault (52 MB, maintained since 2017) in less than a quarter of a second.
 
 #### Cons
 

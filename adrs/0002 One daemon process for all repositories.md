@@ -6,7 +6,7 @@ Adopted
 
 ## Decision
 
-The application will run in a single daemon process, independent of the amount of repositories to monitor.
+The application will run in a single daemon process, independent of the number of repositories to monitor.
 
 ## Context
 
@@ -28,7 +28,7 @@ I have multiple repositories (Obsidian vaults) on my machine. They are truly ind
 
 #### Cons
 
-- A bit more code needed to maintain multiple independent repositories.
+- A bit more code is needed to maintain multiple independent repositories.
 - Guaranteeing that code for a repository runs completely isolated is hard, if not impossible. (Unless I introduce something like OSGi.)
 
 ### One daemon per repository 
