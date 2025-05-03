@@ -19,4 +19,14 @@ public interface GeneralMessages
     String journalWeekDay(int day);
 
     String journalLatest();
+
+    String projectLead();
+
+    String projectPriority();
+
+    String projectName();
+
+    String projectLastModified();
+
+    String projectStatus();
 }

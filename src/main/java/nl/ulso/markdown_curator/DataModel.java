@@ -13,7 +13,7 @@ import nl.ulso.markdown_curator.vault.event.VaultChangedEvent;
  * and queries on top of that model that select specific parts of the journal.
  * <p/>
  * <b>Important</b>: data models must be singletons (e.g. marked with
- * {@link javax.inject.Singleton})! They are accessed by queries running in parallel and must
+ * {@link jakarta.inject.Singleton})! They are accessed by queries running in parallel and must
  * therefore be thread-safe. The {@link Curator} ensures that writes are synchronized, and that
  * no reads can happen while writes are in progress. This of course only holds if in your
  * implementations you don't update any internal data structures on <em>read</em>.

@@ -1,6 +1,6 @@
 package nl.ulso.markdown_curator.query;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 import java.text.MessageFormat;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -88,5 +88,35 @@ public class ResourceBundledGeneralMessages
     public String journalLatest()
     {
         return bundle.getString("journal.latest");
+    }
+
+    @Override
+    public String projectLead()
+    {
+        return bundle.getString("project.lead");
+    }
+
+    @Override
+    public String projectPriority()
+    {
+        return bundle.getString("project.priority");
+    }
+
+    @Override
+    public String projectName()
+    {
+        return bundle.getString("project.name");
+    }
+
+    @Override
+    public String projectLastModified()
+    {
+        return bundle.getString("project.lastModified");
+    }
+
+    @Override
+    public String projectStatus()
+    {
+        return bundle.getString("project.status");
     }
 }

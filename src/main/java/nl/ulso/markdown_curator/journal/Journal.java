@@ -1,13 +1,13 @@
 package nl.ulso.markdown_curator.journal;
 
+import jakarta.inject.Inject;
+import jakarta.inject.Singleton;
 import nl.ulso.markdown_curator.DataModelTemplate;
-import nl.ulso.markdown_curator.vault.Dictionary;
 import nl.ulso.markdown_curator.vault.*;
+import nl.ulso.markdown_curator.vault.Dictionary;
 import nl.ulso.markdown_curator.vault.event.*;
 import org.slf4j.Logger;
 
-import javax.inject.Inject;
-import javax.inject.Singleton;
 import java.time.LocalDate;
 import java.util.*;
 import java.util.Map.Entry;
@@ -17,6 +17,7 @@ import static java.util.Collections.emptyMap;
 import static java.util.Collections.unmodifiableMap;
 import static java.util.Comparator.naturalOrder;
 import static java.util.Comparator.reverseOrder;
+import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.toMap;
 import static java.util.stream.Collectors.toUnmodifiableSet;
 import static nl.ulso.markdown_curator.vault.Dictionary.emptyDictionary;
@@ -117,6 +118,12 @@ public class Journal
         }
     }
 
+    public Daily toDaily(Document dailyDocument)
+    {
+        var date = JournalBuilder.parseDateFrom(dailyDocument).orElseThrow();
+        return requireNonNull(dailies.get(date));
+    }
+
     public boolean isJournalEntry(Document document)
     {
         var folder = document.folder();
@@ -149,12 +156,13 @@ public class Journal
             String documentName, Set<String> markerNames)
     {
         return dailiesFor(documentName).flatMap(
-                        daily -> daily.markedLinesFor(daily.date(), documentName, markerNames).entrySet()
+                        daily -> daily.markedLinesFor(documentName, markerNames, true).entrySet()
                                 .stream())
                 .collect(toMap(Entry::getKey, Entry::getValue, Journal::mergeLists, TreeMap::new));
     }
 
-    public Map<String, List<MarkedLine>> markedLinesFor(String documentName, Set<String> markerNames, LocalDate date)
+    public Map<String, List<MarkedLine>> markedLinesFor(
+            String documentName, Set<String> markerNames, LocalDate date)
     {
         var daily = dailies.get(date);
         if (daily == null)
@@ -165,7 +173,7 @@ public class Journal
         {
             return emptyMap();
         }
-        return daily.markedLinesFor(date, documentName, markerNames);
+        return daily.markedLinesFor(documentName, markerNames, true);
     }
 
     private static <T> List<T> mergeLists(List<T> first, List<T> second)

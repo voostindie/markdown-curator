@@ -2,8 +2,8 @@ package nl.ulso.markdown_curator.journal;
 
 import nl.ulso.markdown_curator.query.*;
 
-import javax.inject.Inject;
-import javax.inject.Singleton;
+import jakarta.inject.Inject;
+import jakarta.inject.Singleton;
 import java.util.Map;
 
 @Singleton

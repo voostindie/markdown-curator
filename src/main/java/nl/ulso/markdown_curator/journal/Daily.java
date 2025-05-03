@@ -138,14 +138,15 @@ public class Daily
 
     /**
      * Selects and transforms all lines for a document that have a specific marker in them; the
-     * results are grouped by marker, and the markers themselves are removed from the lines.
+     * results are grouped by marker, and optionally, the markers are removed from the lines.
      *
-     * @param documentName Name of the document to select all marked lines for.
-     * @param markerNames  Names of the markers to collect.
+     * @param documentName  Name of the document to select all marked lines for.
+     * @param markerNames   Names of the markers to collect.
+     * @param removeMarkers Whether to remove the markers from the lines.
      * @return A map of markers to lines.
      */
     public Map<String, List<MarkedLine>> markedLinesFor(
-            LocalDate date, String documentName, Set<String> markerNames)
+            String documentName, Set<String> markerNames, boolean removeMarkers)
     {
         var result = new HashMap<String, List<MarkedLine>>();
         var indexes = documentReferences.get(documentName);
@@ -169,7 +170,11 @@ public class Daily
                     {
                         continue;
                     }
-                    var line = removeMarker(sectionLines.get(markerIndex).trim(), marker);
+                    var line = sectionLines.get(markerIndex).trim();
+                    if (removeMarkers)
+                    {
+                        line = removeMarker(line, marker);
+                    }
                     var list = result.computeIfAbsent(marker, key -> new ArrayList<>());
                     list.add(new MarkedLine(date, line));
                 }
