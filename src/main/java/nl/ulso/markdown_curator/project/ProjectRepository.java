@@ -1,5 +1,6 @@
 package nl.ulso.markdown_curator.project;
 
+import dagger.Lazy;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 import nl.ulso.markdown_curator.DataModelTemplate;
@@ -21,6 +22,10 @@ import static org.slf4j.LoggerFactory.getLogger;
  * is in the main project folder. As soon as a project is archived, typically my moving it to a
  * subfolder, the project is no longer considered active and therefore not tracked by this
  * repository.
+ * <p/>
+ * The registry of attribute value resolvers is injected lazily, to prevent it being fully
+ * initialized at startup. That's needed because the individual resolvers may depend on this
+ * repository, which implies a circular dependency.
  */
 @Singleton
 public final class ProjectRepository
@@ -29,13 +34,14 @@ public final class ProjectRepository
     private static final Logger LOGGER = getLogger(ProjectRepository.class);
 
     private final Vault vault;
-    private final AttributeValueResolverRegistry registry;
+    private final Lazy<AttributeValueResolverRegistry> registry;
     private final Map<String, Project> projects;
     private final String projectFolderName;
 
     @Inject
     ProjectRepository(
-            Vault vault, AttributeValueResolverRegistry registry, ProjectSettings settings)
+            Vault vault, Lazy<AttributeValueResolverRegistry> registry,
+            ProjectSettings settings)
     {
         this.vault = vault;
         this.registry = registry;
@@ -119,7 +125,7 @@ public final class ProjectRepository
     {
         if (isProjectDocument(document))
         {
-            projects.put(document.name(), new Project(document, registry));
+            projects.put(document.name(), new Project(document, registry.get()));
         }
     }
 
@@ -149,7 +155,7 @@ public final class ProjectRepository
         @Override
         public void visit(Document document)
         {
-            projects.add(new Project(document, registry));
+            projects.add(new Project(document, registry.get()));
         }
     }
 }

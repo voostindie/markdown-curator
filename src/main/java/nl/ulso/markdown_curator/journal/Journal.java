@@ -17,7 +17,6 @@ import static java.util.Collections.emptyMap;
 import static java.util.Collections.unmodifiableMap;
 import static java.util.Comparator.naturalOrder;
 import static java.util.Comparator.reverseOrder;
-import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.toMap;
 import static java.util.stream.Collectors.toUnmodifiableSet;
 import static nl.ulso.markdown_curator.vault.Dictionary.emptyDictionary;
@@ -118,10 +117,9 @@ public class Journal
         }
     }
 
-    public Daily toDaily(Document dailyDocument)
+    public Optional<Daily> toDaily(Document dailyDocument)
     {
-        var date = JournalBuilder.parseDateFrom(dailyDocument).orElseThrow();
-        return requireNonNull(dailies.get(date));
+        return JournalBuilder.parseDateFrom(dailyDocument).map(dailies::get);
     }
 
     public boolean isJournalEntry(Document document)
@@ -155,8 +153,14 @@ public class Journal
     public Map<String, List<MarkedLine>> markedLinesFor(
             String documentName, Set<String> markerNames)
     {
+        return markedLinesFor(documentName, markerNames, true);
+    }
+
+    public Map<String, List<MarkedLine>> markedLinesFor(
+            String documentName, Set<String> markerNames, boolean removeMarkers)
+    {
         return dailiesFor(documentName).flatMap(
-                        daily -> daily.markedLinesFor(documentName, markerNames, true).entrySet()
+                        daily -> daily.markedLinesFor(documentName, markerNames, removeMarkers).entrySet()
                                 .stream())
                 .collect(toMap(Entry::getKey, Entry::getValue, Journal::mergeLists, TreeMap::new));
     }

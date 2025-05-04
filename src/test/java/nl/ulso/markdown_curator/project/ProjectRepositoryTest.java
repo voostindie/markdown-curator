@@ -25,7 +25,7 @@ class ProjectRepositoryTest
     void setUp()
     {
         vault = new VaultStub();
-        repository = new ProjectRepository(vault, attribute -> emptyList(),
+        repository = new ProjectRepository(vault, () -> (attribute -> emptyList()),
                 new ProjectSettings("Projects"));
         var folder = vault.addFolder("Projects");
         var subfolder = folder.addFolder("Archived");
@@ -46,7 +46,7 @@ class ProjectRepositoryTest
     void emptyRepository()
     {
         var vault = new VaultStub();
-        var repository = new ProjectRepository(vault, attribute -> emptyList(),
+        var repository = new ProjectRepository(vault, () -> (attribute -> emptyList()),
                 new ProjectSettings("Projects"));
         repository.fullRefresh();
         assertThat(repository.projectsByName()).isEmpty();

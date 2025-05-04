@@ -52,7 +52,8 @@ public class ProjectTestData
 
     static ProjectRepository createRepository(Vault vault, AttributeValueResolverRegistry registry)
     {
-        var repository = new ProjectRepository(vault, registry, new ProjectSettings("Projects"));
+        var repository =
+                new ProjectRepository(vault, () -> registry, new ProjectSettings("Projects"));
         repository.fullRefresh();
         return repository;
     }
