@@ -2,8 +2,6 @@ package nl.ulso.markdown_curator.project;
 
 import nl.ulso.markdown_curator.query.*;
 import nl.ulso.markdown_curator.vault.VaultStub;
-import org.assertj.core.api.SoftAssertions;
-import org.assertj.core.api.junit.jupiter.InjectSoftAssertions;
 import org.assertj.core.api.junit.jupiter.SoftAssertionsExtension;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -52,7 +50,7 @@ class ProjectListQueryTest
                 
                 | Prio | Project       | Lead        | Last&nbsp;modified | Status |
                 | ---- | ------------- | ----------- | ------------------ | ------ |
-                | 1    | [[Project 3]] | [[Vincent]] | -                  | -      |
+                | 1    | [[Project 3]] | [[Vincent]] | -                  | ⚪️     |
                 | -    | [[Project 1]] | [[Vincent]] | [[2025-05-03]]     | 🟢     |
                 | -    | [[Project 2]] | [[Marieke]] | -                  | In progress |
                 

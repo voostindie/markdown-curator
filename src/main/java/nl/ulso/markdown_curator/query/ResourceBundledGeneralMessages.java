@@ -119,4 +119,28 @@ public class ResourceBundledGeneralMessages
     {
         return bundle.getString("project.status");
     }
+
+    @Override
+    public String projectPriorityUnknown()
+    {
+        return bundle.getString("project.priority.unknown");
+    }
+
+    @Override
+    public String projectDateUnknown()
+    {
+        return bundle.getString("project.lead.unknown");
+    }
+
+    @Override
+    public String projectLeadUnknown()
+    {
+        return bundle.getString("project.lead.unknown");
+    }
+
+    @Override
+    public String projectStatusUnknown()
+    {
+        return bundle.getString("project.status.unknown");
+    }
 }

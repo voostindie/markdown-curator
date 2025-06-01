@@ -83,19 +83,20 @@ public final class ProjectListQuery
                                     messages.projectPriority(),
                                     project.attributeValue(PRIORITY)
                                             .map(p -> Integer.toString(p))
-                                            .orElse("-"),
+                                            .orElse(messages.projectPriorityUnknown()),
                                     messages.projectName(),
                                     project.document().link(),
                                     messages.projectLead(),
                                     project.attributeValue(LEAD)
                                             .map(Document::link)
-                                            .orElse("-"),
+                                            .orElse(messages.projectLeadUnknown()),
                                     messages.projectLastModified(),
                                     project.attributeValue(LAST_MODIFIED)
                                             .map(d -> "[[" + d + "]]")
-                                            .orElse("-"),
+                                            .orElse(messages.projectDateUnknown()),
                                     messages.projectStatus(),
-                                    project.attributeValue(STATUS).orElse("-")))
+                                    project.attributeValue(STATUS)
+                                            .orElse(messages.projectStatusUnknown())))
                             .toList());
         };
     }

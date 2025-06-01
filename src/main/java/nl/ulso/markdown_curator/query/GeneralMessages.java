@@ -29,4 +29,12 @@ public interface GeneralMessages
     String projectLastModified();
 
     String projectStatus();
+
+    String projectPriorityUnknown();
+
+    String projectDateUnknown();
+
+    String projectLeadUnknown();
+
+    String projectStatusUnknown();
 }
