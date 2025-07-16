@@ -2,17 +2,19 @@ package nl.ulso.markdown_curator.vault;
 
 import io.methvin.watcher.DirectoryChangeEvent;
 import io.methvin.watcher.DirectoryWatcher;
+import jakarta.inject.Inject;
+import jakarta.inject.Singleton;
 import nl.ulso.markdown_curator.DocumentPathResolver;
 import nl.ulso.markdown_curator.vault.event.VaultChangedEvent;
 import org.slf4j.Logger;
 
-import jakarta.inject.Inject;
-import jakarta.inject.Singleton;
 import java.io.IOException;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.*;
 
+import static io.methvin.watcher.hashing.FileHasher.DEFAULT_FILE_HASHER;
+import static io.methvin.watcher.hashing.FileHasher.LAST_MODIFIED_TIME;
 import static java.nio.file.Files.getLastModifiedTime;
 import static java.nio.file.Files.readAllLines;
 import static java.nio.file.Files.walkFileTree;
@@ -54,10 +56,20 @@ public final class FileSystemVault
         try
         {
             walkFileTree(absolutePath, vaultBuilder);
+            // On macOS, use a faster hasher, based on file timestamps instead of contents.
+            // From the README on https://github.com/gmethvin/directory-watcher:
+            // "This hasher is only suitable for platforms that have at least millisecond precision
+            // in last modified times from Java. It's known to work with JDK 10+ on Macs with APFS."
+            var fileHasher = switch (System.getProperty("os.name"))
+            {
+                case "Mac OS X" -> LAST_MODIFIED_TIME;
+                default -> DEFAULT_FILE_HASHER;
+            };
             this.watcher = DirectoryWatcher.builder()
                     .path(absolutePath)
                     .listener(this::processFileSystemEvent)
                     .watchService(watchService.orElse(null))
+                    .fileHasher(fileHasher)
                     .build();
         }
         catch (IOException e)
