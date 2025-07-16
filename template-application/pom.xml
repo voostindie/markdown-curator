@@ -73,6 +73,20 @@
                 <artifactId>maven-surefire-plugin</artifactId>
                 <version>3.5.3</version>
             </plugin>
+            <!-- Allow access to restricted methods in java.lang.System
+                 for the directory-watcher, that uses native access (JNA) -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <version>3.4.2</version>
+                <configuration>
+                    <archive>
+                        <manifestEntries>
+                            <Enable-Native-Access>ALL-UNNAMED</Enable-Native-Access>
+                        </manifestEntries>
+                    </archive>
+                </configuration>
+            </plugin>
             <!-- Runnable JAR -->
             <plugin>
                 <groupId>org.springframework.boot</groupId>
