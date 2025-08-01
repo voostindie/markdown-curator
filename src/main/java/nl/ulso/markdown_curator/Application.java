@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.util.*;
 import java.util.ServiceLoader.Provider;
+import java.util.stream.Collectors;
 
 import static java.lang.System.getProperty;
 import static java.lang.System.lineSeparator;
@@ -64,14 +65,23 @@ public class Application
     public static void main(String[] args)
     {
         var runMode = RunMode.DAEMON;
-        if (args.length > 0 && (args[0].contentEquals("--once") || args[0].contentEquals("-1")))
+        var vaults = new HashSet<String>();
+        for (String arg : args)
         {
-            runMode = RunMode.ONCE;
+            if (arg.contentEquals("--once") || arg.contentEquals("-1"))
+            {
+                runMode = RunMode.ONCE;
+            }
+            else
+            {
+                vaults.add(arg.toLowerCase());
+            }
+
         }
-        new Application(DEFAULT_PID).run(runMode);
+        new Application(DEFAULT_PID).run(runMode, vaults);
     }
 
-    void run(RunMode runMode)
+    void run(RunMode runMode, HashSet<String> vaults)
     {
         if (!ensureNewPidFile())
         {
@@ -90,6 +100,15 @@ public class Application
             LOGGER.info("Markdown Curator {}", resolveVersion());
             LOGGER.info("Press Ctrl+C to stop");
             LOGGER.info("-".repeat(76));
+        }
+        if (!vaults.isEmpty())
+        {
+            factories = factories.stream().filter(f -> vaults.contains(f.name().toLowerCase())).collect(Collectors.toList());
+            if (factories.isEmpty())
+            {
+                LOGGER.error("No curators are available in the system. Nothing to do! Filter: {}", vaults);
+                return;
+            }
         }
         runCuratorsInSeparateThreads(factories, runMode);
     }
