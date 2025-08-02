@@ -10,6 +10,7 @@ import java.util.List;
 
 import static java.lang.System.getProperty;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 
 @ExtendWith(SoftAssertionsExtension.class)
 class ApplicationTest
@@ -56,9 +57,11 @@ class ApplicationTest
     @Test
     void runCuratorOnce()
     {
-        CuratorFactory factory = new MusicCuratorFactory();
-        new Application(null).runCuratorsInSeparateThreads(List.of(factory),
-                Application.RunMode.ONCE);
+        assertDoesNotThrow(() -> {
+            var factory = new MusicCuratorFactory();
+            new Application(null).runCuratorsInSeparateThreads(List.of(factory),
+                    Application.RunMode.ONCE);
+        });
     }
 
     private Path tempPidPath()

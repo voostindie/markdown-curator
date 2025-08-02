@@ -8,6 +8,7 @@ import java.util.*;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.unmodifiableList;
 import static java.util.Comparator.comparingInt;
+import static java.util.HashMap.newHashMap;
 
 @Singleton
 final class DefaultAttributeValueResolverRegistry
@@ -29,7 +30,7 @@ final class DefaultAttributeValueResolverRegistry
         {
             list.sort(comparingInt(AttributeValueResolver::order));
         }
-        this.resolverMap = new HashMap<>(temporaryMap.size());
+        this.resolverMap = newHashMap(temporaryMap.size());
         temporaryMap.forEach((key, value) -> resolverMap.put(key, unmodifiableList(value)));
     }
 

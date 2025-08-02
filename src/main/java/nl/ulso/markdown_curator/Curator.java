@@ -1,5 +1,6 @@
 package nl.ulso.markdown_curator;
 
+import jakarta.inject.Inject;
 import nl.ulso.markdown_curator.query.*;
 import nl.ulso.markdown_curator.vault.*;
 import nl.ulso.markdown_curator.vault.event.DocumentChanged;
@@ -7,7 +8,6 @@ import nl.ulso.markdown_curator.vault.event.VaultChangedEvent;
 import org.slf4j.Logger;
 import org.slf4j.MDC;
 
-import jakarta.inject.Inject;
 import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.*;
@@ -117,11 +117,17 @@ public class Curator
         {
             return;
         }
-        LOGGER.debug(">".repeat(80));
+        if (LOGGER.isDebugEnabled())
+        {
+            LOGGER.debug(">".repeat(80));
+        }
         cancelQueryWriteRunIfPresent();
         refreshAllDataModels(event);
         scheduleQueryWriteRun();
-        LOGGER.debug("<".repeat(80));
+        if (LOGGER.isDebugEnabled())
+        {
+            LOGGER.debug("<".repeat(80));
+        }
     }
 
     /**

@@ -8,7 +8,6 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.util.*;
 import java.util.ServiceLoader.Provider;
-import java.util.stream.Collectors;
 
 import static java.lang.System.getProperty;
 import static java.lang.System.lineSeparator;
@@ -103,10 +102,12 @@ public class Application
         }
         if (!vaults.isEmpty())
         {
-            factories = factories.stream().filter(f -> vaults.contains(f.name().toLowerCase())).collect(Collectors.toList());
+            factories = factories.stream().filter(f -> vaults.contains(f.name().toLowerCase()))
+                    .toList();
             if (factories.isEmpty())
             {
-                LOGGER.error("No curators are available in the system. Nothing to do! Filter: {}", vaults);
+                LOGGER.error("No curators are available in the system. Nothing to do! Filter: {}",
+                        vaults);
                 return;
             }
         }

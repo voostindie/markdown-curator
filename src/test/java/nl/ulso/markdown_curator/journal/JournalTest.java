@@ -132,7 +132,7 @@ class JournalTest
         var entries = journal.entriesUntilIncluding(
                 LocalDate.of(2023, 12, 25),
                 LocalDate.of(2023, 12, 25)).toList();
-        assertThat(entries.size()).isEqualTo(1);
+        assertThat(entries).hasSize(1);
         assertThat(journal.dailyAfter(LocalDate.of(2013, 1, 27))).isPresent();
     }
 

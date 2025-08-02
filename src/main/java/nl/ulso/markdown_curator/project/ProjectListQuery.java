@@ -27,7 +27,7 @@ public final class ProjectListQuery
         TABLE
     }
 
-    private final static Map<String, Format> FORMATS =
+    private static final Map<String, Format> FORMATS =
             Map.of("list", Format.LIST, "table", Format.TABLE);
 
     @Inject

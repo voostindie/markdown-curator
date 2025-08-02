@@ -45,11 +45,11 @@ class ProjectRepositoryTest
     @Test
     void emptyRepository()
     {
-        var vault = new VaultStub();
-        var repository = new ProjectRepository(vault, () -> (attribute -> emptyList()),
+        var emptyVault = new VaultStub();
+        var empyRepository = new ProjectRepository(emptyVault, () -> (attribute -> emptyList()),
                 new ProjectSettings("Projects"));
-        repository.fullRefresh();
-        assertThat(repository.projectsByName()).isEmpty();
+        empyRepository.fullRefresh();
+        assertThat(empyRepository.projectsByName()).isEmpty();
     }
 
     @Test
