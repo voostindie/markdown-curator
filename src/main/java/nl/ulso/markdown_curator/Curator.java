@@ -3,6 +3,7 @@ package nl.ulso.markdown_curator;
 import jakarta.inject.Inject;
 import nl.ulso.markdown_curator.query.*;
 import nl.ulso.markdown_curator.vault.*;
+import nl.ulso.markdown_curator.vault.Dictionary;
 import nl.ulso.markdown_curator.vault.event.DocumentChanged;
 import nl.ulso.markdown_curator.vault.event.VaultChangedEvent;
 import org.slf4j.Logger;
@@ -17,12 +18,14 @@ import java.util.stream.Collectors;
 import static java.lang.Thread.currentThread;
 import static java.nio.file.Files.getLastModifiedTime;
 import static java.nio.file.Files.writeString;
+import static java.util.Collections.emptyList;
 import static java.util.concurrent.Executors.newScheduledThreadPool;
 import static java.util.concurrent.Executors.newVirtualThreadPerTaskExecutor;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static java.util.stream.Collectors.groupingBy;
 import static nl.ulso.hash.Hasher.hash;
 import static nl.ulso.markdown_curator.DocumentRewriter.rewriteDocument;
+import static nl.ulso.markdown_curator.vault.Dictionary.emptyDictionary;
 import static nl.ulso.markdown_curator.vault.event.VaultChangedEvent.vaultRefreshed;
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -58,6 +61,7 @@ public class Curator
 
     private final Vault vault;
     private final DocumentPathResolver documentPathResolver;
+    private final FrontMatterRewriteResolver frontMatterRewriteResolver;
     private final QueryCatalog queryCatalog;
     private final List<DataModel> dataModels;
     private final Map<String, Long> writtenDocuments;
@@ -68,11 +72,13 @@ public class Curator
 
     @Inject
     public Curator(
-            Vault vault, DocumentPathResolver documentPathResolver, QueryCatalog queryCatalog,
+            Vault vault, DocumentPathResolver documentPathResolver,
+            FrontMatterRewriteResolver frontMatterRewriteResolver, QueryCatalog queryCatalog,
             Set<DataModel> dataModels)
     {
         this.vault = vault;
         this.documentPathResolver = documentPathResolver;
+        this.frontMatterRewriteResolver = frontMatterRewriteResolver;
         this.queryCatalog = queryCatalog;
         this.dataModels = orderDataModels(dataModels);
         this.writtenDocuments = new HashMap<>();
@@ -89,8 +95,8 @@ public class Curator
         if (LOGGER.isDebugEnabled())
         {
             LOGGER.debug("{} data models will be refreshed in this order: {}", list.size(),
-                    list.stream().map(model -> model.getClass().getSimpleName()).collect(
-                            Collectors.joining(", ")));
+                    list.stream().map(model -> model.getClass().getSimpleName())
+                            .collect(Collectors.joining(", ")));
         }
         return Collections.unmodifiableList(list);
     }
@@ -181,11 +187,10 @@ public class Curator
      */
     private void scheduleQueryWriteRun()
     {
-        LOGGER.debug(
-                "Scheduling query processing and document writing task to run in {} seconds",
+        LOGGER.debug("Scheduling query processing and document writing task to run in {} seconds",
                 SCHEDULE_TIMEOUT_IN_SECONDS);
-        runTask = delayedExecutor.schedule(this::performQueryWriteRun,
-                SCHEDULE_TIMEOUT_IN_SECONDS, SECONDS);
+        runTask = delayedExecutor.schedule(this::performQueryWriteRun, SCHEDULE_TIMEOUT_IN_SECONDS,
+                SECONDS);
     }
 
     /**
@@ -196,11 +201,22 @@ public class Curator
     {
         MDC.put("curator", curatorName);
         LOGGER.debug("Running all queries and writing document updates to disk");
-        var changeset = runAllQueries().stream()
-                .collect(groupingBy(item -> item.queryBlock().document()));
-        changeset.entrySet().stream()
+        var frontMatterRewrites = frontMatterRewriteResolver.resolveFrontMatterRewrites();
+        var queryOutputs =
+                runAllQueries().stream().collect(groupingBy(item -> item.queryBlock().document()));
+        var changedDocuments = new HashSet<Document>();
+        changedDocuments.addAll(frontMatterRewrites.keySet());
+        changedDocuments.addAll(queryOutputs.entrySet().stream()
                 .filter(entry -> entry.getValue().stream().anyMatch(QueryOutput::isChanged))
-                .forEach(entry -> writeDocument(entry.getKey(), entry.getValue()));
+                .map(Map.Entry::getKey).collect(Collectors.toSet()));
+        for (Document document : changedDocuments)
+        {
+            writeDocument(
+                    document,
+                    frontMatterRewrites.getOrDefault(document, emptyDictionary()),
+                    queryOutputs.getOrDefault(document, emptyList())
+            );
+        }
     }
 
     /**
@@ -248,8 +264,7 @@ public class Curator
     {
         var writeQueue = new ConcurrentLinkedQueue<QueryOutput>();
         var queryBlocks = vault.findAllQueryBlocks();
-        var duration = runInParallel(queryBlocks, queryBlock ->
-        {
+        var duration = runInParallel(queryBlocks, queryBlock -> {
             var query = queryCatalog.query(queryBlock.queryName());
             if (LOGGER.isTraceEnabled())
             {
@@ -281,12 +296,15 @@ public class Curator
      * Write a document to disk, but only if it hasn't changed since the start of the run.
      *
      * @param document     The document to write.
+     * @param frontMatter  The new front matter for this document; can be an empty dictionary, in
+     *                     which
+     *                     case the existing front matter is kept.
      * @param queryOutputs The fresh output of all queries on the page.
      */
-    void writeDocument(Document document, List<QueryOutput> queryOutputs)
+    void writeDocument(Document document, Dictionary frontMatter, List<QueryOutput> queryOutputs)
     {
         LOGGER.info("Rewriting document: {}", document);
-        var newDocumentContent = rewriteDocument(document, queryOutputs);
+        var newDocumentContent = rewriteDocument(document, frontMatter, queryOutputs);
         try
         {
             var path = documentPathResolver.resolveAbsolutePath(document);
@@ -320,8 +338,7 @@ public class Curator
         var startTime = System.currentTimeMillis();
         for (I item : items)
         {
-            parallelExecutor.submit(() ->
-            {
+            parallelExecutor.submit(() -> {
                 MDC.put("curator", curatorName);
                 try
                 {

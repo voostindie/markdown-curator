@@ -9,9 +9,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 
 import java.util.Locale;
 
-import static nl.ulso.markdown_curator.project.ProjectTestData.createRepository;
-import static nl.ulso.markdown_curator.project.ProjectTestData.createTestAttributeValueResolverRegistry;
-import static nl.ulso.markdown_curator.project.ProjectTestData.createTestVault;
+import static nl.ulso.markdown_curator.project.ProjectTestData.*;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @ExtendWith(SoftAssertionsExtension.class)
@@ -24,9 +22,10 @@ class ProjectLeadQueryTest
     void setUp()
     {
         vault = createTestVault();
-        var registry = createTestAttributeValueResolverRegistry(vault);
-        var repository = createRepository(vault, registry);
-        query = new ProjectLeadQuery(repository, new ResourceBundledGeneralMessages(Locale.ENGLISH),
+        var projectPropertyRepository =
+                creoateProjectPropertyRepository(vault);
+        query = new ProjectLeadQuery(projectPropertyRepository,
+                new ResourceBundledGeneralMessages(Locale.ENGLISH),
                 new QueryResultFactory());
     }
 

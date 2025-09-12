@@ -1,8 +1,9 @@
 package nl.ulso.markdown_curator.vault;
 
 import java.time.LocalDate;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
+
+import static java.util.Collections.emptySet;
 
 final class EmptyDictionary
         implements Dictionary
@@ -23,6 +24,12 @@ final class EmptyDictionary
     public int hashCode()
     {
         return 31;
+    }
+
+    @Override
+    public Set<String> propertyNames()
+    {
+        return emptySet();
     }
 
     @Override
@@ -74,8 +81,20 @@ final class EmptyDictionary
     }
 
     @Override
+    public Optional<Object> getProperty(String name)
+    {
+        return Optional.empty();
+    }
+
+    @Override
     public boolean hasProperty(String property)
     {
         return false;
+    }
+
+    @Override
+    public String toYamlString()
+    {
+        return "";
     }
 }

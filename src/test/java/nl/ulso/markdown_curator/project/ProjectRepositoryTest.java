@@ -8,9 +8,7 @@ import org.assertj.core.api.junit.jupiter.SoftAssertionsExtension;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.ExtendWith;
 
-import static java.util.Collections.emptyList;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertThrowsExactly;
 
 @ExtendWith(SoftAssertionsExtension.class)
 class ProjectRepositoryTest
@@ -25,8 +23,7 @@ class ProjectRepositoryTest
     void setUp()
     {
         vault = new VaultStub();
-        repository = new ProjectRepository(vault, () -> (attribute -> emptyList()),
-                new ProjectSettings("Projects"));
+        repository = new ProjectRepository(vault, new ProjectSettings("Projects"));
         var folder = vault.addFolder("Projects");
         var subfolder = folder.addFolder("Archived");
         vault.addDocument("README", "");
@@ -46,8 +43,7 @@ class ProjectRepositoryTest
     void emptyRepository()
     {
         var emptyVault = new VaultStub();
-        var empyRepository = new ProjectRepository(emptyVault, () -> (attribute -> emptyList()),
-                new ProjectSettings("Projects"));
+        var empyRepository = new ProjectRepository(emptyVault, new ProjectSettings("Projects"));
         empyRepository.fullRefresh();
         assertThat(empyRepository.projectsByName()).isEmpty();
     }
@@ -58,8 +54,8 @@ class ProjectRepositoryTest
         var document = vault.resolveDocumentInPath("Projects/Project 1");
         var project = repository.projectFor(document);
         softly.assertThat(repository.isProjectDocument(document)).isTrue();
-        softly.assertThat(project).isNotNull();
-        softly.assertThat(project.document()).isSameAs(document);
+        softly.assertThat(project).isPresent();
+        softly.assertThat(project).map(Project::document).hasValue(document);
     }
 
     @Test
@@ -75,7 +71,7 @@ class ProjectRepositoryTest
     {
         var document = vault.resolveDocumentInPath("README");
         softly.assertThat(repository.isProjectDocument(document)).isFalse();
-        assertThrowsExactly(NullPointerException.class, () -> repository.projectFor(document));
+        softly.assertThat(repository.projectFor(document)).isEmpty();
     }
 
     @Test

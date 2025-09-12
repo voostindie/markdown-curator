@@ -1,8 +1,7 @@
 package nl.ulso.markdown_curator.vault;
 
 import java.time.LocalDate;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static java.util.Objects.requireNonNull;
 
@@ -19,6 +18,11 @@ public interface Dictionary
     static Dictionary emptyDictionary()
     {
         return EmptyDictionary.INSTANCE;
+    }
+
+    static MutableDictionary mutableDictionary()
+    {
+        return new MapDictionary();
     }
 
     /**
@@ -56,7 +60,7 @@ public interface Dictionary
         return new YamlDictionary(string);
     }
 
-    static Dictionary mapDictionary(Map<String, ?> map)
+    static Dictionary mapDictionary(Map<String, Object> map)
     {
         if (requireNonNull(map).isEmpty())
         {
@@ -65,7 +69,28 @@ public interface Dictionary
         return new MapDictionary(requireNonNull(map));
     }
 
+    static MutableDictionary mutableDictionary(Dictionary source)
+    {
+        if (source instanceof MapDictionary sourceMap)
+        {
+            return new MapDictionary(Map.copyOf(sourceMap.map()));
+        }
+        else
+        {
+            var dictionary = new MapDictionary();
+            source.propertyNames().forEach(propertyName -> {
+                var propertyValue = source.getProperty(propertyName);
+                dictionary.setProperty(propertyName, propertyValue);
+            });
+            return dictionary;
+        }
+    }
+
+    Set<String> propertyNames();
+
     boolean isEmpty();
+
+    Optional<Object> getProperty(String name);
 
     String string(String property, String defaultValue);
 
@@ -82,4 +107,6 @@ public interface Dictionary
     List<LocalDate> listOfDates(String property);
 
     boolean hasProperty(String property);
+
+    String toYamlString();
 }

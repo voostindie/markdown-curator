@@ -7,15 +7,18 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 
+import static java.lang.System.lineSeparator;
 import static java.util.stream.Collectors.toMap;
 
 /**
- * Writes a Markdown version of a Document, with new query outputs. Everything but the query output
- * is written as is; there are no other changes compared to the file on disk, with one minor
- * exception; see below.
+ * Writes a Markdown version of a Document, with new front matter and new query outputs. Everything
+ * but the front matter and query output is written as is; there are no other changes compared to
+ * the file on disk, with one minor exception; see below.
  * <p/>
- * Two things to note:
+ * Things to note:
  * <ul>
+ *     <li>If the new front matter is an empty dictionary, the original front matter, if any,
+ *     is written as is.</li>
  *     <li>Every query in the document MUST be provided with new output, otherwise this is
  *     a programming error.</li>
  *     <li>A newline is ALWAYS written at the end of the file, even if the source document didn't
@@ -26,12 +29,14 @@ final class DocumentRewriter
         extends BreadthFirstVaultVisitor
 {
     private final StringWriter out;
+    private final Dictionary newFrontMatter;
     private final Map<QueryBlock, QueryOutput> queryOutputs;
 
-    public DocumentRewriter(List<QueryOutput> queryOutputs)
+    public DocumentRewriter(Dictionary newFrontMatter, List<QueryOutput> queryOutputs)
     {
-        this.queryOutputs = queryOutputs.stream()
-                .collect(toMap(QueryOutput::queryBlock, Function.identity()));
+        this.newFrontMatter = newFrontMatter;
+        this.queryOutputs =
+                queryOutputs.stream().collect(toMap(QueryOutput::queryBlock, Function.identity()));
         this.out = new StringWriter();
     }
 
@@ -45,7 +50,18 @@ final class DocumentRewriter
     @Override
     public void visit(FrontMatter frontMatter)
     {
-        out.write(frontMatter.markdown());
+        if (newFrontMatter.isEmpty())
+        {
+            out.write(frontMatter.markdown());
+        }
+        else
+        {
+            out.write("---");
+            out.write(lineSeparator());
+            out.write(newFrontMatter.toYamlString());
+            out.write("---");
+            out.write(lineSeparator());
+        }
     }
 
     @Override
@@ -71,9 +87,10 @@ final class DocumentRewriter
         out.write(textBlock.markdown());
     }
 
-    static String rewriteDocument(Document document, List<QueryOutput> queryOutputs)
+    static String rewriteDocument(
+            Document document, Dictionary frontMatter, List<QueryOutput> queryOutputs)
     {
-        var writer = new DocumentRewriter(queryOutputs);
+        var writer = new DocumentRewriter(frontMatter, queryOutputs);
         document.accept(writer);
         return writer.out.toString();
     }

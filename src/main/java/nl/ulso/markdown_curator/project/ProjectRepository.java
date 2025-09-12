@@ -1,6 +1,5 @@
 package nl.ulso.markdown_curator.project;
 
-import dagger.Lazy;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 import nl.ulso.markdown_curator.DataModelTemplate;
@@ -19,13 +18,10 @@ import static org.slf4j.LoggerFactory.getLogger;
  * subfolders.
  * <p/>
  * This repository only keeps track of <i>active</i> projects. A project is considered active if it
- * is in the main project folder. As soon as a project is archived, typically my moving it to a
+ * is in the main project folder. As soon as a project is archived, typically by moving it to a
  * subfolder, the project is no longer considered active and therefore not tracked by this
  * repository.
  * <p/>
- * The registry of attribute value resolvers is injected lazily, to prevent it being fully
- * initialized at startup. That's needed because the individual resolvers may depend on this
- * repository, which implies a circular dependency.
  */
 @Singleton
 public final class ProjectRepository
@@ -34,19 +30,15 @@ public final class ProjectRepository
     private static final Logger LOGGER = getLogger(ProjectRepository.class);
 
     private final Vault vault;
-    private final Lazy<AttributeValueResolverRegistry> registry;
-    private final Map<String, Project> projects;
     private final String projectFolderName;
+    private final Map<String, Project> projects;
 
     @Inject
-    ProjectRepository(
-            Vault vault, Lazy<AttributeValueResolverRegistry> registry,
-            ProjectSettings settings)
+    ProjectRepository(Vault vault, ProjectSettings settings)
     {
         this.vault = vault;
-        this.registry = registry;
-        this.projects = new HashMap<>();
         this.projectFolderName = settings.projectFolderName();
+        this.projects = new HashMap<>();
     }
 
     @Override
@@ -77,12 +69,12 @@ public final class ProjectRepository
         return isProjectFolder(document.folder());
     }
 
-    public Project projectFor(Document document)
+    public Optional<Project> projectFor(Document document)
     {
-        return Objects.requireNonNull(projects.get(document.name()));
+        return Optional.ofNullable(projects.get(document.name()));
     }
 
-    private boolean isProjectFolder(Folder folder)
+    boolean isProjectFolder(Folder folder)
     {
         return folder != vault &&
                folder.name().contentEquals(projectFolderName) &&
@@ -125,9 +117,11 @@ public final class ProjectRepository
     {
         if (isProjectDocument(document))
         {
-            projects.put(document.name(), new Project(document, registry.get()));
+            var project = new Project(document);
+            projects.put(project.name(), new Project(document));
         }
     }
+
 
     @Override
     public void process(DocumentRemoved event)
@@ -155,7 +149,7 @@ public final class ProjectRepository
         @Override
         public void visit(Document document)
         {
-            projects.add(new Project(document, registry.get()));
+            projects.add(new Project(document));
         }
     }
 }

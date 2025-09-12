@@ -21,6 +21,7 @@ import nl.ulso.markdown_curator.vault.event.VaultChangedEvent;
 public interface DataModel
 {
     int ORDER_FIRST = 0;
+    int ORDER_LAST = Integer.MAX_VALUE;
 
     void vaultChanged(VaultChangedEvent event);
 

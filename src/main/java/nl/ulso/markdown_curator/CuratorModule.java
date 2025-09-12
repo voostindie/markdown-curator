@@ -1,7 +1,7 @@
 package nl.ulso.markdown_curator;
 
-import dagger.Module;
 import dagger.*;
+import dagger.Module;
 import dagger.multibindings.IntoSet;
 import dagger.multibindings.Multibinds;
 import nl.ulso.markdown_curator.query.*;
@@ -61,6 +61,14 @@ public abstract class CuratorModule
 
     @Binds
     abstract GeneralMessages bindGeneralMessages(ResourceBundledGeneralMessages generalMessages);
+
+    @Binds
+    abstract FrontMatterUpdateCollector bindFrontMatterCollector(
+            InMemoryFrontMatterCollector collector);
+
+    @Binds
+    abstract FrontMatterRewriteResolver bindFrontMatterRewriteResolver(
+            InMemoryFrontMatterCollector collector);
 
     @Binds
     @IntoSet

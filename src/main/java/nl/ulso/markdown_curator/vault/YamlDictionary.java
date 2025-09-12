@@ -30,7 +30,6 @@ import static java.util.stream.Collectors.toMap;
  */
 final class YamlDictionary
         extends MapDictionary
-        implements Dictionary
 {
     private static final Logger LOGGER = LoggerFactory.getLogger(YamlDictionary.class);
     private static final String DOCUMENT_SEPARATOR = "---";
@@ -48,7 +47,7 @@ final class YamlDictionary
         this(join(lineSeparator(), singleYamlNode(lines)));
     }
 
-    private static Map<String, ?> parseYaml(String string)
+    private static Map<String, Object> parseYaml(String string)
     {
         LoadSettings settings = LoadSettings.builder().build();
         Load load = new Load(settings);
@@ -71,9 +70,9 @@ final class YamlDictionary
     }
 
     @SuppressWarnings("unchecked")
-    private static Map<String, ?> loadYaml(String string, Load load)
+    private static Map<String, Object> loadYaml(String string, Load load)
     {
-        return (Map<String, ?>) load.loadFromString(string);
+        return (Map<String, Object>) load.loadFromString(string);
     }
 
     private static List<String> singleYamlNode(List<String> lines)

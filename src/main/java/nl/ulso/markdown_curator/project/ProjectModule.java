@@ -2,15 +2,18 @@ package nl.ulso.markdown_curator.project;
 
 import dagger.*;
 import dagger.Module;
-import dagger.multibindings.IntoSet;
+import dagger.multibindings.*;
+import jakarta.inject.Singleton;
 import nl.ulso.markdown_curator.DataModel;
 import nl.ulso.markdown_curator.query.Query;
+import nl.ulso.markdown_curator.vault.Document;
 import nl.ulso.markdown_curator.vault.Vault;
 
-import static nl.ulso.markdown_curator.project.Attribute.LAST_MODIFIED;
-import static nl.ulso.markdown_curator.project.Attribute.LEAD;
-import static nl.ulso.markdown_curator.project.Attribute.PRIORITY;
-import static nl.ulso.markdown_curator.project.Attribute.STATUS;
+import java.time.LocalDate;
+import java.util.Map;
+import java.util.Set;
+
+import static nl.ulso.markdown_curator.project.ProjectProperty.*;
 
 /**
  * Provides a pluggable project model based on a set of documents in a subfolder of the vault.
@@ -22,45 +25,96 @@ import static nl.ulso.markdown_curator.project.Attribute.STATUS;
 @Module
 public abstract class ProjectModule
 {
-    @Binds
-    @IntoSet
-    abstract DataModel projectRepository(ProjectRepository projectRepository);
+    @Multibinds
+    abstract Map<String, ProjectProperty> bindProjectProperties();
 
-    @Binds
-    abstract AttributeValueResolverRegistry bindResolverRegistry(
-            DefaultAttributeValueResolverRegistry registry);
-
-    @Provides
-    @IntoSet
-    static AttributeValueResolver<?> leadFrontMatterResolver(Vault vault)
-    {
-        return new FrontMatterAttributeValueResolver<>(LEAD, "lead", vault);
-    }
-
-    @Provides
-    @IntoSet
-    static AttributeValueResolver<?> lastModifiedFrontMatterResolver(Vault vault)
-    {
-        return new FrontMatterAttributeValueResolver<>(LAST_MODIFIED, "last-modified", vault);
-    }
-
-    @Provides
-    @IntoSet
-    static AttributeValueResolver<?> priorityFrontMatterResolver(Vault vault)
-    {
-        return new FrontMatterAttributeValueResolver<>(PRIORITY, "priority", vault);
-    }
-
-    @Provides
-    @IntoSet
-    static AttributeValueResolver<?> statusFrontMatterResolver(Vault vault)
-    {
-        return new FrontMatterAttributeValueResolver<>(STATUS, "status", vault);
-    }
+    @Multibinds
+    abstract Set<ProjectPropertyResolver> bindProjectPropertyResolvers();
 
     @Binds
     @IntoSet
-    abstract Query projectLeadQuery(ProjectLeadQuery query);
+    abstract DataModel bindProjectRepository(ProjectRepository projectRepository);
+
+    @Binds
+    @IntoSet
+    abstract DataModel bindProjectPropertyRepository(
+            ProjectPropertyRepository projectPropertyRepository);
+
+    @Binds
+    abstract ProjectPropertyResolverRegistry bindResolverRegistry(
+            ProjectPropertyResolverRegistryImpl registry);
+
+    @Provides
+    @Singleton
+    @IntoMap
+    @StringKey(LAST_MODIFIED)
+    static ProjectProperty provideLastModifiedProperty()
+    {
+        return newProperty(LocalDate.class, "last_modified", Object::toString);
+    }
+
+    @Provides
+    @IntoSet
+    static ProjectPropertyResolver provideLastModifiedFrontMatterResolver(
+            Map<String, ProjectProperty> properties, Vault vault)
+    {
+        return new FrontMatterProjectPropertyResolver(properties.get(LAST_MODIFIED), vault);
+    }
+
+    @Provides
+    @Singleton
+    @IntoMap
+    @StringKey(LEAD)
+    static ProjectProperty provideLeadProperty()
+    {
+        return newProperty(Document.class, "lead", d -> ((Document) d).link());
+    }
+
+    @Provides
+    @IntoSet
+    static ProjectPropertyResolver provideLeadFrontMatterResolver(
+            Map<String, ProjectProperty> properties, Vault vault)
+    {
+        return new FrontMatterProjectPropertyResolver(properties.get(LEAD), vault);
+    }
+
+    @Provides
+    @Singleton
+    @IntoMap
+    @StringKey(PRIORITY)
+    static ProjectProperty providePriorityProperty()
+    {
+        return newProperty(Integer.class, "priority");
+    }
+
+    @Provides
+    @IntoSet
+    static ProjectPropertyResolver providePriorityFrontMatterResolver(
+            Map<String, ProjectProperty> properties, Vault vault)
+    {
+        return new FrontMatterProjectPropertyResolver(properties.get(PRIORITY), vault);
+    }
+
+    @Provides
+    @Singleton
+    @IntoMap
+    @StringKey(STATUS)
+    static ProjectProperty provideStatusProperty()
+    {
+        return newProperty(String.class, "status");
+    }
+
+    @Provides
+    @IntoSet
+    static ProjectPropertyResolver provideStatusFrontMatterResolver(
+            Map<String, ProjectProperty> properties, Vault vault)
+    {
+        return new FrontMatterProjectPropertyResolver(properties.get(STATUS), vault);
+    }
+
+    @Binds
+    @IntoSet
+    abstract Query bindProjectLeadQuery(ProjectLeadQuery query);
 
     @Binds
     @IntoSet

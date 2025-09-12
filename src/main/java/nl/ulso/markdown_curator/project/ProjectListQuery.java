@@ -4,20 +4,24 @@ import jakarta.inject.Inject;
 import nl.ulso.markdown_curator.query.*;
 import nl.ulso.markdown_curator.vault.Document;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 
 import static java.lang.Integer.MAX_VALUE;
 import static java.util.Comparator.comparingInt;
-import static nl.ulso.markdown_curator.project.Attribute.LAST_MODIFIED;
-import static nl.ulso.markdown_curator.project.Attribute.LEAD;
-import static nl.ulso.markdown_curator.project.Attribute.PRIORITY;
-import static nl.ulso.markdown_curator.project.Attribute.STATUS;
+import static nl.ulso.markdown_curator.project.ProjectProperty.LAST_MODIFIED;
+import static nl.ulso.markdown_curator.project.ProjectProperty.LEAD;
+import static nl.ulso.markdown_curator.project.ProjectProperty.PRIORITY;
+import static nl.ulso.markdown_curator.project.ProjectProperty.STATUS;
 
+/**
+ * Lists all active projects, either in a simple list, or in a table.
+ */
 public final class ProjectListQuery
         implements Query
 {
-    private final ProjectRepository projectRepository;
+    private final ProjectPropertyRepository projectPropertyRepository;
     private final GeneralMessages messages;
     private final QueryResultFactory resultFactory;
 
@@ -32,10 +36,11 @@ public final class ProjectListQuery
 
     @Inject
     public ProjectListQuery(
-            ProjectRepository projectRepository, GeneralMessages messages,
+            ProjectPropertyRepository projectPropertyRepository,
+            GeneralMessages messages,
             QueryResultFactory resultFactory)
     {
-        this.projectRepository = projectRepository;
+        this.projectPropertyRepository = projectPropertyRepository;
         this.messages = messages;
         this.resultFactory = resultFactory;
     }
@@ -66,8 +71,11 @@ public final class ProjectListQuery
         {
             return resultFactory.error("Unsupported format");
         }
-        var projects = projectRepository.projects().stream()
-                .sorted(comparingInt(p -> p.attributeValue(PRIORITY).orElse(MAX_VALUE)));
+        var projects = projectPropertyRepository.projects().stream()
+                .sorted(comparingInt(p -> projectPropertyRepository.propertyValue(p,
+                                projectPropertyRepository.property(PRIORITY))
+                        .map(i -> ((Integer) i))
+                        .orElse(MAX_VALUE)));
         return switch (format)
         {
             case LIST -> resultFactory.unorderedList(projects
@@ -81,21 +89,25 @@ public final class ProjectListQuery
                             messages.projectStatus()),
                     projects.map((Project project) -> Map.of(
                                     messages.projectPriority(),
-                                    project.attributeValue(PRIORITY)
+                                    projectPropertyRepository.propertyValue(project, PRIORITY)
+                                            .map(i -> (Integer) i)
                                             .map(p -> Integer.toString(p))
                                             .orElse(messages.projectPriorityUnknown()),
                                     messages.projectName(),
                                     project.document().link(),
                                     messages.projectLead(),
-                                    project.attributeValue(LEAD)
+                                    projectPropertyRepository.propertyValue(project, LEAD)
+                                            .map(d -> (Document) d)
                                             .map(Document::link)
                                             .orElse(messages.projectLeadUnknown()),
                                     messages.projectLastModified(),
-                                    project.attributeValue(LAST_MODIFIED)
+                                    projectPropertyRepository.propertyValue(project, LAST_MODIFIED)
+                                            .map(d -> (LocalDate) d)
                                             .map(d -> "[[" + d + "]]")
                                             .orElse(messages.projectDateUnknown()),
                                     messages.projectStatus(),
-                                    project.attributeValue(STATUS)
+                                    projectPropertyRepository.propertyValue(project, STATUS)
+                                            .map(s -> (String) s)
                                             .orElse(messages.projectStatusUnknown())))
                             .toList());
         };

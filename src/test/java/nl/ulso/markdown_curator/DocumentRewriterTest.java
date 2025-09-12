@@ -1,16 +1,20 @@
 package nl.ulso.markdown_curator;
 
+import nl.ulso.markdown_curator.vault.Dictionary;
 import nl.ulso.markdown_curator.vault.VaultStub;
 import org.assertj.core.api.junit.jupiter.SoftAssertionsExtension;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
-import java.util.Collections;
+import java.util.Map;
 import java.util.stream.Stream;
 
+import static java.util.Collections.emptyList;
 import static nl.ulso.markdown_curator.DocumentRewriter.rewriteDocument;
+import static nl.ulso.markdown_curator.vault.Dictionary.emptyDictionary;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @ExtendWith(SoftAssertionsExtension.class)
@@ -22,7 +26,7 @@ class DocumentRewriterTest
     {
         var vault = new VaultStub();
         var document = vault.addDocument("test", expected);
-        var content = rewriteDocument(document, Collections.emptyList());
+        var content = rewriteDocument(document, emptyDictionary(), emptyList());
         assertThat(content).isEqualTo(expected);
     }
 
@@ -73,5 +77,43 @@ class DocumentRewriterTest
                         Seems to work!
                         """)
         );
+    }
+
+    @Test
+    void addGeneratedFrontMatter()
+    {
+        var vault = new VaultStub();
+        var document = vault.addDocument("document", """
+                Content
+                """);
+        var newFrontMatter = Dictionary.mapDictionary(Map.of("foo", "bar"));
+        var content = rewriteDocument(document, newFrontMatter, emptyList());
+        assertThat(content).isEqualTo("""
+                ---
+                foo: bar
+                ---
+                Content
+                """);
+    }
+
+    @Test
+    void replaceUpdatedFrontMatter()
+    {
+        var vault = new VaultStub();
+        var document = vault.addDocument("document", """
+                ---
+                foo: bar
+                ---
+                Content
+                """);
+        var newFrontMatter = Dictionary.mapDictionary(Map.of("foo", "baz", "bar", "qux"));
+        var content = rewriteDocument(document, newFrontMatter, emptyList());
+        assertThat(content).isEqualTo("""
+                ---
+                bar: qux
+                foo: baz
+                ---
+                Content
+                """);
     }
 }

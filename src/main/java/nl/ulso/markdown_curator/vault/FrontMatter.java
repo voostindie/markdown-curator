@@ -1,8 +1,7 @@
 package nl.ulso.markdown_curator.vault;
 
 import java.time.LocalDate;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 import static java.lang.System.lineSeparator;
 import static nl.ulso.markdown_curator.vault.Dictionary.emptyDictionary;
@@ -82,6 +81,12 @@ public final class FrontMatter
     }
 
     @Override
+    public Set<String> propertyNames()
+    {
+        return dictionary.propertyNames();
+    }
+
+    @Override
     public boolean isEmpty()
     {
         return dictionary.isEmpty();
@@ -130,8 +135,20 @@ public final class FrontMatter
     }
 
     @Override
+    public Optional<Object> getProperty(String name)
+    {
+        return dictionary.getProperty(name);
+    }
+
+    @Override
     public boolean hasProperty(String property)
     {
         return dictionary.hasProperty(property);
+    }
+
+    @Override
+    public String toYamlString()
+    {
+        return dictionary.toYamlString();
     }
 }
