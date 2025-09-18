@@ -18,8 +18,8 @@ import static java.util.Objects.requireNonNull;
  * properties are computed. That is why this model comes last, and always does a complete
  * refresh.
  * <p/>
- * Because this model always goes last, there is no point in depending on this model in other
- * models! It can be used in queries.
+ * If you plan to read property values in a DataModel, make sure the model gets refreshed after
+ * this one.
  */
 @Singleton
 public class ProjectPropertyRepository
@@ -148,7 +148,7 @@ public class ProjectPropertyRepository
     @Override
     public int order()
     {
-        return ORDER_LAST;
+        return 5000;
     }
 
     public Optional<?> propertyValue(Project project, String propertyName)
