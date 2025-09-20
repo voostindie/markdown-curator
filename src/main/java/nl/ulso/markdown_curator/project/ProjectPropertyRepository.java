@@ -8,6 +8,7 @@ import nl.ulso.markdown_curator.vault.Document;
 import nl.ulso.markdown_curator.vault.event.*;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 import static java.util.Objects.requireNonNull;
 
@@ -42,7 +43,7 @@ public class ProjectPropertyRepository
         this.projectRepository = projectRepository;
         this.projectPropertyResolverRegistry = projectPropertyResolverRegistry;
         this.frontMatterUpdateCollector = frontMatterUpdateCollector;
-        this.projectPropertyValues = new HashMap<>();
+        this.projectPropertyValues = new ConcurrentHashMap<>();
     }
 
     public ProjectRepository projectRepository()
@@ -79,7 +80,8 @@ public class ProjectPropertyRepository
 
     private void processProject(Project project)
     {
-        var properties = projectPropertyValues.computeIfAbsent(project, key -> new HashMap<>(projectProperties.size()));
+        var properties = projectPropertyValues.computeIfAbsent(project,
+                key -> new ConcurrentHashMap<>(projectProperties.size()));
         frontMatterUpdateCollector.updateFrontMatterFor(project.document(), dictionary -> {
             for (ProjectProperty property : projectProperties.values())
             {

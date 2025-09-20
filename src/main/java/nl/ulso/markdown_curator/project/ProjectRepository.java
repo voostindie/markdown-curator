@@ -8,6 +8,7 @@ import nl.ulso.markdown_curator.vault.event.*;
 import org.slf4j.Logger;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 import static java.util.Collections.unmodifiableCollection;
 import static java.util.Collections.unmodifiableMap;
@@ -38,7 +39,7 @@ public final class ProjectRepository
     {
         this.vault = vault;
         this.projectFolderName = settings.projectFolderName();
-        this.projects = new HashMap<>();
+        this.projects = new ConcurrentHashMap<>();
     }
 
     @Override

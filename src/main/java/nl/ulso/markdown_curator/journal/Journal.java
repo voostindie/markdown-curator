@@ -32,7 +32,7 @@ public class Journal
     private final JournalSettings settings;
     private final NavigableMap<LocalDate, Daily> dailies;
     private final NavigableSet<Weekly> weeklies;
-    private final HashMap<String, Document> markers;
+    private final Map<String, Document> markers;
 
     @Inject
     Journal(Vault vault, JournalSettings settings)

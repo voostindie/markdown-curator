@@ -19,6 +19,7 @@ import static java.lang.Thread.currentThread;
 import static java.nio.file.Files.getLastModifiedTime;
 import static java.nio.file.Files.writeString;
 import static java.util.Collections.emptyList;
+import static java.util.Comparator.comparing;
 import static java.util.concurrent.Executors.newScheduledThreadPool;
 import static java.util.concurrent.Executors.newVirtualThreadPerTaskExecutor;
 import static java.util.concurrent.TimeUnit.SECONDS;
@@ -91,7 +92,7 @@ public class Curator
     private static List<DataModel> orderDataModels(Set<DataModel> dataModels)
     {
         var list = new ArrayList<>(dataModels);
-        list.sort(Comparator.comparing(DataModel::order));
+        list.sort(comparing(DataModel::order));
         if (LOGGER.isDebugEnabled())
         {
             LOGGER.debug("{} data models will be refreshed in this order: {}", list.size(),
@@ -234,7 +235,6 @@ public class Curator
             LOGGER.debug("Refreshing {} data model(s)", dataModels.size());
         }
         dataModels.forEach(model -> {
-
             try
             {
                 model.vaultChanged(event);
@@ -259,6 +259,9 @@ public class Curator
      * change. Query output is not kept in memory between runs. Documents may embed more than
      * one query, and documents are written to disks a whole. So, the outputs of all embedded
      * queries need to be available.
+     * <p/>
+     * The queries are executed in parallel as much as possible, because there can be thousands
+     * of them.
      */
     Queue<QueryOutput> runAllQueries()
     {
@@ -297,8 +300,7 @@ public class Curator
      *
      * @param document     The document to write.
      * @param frontMatter  The new front matter for this document; can be an empty dictionary, in
-     *                     which
-     *                     case the existing front matter is kept.
+     *                     which case the existing front matter is kept.
      * @param queryOutputs The fresh output of all queries on the page.
      */
     void writeDocument(Document document, Dictionary frontMatter, List<QueryOutput> queryOutputs)
