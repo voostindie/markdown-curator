@@ -4,6 +4,9 @@ import org.junit.jupiter.api.Test;
 
 import java.util.*;
 
+import static nl.ulso.markdown_curator.query.TableResult.Alignment.CENTER;
+import static nl.ulso.markdown_curator.query.TableResult.Alignment.LEFT;
+import static nl.ulso.markdown_curator.query.TableResult.Alignment.RIGHT;
 import static org.assertj.core.api.Assertions.assertThat;
 
 class QueryResultTest
@@ -60,6 +63,27 @@ class QueryResultTest
                 | Title |
                 | ----- |
                 |       |
+                
+                """);
+    }
+
+    @Test
+    void tableWithAlignments()
+    {
+        var table = factory.table(
+                List.of("Title", "Year", "Rating"),
+                List.of(LEFT, CENTER, RIGHT),
+                List.of(Map.of("Title", "No Time To Die", "Year", "2021", "Rating", "7.3"),
+                        Map.of("Title", "Spectre", "Year", "2015", "Rating", "6.8"),
+                        Map.of("Title", "Skyfall", "Year", "2012", "Rating", "7.8"))
+        );
+        assertThat(table.toMarkdown()).isEqualTo("""
+                
+                | Title          | Year | Rating |
+                | :------------- | :--: | -----: |
+                | No Time To Die | 2021 | 7.3    |
+                | Spectre        | 2015 | 6.8    |
+                | Skyfall        | 2012 | 7.8    |
                 
                 """);
     }

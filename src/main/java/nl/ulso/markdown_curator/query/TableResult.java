@@ -11,18 +11,33 @@ import static java.util.regex.Pattern.compile;
 public class TableResult
         implements QueryResult
 {
+    public enum Alignment
+    {
+        LEFT,
+        RIGHT,
+        CENTER
+    }
+
     private static final char NORMAL_HYPHEN = '-';
     private static final char NON_BREAKING_HYPHEN = '‑';
     private static final Predicate<String> DATE_PREDICATE =
             compile("^\\d{4}-\\d{2}-\\d{2}$").asPredicate();
-
     private final List<String> columns;
+    private final List<Alignment> alignments;
     private final List<Map<String, String>> rows;
+
+    TableResult(
+            List<String> columns, List<Alignment> alignments, List<Map<String, String>> rows)
+    {
+        this.columns = unmodifiableList(columns);
+        this.alignments = alignments != null ? unmodifiableList(alignments) : null;
+        this.rows = unmodifiableList(rows);
+
+    }
 
     TableResult(List<String> columns, List<Map<String, String>> rows)
     {
-        this.columns = unmodifiableList(columns);
-        this.rows = unmodifiableList(rows);
+        this(columns, null, rows);
     }
 
     @Override
@@ -44,9 +59,33 @@ public class TableResult
         builder.append("|");
         for (var i = 0; i < width; i++)
         {
-            builder.append(" ");
-            builder.append("-".repeat(widths[i]));
-            builder.append(" |");
+            if (alignments == null)
+            {
+                builder.append(" ");
+                builder.append("-".repeat(widths[i]));
+                builder.append(" |");
+            }
+            else
+            {
+                builder.append(" ");
+                switch (alignments.get(i))
+                {
+                    case LEFT:
+                        builder.append(":");
+                        builder.append("-".repeat(Math.max(widths[i] - 1, 1)));
+                        break;
+                    case RIGHT:
+                        builder.append("-".repeat(Math.max(widths[i] - 1, 1)));
+                        builder.append(":");
+                        break;
+                    case CENTER:
+                        builder.append(":");
+                        builder.append("-".repeat(Math.max(widths[i] - 2, 1)));
+                        builder.append(":");
+                        break;
+                }
+                builder.append(" |");
+            }
         }
         builder.append(lineSeparator());
         for (Map<String, String> row : rows)
@@ -69,7 +108,7 @@ public class TableResult
 
     /*
      * The table formatting in Obsidian is such that it wraps along hyphens, which is correct most
-     * of the time, except when the colum is a date. In that case the dates might be wrapped. To
+     * of the time, except when the column is a date. In that case the dates might be wrapped. To
      * prevent dates being wrapped this method replaces the normal hyphens with non-breaking
      * hyphens. They look exactly the same visually, which is great when looking at the table
      * in Markdown format.

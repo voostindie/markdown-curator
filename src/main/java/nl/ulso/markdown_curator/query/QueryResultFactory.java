@@ -1,6 +1,7 @@
 package nl.ulso.markdown_curator.query;
 
 import jakarta.inject.Inject;
+
 import java.util.List;
 import java.util.Map;
 
@@ -59,6 +60,26 @@ public class QueryResultFactory
             return empty();
         }
         return new TableResult(columns, rows);
+    }
+
+    /**
+     * Creates a Markdown table, nicely formatted and columns aligned.
+     *
+     * @param columns    Columns to show in the table, in this order.
+     * @param rows       Data for the table: a map for each row, with the column as the key and the
+     *                   content as the value.
+     * @param alignments Alignment for each of the columms
+     * @return QueryResult that outputs a table.
+     */
+    public QueryResult table(
+            List<String> columns, List<TableResult.Alignment> alignments,
+            List<Map<String, String>> rows)
+    {
+        if (rows.isEmpty())
+        {
+            return empty();
+        }
+        return new TableResult(columns, alignments, rows);
     }
 
     /**
