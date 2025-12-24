@@ -24,7 +24,7 @@ import static java.util.concurrent.Executors.newScheduledThreadPool;
 import static java.util.concurrent.Executors.newVirtualThreadPerTaskExecutor;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static java.util.stream.Collectors.groupingBy;
-import static nl.ulso.hash.Hasher.hash;
+import static nl.ulso.hash.ShortHasher.shortHashOf;
 import static nl.ulso.markdown_curator.DocumentRewriter.rewriteDocument;
 import static nl.ulso.markdown_curator.vault.Dictionary.emptyDictionary;
 import static nl.ulso.markdown_curator.vault.event.VaultChangedEvent.vaultRefreshed;
@@ -287,7 +287,7 @@ public class Curator
                 return;
             }
             var output = result.toMarkdown();
-            var hash = hash(output);
+            var hash = shortHashOf(output);
             var isChanged = !queryBlock.outputHash().contentEquals(hash);
             writeQueue.add(new QueryOutput(queryBlock, output, hash, isChanged));
         });
