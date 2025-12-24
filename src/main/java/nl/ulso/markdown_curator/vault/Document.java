@@ -4,7 +4,7 @@ import java.util.List;
 import java.util.Objects;
 
 import static java.util.Objects.requireNonNull;
-import static nl.ulso.emoji.EmojiFilter.stripEmojis;
+import static nl.ulso.emoji.EmojiStripper.stripEmojisFrom;
 
 /**
  * Represents a Markdown document. A document is broken down in a list of {@link Fragment}s.
@@ -26,7 +26,7 @@ public final class Document
         super(fragments);
         this.name = name;
         this.title = resolveTitle(name, fragments);
-        this.sortableTitle = stripEmojis(title).trim();
+        this.sortableTitle = stripEmojisFrom(title).trim();
         this.lastModified = lastModified;
     }
 

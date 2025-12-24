@@ -7,7 +7,7 @@ import static java.lang.System.lineSeparator;
 import static java.util.Collections.emptyList;
 import static java.util.Objects.requireNonNull;
 import static java.util.regex.Pattern.compile;
-import static nl.ulso.emoji.EmojiFilter.stripEmojis;
+import static nl.ulso.emoji.EmojiStripper.stripEmojisFrom;
 
 public final class Section
         extends FragmentContainer
@@ -34,7 +34,7 @@ public final class Section
         }
         this.level = level;
         this.title = requireNonNull(title);
-        this.sortableTitle = stripEmojis(title).trim();
+        this.sortableTitle = stripEmojisFrom(title).trim();
     }
 
     @Override
