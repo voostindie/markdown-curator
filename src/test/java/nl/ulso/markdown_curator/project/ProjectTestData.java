@@ -40,23 +40,23 @@ public class ProjectTestData
     }
 
     static Map<String, ProjectProperty> PROJECT_PROPERTIES = Map.of(
-            STATUS, newProperty(String.class, "status"),
-            LEAD, newProperty(Document.class, "lead", d -> ((Document) d).link()),
+            STATUS, newProperty(String.class, STATUS),
+            LEAD, newProperty(Document.class, LEAD, d -> ((Document) d).link()),
             LAST_MODIFIED,
-            newProperty(LocalDate.class, "last_modified", Object::toString),
-            PRIORITY, newProperty(Integer.class, "priority")
+            newProperty(LocalDate.class, LAST_MODIFIED, Object::toString),
+            PRIORITY, newProperty(Integer.class, PRIORITY)
     );
 
     static ProjectPropertyRepository creoateProjectPropertyRepository(Vault vault)
     {
         var projectRepository = new ProjectRepository(vault, new ProjectSettings("Projects"));
         projectRepository.fullRefresh();
-        var registry = new ProjectPropertyResolverRegistryImpl(Set.of(
-                new FrontMatterProjectPropertyResolver(PROJECT_PROPERTIES.get(STATUS), vault),
-                new FrontMatterProjectPropertyResolver(PROJECT_PROPERTIES.get(LEAD), vault),
-                new FrontMatterProjectPropertyResolver(PROJECT_PROPERTIES.get(LAST_MODIFIED),
+        var registry = new ValueResolverRegistryImpl(Set.of(
+                new FrontMatterValueResolver(PROJECT_PROPERTIES.get(STATUS), vault),
+                new FrontMatterValueResolver(PROJECT_PROPERTIES.get(LEAD), vault),
+                new FrontMatterValueResolver(PROJECT_PROPERTIES.get(LAST_MODIFIED),
                         vault),
-                new FrontMatterProjectPropertyResolver(PROJECT_PROPERTIES.get(PRIORITY), vault)
+                new FrontMatterValueResolver(PROJECT_PROPERTIES.get(PRIORITY), vault)
         ));
         var result = new ProjectPropertyRepository(PROJECT_PROPERTIES, projectRepository, registry,
                 new InMemoryFrontMatterCollector(vault));

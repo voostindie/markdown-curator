@@ -53,7 +53,7 @@ class ProjectModuleTest
             return "Stub";
         }
 
-        ProjectPropertyResolverRegistry createProjectPropertyResolverRegistry();
+        ValueResolverRegistry createProjectPropertyResolverRegistry();
 
         ProjectPropertyRepository createProjectPropertyRepository();
     }

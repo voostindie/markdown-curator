@@ -5,15 +5,15 @@ import java.util.function.Function;
 import static java.util.Objects.requireNonNull;
 
 final class ProjectPropertyImpl
-        implements ProjectProperty
+    implements ProjectProperty
 {
     private final Class<?> valueType;
     private final String frontMatterProperty;
     private final Function<Object, Object> asFrontMatterFunction;
 
     ProjectPropertyImpl(
-            Class<?> valueType, String frontMatterProperty,
-            Function<Object, Object> asFrontMatterFunction)
+        Class<?> valueType, String frontMatterProperty,
+        Function<Object, Object> asFrontMatterFunction)
     {
         this.valueType = valueType;
         this.frontMatterProperty = frontMatterProperty;
@@ -44,7 +44,7 @@ final class ProjectPropertyImpl
         if (!valueType.isInstance(value))
         {
             throw new IllegalStateException(
-                    String.format("Value '%s' must have type '%s'", value, valueType));
+                String.format("Value '%s' must have type '%s'", value, valueType));
         }
         return asFrontMatterFunction.apply(value);
     }

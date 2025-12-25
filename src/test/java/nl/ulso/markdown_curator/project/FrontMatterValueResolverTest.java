@@ -1,5 +1,6 @@
 package nl.ulso.markdown_curator.project;
 
+import nl.ulso.markdown_curator.InMemoryFrontMatterCollector;
 import nl.ulso.markdown_curator.vault.Document;
 import nl.ulso.markdown_curator.vault.VaultStub;
 import org.assertj.core.api.junit.jupiter.SoftAssertionsExtension;
@@ -7,16 +8,17 @@ import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 import java.time.LocalDate;
+import java.util.Map;
+import java.util.Set;
 
-import static nl.ulso.markdown_curator.project.ProjectProperty.LAST_MODIFIED;
-import static nl.ulso.markdown_curator.project.ProjectProperty.LEAD;
-import static nl.ulso.markdown_curator.project.ProjectProperty.PRIORITY;
-import static nl.ulso.markdown_curator.project.ProjectProperty.STATUS;
+import static nl.ulso.markdown_curator.project.ProjectProperty.*;
+import static nl.ulso.markdown_curator.project.ProjectProperty.newProperty;
 import static nl.ulso.markdown_curator.project.ProjectTestData.PROJECT_PROPERTIES;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 @ExtendWith(SoftAssertionsExtension.class)
-class FrontMatterProjectPropertyResolverTest
+class FrontMatterValueResolverTest
 {
     private VaultStub vault;
     private ProjectPropertyRepository repository;
@@ -79,5 +81,16 @@ class FrontMatterProjectPropertyResolverTest
         var lead = repository.propertyValue(project, PROJECT_PROPERTIES.get(LEAD))
                 .map(d -> (Document) d);
         assertThat(lead).hasValue(vault.resolveDocumentInPath("Lead"));
+    }
+
+    @Test
+    void unsupportedType()
+    {
+        var specialProperty = newProperty(Double.class, "special");
+        var resolver = new FrontMatterValueResolver(specialProperty, vault);
+        project = repository.projectFor(vault.resolveDocumentInPath("Projects/Project"))
+            .orElseThrow();
+        assertThatExceptionOfType(UnsupportedOperationException.class)
+            .isThrownBy(() -> resolver.from(project));
     }
 }

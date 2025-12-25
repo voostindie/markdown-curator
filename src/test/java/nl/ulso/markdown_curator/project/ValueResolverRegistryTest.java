@@ -17,9 +17,9 @@ import static nl.ulso.markdown_curator.project.ProjectProperty.STATUS;
 import static nl.ulso.markdown_curator.project.ProjectTestData.PROJECT_PROPERTIES;
 
 @ExtendWith(SoftAssertionsExtension.class)
-class ProjectPropertyResolverRegistryTest
+class ValueResolverRegistryTest
 {
-    private ProjectPropertyResolverRegistry registry;
+    private ValueResolverRegistry registry;
 
     @InjectSoftAssertions
     private SoftAssertions softly;
@@ -27,11 +27,11 @@ class ProjectPropertyResolverRegistryTest
     @BeforeEach
     void setUp()
     {
-        this.registry = new ProjectPropertyResolverRegistryImpl(Set.of(
-                new FrontMatterProjectPropertyResolver(PROJECT_PROPERTIES.get(STATUS), null),
-                new FrontMatterProjectPropertyResolver(PROJECT_PROPERTIES.get(LEAD), null),
-                new FrontMatterProjectPropertyResolver(PROJECT_PROPERTIES.get(PRIORITY), null),
-                new DummyProjectPropertyResolver(PROJECT_PROPERTIES.get(PRIORITY), 1)
+        this.registry = new ValueResolverRegistryImpl(Set.of(
+                new FrontMatterValueResolver(PROJECT_PROPERTIES.get(STATUS), null),
+                new FrontMatterValueResolver(PROJECT_PROPERTIES.get(LEAD), null),
+                new FrontMatterValueResolver(PROJECT_PROPERTIES.get(PRIORITY), null),
+                new DummyValueResolver(PROJECT_PROPERTIES.get(PRIORITY), 1)
         ));
 
     }
@@ -50,30 +50,30 @@ class ProjectPropertyResolverRegistryTest
     {
         var list = registry.resolversFor(PROJECT_PROPERTIES.get(PRIORITY));
         softly.assertThat(list).hasSize(2);
-        softly.assertThat(list.getFirst()).isInstanceOf(DummyProjectPropertyResolver.class);
-        softly.assertThat(list.getLast()).isInstanceOf(FrontMatterProjectPropertyResolver.class);
+        softly.assertThat(list.getFirst()).isInstanceOf(DummyValueResolver.class);
+        softly.assertThat(list.getLast()).isInstanceOf(FrontMatterValueResolver.class);
     }
 
-    private static class DummyProjectPropertyResolver
-            implements ProjectPropertyResolver
+    private static class DummyValueResolver
+            implements ValueResolver
     {
         private final ProjectProperty property;
         private final int priority;
 
-        public DummyProjectPropertyResolver(ProjectProperty property, int constantPriority)
+        public DummyValueResolver(ProjectProperty property, int constantPriority)
         {
             this.property = property;
             this.priority = constantPriority;
         }
 
         @Override
-        public ProjectProperty projectProperty()
+        public ProjectProperty property()
         {
             return property;
         }
 
         @Override
-        public Optional<?> resolveValue(Project project)
+        public Optional<?> from(Project project)
         {
             return Optional.of(priority);
         }

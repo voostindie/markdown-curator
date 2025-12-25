@@ -14,19 +14,16 @@ import static java.util.Collections.unmodifiableCollection;
 import static java.util.Collections.unmodifiableMap;
 import static org.slf4j.LoggerFactory.getLogger;
 
-/**
- * Represents a repository of projects on top of a single folder in the vault, excluding its
- * subfolders.
- * <p/>
- * This repository only keeps track of <i>active</i> projects. A project is considered active if it
- * is in the main project folder. As soon as a project is archived, typically by moving it to a
- * subfolder, the project is no longer considered active and therefore not tracked by this
- * repository.
- * <p/>
- */
+/// Represents a repository of projects on top of a single folder in the vault, excluding its
+/// subfolders.
+///
+/// This repository only keeps track of _active_ projects. A project is considered active if it is
+/// in the main project folder. As soon as a project is archived, typically by moving it to a
+/// subfolder, the project is no longer considered active and therefore not tracked by this
+/// repository.
 @Singleton
 public final class ProjectRepository
-        extends DataModelTemplate
+    extends DataModelTemplate
 {
     private static final Logger LOGGER = getLogger(ProjectRepository.class);
 
@@ -78,8 +75,8 @@ public final class ProjectRepository
     boolean isProjectFolder(Folder folder)
     {
         return folder != vault &&
-               folder.name().contentEquals(projectFolderName) &&
-               folder.parent() == vault;
+               folder.parent() == vault &&
+               folder.name().contentEquals(projectFolderName);
     }
 
     @Override
@@ -123,7 +120,6 @@ public final class ProjectRepository
         }
     }
 
-
     @Override
     public void process(DocumentRemoved event)
     {
@@ -134,7 +130,7 @@ public final class ProjectRepository
     }
 
     private class ProjectFinder
-            extends BreadthFirstVaultVisitor
+        extends BreadthFirstVaultVisitor
     {
         private final List<Project> projects = new ArrayList<>();
 
@@ -143,8 +139,8 @@ public final class ProjectRepository
         {
             // Visit only the project folder, not the whole vault, nor the subfolders.
             vault.folder(projectFolderName).ifPresent(
-                    folder -> folder.documents()
-                            .forEach(document -> document.accept(this)));
+                folder -> folder.documents()
+                    .forEach(document -> document.accept(this)));
         }
 
         @Override

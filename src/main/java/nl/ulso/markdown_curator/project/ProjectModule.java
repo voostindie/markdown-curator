@@ -15,13 +15,11 @@ import java.util.Set;
 
 import static nl.ulso.markdown_curator.project.ProjectProperty.*;
 
-/**
- * Provides a pluggable project model based on a set of documents in a subfolder of the vault.
- * Project data can be extended with metadata from several sources.
- * <p/>
- * This module has one unsatisfied dependency: {@link ProjectSettings}. It must be provided by the
- * application that imports this module.
- */
+/// Provides a pluggable project model based on a set of documents in a subfolder of the vault.
+/// Project data can be extended with metadata from several sources.
+///
+/// This module has one unsatisfied dependency: [ProjectSettings]. It must be provided by the
+/// application that imports this module.
 @Module
 public abstract class ProjectModule
 {
@@ -29,7 +27,7 @@ public abstract class ProjectModule
     abstract Map<String, ProjectProperty> bindProjectProperties();
 
     @Multibinds
-    abstract Set<ProjectPropertyResolver> bindProjectPropertyResolvers();
+    abstract Set<ValueResolver> bindProjectPropertyResolvers();
 
     @Binds
     @IntoSet
@@ -38,11 +36,11 @@ public abstract class ProjectModule
     @Binds
     @IntoSet
     abstract DataModel bindProjectPropertyRepository(
-            ProjectPropertyRepository projectPropertyRepository);
+        ProjectPropertyRepository projectPropertyRepository);
 
     @Binds
-    abstract ProjectPropertyResolverRegistry bindResolverRegistry(
-            ProjectPropertyResolverRegistryImpl registry);
+    abstract ValueResolverRegistry bindResolverRegistry(
+        ValueResolverRegistryImpl registry);
 
     @Provides
     @Singleton
@@ -55,10 +53,10 @@ public abstract class ProjectModule
 
     @Provides
     @IntoSet
-    static ProjectPropertyResolver provideLastModifiedFrontMatterResolver(
-            Map<String, ProjectProperty> properties, Vault vault)
+    static ValueResolver provideLastModifiedFrontMatterResolver(
+        Map<String, ProjectProperty> properties, Vault vault)
     {
-        return new FrontMatterProjectPropertyResolver(properties.get(LAST_MODIFIED), vault);
+        return new FrontMatterValueResolver(properties.get(LAST_MODIFIED), vault);
     }
 
     @Provides
@@ -72,10 +70,10 @@ public abstract class ProjectModule
 
     @Provides
     @IntoSet
-    static ProjectPropertyResolver provideLeadFrontMatterResolver(
-            Map<String, ProjectProperty> properties, Vault vault)
+    static ValueResolver provideLeadFrontMatterResolver(
+        Map<String, ProjectProperty> properties, Vault vault)
     {
-        return new FrontMatterProjectPropertyResolver(properties.get(LEAD), vault);
+        return new FrontMatterValueResolver(properties.get(LEAD), vault);
     }
 
     @Provides
@@ -89,10 +87,10 @@ public abstract class ProjectModule
 
     @Provides
     @IntoSet
-    static ProjectPropertyResolver providePriorityFrontMatterResolver(
-            Map<String, ProjectProperty> properties, Vault vault)
+    static ValueResolver providePriorityFrontMatterResolver(
+        Map<String, ProjectProperty> properties, Vault vault)
     {
-        return new FrontMatterProjectPropertyResolver(properties.get(PRIORITY), vault);
+        return new FrontMatterValueResolver(properties.get(PRIORITY), vault);
     }
 
     @Provides
@@ -106,10 +104,10 @@ public abstract class ProjectModule
 
     @Provides
     @IntoSet
-    static ProjectPropertyResolver provideStatusFrontMatterResolver(
-            Map<String, ProjectProperty> properties, Vault vault)
+    static ValueResolver provideStatusFrontMatterResolver(
+        Map<String, ProjectProperty> properties, Vault vault)
     {
-        return new FrontMatterProjectPropertyResolver(properties.get(STATUS), vault);
+        return new FrontMatterValueResolver(properties.get(STATUS), vault);
     }
 
     @Binds

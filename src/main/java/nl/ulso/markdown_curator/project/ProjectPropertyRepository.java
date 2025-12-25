@@ -12,36 +12,33 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import static java.util.Objects.requireNonNull;
 
-/**
- * Model to keep track of project properties and update front matter accordingly.
- * <p/>
- * Project properties are in a complex system, with plugins that can override how and when
- * properties are computed. That is why this model comes last, and always does a complete
- * refresh.
- * <p/>
- * If you plan to read property values in a DataModel, make sure the model gets refreshed after
- * this one.
- */
+/// Model to keep track of project properties and update front matter accordingly.
+///
+/// Project properties are in a complex system, with plugins that can override how and when
+/// properties are computed. That is why this model comes last, and always does a complete refresh.
+///
+/// If you plan to read property values in a DataModel, make sure the model gets refreshed after this
+/// one.
 @Singleton
 public class ProjectPropertyRepository
-        extends DataModelTemplate
+    extends DataModelTemplate
 {
     private final Map<String, ProjectProperty> projectProperties;
     private final ProjectRepository projectRepository;
-    private final ProjectPropertyResolverRegistry projectPropertyResolverRegistry;
+    private final ValueResolverRegistry valueResolverRegistry;
     private final FrontMatterUpdateCollector frontMatterUpdateCollector;
     private final Map<Project, Map<ProjectProperty, Object>> projectPropertyValues;
 
     @Inject
     ProjectPropertyRepository(
-            Map<String, ProjectProperty> projectProperties,
-            ProjectRepository projectRepository,
-            ProjectPropertyResolverRegistry projectPropertyResolverRegistry,
-            FrontMatterUpdateCollector frontMatterUpdateCollector)
+        Map<String, ProjectProperty> projectProperties,
+        ProjectRepository projectRepository,
+        ValueResolverRegistry valueResolverRegistry,
+        FrontMatterUpdateCollector frontMatterUpdateCollector)
     {
         this.projectProperties = Collections.unmodifiableMap(projectProperties);
         this.projectRepository = projectRepository;
-        this.projectPropertyResolverRegistry = projectPropertyResolverRegistry;
+        this.valueResolverRegistry = valueResolverRegistry;
         this.frontMatterUpdateCollector = frontMatterUpdateCollector;
         this.projectPropertyValues = new ConcurrentHashMap<>();
     }
@@ -81,27 +78,31 @@ public class ProjectPropertyRepository
     private void processProject(Project project)
     {
         var properties = projectPropertyValues.computeIfAbsent(project,
-                key -> new ConcurrentHashMap<>(projectProperties.size()));
+            key -> new ConcurrentHashMap<>(projectProperties.size())
+        );
         frontMatterUpdateCollector.updateFrontMatterFor(project.document(), dictionary -> {
-            for (ProjectProperty property : projectProperties.values())
-            {
-                resolvePropertyValue(project, property).ifPresentOrElse(value ->
+                for (ProjectProperty property : projectProperties.values())
+                {
+                    resolvePropertyValue(project, property).ifPresentOrElse(value ->
                         {
                             properties.put(property, value);
                             dictionary.setProperty(
-                                    property.frontMatterProperty(),
-                                    property.asFrontMatterValue(value));
+                                property.frontMatterProperty(),
+                                property.asFrontMatterValue(value)
+                            );
                         },
-                        () -> dictionary.removeProperty(property.frontMatterProperty()));
+                        () -> dictionary.removeProperty(property.frontMatterProperty())
+                    );
+                }
             }
-        });
+        );
     }
 
     private Optional<?> resolvePropertyValue(Project project, ProjectProperty property)
     {
-        for (var resolver : projectPropertyResolverRegistry.resolversFor(property))
+        for (var resolver : valueResolverRegistry.resolversFor(property))
         {
-            Optional<?> value = resolver.resolveValue(project);
+            Optional<?> value = resolver.from(project);
             if (value.isPresent())
             {
                 return value;
@@ -116,7 +117,7 @@ public class ProjectPropertyRepository
         if (projectRepository.isProjectFolder(event.folder()))
         {
             projectRepository.projects()
-                    .forEach(project -> removeProjectFrontMatter(project.document()));
+                .forEach(project -> removeProjectFrontMatter(project.document()));
         }
         super.process(event);
     }
@@ -140,11 +141,12 @@ public class ProjectPropertyRepository
     private void removeProjectFrontMatter(Document document)
     {
         frontMatterUpdateCollector.updateFrontMatterFor(document, dictionary -> {
-            for (ProjectProperty projectProperty : projectProperties.values())
-            {
-                dictionary.removeProperty(projectProperty.frontMatterProperty());
+                for (ProjectProperty projectProperty : projectProperties.values())
+                {
+                    dictionary.removeProperty(projectProperty.frontMatterProperty());
+                }
             }
-        });
+        );
     }
 
     @Override
