@@ -315,7 +315,7 @@ class FileSystemVaultTest
             // We must give the watcher time to finish initializing, or else we'll miss events
             TimeUnit.MILLISECONDS.sleep(WATCHER_INITIALIZATION_TIME_MILLISECONDS);
         }
-        catch (InterruptedException e)
+        catch (InterruptedException _)
         {
             Thread.currentThread().interrupt();
         }

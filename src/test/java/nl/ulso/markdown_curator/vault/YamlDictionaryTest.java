@@ -8,9 +8,9 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 import java.time.LocalDate;
-import java.util.*;
+import java.util.Collections;
+import java.util.List;
 
-import static java.util.stream.Collectors.toList;
 import static nl.ulso.markdown_curator.vault.Dictionary.yamlDictionary;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -37,11 +37,11 @@ class YamlDictionaryTest
     void fullFrontMatter()
     {
         var dictionary = dictionary("""
-                ---
-                foo: bar
-                answer: 42
-                ---
-                """);
+            ---
+            foo: bar
+            answer: 42
+            ---
+            """);
         softly.assertThat(dictionary.isEmpty()).isFalse();
         softly.assertThat(dictionary.string("foo", null)).isEqualTo("bar");
         softly.assertThat(dictionary.integer("answer", -1)).isEqualTo(42);
@@ -51,9 +51,9 @@ class YamlDictionaryTest
     void emptyFrontMatter()
     {
         var dictionary = dictionary("""
-                ---
-                ---
-                """);
+            ---
+            ---
+            """);
         assertThat(dictionary.isEmpty()).isTrue();
     }
 
@@ -61,9 +61,9 @@ class YamlDictionaryTest
     void singleYamlMap()
     {
         var dictionary = dictionary("""
-                foo: bar
-                answer: 42
-                """);
+            foo: bar
+            answer: 42
+            """);
         softly.assertThat(dictionary.isEmpty()).isFalse();
         softly.assertThat(dictionary.string("foo", null)).isEqualTo("bar");
         softly.assertThat(dictionary.integer("answer", -1)).isEqualTo(42);
@@ -80,8 +80,8 @@ class YamlDictionaryTest
     void validIntegerValue()
     {
         var dictionary = dictionary("""
-                foo: 42
-                """);
+            foo: 42
+            """);
         assertThat(dictionary.integer("foo", -1)).isEqualTo(42);
     }
 
@@ -89,8 +89,8 @@ class YamlDictionaryTest
     void invalidIntegerValue()
     {
         var dictionary = dictionary("""
-                foo: bar
-                """);
+            foo: bar
+            """);
         assertThat(dictionary.integer("foo", -1)).isEqualTo(-1);
     }
 
@@ -99,15 +99,15 @@ class YamlDictionaryTest
     {
         var dictionary = dictionary("date: 1976-11-30");
         assertThat(dictionary.date("date", null))
-                .hasToString("1976-11-30");
+            .hasToString("1976-11-30");
     }
 
     @Test
     void singleValueIntegerValue()
     {
         var dictionary = dictionary("""
-                foo: [42, 84]
-                """);
+            foo: [42, 84]
+            """);
         assertThat(dictionary.integer("foo", -1)).isEqualTo(42);
     }
 
@@ -115,8 +115,8 @@ class YamlDictionaryTest
     void integerListFromSingleValue()
     {
         var dictionary = dictionary("""
-                foo: 42
-                """);
+            foo: 42
+            """);
         List<Integer> list = dictionary.listOfIntegers("foo");
         softly.assertThat(list).hasSize(1);
         softly.assertThat(list).first().isEqualTo(42);
@@ -126,8 +126,8 @@ class YamlDictionaryTest
     void stringListMissingValue()
     {
         var dictionary = dictionary("""
-                foo: 42
-                """);
+            foo: 42
+            """);
         List<Integer> list = dictionary.listOfIntegers("bar");
         assertThat(list).isEmpty();
     }
@@ -136,8 +136,8 @@ class YamlDictionaryTest
     void dateListMultipleValues()
     {
         var dictionary = dictionary("""
-                dates: [1976-11-30, 1977-11-11, 2003-05-08]
-                """);
+            dates: [1976-11-30, 1977-11-11, 2003-05-08]
+            """);
         List<LocalDate> list = dictionary.listOfDates("dates");
         assertThat(list).hasSize(3);
 
@@ -152,6 +152,6 @@ class YamlDictionaryTest
 
     private Dictionary dictionary(String yaml)
     {
-        return yamlDictionary(yaml.lines().collect(toList()));
+        return yamlDictionary(yaml.lines().toList());
     }
 }

@@ -3,7 +3,7 @@ package nl.ulso.hash;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.HexFormat;
-import java.util.function.Function;
+import java.util.function.UnaryOperator;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.Objects.requireNonNull;
@@ -15,7 +15,7 @@ import static java.util.Objects.requireNonNull;
 /// signature of a [String] input with a high probability to change if the input changes. Do not use
 /// these hashes as keys!
 public final class ShortHasher
-    implements Function<String, String>
+    implements UnaryOperator<String>
 {
     private static final String DIGEST_ALGORITHM = "SHA-256";
     private static final int HASH_LENGTH = 8;
@@ -34,7 +34,7 @@ public final class ShortHasher
             var digest = MessageDigest.getInstance(DIGEST_ALGORITHM).digest(input.getBytes(UTF_8));
             return HexFormat.of().formatHex(digest).substring(0, HASH_LENGTH);
         }
-        catch (NoSuchAlgorithmException e)
+        catch (NoSuchAlgorithmException _)
         {
             throw new IllegalArgumentException(
                 "No " + DIGEST_ALGORITHM + "? That's a required algorithm!");

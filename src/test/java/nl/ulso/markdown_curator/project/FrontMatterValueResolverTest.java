@@ -1,6 +1,5 @@
 package nl.ulso.markdown_curator.project;
 
-import nl.ulso.markdown_curator.InMemoryFrontMatterCollector;
 import nl.ulso.markdown_curator.vault.Document;
 import nl.ulso.markdown_curator.vault.VaultStub;
 import org.assertj.core.api.junit.jupiter.SoftAssertionsExtension;
@@ -8,8 +7,6 @@ import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 import java.time.LocalDate;
-import java.util.Map;
-import java.util.Set;
 
 import static nl.ulso.markdown_curator.project.ProjectProperty.*;
 import static nl.ulso.markdown_curator.project.ProjectProperty.newProperty;

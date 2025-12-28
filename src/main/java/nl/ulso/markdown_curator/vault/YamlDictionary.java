@@ -56,7 +56,7 @@ final class YamlDictionary
         {
             yaml = loadYaml(string, load);
         }
-        catch (YamlEngineException | ClassCastException e)
+        catch (YamlEngineException | ClassCastException _)
         {
             LOGGER.warn("Invalid YAML found; ignoring it: {}", string);
         }

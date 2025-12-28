@@ -32,8 +32,9 @@ class JavaScriptForAutomationFromClasspathTest
     @EnabledOnOs({OS.MAC})
     void nonExistingScript()
     {
+        var jxa = new JavaScriptForAutomationFromClasspath();
         assertThatThrownBy(
-            () -> new JavaScriptForAutomationFromClasspath().runScriptForArray("non-existing")
+            () -> jxa.runScriptForArray("non-existing")
         ).isInstanceOf(IllegalStateException.class);
     }
 }

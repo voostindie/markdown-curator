@@ -73,6 +73,7 @@ public class RecordingsQuery
             recordings.sort(comparing(e -> e.get("Album")));
         }
 
+        @Override
         public void visit(Section section)
         {
             if (section.level() == 2

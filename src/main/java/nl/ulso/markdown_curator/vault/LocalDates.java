@@ -23,7 +23,7 @@ public final class LocalDates
         {
             return LocalDate.parse(dateString);
         }
-        catch (DateTimeParseException e)
+        catch (DateTimeParseException _)
         {
             return defaultDateSupplier.get();
         }

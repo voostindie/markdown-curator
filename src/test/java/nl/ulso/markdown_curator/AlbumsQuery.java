@@ -95,7 +95,7 @@ public class AlbumsQuery
                     {
                         return Integer.parseInt(row.get("Year"));
                     }
-                    catch (NumberFormatException e)
+                    catch (NumberFormatException _)
                     {
                         return 0;
                     }

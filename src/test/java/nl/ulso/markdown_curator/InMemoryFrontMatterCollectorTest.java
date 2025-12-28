@@ -16,15 +16,17 @@ class InMemoryFrontMatterCollectorTest
     private SoftAssertions softly;
 
     @Test
-    public void addFrontMatterToDocumentWithout()
+    void addFrontMatterToDocumentWithout()
     {
         var vault = new VaultStub();
         var document = vault.addDocument("document", """
-                Content
-                """);
+            Content
+            """
+        );
         var collector = new InMemoryFrontMatterCollector(vault);
         collector.updateFrontMatterFor(document,
-                dictionary -> dictionary.setProperty("key", "value"));
+            dictionary -> dictionary.setProperty("key", "value")
+        );
         var rewrites = collector.resolveFrontMatterRewrites();
         softly.assertThat(rewrites).hasSize(1);
         var dictionary = rewrites.get(document);
@@ -34,18 +36,20 @@ class InMemoryFrontMatterCollectorTest
     }
 
     @Test
-    public void addFrontMatterToDocument()
+    void addFrontMatterToDocument()
     {
         var vault = new VaultStub();
         var document = vault.addDocument("document", """
-                ---
-                foo: bar
-                ---
-                Content
-                """);
+            ---
+            foo: bar
+            ---
+            Content
+            """
+        );
         var collector = new InMemoryFrontMatterCollector(vault);
         collector.updateFrontMatterFor(document,
-                dictionary -> dictionary.setProperty("key", "value"));
+            dictionary -> dictionary.setProperty("key", "value")
+        );
         var rewrites = collector.resolveFrontMatterRewrites();
         softly.assertThat(rewrites).hasSize(1);
         var dictionary = rewrites.get(document);
@@ -56,18 +60,20 @@ class InMemoryFrontMatterCollectorTest
     }
 
     @Test
-    public void overrideFrontMatterForDocument()
+    void overrideFrontMatterForDocument()
     {
         var vault = new VaultStub();
         var document = vault.addDocument("document", """
-                ---
-                foo: bar
-                ---
-                Content
-                """);
+            ---
+            foo: bar
+            ---
+            Content
+            """
+        );
         var collector = new InMemoryFrontMatterCollector(vault);
         collector.updateFrontMatterFor(document,
-                dictionary -> dictionary.setProperty("foo", "baz"));
+            dictionary -> dictionary.setProperty("foo", "baz")
+        );
         var rewrites = collector.resolveFrontMatterRewrites();
         softly.assertThat(rewrites).hasSize(1);
         var dictionary = rewrites.get(document);
@@ -77,34 +83,37 @@ class InMemoryFrontMatterCollectorTest
     }
 
     @Test
-    public void meaninglessFrontMatterUpdateDoesNothing()
+    void meaninglessFrontMatterUpdateDoesNothing()
     {
         var vault = new VaultStub();
         var document = vault.addDocument("document", """
-                ---
-                foo: bar
-                generated_keys: [foo]
-                ---
-                Content
-                """);
+            ---
+            foo: bar
+            generated_keys: [foo]
+            ---
+            Content
+            """
+        );
         var collector = new InMemoryFrontMatterCollector(vault);
         collector.updateFrontMatterFor(document,
-                dictionary -> dictionary.setProperty("foo", "bar"));
+            dictionary -> dictionary.setProperty("foo", "bar")
+        );
         var rewrites = collector.resolveFrontMatterRewrites();
         softly.assertThat(rewrites).isEmpty();
     }
 
     @Test
-    public void removeGeneratedKeysIfFrontMatterIsNotOverridden()
+    void removeGeneratedKeysIfFrontMatterIsNotOverridden()
     {
         var vault = new VaultStub();
         var document = vault.addDocument("document", """
-                ---
-                foo: bar
-                generated_keys: [foo]
-                ---
-                Content
-                """);
+            ---
+            foo: bar
+            generated_keys: [foo]
+            ---
+            Content
+            """
+        );
         var collector = new InMemoryFrontMatterCollector(vault);
         var rewrites = collector.resolveFrontMatterRewrites();
         softly.assertThat(rewrites).hasSize(1);

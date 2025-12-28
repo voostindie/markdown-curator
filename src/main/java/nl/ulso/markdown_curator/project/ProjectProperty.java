@@ -1,6 +1,6 @@
 package nl.ulso.markdown_curator.project;
 
-import java.util.function.Function;
+import java.util.function.UnaryOperator;
 
 /// Defines a pluggable project property of a certain type.
 ///
@@ -38,8 +38,7 @@ public interface ProjectProperty
     /// }
     /// ```
     ///
-    /// **Important**: a property alone is not enough. It also needs at least one
-    /// [ValueResolver].
+    /// **Important**: a property alone is not enough. It also needs at least one [ValueResolver].
     ///
     /// @see ProjectModule
     /// @see ValueResolver
@@ -54,7 +53,7 @@ public interface ProjectProperty
     /// @see #newProperty(Class, String)
     static ProjectProperty newProperty(
         Class<?> valueType, String frontMatterProperty,
-        Function<Object, Object> asFrontMatterFunction)
+        UnaryOperator<Object> asFrontMatterFunction)
     {
         return new ProjectPropertyImpl(valueType, frontMatterProperty, asFrontMatterFunction);
     }

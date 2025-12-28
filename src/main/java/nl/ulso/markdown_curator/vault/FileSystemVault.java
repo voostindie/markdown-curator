@@ -30,14 +30,14 @@ import static org.slf4j.LoggerFactory.getLogger;
 /**
  * {@link Vault} implementation on top of the (default) filesystem.
  * <p/>
- * On creation, it uses a {@link FileVisitor} to process all folders and documents and pull them
- * in memory. From then on it watches all folders and subfolders for changes using the file system's
+ * On creation, it uses a {@link FileVisitor} to process all folders and documents and pull them in
+ * memory. From then on it watches all folders and subfolders for changes using the file system's
  * {@link WatchService}.
  */
 @Singleton
 public final class FileSystemVault
-        extends FileSystemFolder
-        implements Vault, DocumentPathResolver, VaultRefresher
+    extends FileSystemFolder
+    implements Vault, DocumentPathResolver, VaultRefresher
 {
     private static final Logger LOGGER = getLogger(FileSystemVault.class);
 
@@ -60,28 +60,28 @@ public final class FileSystemVault
             // From the README on https://github.com/gmethvin/directory-watcher:
             // "This hasher is only suitable for platforms that have at least millisecond precision
             // in last modified times from Java. It's known to work with JDK 10+ on Macs with APFS."
-            var fileHasher = switch (System.getProperty("os.name"))
-            {
-                case "Mac OS X" -> LAST_MODIFIED_TIME;
-                default -> DEFAULT_FILE_HASHER;
-            };
+            var fileHasher = System.getProperty("os.name").contains("Mac OS X")
+                             ? LAST_MODIFIED_TIME
+                             : DEFAULT_FILE_HASHER;
             this.watcher = DirectoryWatcher.builder()
-                    .path(absolutePath)
-                    .listener(this::processFileSystemEvent)
-                    .watchService(watchService.orElse(null))
-                    .fileHasher(fileHasher)
-                    .build();
+                .path(absolutePath)
+                .listener(this::processFileSystemEvent)
+                .watchService(watchService.orElse(null))
+                .fileHasher(fileHasher)
+                .build();
         }
         catch (IOException e)
         {
-            throw new RuntimeException("Could not instantiate vault on path '"
-                                       + absolutePath + "'", e);
+            throw new IllegalStateException("Could not instantiate vault on path '"
+                                            + absolutePath + "'", e
+            );
         }
         if (LOGGER.isInfoEnabled())
         {
             var statistics = ElementCounter.countFoldersAndDocuments(this);
             LOGGER.info("Read vault {} into memory with {} folders and {} documents", name(),
-                    statistics.folders(), statistics.documents());
+                statistics.folders(), statistics.documents()
+            );
         }
     }
 
@@ -154,7 +154,7 @@ public final class FileSystemVault
     }
 
     private VaultChangedEvent processFileCreationEvent(
-            DirectoryChangeEvent event, FileSystemFolder parent)
+        DirectoryChangeEvent event, FileSystemFolder parent)
     {
         var eventAbsolutePath = event.path();
         if (event.isDirectory() && !isHidden(eventAbsolutePath))
@@ -182,7 +182,7 @@ public final class FileSystemVault
     }
 
     private VaultChangedEvent processFileModificationEvent(
-            DirectoryChangeEvent event, FileSystemFolder parent)
+        DirectoryChangeEvent event, FileSystemFolder parent)
     {
         var eventAbsolutePath = event.path();
         if (isDocument(eventAbsolutePath))
@@ -196,7 +196,7 @@ public final class FileSystemVault
     }
 
     private VaultChangedEvent processFileDeletionEvent(
-            DirectoryChangeEvent event, FileSystemFolder parent)
+        DirectoryChangeEvent event, FileSystemFolder parent)
     {
         var eventAbsolutePath = event.path();
         if (isDocument(eventAbsolutePath))
@@ -239,7 +239,8 @@ public final class FileSystemVault
             if (subfolder == null)
             {
                 LOGGER.trace("Couldn't find subfolder '{}' in folder '{}'. Doing nothing.",
-                        directory, folder);
+                    directory, folder
+                );
                 return null;
             }
             folder = subfolder;
@@ -263,7 +264,8 @@ public final class FileSystemVault
         {
             var lastModified = getLastModifiedTime(absolutePath).toMillis();
             return newDocument(documentName(absolutePath), lastModified,
-                    readAllLines(absolutePath));
+                readAllLines(absolutePath)
+            );
         }
         catch (IOException e)
         {
@@ -305,7 +307,7 @@ public final class FileSystemVault
     }
 
     private class VaultBuilder
-            extends SimpleFileVisitor<Path>
+        extends SimpleFileVisitor<Path>
     {
         private final Path root;
         private FileSystemFolder currentFolder;
@@ -318,7 +320,7 @@ public final class FileSystemVault
 
         @Override
         public FileVisitResult preVisitDirectory(Path directory, BasicFileAttributes attributes)
-                throws IOException
+            throws IOException
         {
             if (isHidden(directory))
             {
@@ -334,7 +336,7 @@ public final class FileSystemVault
 
         @Override
         public FileVisitResult visitFile(Path file, BasicFileAttributes attributes)
-                throws IOException
+            throws IOException
         {
             if (isDocument(file))
             {
@@ -345,13 +347,14 @@ public final class FileSystemVault
 
         @Override
         public FileVisitResult postVisitDirectory(Path directory, IOException exception)
-                throws IOException
+            throws IOException
         {
             if (exception != null)
             {
                 LOGGER.warn(
-                        "Traversing {} threw an exception; this might lead to unexpected behavior",
-                        directory, exception);
+                    "Traversing {} threw an exception; this might lead to unexpected behavior",
+                    directory, exception
+                );
             }
             if (!root.equals(directory))
             {

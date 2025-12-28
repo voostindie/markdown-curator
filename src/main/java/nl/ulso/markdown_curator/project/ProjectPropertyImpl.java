@@ -1,19 +1,20 @@
 package nl.ulso.markdown_curator.project;
 
-import java.util.function.Function;
+import java.util.function.UnaryOperator;
 
 import static java.util.Objects.requireNonNull;
+import static java.util.function.UnaryOperator.identity;
 
 final class ProjectPropertyImpl
     implements ProjectProperty
 {
     private final Class<?> valueType;
     private final String frontMatterProperty;
-    private final Function<Object, Object> asFrontMatterFunction;
+    private final UnaryOperator<Object> asFrontMatterFunction;
 
     ProjectPropertyImpl(
         Class<?> valueType, String frontMatterProperty,
-        Function<Object, Object> asFrontMatterFunction)
+        UnaryOperator<Object> asFrontMatterFunction)
     {
         this.valueType = valueType;
         this.frontMatterProperty = frontMatterProperty;
@@ -22,7 +23,7 @@ final class ProjectPropertyImpl
 
     ProjectPropertyImpl(Class<?> valueType, String frontMatterProperty)
     {
-        this(valueType, frontMatterProperty, Function.identity());
+        this(valueType, frontMatterProperty, identity());
     }
 
     @Override

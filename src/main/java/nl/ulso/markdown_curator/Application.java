@@ -28,8 +28,8 @@ import static org.slf4j.LoggerFactory.getLogger;
  * The application writes a PID-file to the temporary directory and deletes it again when the
  * application is stopped. If a PIF-file already exists at startup, the application fails to
  * startup. This is to prevent multiple curators processing the same directories independently.
- * Having the same curator multiple times leads to all kinds of interesting race conditions, so
- * it's worth preventing that.
+ * Having the same curator multiple times leads to all kinds of interesting race conditions, so it's
+ * worth preventing that.
  */
 public class Application
 {
@@ -44,7 +44,7 @@ public class Application
     }
 
     private static final Path
-            DEFAULT_PID = Path.of(getProperty("java.io.tmpdir"), "markdown-curator.pid");
+        DEFAULT_PID = Path.of(getProperty("java.io.tmpdir"), "markdown-curator.pid");
 
     static final String UNKNOWN_VERSION = "<UNKNOWN>";
 
@@ -61,7 +61,7 @@ public class Application
         this.pid = pid;
     }
 
-    public static void main(String[] args)
+    static void main(String[] args)
     {
         var runMode = RunMode.DAEMON;
         var vaults = new HashSet<String>();
@@ -88,7 +88,7 @@ public class Application
             return;
         }
         var factories =
-                ServiceLoader.load(CuratorFactory.class).stream().map(Provider::get).toList();
+            ServiceLoader.load(CuratorFactory.class).stream().map(Provider::get).toList();
         if (factories.isEmpty())
         {
             LOGGER.error("No curators are available in the system. Nothing to do!");
@@ -103,11 +103,12 @@ public class Application
         if (!vaults.isEmpty())
         {
             factories = factories.stream().filter(f -> vaults.contains(f.name().toLowerCase()))
-                    .toList();
+                .toList();
             if (factories.isEmpty())
             {
                 LOGGER.error("No curators are available in the system. Nothing to do! Filter: {}",
-                        vaults);
+                    vaults
+                );
                 return;
             }
         }
@@ -120,7 +121,7 @@ public class Application
         {
             writeString(pid, ProcessHandle.current().pid() + lineSeparator(), CREATE_NEW);
         }
-        catch (IOException e)
+        catch (IOException _)
         {
             return false;
         }
@@ -131,7 +132,7 @@ public class Application
     String resolveVersion()
     {
         try (var inputStream = Application.class.getClassLoader()
-                .getResourceAsStream("markdown-curator.properties"))
+            .getResourceAsStream("markdown-curator.properties"))
         {
             var properties = new Properties();
             properties.load(inputStream);
@@ -171,21 +172,22 @@ public class Application
                         {
                             case DAEMON -> curator.run();
                             case ONCE -> curator.runOnce();
-                            default ->
-                                    throw new RuntimeException("Unsupported run mode: " + runMode);
+                            default -> throw new IllegalArgumentException(
+                                "Unsupported run mode: " + runMode);
                         }
                     }
                     catch (Exception e)
                     {
                         LOGGER.error("Curator '{}' errored out. It's non-functional from now on.",
-                                name, e);
+                            name, e
+                        );
                     }
 
                 }
             })).toList();
             executor.invokeAll(curators);
         }
-        catch (InterruptedException e)
+        catch (InterruptedException _)
         {
             currentThread().interrupt();
         }

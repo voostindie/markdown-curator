@@ -9,7 +9,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 
 import java.util.List;
 import java.util.NoSuchElementException;
-import java.util.stream.Collectors;
 
 import static java.util.Collections.emptyList;
 import static nl.ulso.markdown_curator.vault.MarkdownTokenizer.TokenType.*;
@@ -33,104 +32,113 @@ class MarkdownTokenizerTest
     void validFrontMatter()
     {
         assertSame("""
-                        ---
-                        foo: bar
-                        ---
-                        """,
-                FRONT_MATTER, FRONT_MATTER, FRONT_MATTER, END_OF_DOCUMENT);
+                ---
+                foo: bar
+                ---
+                """,
+            FRONT_MATTER, FRONT_MATTER, FRONT_MATTER, END_OF_DOCUMENT
+        );
     }
 
     @Test
     void frontMatterBelowTopIsJustText()
     {
         assertSame("""
-                        Line 1
-                        ---
-                        foo: bar
-                        ---""",
-                TEXT, TEXT, TEXT, TEXT, END_OF_DOCUMENT);
+                Line 1
+                ---
+                foo: bar
+                ---""",
+            TEXT, TEXT, TEXT, TEXT, END_OF_DOCUMENT
+        );
     }
 
     @Test
     void plainMarkdown()
     {
         assertSame("""
-                        # Title
-                        
-                        ## Section
-                        
-                        ### Subsection
-                        
-                        Text
-                        
-                        """,
-                HEADER, TEXT, HEADER, TEXT, HEADER, TEXT, TEXT, TEXT, END_OF_DOCUMENT);
+                # Title
+                
+                ## Section
+                
+                ### Subsection
+                
+                Text
+                
+                """,
+            HEADER, TEXT, HEADER, TEXT, HEADER, TEXT, TEXT, TEXT, END_OF_DOCUMENT
+        );
     }
 
     @Test
     void codeInMarkdown()
     {
         assertSame("""
-                        ```java
-                        public static void main(String[] arguments) { }
-                        ```
-                        """,
-                CODE, CODE, CODE, END_OF_DOCUMENT);
+                ```java
+                public static void main(String[] arguments) { }
+                ```
+                """,
+            CODE, CODE, CODE, END_OF_DOCUMENT
+        );
     }
 
     @Test
     void markdownIncodeInMarkdown()
     {
         assertSame("""
-                        ```markdown
-                        # Section
-                        ```
-                        """,
-                CODE, CODE, CODE, END_OF_DOCUMENT);
+                ```markdown
+                # Section
+                ```
+                """,
+            CODE, CODE, CODE, END_OF_DOCUMENT
+        );
     }
 
     @Test
     void shortQuery()
     {
         assertSame("""
-                        <!--query CONFIGURATION -->
-                        OUTPUT
-                        <!--/query-->
-                        """,
-                QUERY, QUERY, QUERY, END_OF_DOCUMENT);
+                <!--query CONFIGURATION -->
+                OUTPUT
+                <!--/query-->
+                """,
+            QUERY, QUERY, QUERY, END_OF_DOCUMENT
+        );
     }
 
     @Test
     void longQuery()
     {
         assertSame("""
-                        <!--query
-                        LINE 1
-                        -->
-                        OUTPUT
-                        <!--/query-->
-                        """,
-                QUERY, QUERY, QUERY, QUERY, QUERY, END_OF_DOCUMENT);
+                <!--query
+                LINE 1
+                -->
+                OUTPUT
+                <!--/query-->
+                """,
+            QUERY, QUERY, QUERY, QUERY, QUERY, END_OF_DOCUMENT
+        );
     }
 
     @Test
     void queryNoOutput()
     {
         assertSame("""
-                        <!--query:TYPE CONFIGURATION-->
-                        <!--/query-->
-                        """,
-                QUERY, QUERY, END_OF_DOCUMENT);
+                <!--query:TYPE CONFIGURATION-->
+                <!--/query-->
+                """,
+            QUERY, QUERY, END_OF_DOCUMENT
+        );
     }
 
     @Test
     void queryHash()
     {
         assertSame("""
-                        <!--query:TYPE-->
-                        <!--/query (3adfe4)-->
-                        """,
-                QUERY, QUERY, END_OF_DOCUMENT);
+                <!--query:TYPE-->
+                <!--/query (3adfe4)-->
+                """,
+            QUERY, QUERY, END_OF_DOCUMENT
+        );
     }
 
     @Test
@@ -159,7 +167,7 @@ class MarkdownTokenizerTest
                 i++;
             }
         }
-        catch (ArrayIndexOutOfBoundsException e)
+        catch (ArrayIndexOutOfBoundsException _)
         {
             softly.fail("More lines in actual input than expected");
         }
@@ -167,6 +175,6 @@ class MarkdownTokenizerTest
 
     private List<String> document(String text)
     {
-        return text.lines().collect(Collectors.toList());
+        return text.lines().toList();
     }
 }
