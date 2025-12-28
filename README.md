@@ -9,10 +9,10 @@
 
 ## TL;DR
 
-- This is a Java 21+ library and small application framework for processing directories of Markdown documents.
+- This is a Java 25+ library and small application framework for processing directories of Markdown documents.
 - It is especially well suited for [Obsidian](https://obsidian.md) vaults and [iA Writer](https://ia.net/writer) libraries.
 - It detects queries in the documents, executes them all, and writes back the results.
-- It extracts information out of documents, and writes it into the documents as front matter.
+- It extracts information out of documents as properties and writes them into documents as front matter.
 - As an application, it monitors and processes directories in the background.
 
 Okay, that probably doesn't tell you much.
@@ -66,14 +66,14 @@ When maintaining notes in my personal knowledge system, I try to follow two rule
 1. Never duplicate information manually.
 2. Make all relevant, meaningful information part of the content itself. 
 
-The first rule is actually why this tool exists. With it, content can be sliced and diced in any way conceivable, and then represented back as part of content itself, automatically. Change the original content, and all its transformations follow. No mistakes are possible.
+The first rule is actually why this tool exists. With it, content can be sliced and diced in any way conceivable and then represented back as part of the content itself, automatically. Change the original content, and all its transformations follow. No mistakes are possible.
 
 The second rule exists because I believe information should be in human-readable plain text (Markdown), and not forced in some kind of structure to satisfy some tool. Tools should adapt to people, not the other way around. I do not consider front matter in a document to be part of the content of that document. It's metadata. In my opinion, metadata should be only one of two things:
 
 1. **Operational data**: data that supports some tool in doing its work. Examples: "Use this CSS template for the HTML export", or "Use this image as a cover for the cards view", or "Allow these aliases for the document". Things like that.
-2. **Derived data**: data that is extract from the content and persisted in an easier digestible way for tools. Examples: "The status of a project", or "The author of a book", or "The poster of a movie".
+2. **Derived data**: data that is extracted from the content and persisted in an easier digestible way for tools. Examples: "The status of a project" or "The author of a book" or "The poster of a movie".
 
-Yet, front matter has its use. For example, Obsidian plugins like [Bases](https://help.obsidian.md/bases) allow Notion-like datasets to be created with it conveniently. But, there's a danger in them also, because they can either lead to crucial information being duplicated - both in the content and in the properties - or moved out of the content into the metadata. I'm not sure which is worse.
+Front matter has its use. For example, Obsidian plugins like [Bases](https://help.obsidian.md/bases) allow Notion-like datasets to be created with it conveniently. But, there's a danger in them also, because they can either lead to crucial information being duplicated - both in the content and in the properties - or moved out of the content into the metadata, to exist only there. I'm not certain which is worse.
 
 This is why the curator can update front matter automatically. The content - the Markdown - is where the source information is. Front matter properties should not replace or manually duplicate source information. But they can be derived from it. Both rules are followed, and tools that act on front matter are satisfied at the same time.
 
@@ -103,10 +103,10 @@ This tool is specifically written for a variant of Markdown that I call *Vincent
 - File names are considered to be globally unique within the repository. Surprises might happen otherwise.
 - The document's title is, in this order of preference:
 	- The title of the first level 1 header, if present and at the top of the document.
-	- The value of the YAML front matter field `title`, if present
+	- The value of the YAML front matter field `title`, if present.
 	- The file name, without extension.
 - The file extension is `.md`.
-- Queries can be defined in HTML comments, for this tool to process. See below.
+- Queries can be defined in HTML comments for this tool to process. See below.
 
 In practice, I only use level 1 headers or the `title` property if the filename is not a good title. In 99% of the cases it is. I do not duplicate the filename inside the document, because, well, that's duplication.
 
@@ -244,7 +244,7 @@ abstract class MyCuratorModule
 }
 ```
 
-In large vaults this module takes up quite a bit of memory because it keeps an index of all references between documents, including non-existent ones. 
+In large vaults this module takes up quite a bit of memory because it keeps an index of all references between documents, including to non-existent ones. 
 
 #### `deadlinks`
 
