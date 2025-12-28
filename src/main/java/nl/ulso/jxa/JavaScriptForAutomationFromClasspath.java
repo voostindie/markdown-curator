@@ -164,8 +164,13 @@ final class JavaScriptForAutomationFromClasspath
             process.waitFor(MAX_COMPILATION_TIME_SECONDS, SECONDS);
             return outputPath;
         }
-        catch (IOException | InterruptedException e)
+        catch (IOException e)
         {
+            throw new IllegalStateException("Couldn't compile script: " + scriptName, e);
+        }
+        catch (InterruptedException e)
+        {
+            Thread.currentThread().interrupt();
             throw new IllegalStateException("Couldn't compile script: " + scriptName, e);
         }
     }
