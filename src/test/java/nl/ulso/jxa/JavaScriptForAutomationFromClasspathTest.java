@@ -1,7 +1,8 @@
 package nl.ulso.jxa;
 
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.EnabledOnOs;
+import org.junit.jupiter.api.condition.OS;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -9,7 +10,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 class JavaScriptForAutomationFromClasspathTest
 {
     @Test
-    @Disabled("Only works on macOS")
+    @EnabledOnOs({OS.MAC})
     void helloWorldNoArgs()
     {
         var output = new JavaScriptForAutomationFromClasspath().runScriptForObject("hello");
@@ -18,7 +19,7 @@ class JavaScriptForAutomationFromClasspathTest
     }
 
     @Test
-    @Disabled("Only works on macOS")
+    @EnabledOnOs({OS.MAC})
     void helloWorldWithArgs()
     {
         var output = new JavaScriptForAutomationFromClasspath().runScriptForObject(
@@ -28,7 +29,7 @@ class JavaScriptForAutomationFromClasspathTest
     }
 
     @Test
-    @Disabled("Only works on macOS")
+    @EnabledOnOs({OS.MAC})
     void nonExistingScript()
     {
         assertThatThrownBy(
