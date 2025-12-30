@@ -19,7 +19,8 @@ import static java.lang.Thread.currentThread;
 import static java.nio.file.Files.getLastModifiedTime;
 import static java.nio.file.Files.writeString;
 import static java.util.Collections.emptyList;
-import static java.util.Comparator.comparing;
+import static java.util.Collections.reverse;
+import static java.util.List.copyOf;
 import static java.util.concurrent.Executors.newScheduledThreadPool;
 import static java.util.concurrent.Executors.newVirtualThreadPerTaskExecutor;
 import static java.util.concurrent.TimeUnit.SECONDS;
@@ -33,16 +34,16 @@ import static org.slf4j.LoggerFactory.getLogger;
 /**
  * Markdown curator on top of a {@link Vault} and custom {@link DataModel}s and {@link Query}s.
  * <p/>
- * Whenever a change in the underlying vault is detected, the data models are refreshed, after
- * which all queries are collected from all documents in the vault, executed and compared to the
- * existing query results as stored inside the documents. If a query result has changed, the
- * document that contains it is rewritten to disk, with the old query result replaced.
+ * Whenever a change in the underlying vault is detected, the data models are refreshed, after which
+ * all queries are collected from all documents in the vault, executed and compared to the existing
+ * query results as stored inside the documents. If a query result has changed, the document that
+ * contains it is rewritten to disk, with the old query result replaced.
  * <p/>
  * Queries are not executed after every detected change. Instead, the running of queries and writing
  * of documents to disk is scheduled to take place after a short delay. If during this delay new
  * changes come in the task is rescheduled. This prevents superfluous query execution and writes to
- * disk, at the cost of the user having to wait a little while after saving the last change. This
- * is especially useful when using Obsidian, which automatically write changes to disk every few
+ * disk, at the cost of the user having to wait a little while after saving the last change. This is
+ * especially useful when using Obsidian, which automatically write changes to disk every few
  * seconds.
  * <p/>
  * This curator runs all queries, of which there can be many, in parallel. Once all queries have
@@ -51,11 +52,11 @@ import static org.slf4j.LoggerFactory.getLogger;
  * updating is limited, because most queries won't have new output.
  * <p/>
  * I haven't taken the time to prove that this parallel implementation is faster than a sequential
- * one. I applied parallelism simply because I don't want the 10 cores of the M1 Pro processor in
- * my MacBook Pro go to waste. And because it was fun to do.
+ * one. I applied parallelism simply because I don't want the 10 cores of the M1 Pro processor in my
+ * MacBook Pro go to waste. And because it was fun to do.
  */
 public class Curator
-        implements VaultChangedCallback
+    implements VaultChangedCallback
 {
     private static final Logger LOGGER = getLogger(Curator.class);
     private static final long SCHEDULE_TIMEOUT_IN_SECONDS = 3;
@@ -73,9 +74,9 @@ public class Curator
 
     @Inject
     public Curator(
-            Vault vault, DocumentPathResolver documentPathResolver,
-            FrontMatterRewriteResolver frontMatterRewriteResolver, QueryCatalog queryCatalog,
-            Set<DataModel> dataModels)
+        Vault vault, DocumentPathResolver documentPathResolver,
+        FrontMatterRewriteResolver frontMatterRewriteResolver, QueryCatalog queryCatalog,
+        Set<DataModel> dataModels)
     {
         this.vault = vault;
         this.documentPathResolver = documentPathResolver;
@@ -89,17 +90,42 @@ public class Curator
         this.curatorName = currentThread().getName();
     }
 
-    private static List<DataModel> orderDataModels(Set<DataModel> dataModels)
+    /// Orders the data models by placing data models that other models depend on first.
+    ///
+    /// In theory this algorithm can run into an endless loop: if there is a cyclic dependency
+    /// between data models. In practice this doesn't happen because in this system all dependencies
+    /// are injected in constructors by Dagger. If there is a cyclic dependency, the code fails to
+    /// compile.
+    static List<DataModel> orderDataModels(Set<DataModel> dataModels)
     {
-        var list = new ArrayList<>(dataModels);
-        list.sort(comparing(DataModel::order));
+        var size = dataModels.size();
+        var list = new ArrayList<DataModel>(size);
+        var queue = new LinkedList<>(dataModels);
+        while (!queue.isEmpty())
+        {
+            var model = queue.pollFirst();
+            var index = model.dependentModels().stream()
+                .mapToInt(list::indexOf)
+                .min()
+                .orElse(0);
+            if (index == -1)
+            {
+                queue.addLast(model);
+            }
+            else
+            {
+                list.add(index, model);
+            }
+        }
+        reverse(list);
         if (LOGGER.isDebugEnabled())
         {
             LOGGER.debug("{} data models will be refreshed in this order: {}", list.size(),
-                    list.stream().map(model -> model.getClass().getSimpleName())
-                            .collect(Collectors.joining(", ")));
+                list.stream().map(model -> model.getClass().getSimpleName())
+                    .collect(Collectors.joining(", "))
+            );
         }
-        return Collections.unmodifiableList(list);
+        return copyOf(list);
     }
 
     public void runOnce()
@@ -140,8 +166,8 @@ public class Curator
     /**
      * A change is self-triggered if it was the result of the curator writing a file to disk. To
      * cancel out those changes - no query will produce different output, guaranteed - the curator
-     * keeps track of the files it changed, and then compares them with the changes it detects.
-     * If they match, the change was self-triggered.
+     * keeps track of the files it changed, and then compares them with the changes it detects. If
+     * they match, the change was self-triggered.
      *
      * @param event Event that triggered the curator.
      * @return {@code true} if the change was self-triggered, {@code false} otherwise.
@@ -189,9 +215,11 @@ public class Curator
     private void scheduleQueryWriteRun()
     {
         LOGGER.debug("Scheduling query processing and document writing task to run in {} seconds",
-                SCHEDULE_TIMEOUT_IN_SECONDS);
+            SCHEDULE_TIMEOUT_IN_SECONDS
+        );
         runTask = delayedExecutor.schedule(this::performQueryWriteRun, SCHEDULE_TIMEOUT_IN_SECONDS,
-                SECONDS);
+            SECONDS
+        );
     }
 
     /**
@@ -204,18 +232,18 @@ public class Curator
         LOGGER.debug("Running all queries and writing document updates to disk");
         var frontMatterRewrites = frontMatterRewriteResolver.resolveFrontMatterRewrites();
         var queryOutputs =
-                runAllQueries().stream().collect(groupingBy(item -> item.queryBlock().document()));
+            runAllQueries().stream().collect(groupingBy(item -> item.queryBlock().document()));
         var changedDocuments = new HashSet<Document>();
         changedDocuments.addAll(frontMatterRewrites.keySet());
         changedDocuments.addAll(queryOutputs.entrySet().stream()
-                .filter(entry -> entry.getValue().stream().anyMatch(QueryOutput::isChanged))
-                .map(Map.Entry::getKey).collect(Collectors.toSet()));
+            .filter(entry -> entry.getValue().stream().anyMatch(QueryOutput::isChanged))
+            .map(Map.Entry::getKey).collect(Collectors.toSet()));
         for (Document document : changedDocuments)
         {
             writeDocument(
-                    document,
-                    frontMatterRewrites.getOrDefault(document, emptyDictionary()),
-                    queryOutputs.getOrDefault(document, emptyList())
+                document,
+                frontMatterRewrites.getOrDefault(document, emptyDictionary()),
+                queryOutputs.getOrDefault(document, emptyList())
             );
         }
     }
@@ -246,51 +274,55 @@ public class Curator
             catch (RuntimeException e)
             {
                 LOGGER.error("Caught runtime exception while refreshing data model {}",
-                        model.getClass().getSimpleName(), e);
+                    model.getClass().getSimpleName(), e
+                );
             }
         });
     }
 
     /**
-     * Run all queries in the vault and collect the queries whose outputs have changed compared
-     * to what's in memory right now.
+     * Run all queries in the vault and collect the queries whose outputs have changed compared to
+     * what's in memory right now.
      * <p/>
      * Note that we have to collect and keep the output of all queries, even the ones that didn't
-     * change. Query output is not kept in memory between runs. Documents may embed more than
-     * one query, and documents are written to disks a whole. So, the outputs of all embedded
-     * queries need to be available.
+     * change. Query output is not kept in memory between runs. Documents may embed more than one
+     * query, and documents are written to disks a whole. So, the outputs of all embedded queries
+     * need to be available.
      * <p/>
-     * The queries are executed in parallel as much as possible, because there can be thousands
-     * of them.
+     * The queries are executed in parallel as much as possible, because there can be thousands of
+     * them.
      */
     Queue<QueryOutput> runAllQueries()
     {
         var writeQueue = new ConcurrentLinkedQueue<QueryOutput>();
         var queryBlocks = vault.findAllQueryBlocks();
         var duration = runInParallel(queryBlocks, queryBlock -> {
-            var query = queryCatalog.query(queryBlock.queryName());
-            if (LOGGER.isTraceEnabled())
-            {
-                LOGGER.trace("Running query '{}' in document: {}", query.name(),
-                        queryBlock.document());
-            }
-            final QueryResult result;
-            try
-            {
-                result = query.run(queryBlock);
-            }
-            catch (RuntimeException e)
-            {
-                LOGGER.warn(
+                var query = queryCatalog.query(queryBlock.queryName());
+                if (LOGGER.isTraceEnabled())
+                {
+                    LOGGER.trace("Running query '{}' in document: {}", query.name(),
+                        queryBlock.document()
+                    );
+                }
+                final QueryResult result;
+                try
+                {
+                    result = query.run(queryBlock);
+                }
+                catch (RuntimeException e)
+                {
+                    LOGGER.warn(
                         "Ignoring output due to exception while running query '{}' in document: {}",
-                        query.name(), queryBlock.document().name(), e);
-                return;
+                        query.name(), queryBlock.document().name(), e
+                    );
+                    return;
+                }
+                var output = result.toMarkdown();
+                var hash = shortHashOf(output);
+                var isChanged = !queryBlock.outputHash().contentEquals(hash);
+                writeQueue.add(new QueryOutput(queryBlock, output, hash, isChanged));
             }
-            var output = result.toMarkdown();
-            var hash = shortHashOf(output);
-            var isChanged = !queryBlock.outputHash().contentEquals(hash);
-            writeQueue.add(new QueryOutput(queryBlock, output, hash, isChanged));
-        });
+        );
         LOGGER.info("Executed {} queries in {} ms", queryBlocks.size(), duration);
         return writeQueue;
     }

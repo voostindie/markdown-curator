@@ -2,38 +2,36 @@ package nl.ulso.markdown_curator;
 
 import nl.ulso.markdown_curator.vault.event.VaultChangedEvent;
 
-/**
- * Represents a data model that is derived from a {@link nl.ulso.markdown_curator.vault.Vault}.
- * <p/>
- * Whenever a change to the vault is detected, the data model gets refreshed.
- * <p/>
- * Data models are particularly useful to base queries on, especially when multiple queries require
- * the same data model, or when multiple instances of the same query do. For example, imagine a
- * journal data model that keeps a timeline of all activities across all documents in the vault,
- * and queries on top of that model that select specific parts of the journal.
- * <p/>
- * <b>Important</b>: data models must be singletons (e.g. marked with
- * {@link jakarta.inject.Singleton})! They are accessed by queries running in parallel and must
- * therefore be thread-safe. The {@link Curator} ensures that writes are synchronized, and that
- * no reads can happen while writes are in progress. This of course only holds if in your
- * implementations you don't update any internal data structures on <em>read</em>.
- */
+import java.util.Set;
+
+import static java.util.Collections.emptySet;
+
+/// Represents a data model derived from a [nl.ulso.markdown_curator.vault.Vault]; whenever a change
+/// to the vault is detected, the data model gets refreshed.
+///
+/// Data models are particularly useful to base queries on, especially when multiple queries require
+/// the same data model or when multiple instances of the same query do. For example, imagine a
+/// journal data model that keeps a timeline of all activities across all documents in the vault,
+/// and queries on top of that model that select specific parts of the journal.
+///
+/// **Important**: data models must be singletons (e.g. marked with [jakarta.inject.Singleton]) and
+/// thread-safe! The [Curator] ensures that writes are synchronized, and that no reads can happen
+/// while writes are in progress. Reads happen in parallel because all queries are executed
+/// concurrently.
 public interface DataModel
 {
-    int ORDER_FIRST = 0;
-    int ORDER_LAST = Integer.MAX_VALUE;
-
+    /// Process a change-event in the vault in this data model.
+    /// @param event the change-event to process.
     void vaultChanged(VaultChangedEvent event);
 
-    /**
-     * If your model depends on other models, make sure you return a higher order here.
-     * If your model doesn't depend on any other model, use {@link #ORDER_FIRST}; this is the
-     * default.
-     *
-     * @return This model's order, used to sort all data models when refreshing them;
-     */
-    default int order()
+    /// Returns the set of data models that this model depends on.
+    ///
+    /// This method is called only once, during application startup, to order the data models in
+    /// such a way that dependent models are refreshed before models that depend on them.
+    ///
+    /// @return the set of data models this data model depends on.
+    default Set<DataModel> dependentModels()
     {
-        return ORDER_FIRST;
+        return emptySet();
     }
 }

@@ -2,8 +2,7 @@ package nl.ulso.markdown_curator.project;
 
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
-import nl.ulso.markdown_curator.DataModelTemplate;
-import nl.ulso.markdown_curator.FrontMatterUpdateCollector;
+import nl.ulso.markdown_curator.*;
 import nl.ulso.markdown_curator.vault.Document;
 import nl.ulso.markdown_curator.vault.event.*;
 
@@ -15,10 +14,10 @@ import static java.util.Objects.requireNonNull;
 /// Model to keep track of project properties and update front matter accordingly.
 ///
 /// Project properties are in a complex system, with plugins that can override how and when
-/// properties are computed. That is why this model comes last, and always does a complete refresh.
+/// properties are computed.
 ///
-/// If you plan to read property values in a DataModel, make sure the model gets refreshed after this
-/// one.
+/// If you plan to read property values in a DataModel, make sure the model gets refreshed after
+/// this one.
 @Singleton
 public class ProjectPropertyRepository
     extends DataModelTemplate
@@ -41,11 +40,6 @@ public class ProjectPropertyRepository
         this.valueResolverRegistry = valueResolverRegistry;
         this.frontMatterUpdateCollector = frontMatterUpdateCollector;
         this.projectPropertyValues = new ConcurrentHashMap<>();
-    }
-
-    public ProjectRepository projectRepository()
-    {
-        return projectRepository;
     }
 
     public Map<String, ProjectProperty> projectProperties()
@@ -77,10 +71,12 @@ public class ProjectPropertyRepository
 
     private void processProject(Project project)
     {
-        var properties = projectPropertyValues.computeIfAbsent(project,
-            key -> new ConcurrentHashMap<>(projectProperties.size())
+        var properties = projectPropertyValues.computeIfAbsent(
+            project,
+            _ -> new ConcurrentHashMap<>(projectProperties.size())
         );
-        frontMatterUpdateCollector.updateFrontMatterFor(project.document(), dictionary -> {
+        frontMatterUpdateCollector.updateFrontMatterFor(project.document(), dictionary ->
+            {
                 for (ProjectProperty property : projectProperties.values())
                 {
                     resolvePropertyValue(project, property).ifPresentOrElse(value ->
@@ -140,7 +136,8 @@ public class ProjectPropertyRepository
 
     private void removeProjectFrontMatter(Document document)
     {
-        frontMatterUpdateCollector.updateFrontMatterFor(document, dictionary -> {
+        frontMatterUpdateCollector.updateFrontMatterFor(document, dictionary ->
+            {
                 for (ProjectProperty projectProperty : projectProperties.values())
                 {
                     dictionary.removeProperty(projectProperty.frontMatterProperty());
@@ -150,9 +147,9 @@ public class ProjectPropertyRepository
     }
 
     @Override
-    public int order()
+    public Set<DataModel> dependentModels()
     {
-        return 5000;
+        return Set.of(projectRepository);
     }
 
     public Optional<?> propertyValue(Project project, String propertyName)
