@@ -9,6 +9,7 @@ import org.junit.jupiter.params.provider.MethodSource;
 
 import java.util.stream.Stream;
 
+import static nl.ulso.markdown_curator.Changelog.emptyChangelog;
 import static nl.ulso.markdown_curator.vault.event.VaultChangedEvent.*;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -21,7 +22,7 @@ class DataModelTemplateTest
     {
         var model = new DummyDataModel();
         assertThat(model.refreshed).isFalse();
-        model.vaultChanged(event);
+        model.vaultChanged(event, emptyChangelog());
         assertThat(model.refreshed).isTrue();
     }
 
@@ -44,9 +45,10 @@ class DataModelTemplateTest
         private boolean refreshed = false;
 
         @Override
-        public void fullRefresh()
+        public Changelog fullRefresh(Changelog changelog)
         {
             refreshed = true;
+            return emptyChangelog();
         }
     }
 }

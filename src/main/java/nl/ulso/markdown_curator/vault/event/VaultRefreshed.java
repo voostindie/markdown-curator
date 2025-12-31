@@ -1,5 +1,7 @@
 package nl.ulso.markdown_curator.vault.event;
 
+import nl.ulso.markdown_curator.Changelog;
+
 public final class VaultRefreshed
         implements VaultChangedEvent
 {
@@ -10,8 +12,8 @@ public final class VaultRefreshed
     }
 
     @Override
-    public void dispatch(VaultChangedEventHandler handler)
+    public Changelog dispatch(VaultChangedEventHandler handler, Changelog changelog)
     {
-        handler.process(this);
+        return handler.process(this, changelog);
     }
 }

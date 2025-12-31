@@ -2,6 +2,7 @@ package nl.ulso.markdown_curator.journal;
 
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
+import nl.ulso.markdown_curator.Changelog;
 import nl.ulso.markdown_curator.DataModelTemplate;
 import nl.ulso.markdown_curator.vault.*;
 import nl.ulso.markdown_curator.vault.Dictionary;
@@ -19,6 +20,7 @@ import static java.util.Comparator.naturalOrder;
 import static java.util.Comparator.reverseOrder;
 import static java.util.stream.Collectors.toMap;
 import static java.util.stream.Collectors.toUnmodifiableSet;
+import static nl.ulso.markdown_curator.Changelog.emptyChangelog;
 import static nl.ulso.markdown_curator.vault.Dictionary.emptyDictionary;
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -45,7 +47,7 @@ public class Journal
     }
 
     @Override
-    public void fullRefresh()
+    public Changelog fullRefresh(Changelog changelog)
     {
         var builder = new JournalBuilder(settings);
         vault.accept(builder);
@@ -63,21 +65,22 @@ public class Journal
             LOGGER.debug("Built a journal for {} days, {} weeks and {} known markers.",
                     dailies.size(), weeklies.size(), markers.size());
         }
+        return emptyChangelog();
     }
 
     @Override
-    public void process(DocumentAdded event)
+    public Changelog process(DocumentAdded event, Changelog changelog)
     {
-        processDocumentUpdate(event.document());
+        return processDocumentUpdate(event.document(), changelog);
     }
 
     @Override
-    public void process(DocumentChanged event)
+    public Changelog process(DocumentChanged event, Changelog changelog)
     {
-        processDocumentUpdate(event.document());
+        return processDocumentUpdate(event.document(), changelog);
     }
 
-    private void processDocumentUpdate(Document document)
+    private Changelog processDocumentUpdate(Document document, Changelog changelog)
     {
         if (isMarkerDocument(document))
         {
@@ -91,10 +94,11 @@ public class Journal
             weeklies.addAll(builder.weeklies());
             LOGGER.debug("Updated the journal for {}", document.name());
         }
+        return emptyChangelog();
     }
 
     @Override
-    public void process(DocumentRemoved event)
+    public Changelog process(DocumentRemoved event, Changelog changelog)
     {
         var document = event.document();
         if (isMarkerDocument(document))
@@ -115,6 +119,7 @@ public class Journal
                 });
             });
         }
+        return emptyChangelog();
     }
 
     public Optional<Daily> toDaily(Document dailyDocument)

@@ -1,22 +1,24 @@
 package nl.ulso.markdown_curator.vault.event;
 
+import nl.ulso.markdown_curator.Changelog;
+
 /**
  * Supports double dispatching for {@link VaultChangedEvent}s through their
- * {@link VaultChangedEvent#dispatch(VaultChangedEventHandler)} method.
+ * {@link VaultChangedEvent#dispatch(VaultChangedEventHandler, Changelog)} method.
  */
 public interface VaultChangedEventHandler
 {
-    void process(VaultRefreshed event);
+    Changelog process(VaultRefreshed event, Changelog changelog);
 
-    void process(FolderAdded event);
+    Changelog process(FolderAdded event, Changelog changelog);
 
-    void process(FolderRemoved event);
+    Changelog process(FolderRemoved event, Changelog changelog);
 
-    void process(DocumentAdded event);
+    Changelog process(DocumentAdded event, Changelog changelog);
 
-    void process(DocumentChanged event);
+    Changelog process(DocumentChanged event, Changelog changelog);
 
-    void process(DocumentRemoved event);
+    Changelog process(DocumentRemoved event, Changelog changelog);
 
-    void process(ExternalChange event);
+    Changelog process(ExternalChange event, Changelog changelog);
 }

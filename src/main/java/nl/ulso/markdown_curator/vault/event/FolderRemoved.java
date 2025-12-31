@@ -1,5 +1,6 @@
 package nl.ulso.markdown_curator.vault.event;
 
+import nl.ulso.markdown_curator.Changelog;
 import nl.ulso.markdown_curator.vault.Folder;
 
 public final class FolderRemoved
@@ -13,9 +14,9 @@ public final class FolderRemoved
     }
 
     @Override
-    public void dispatch(VaultChangedEventHandler handler)
+    public Changelog dispatch(VaultChangedEventHandler handler, Changelog changelog)
     {
-        handler.process(this);
+        return handler.process(this, changelog);
     }
 
     public Folder folder()

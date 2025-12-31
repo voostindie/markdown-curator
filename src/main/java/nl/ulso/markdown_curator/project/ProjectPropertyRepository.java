@@ -10,6 +10,7 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 import static java.util.Objects.requireNonNull;
+import static nl.ulso.markdown_curator.Changelog.emptyChangelog;
 
 /// Model to keep track of project properties and update front matter accordingly.
 ///
@@ -63,10 +64,11 @@ public class ProjectPropertyRepository
     }
 
     @Override
-    public void fullRefresh()
+    public Changelog fullRefresh(Changelog changelog)
     {
         projectPropertyValues.clear();
         projectRepository.projects().forEach(this::processProject);
+        return emptyChangelog();
     }
 
     private void processProject(Project project)
@@ -108,30 +110,30 @@ public class ProjectPropertyRepository
     }
 
     @Override
-    public void process(FolderRemoved event)
+    public Changelog process(FolderRemoved event, Changelog changelog)
     {
         if (projectRepository.isProjectFolder(event.folder()))
         {
             projectRepository.projects()
                 .forEach(project -> removeProjectFrontMatter(project.document()));
         }
-        super.process(event);
+        return super.process(event, changelog);
     }
 
     @Override
-    public void process(DocumentRemoved event)
+    public Changelog process(DocumentRemoved event, Changelog changelog)
     {
         if (projectRepository.isProjectDocument(event.document()))
         {
             removeProjectFrontMatter(event.document());
         }
-        super.process(event);
+        return super.process(event, changelog);
     }
 
     @Override
-    public void process(ExternalChange event)
+    public Changelog process(ExternalChange event, Changelog changelog)
     {
-        fullRefresh();
+        return fullRefresh(changelog);
     }
 
     private void removeProjectFrontMatter(Document document)

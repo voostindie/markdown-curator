@@ -1,5 +1,6 @@
 package nl.ulso.markdown_curator.project;
 
+import nl.ulso.markdown_curator.Changelog;
 import nl.ulso.markdown_curator.vault.VaultStub;
 import nl.ulso.markdown_curator.vault.event.VaultChangedEvent;
 import org.assertj.core.api.SoftAssertions;
@@ -8,6 +9,7 @@ import org.assertj.core.api.junit.jupiter.SoftAssertionsExtension;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.ExtendWith;
 
+import static nl.ulso.markdown_curator.Changelog.emptyChangelog;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @ExtendWith(SoftAssertionsExtension.class)
@@ -29,7 +31,7 @@ class ProjectRepositoryTest
         vault.addDocument("README", "");
         folder.addDocument("Project 1", "");
         subfolder.addDocument("Archived Project", "");
-        repository.fullRefresh();
+        repository.fullRefresh(emptyChangelog());
     }
 
     @AfterEach
@@ -44,7 +46,7 @@ class ProjectRepositoryTest
     {
         var emptyVault = new VaultStub();
         var empyRepository = new ProjectRepository(emptyVault, new ProjectSettings("Projects"));
-        empyRepository.fullRefresh();
+        empyRepository.fullRefresh(emptyChangelog());
         assertThat(empyRepository.projectsByName()).isEmpty();
     }
 
@@ -78,7 +80,7 @@ class ProjectRepositoryTest
     void addProjectDocument()
     {
         var document = vault.addDocumentInPath("Projects/Project 2", "");
-        repository.process(VaultChangedEvent.documentAdded(document));
+        repository.process(VaultChangedEvent.documentAdded(document), emptyChangelog());
         var projects = repository.projectsByName();
         softly.assertThat(projects).hasSize(2);
         softly.assertThat(repository.isProjectDocument(document)).isTrue();
@@ -89,7 +91,7 @@ class ProjectRepositoryTest
     void removeProjectDocument()
     {
         var document = vault.resolveDocumentInPath("Projects/Project 1");
-        repository.process(VaultChangedEvent.documentRemoved(document));
+        repository.process(VaultChangedEvent.documentRemoved(document), emptyChangelog());
         var projects = repository.projectsByName();
         softly.assertThat(projects).isEmpty();
     }

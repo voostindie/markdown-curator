@@ -26,6 +26,7 @@ import static java.util.concurrent.Executors.newVirtualThreadPerTaskExecutor;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static java.util.stream.Collectors.groupingBy;
 import static nl.ulso.hash.ShortHasher.shortHashOf;
+import static nl.ulso.markdown_curator.Changelog.emptyChangelog;
 import static nl.ulso.markdown_curator.DocumentRewriter.rewriteDocument;
 import static nl.ulso.markdown_curator.vault.Dictionary.emptyDictionary;
 import static nl.ulso.markdown_curator.vault.event.VaultChangedEvent.vaultRefreshed;
@@ -262,10 +263,12 @@ public class Curator
         {
             LOGGER.debug("Refreshing {} data model(s)", dataModels.size());
         }
-        dataModels.forEach(model -> {
+        var changelog = emptyChangelog();
+        for (DataModel model : dataModels)
+        {
             try
             {
-                model.vaultChanged(event);
+                changelog = changelog.append(model.vaultChanged(event, changelog));
                 if (LOGGER.isDebugEnabled())
                 {
                     LOGGER.debug("Refreshed data model {}", model.getClass().getSimpleName());
@@ -277,7 +280,7 @@ public class Curator
                     model.getClass().getSimpleName(), e
                 );
             }
-        });
+        }
     }
 
     /**

@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Test;
 import java.util.Set;
 
 import static java.util.Collections.emptySet;
+import static nl.ulso.markdown_curator.Changelog.emptyChangelog;
 import static nl.ulso.markdown_curator.Curator.orderDataModels;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -37,8 +38,9 @@ class CuratorTest
         }
 
         @Override
-        public void vaultChanged(VaultChangedEvent event)
+        public Changelog vaultChanged(VaultChangedEvent event, Changelog changelog)
         {
+            return emptyChangelog();
         }
 
         @Override

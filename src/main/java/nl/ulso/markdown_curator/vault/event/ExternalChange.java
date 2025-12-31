@@ -1,5 +1,7 @@
 package nl.ulso.markdown_curator.vault.event;
 
+import nl.ulso.markdown_curator.Changelog;
+
 /**
  * Event triggered by the {@link nl.ulso.markdown_curator.vault.VaultRefresher} for changes detected
  * in external sources.
@@ -14,8 +16,8 @@ public final class ExternalChange
     }
 
     @Override
-    public void dispatch(VaultChangedEventHandler handler)
+    public Changelog dispatch(VaultChangedEventHandler handler, Changelog changelog)
     {
-        handler.process(this);
+        return handler.process(this, changelog);
     }
 }

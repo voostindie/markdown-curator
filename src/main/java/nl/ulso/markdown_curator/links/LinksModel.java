@@ -1,5 +1,6 @@
 package nl.ulso.markdown_curator.links;
 
+import nl.ulso.markdown_curator.Changelog;
 import nl.ulso.markdown_curator.DataModelTemplate;
 import nl.ulso.markdown_curator.vault.*;
 import nl.ulso.markdown_curator.vault.event.*;
@@ -9,6 +10,7 @@ import jakarta.inject.Singleton;
 import java.util.*;
 
 import static java.util.Collections.emptyList;
+import static nl.ulso.markdown_curator.Changelog.emptyChangelog;
 
 @Singleton
 public final class LinksModel
@@ -41,39 +43,44 @@ public final class LinksModel
     }
 
     @Override
-    public void fullRefresh()
+    public Changelog fullRefresh(Changelog changelog)
     {
         documentIndex.clear();
         indexDocuments(vault);
+        return emptyChangelog();
     }
 
     @Override
-    public void process(DocumentAdded event)
+    public Changelog process(DocumentAdded event, Changelog changelog)
     {
         indexDocuments(event.document());
+        return emptyChangelog();
     }
 
     @Override
-    public void process(DocumentChanged event)
+    public Changelog process(DocumentChanged event, Changelog changelog)
     {
         indexDocuments(event.document());
+        return emptyChangelog();
     }
 
     @Override
-    public void process(DocumentRemoved event)
+    public Changelog process(DocumentRemoved event, Changelog changelog)
     {
         var documentName = event.document().name();
         documentIndex.remove(documentName);
+        return emptyChangelog();
     }
 
     @Override
-    public void process(FolderAdded event)
+    public Changelog process(FolderAdded event, Changelog changelog)
     {
         indexDocuments(event.folder());
+        return emptyChangelog();
     }
 
     @Override
-    public void process(FolderRemoved event)
+    public Changelog process(FolderRemoved event, Changelog changelog)
     {
         var finder = new DocumentFinder();
         event.folder().accept(finder);
@@ -81,6 +88,7 @@ public final class LinksModel
         {
             documentIndex.remove(document);
         }
+        return emptyChangelog();
     }
 
     private void indexDocuments(Visitable visitable)

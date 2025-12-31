@@ -1,5 +1,6 @@
 package nl.ulso.markdown_curator.vault.event;
 
+import nl.ulso.markdown_curator.Changelog;
 import nl.ulso.markdown_curator.vault.*;
 import org.assertj.core.api.SoftAssertions;
 import org.assertj.core.api.junit.jupiter.InjectSoftAssertions;
@@ -11,6 +12,7 @@ import org.junit.jupiter.params.provider.MethodSource;
 
 import java.util.stream.Stream;
 
+import static nl.ulso.markdown_curator.Changelog.emptyChangelog;
 import static nl.ulso.markdown_curator.vault.event.VaultChangedEvent.*;
 
 @ExtendWith(SoftAssertionsExtension.class)
@@ -24,7 +26,7 @@ class VaultChangedEventHandlerTest
     void processVaultRefreshed(VaultChangedEvent event, String action, Class<?> expectedObjectClass)
     {
         var recorder = new EventRecorder();
-        event.dispatch(recorder);
+        event.dispatch(recorder, emptyChangelog());
         softly.assertThat(recorder.action).isEqualTo(action);
         if (expectedObjectClass != null)
         {
@@ -40,67 +42,75 @@ class VaultChangedEventHandlerTest
         var folder = vault.folder("foo").orElseThrow();
         var document = folder.document("bar").orElseThrow();
         return Stream.of(Arguments.of(vaultRefreshed(), "vault refreshed", null),
-                Arguments.of(folderAdded(folder), "folder added", Folder.class),
-                Arguments.of(folderRemoved(folder), "folder removed", Folder.class),
-                Arguments.of(documentAdded(document), "document added", Document.class),
-                Arguments.of(documentChanged(document), "document changed", Document.class),
-                Arguments.of(documentRemoved(document), "document removed", Document.class),
-                Arguments.of(externalChange(), "external change", null));
+            Arguments.of(folderAdded(folder), "folder added", Folder.class),
+            Arguments.of(folderRemoved(folder), "folder removed", Folder.class),
+            Arguments.of(documentAdded(document), "document added", Document.class),
+            Arguments.of(documentChanged(document), "document changed", Document.class),
+            Arguments.of(documentRemoved(document), "document removed", Document.class),
+            Arguments.of(externalChange(), "external change", null)
+        );
     }
 
     private static class EventRecorder
-            implements VaultChangedEventHandler
+        implements VaultChangedEventHandler
     {
         private String action;
         private Object object;
 
         @Override
-        public void process(VaultRefreshed event)
+        public Changelog process(VaultRefreshed event, Changelog changelog)
         {
             action = "vault refreshed";
             object = null;
+            return emptyChangelog();
         }
 
         @Override
-        public void process(FolderAdded event)
+        public Changelog process(FolderAdded event, Changelog changelog)
         {
             action = "folder added";
             object = event.folder();
+            return emptyChangelog();
         }
 
         @Override
-        public void process(FolderRemoved event)
+        public Changelog process(FolderRemoved event, Changelog changelog)
         {
             action = "folder removed";
             object = event.folder();
+            return emptyChangelog();
         }
 
         @Override
-        public void process(DocumentAdded event)
+        public Changelog process(DocumentAdded event, Changelog changelog)
         {
             action = "document added";
             object = event.document();
+            return emptyChangelog();
         }
 
         @Override
-        public void process(DocumentChanged event)
+        public Changelog process(DocumentChanged event, Changelog changelog)
         {
             action = "document changed";
             object = event.document();
+            return emptyChangelog();
         }
 
         @Override
-        public void process(DocumentRemoved event)
+        public Changelog process(DocumentRemoved event, Changelog changelog)
         {
             action = "document removed";
             object = event.document();
+            return emptyChangelog();
         }
 
         @Override
-        public void process(ExternalChange event)
+        public Changelog process(ExternalChange event, Changelog changelog)
         {
             action = "external change";
             object = null;
+            return emptyChangelog();
         }
     }
 }

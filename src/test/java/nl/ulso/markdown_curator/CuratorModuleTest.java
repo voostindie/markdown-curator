@@ -14,6 +14,7 @@ import java.nio.file.Paths;
 import java.util.Map;
 
 import static java.util.Collections.emptyMap;
+import static nl.ulso.markdown_curator.Changelog.emptyChangelog;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @ExtendWith(SoftAssertionsExtension.class)
@@ -72,9 +73,10 @@ class CuratorModuleTest
             implements DataModel
     {
         @Override
-        public void vaultChanged(VaultChangedEvent event)
+        public Changelog vaultChanged(VaultChangedEvent event, Changelog changelog)
         {
             // Do nothing
+            return emptyChangelog();
         }
     }
 

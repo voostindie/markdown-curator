@@ -2,7 +2,7 @@ package nl.ulso.markdown_curator.project;
 
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
-import nl.ulso.markdown_curator.DataModelTemplate;
+import nl.ulso.markdown_curator.*;
 import nl.ulso.markdown_curator.vault.*;
 import nl.ulso.markdown_curator.vault.event.*;
 import org.slf4j.Logger;
@@ -12,6 +12,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import static java.util.Collections.unmodifiableCollection;
 import static java.util.Collections.unmodifiableMap;
+import static nl.ulso.markdown_curator.Changelog.emptyChangelog;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /// Represents a repository of projects on top of a single folder in the vault, excluding its
@@ -40,7 +41,7 @@ public final class ProjectRepository
     }
 
     @Override
-    public void fullRefresh()
+    public Changelog fullRefresh(Changelog changelog)
     {
         projects.clear();
         var finder = new ProjectFinder();
@@ -50,6 +51,7 @@ public final class ProjectRepository
         {
             LOGGER.debug("Built a project repository of {} projects", projects.size());
         }
+        return emptyChangelog();
     }
 
     public Map<String, Project> projectsByName()
@@ -80,53 +82,56 @@ public final class ProjectRepository
     }
 
     @Override
-    public void process(FolderAdded event)
+    public Changelog process(FolderAdded event, Changelog changelog)
     {
-        processFolderEventFor(event.folder());
+        return processFolderEventFor(event.folder(), changelog);
     }
 
     @Override
-    public void process(FolderRemoved event)
+    public Changelog process(FolderRemoved event, Changelog changelog)
     {
-        processFolderEventFor(event.folder());
+        return processFolderEventFor(event.folder(), changelog);
     }
 
-    private void processFolderEventFor(Folder folder)
+    private Changelog processFolderEventFor(Folder folder, Changelog changelog)
     {
         if (isProjectFolder(folder))
         {
-            fullRefresh();
+            return fullRefresh(changelog);
         }
+        return emptyChangelog();
     }
 
     @Override
-    public void process(DocumentAdded event)
+    public Changelog process(DocumentAdded event, Changelog changelog)
     {
-        processDocumentEventFor(event.document());
+        return processDocumentEventFor(event.document(), changelog);
     }
 
     @Override
-    public void process(DocumentChanged event)
+    public Changelog process(DocumentChanged event, Changelog changelog)
     {
-        processDocumentEventFor(event.document());
+        return processDocumentEventFor(event.document(), changelog);
     }
 
-    private void processDocumentEventFor(Document document)
+    private Changelog processDocumentEventFor(Document document, Changelog changelog)
     {
         if (isProjectDocument(document))
         {
             var project = new Project(document);
             projects.put(project.name(), new Project(document));
         }
+        return emptyChangelog();
     }
 
     @Override
-    public void process(DocumentRemoved event)
+    public Changelog process(DocumentRemoved event, Changelog changelog)
     {
         if (isProjectDocument(event.document()))
         {
             projects.remove(event.document().name());
         }
+        return emptyChangelog();
     }
 
     private class ProjectFinder

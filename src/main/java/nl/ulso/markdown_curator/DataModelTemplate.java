@@ -4,22 +4,22 @@ import nl.ulso.markdown_curator.vault.event.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Set;
+
 import static nl.ulso.markdown_curator.vault.event.VaultChangedEvent.vaultRefreshed;
 
 /**
  * Base class for {@link DataModel} that can handle granular change events.
  * <p/>
  * The default implementation for each change event is to dispatch to
- * {@link #process(VaultRefreshed)}, which in turn eventually calls
- * {@link #fullRefresh()}. In other words, just implementing
- * {@link #fullRefresh()} already works for all events. Override one of the
+ * {@link #process(VaultRefreshed, Changelog)}, which in turn eventually calls
+ * {@link #fullRefresh(Changelog)}. In other words, just implementing
+ * {@link #fullRefresh(Changelog)} already works for all events. Override one of the
  * other {@code process} methods to make the refresh more granular and efficient for that
  * specific event.
  * <p/>
  * A curator can have many models and models may depend on one another. That means models needs
- * to be refreshed in the right order. To do so, the {@link Curator} sorts the data models on their
- * {@link #order()}. So, if your model depends other models, make sure it returns an order that is
- * higher than any of those models.
+ * to be refreshed in the right order. See {@link Curator#orderDataModels(Set)}.
  */
 public abstract class DataModelTemplate
         implements DataModel, VaultChangedEventHandler
@@ -27,58 +27,60 @@ public abstract class DataModelTemplate
     private static final Logger LOGGER = LoggerFactory.getLogger(DataModelTemplate.class);
 
     @Override
-    public final void vaultChanged(VaultChangedEvent event)
+    public final Changelog vaultChanged(VaultChangedEvent event, Changelog changelog)
     {
         // Look ma, no instanceof!
-        event.dispatch(this);
+        return event.dispatch(this, changelog);
     }
 
     @Override
-    public final void process(VaultRefreshed event)
+    public final Changelog process(VaultRefreshed event, Changelog changelog)
     {
         LOGGER.debug("Performing a full refresh on data model: {}",
-                this.getClass().getSimpleName());
-        fullRefresh();
+            this.getClass().getSimpleName()
+        );
+        return fullRefresh(changelog);
     }
 
     /**
      * Fully refreshes the data model from the vault.
      */
-    public abstract void fullRefresh();
+    public abstract Changelog fullRefresh(Changelog changelog);
 
     @Override
-    public void process(FolderAdded event)
+    public Changelog process(FolderAdded event, Changelog changelog)
     {
-        process(vaultRefreshed());
+        return process(vaultRefreshed(), changelog);
     }
 
     @Override
-    public void process(FolderRemoved event)
+    public Changelog process(FolderRemoved event, Changelog changelog)
     {
-        process(vaultRefreshed());
+        return process(vaultRefreshed(), changelog);
     }
 
     @Override
-    public void process(DocumentAdded event)
+    public Changelog process(DocumentAdded event, Changelog changelog)
     {
-        process(vaultRefreshed());
+        return process(vaultRefreshed(), changelog);
     }
 
     @Override
-    public void process(DocumentChanged event)
+    public Changelog process(DocumentChanged event, Changelog changelog)
     {
-        process(vaultRefreshed());
+        return process(vaultRefreshed(), changelog);
     }
 
     @Override
-    public void process(DocumentRemoved event)
+    public Changelog process(DocumentRemoved event, Changelog changelog)
     {
-        process(vaultRefreshed());
+        return process(vaultRefreshed(), changelog);
     }
 
     @Override
-    public void process(ExternalChange event)
+    public Changelog process(ExternalChange event, Changelog changelog)
     {
         // Do nothing by default, since no content in the vault itself changed.
+        return changelog;
     }
 }

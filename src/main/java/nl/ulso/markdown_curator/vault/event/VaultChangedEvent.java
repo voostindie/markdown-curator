@@ -1,5 +1,6 @@
 package nl.ulso.markdown_curator.vault.event;
 
+import nl.ulso.markdown_curator.Changelog;
 import nl.ulso.markdown_curator.vault.Document;
 import nl.ulso.markdown_curator.vault.Folder;
 
@@ -17,7 +18,7 @@ public sealed interface VaultChangedEvent
         permits VaultRefreshed, FolderAdded, FolderRemoved, DocumentAdded, DocumentChanged,
         DocumentRemoved, ExternalChange
 {
-    void dispatch(VaultChangedEventHandler handler);
+    Changelog dispatch(VaultChangedEventHandler handler, Changelog changelog);
 
     static VaultRefreshed vaultRefreshed()
     {

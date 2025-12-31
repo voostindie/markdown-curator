@@ -1,5 +1,6 @@
 package nl.ulso.markdown_curator.journal;
 
+import nl.ulso.markdown_curator.Changelog;
 import nl.ulso.markdown_curator.vault.VaultStub;
 import nl.ulso.markdown_curator.vault.event.VaultChangedEvent;
 import org.assertj.core.api.junit.jupiter.SoftAssertionsExtension;
@@ -15,6 +16,7 @@ import java.time.temporal.WeekFields;
 import java.util.*;
 import java.util.stream.Stream;
 
+import static nl.ulso.markdown_curator.Changelog.emptyChangelog;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @ExtendWith(SoftAssertionsExtension.class)
@@ -47,7 +49,7 @@ class JournalTest
                 
                 - [[foo]]
                 """);
-        journal.process(VaultChangedEvent.documentAdded(document));
+        journal.process(VaultChangedEvent.documentAdded(document), emptyChangelog());
         assertThat(journal.timelineFor("foo")).hasSize(4);
     }
 
@@ -61,7 +63,7 @@ class JournalTest
                 
                 - [[foo]]
                 """);
-        journal.process(VaultChangedEvent.documentChanged(document));
+        journal.process(VaultChangedEvent.documentChanged(document), emptyChangelog());
         assertThat(journal.timelineFor("baz")).hasSize(2);
     }
 
@@ -71,7 +73,7 @@ class JournalTest
         var journal = createTestJournal();
         var vault = (VaultStub) journal.vault();
         var document = vault.resolveDocumentInPath("Journal/2023/2023-01-25");
-        journal.process(VaultChangedEvent.documentRemoved(document));
+        journal.process(VaultChangedEvent.documentRemoved(document), emptyChangelog());
         assertThat(journal.timelineFor("foo")).hasSize(2);
     }
 
@@ -294,7 +296,7 @@ class JournalTest
         var journal =
                 new Journal(vault, new JournalSettings("Journal", "Markers", "Log", "Projects",
                         WeekFields.ISO));
-        journal.fullRefresh();
+        journal.fullRefresh(emptyChangelog());
         return journal;
     }
 
