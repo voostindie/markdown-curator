@@ -1,6 +1,5 @@
 package nl.ulso.markdown_curator.journal;
 
-import nl.ulso.markdown_curator.Change;
 import nl.ulso.markdown_curator.vault.*;
 
 import java.time.LocalDate;

@@ -11,6 +11,7 @@ import java.util.Collection;
 import java.util.stream.Stream;
 
 import static java.util.Collections.emptyList;
+import static nl.ulso.markdown_curator.Changelog.changelogFor;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @ExtendWith(SoftAssertionsExtension.class)
@@ -18,11 +19,11 @@ class DataModelTemplateTest
 {
     @ParameterizedTest
     @MethodSource("provideEvents")
-    void processFullRefresh(Change<?> event)
+    void processFullRefresh(Change<?> change)
     {
         var model = new DummyDataModel();
         assertThat(model.refreshed).isFalse();
-        model.fullRefresh();
+        model.process(changelogFor(change));
         assertThat(model.refreshed).isTrue();
     }
 

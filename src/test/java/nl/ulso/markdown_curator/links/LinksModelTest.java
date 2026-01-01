@@ -1,7 +1,5 @@
 package nl.ulso.markdown_curator.links;
 
-import nl.ulso.markdown_curator.Change;
-import nl.ulso.markdown_curator.Changelog;
 import nl.ulso.markdown_curator.vault.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
