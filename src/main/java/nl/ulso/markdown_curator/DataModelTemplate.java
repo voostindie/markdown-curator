@@ -20,7 +20,14 @@ import static nl.ulso.markdown_curator.Changelog.changelogFor;
 /// granular changes, subclasses need to register one or more predicates to test changes against,
 /// and a change handler for each predicate.
 ///
-/// Note that the same change can be accepted by multiple predicates!
+/// Note that the same change can be accepted by multiple predicates, and that the order in which
+/// change handlers are executed is not guaranteed.
+///
+/// If a subclass does not register any handlers, then the model will always do a full refresh,
+/// provided that the changelog contains changes the model can consume.
+///
+/// To aid in the definition of predicates, this template class contains a number of factory methods
+/// for predicates that can be combined at will.
 public abstract class DataModelTemplate
     implements DataModel
 {
@@ -32,7 +39,7 @@ public abstract class DataModelTemplate
     @Override
     public final Changelog process(Changelog changelog)
     {
-        if (isFullRefreshRequired(changelog))
+        if (changeHandlers.isEmpty() || isFullRefreshRequired(changelog))
         {
             LOGGER.debug(
                 "Performing a full refresh on data model: {}",
@@ -83,7 +90,7 @@ public abstract class DataModelTemplate
         return _ ->
         {
             LOGGER.debug(
-                "Incremental change is leading to a full refresh on data model: {}",
+                "Incremental change triggers a full refresh on data model: {}",
                 this.getClass().getSimpleName()
             );
             return fullRefresh();
@@ -104,12 +111,12 @@ public abstract class DataModelTemplate
         return true;
     }
 
-    /// A full refresh of the data model is required if the list of change handlers is empty - in
-    /// other words: an incremental update wouldn't do anything - or the changelog contains a change
-    /// for a [Vault] object.
-    private boolean isFullRefreshRequired(Changelog changelog)
+    /// Determines whether a full refresh is required based on the changelog.
+    ///
+    /// The default implementation checks for the existence of a change to the [Vault].
+    protected boolean isFullRefreshRequired(Changelog changelog)
     {
-        return changeHandlers.isEmpty() || changelog.changesFor(Vault.class).findAny().isPresent();
+        return changelog.changesFor(Vault.class).findAny().isPresent();
     }
 
     /// Performs a full refresh of the data model.

@@ -2,8 +2,7 @@ package nl.ulso.markdown_curator.journal;
 
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
-import nl.ulso.markdown_curator.Change;
-import nl.ulso.markdown_curator.DataModelTemplate;
+import nl.ulso.markdown_curator.*;
 import nl.ulso.markdown_curator.vault.*;
 import nl.ulso.markdown_curator.vault.Dictionary;
 import org.slf4j.Logger;
@@ -14,7 +13,6 @@ import java.util.Map.Entry;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 
-import static java.util.Collections.emptyList;
 import static java.util.Collections.emptyMap;
 import static java.util.Collections.unmodifiableMap;
 import static java.util.Comparator.naturalOrder;
@@ -41,7 +39,7 @@ public class Journal
     private final JournalSettings settings;
     private final NavigableMap<LocalDate, Daily> dailies;
     private final NavigableSet<Weekly> weeklies;
-    private final Map<String, Document> markers;
+    private final Map<String, Marker> markers;
 
     @Inject
     Journal(Vault vault, JournalSettings settings)
@@ -54,13 +52,20 @@ public class Journal
         this.registerChangeHandler(isDailyEntry(), this::handleDailyUpdate);
         this.registerChangeHandler(isWeeklyEntry(), this::handleWeeklyUpdate);
         this.registerChangeHandler(isMarkerEntry(), this::handleMarkerUpdate);
-        this.registerChangeHandler(isJournalFolder().and(isDeletion()), fullRefreshHandler());
     }
 
     @Override
     public Set<Class<?>> producedObjectTypes()
     {
-        return Set.of(Daily.class, Weekly.class);
+        return Set.of(Daily.class, Weekly.class, Marker.class);
+    }
+
+    @Override
+    protected boolean isFullRefreshRequired(Changelog changelog)
+    {
+        return super.isFullRefreshRequired(changelog) ||
+               changelog.changesFor(Folder.class).anyMatch(
+                   isJournalFolder().and(isDeletion().or(isCreation())));
     }
 
     private Predicate<Change<?>> isJournalFolder()
@@ -131,7 +136,12 @@ public class Journal
         vault.folder(settings.journalFolderName())
             .flatMap(journalFolder -> journalFolder.folder(settings.markerSubFolderName()))
             .ifPresent(markerFolder -> markerFolder.documents()
-                .forEach(document -> markers.put(document.name(), document)));
+                .forEach(document ->
+                {
+                    var marker = new Marker(document);
+                    markers.put(document.name(), marker);
+                    changes.add(creation(marker, Marker.class));
+                }));
         if (LOGGER.isDebugEnabled())
         {
             LOGGER.debug("Built a journal for {} days, {} weeks and {} known markers.",
@@ -208,13 +218,15 @@ public class Journal
         var document = (Document) change.object();
         if (change.kind() == DELETION)
         {
-            markers.remove(document.name());
+            var marker = markers.remove(document.name());
+            return List.of(deletion(marker, Marker.class));
         }
         else
         {
-            markers.put(document.name(), document);
+            var marker = new Marker(document);
+            markers.put(document.name(), marker);
+            return List.of(creation(marker, Marker.class));
         }
-        return emptyList();
     }
 
     public Optional<Daily> toDaily(Document dailyDocument)
@@ -364,7 +376,7 @@ public class Journal
         return date.get(settings.weekFields().dayOfWeek());
     }
 
-    public Map<String, Document> markers()
+    public Map<String, Marker> markers()
     {
         return unmodifiableMap(markers);
     }
@@ -372,7 +384,7 @@ public class Journal
     public Dictionary markerSettings(String markerName)
     {
         var marker = markers.get(markerName);
-        return marker != null ? marker.frontMatter() : emptyDictionary();
+        return marker != null ? marker.settings() : emptyDictionary();
     }
 
     public Vault vault()

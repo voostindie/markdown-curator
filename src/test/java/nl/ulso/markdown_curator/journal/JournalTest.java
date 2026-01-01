@@ -47,10 +47,11 @@ class JournalTest
         var journal = createTestJournal();
         var vault = (VaultStub) journal.vault();
         var document = vault.addDocumentInPath("Journal/2023/2023-01-28", """
-                ## Log
-                
-                - [[foo]]
-                """);
+            ## Log
+            
+            - [[foo]]
+            """
+        );
         journal.process(changelogFor(creation(document, Document.class)));
         assertThat(journal.timelineFor("foo")).hasSize(4);
     }
@@ -61,10 +62,11 @@ class JournalTest
         var journal = createTestJournal();
         var vault = (VaultStub) journal.vault();
         var document = vault.addDocumentInPath("Journal/2023/2023-01-25", """
-                ## Log
-                
-                - [[foo]]
-                """);
+            ## Log
+            
+            - [[foo]]
+            """
+        );
         journal.process(changelogFor(modification(document, Document.class)));
         assertThat(journal.timelineFor("baz")).hasSize(2);
     }
@@ -82,39 +84,42 @@ class JournalTest
     public static Stream<Arguments> timelineEntries()
     {
         return Stream.of(
-                Arguments.of("foo", Map.of(
-                        LocalDate.parse("2023-01-25"), """
-                                - [[foo]]
-                                    - [[❗️]] Remember this
-                                """,
-                        LocalDate.parse("2023-01-26"), """
-                                - [[foo]]
-                                    - [[❗️|Important!]] Remember this too
-                                """,
-                        LocalDate.parse("2023-01-27"), """
-                                - [[foo]]
-                                    - [[❓]] Important question!
-                                """)
-                ),
-                Arguments.of("bar", Map.of(
-                        LocalDate.parse("2023-01-26"), "- [[bar]]\n",
-                        LocalDate.parse("2024-07-21"), """
-                                - [[bar]]
-                                    - [[❗️]] baR marker
-                                    - [[baz]]
-                                        - [[❗️]] baZ marker
-                                    - [[❌]] Special marker
-                                """)
-                ),
-                Arguments.of("baz", Map.of(
-                        LocalDate.parse("2023-01-25"), "- [[baz]]\n",
-                        LocalDate.parse("2023-01-27"), "- [[baz]]\n",
-                        LocalDate.parse("2024-07-21"), """
-                                - [[bar]]
-                                    - [[baz]]
-                                        - [[❗️]] baZ marker
-                                """)
+            Arguments.of("foo", Map.of(
+                    LocalDate.parse("2023-01-25"), """
+                        - [[foo]]
+                            - [[❗️]] Remember this
+                        """,
+                    LocalDate.parse("2023-01-26"), """
+                        - [[foo]]
+                            - [[❗️|Important!]] Remember this too
+                        """,
+                    LocalDate.parse("2023-01-27"), """
+                        - [[foo]]
+                            - [[❓]] Important question!
+                        """
                 )
+            ),
+            Arguments.of("bar", Map.of(
+                    LocalDate.parse("2023-01-26"), "- [[bar]]\n",
+                    LocalDate.parse("2024-07-21"), """
+                        - [[bar]]
+                            - [[❗️]] baR marker
+                            - [[baz]]
+                                - [[❗️]] baZ marker
+                            - [[❌]] Special marker
+                        """
+                )
+            ),
+            Arguments.of("baz", Map.of(
+                    LocalDate.parse("2023-01-25"), "- [[baz]]\n",
+                    LocalDate.parse("2023-01-27"), "- [[baz]]\n",
+                    LocalDate.parse("2024-07-21"), """
+                        - [[bar]]
+                            - [[baz]]
+                                - [[❗️]] baZ marker
+                        """
+                )
+            )
         );
     }
 
@@ -123,8 +128,9 @@ class JournalTest
     {
         var journal = createTestJournal();
         var entries = journal.entriesUntilIncluding(
-                LocalDate.of(2023, 1, 25),
-                LocalDate.of(2023, 1, 27)).toList();
+            LocalDate.of(2023, 1, 25),
+            LocalDate.of(2023, 1, 27)
+        ).toList();
         var references = journal.referencedDocumentsIn(entries);
         assertThat(references).containsExactlyInAnyOrder("foo", "bar", "baz", "❗️", "❓");
     }
@@ -134,8 +140,9 @@ class JournalTest
     {
         var journal = createTestJournal();
         var entries = journal.entriesUntilIncluding(
-                LocalDate.of(2023, 12, 25),
-                LocalDate.of(2023, 12, 25)).toList();
+            LocalDate.of(2023, 12, 25),
+            LocalDate.of(2023, 12, 25)
+        ).toList();
         assertThat(entries).hasSize(1);
         assertThat(journal.dailyAfter(LocalDate.of(2013, 1, 27))).isPresent();
     }
@@ -146,11 +153,11 @@ class JournalTest
         var journal = createTestJournal();
         var markedLines = journal.markedLinesFor("foo", Set.of("❗️", "❓"));
         var importantLines =
-                Strings.join(markedLines.get("❗️").stream().map(MarkedLine::line).toList())
-                        .with("\n");
+            Strings.join(markedLines.get("❗️").stream().map(MarkedLine::line).toList())
+                .with("\n");
         var questionLines =
-                Strings.join(markedLines.get("❓").stream().map(MarkedLine::line).toList())
-                        .with("\n");
+            Strings.join(markedLines.get("❓").stream().map(MarkedLine::line).toList())
+                .with("\n");
         assertThat(importantLines).isEqualTo("- Remember this\n- Remember this too");
         assertThat(questionLines).isEqualTo("- Important question!");
     }
@@ -161,7 +168,7 @@ class JournalTest
         var journal = createTestJournal();
         var markedLines = journal.markedLinesFor("foo", Set.of("❗️"), LocalDate.of(2023, 1, 25));
         var lines = Strings.join(markedLines.get("❗️").stream().map(MarkedLine::line).toList())
-                .with("\n");
+            .with("\n");
         assertThat(lines).isEqualTo("- Remember this");
     }
 
@@ -194,7 +201,8 @@ class JournalTest
     {
         var vault = new VaultStub();
         var journal = new Journal(vault,
-                new JournalSettings("Journal", "Markers", "Activities", "Projects"));
+            new JournalSettings("Journal", "Markers", "Activities", "Projects")
+        );
         var latest = journal.latest();
         assertThat(latest).isEmpty();
     }
@@ -213,7 +221,7 @@ class JournalTest
         var journal = createTestJournal();
         var markers = journal.markers();
         var marker = markers.values().stream().findFirst().get();
-        assertThat(journal.isMarkerDocument(marker)).isTrue();
+        assertThat(journal.isMarkerDocument(marker.document())).isTrue();
     }
 
     @Test
@@ -231,73 +239,85 @@ class JournalTest
         vault.addDocumentInPath("Projects/bar", "Project 'bar'");
         vault.addDocumentInPath("Projects/baz", "Project 'baz'");
         vault.addDocumentInPath("Journal/2023/2023-01-25", """
-                ## Log
-                
-                - [[foo]]
-                    - [[❗️]] Remember this
-                - [[baz]]
-                """);
+            ## Log
+            
+            - [[foo]]
+                - [[❗️]] Remember this
+            - [[baz]]
+            """
+        );
         vault.addDocumentInPath("Journal/2023/2023-01-26", """
-                ## Log
-                
-                - [[foo]]
-                    - [[❗️|Important!]] Remember this too
-                - [[bar]]
-                """);
+            ## Log
+            
+            - [[foo]]
+                - [[❗️|Important!]] Remember this too
+            - [[bar]]
+            """
+        );
         vault.addDocumentInPath("Journal/2023/2023-01-27", """
-                ## Log
-                
-                - [[foo]]
-                    - [[❓]] Important question!
-                - [[baz]]
-                """);
+            ## Log
+            
+            - [[foo]]
+                - [[❓]] Important question!
+            - [[baz]]
+            """
+        );
         vault.addDocumentInPath("Journal/2023/2023 Week 04", "");
         vault.addDocumentInPath("Journal/2023/2023 Week 05", "");
         vault.addDocumentInPath("Journal/2023/2023-12-25", """
-                ## No log
-                
-                No entries in this one!
-                """);
+            ## No log
+            
+            No entries in this one!
+            """
+        );
         vault.addDocumentInPath("Journal/2024/2024-07-21", """
-                ## Log
-                
-                - [[bar]]
-                    - [[❗️]] baR marker
-                    - [[baz]]
-                        - [[❗️]] baZ marker
-                    - [[❌]] Special marker
-                """);
+            ## Log
+            
+            - [[bar]]
+                - [[❗️]] baR marker
+                - [[baz]]
+                    - [[❗️]] baZ marker
+                - [[❌]] Special marker
+            """
+        );
         vault.addDocumentInPath("Journal/Markers/❌", """
-                ---
-                title: CUSTOM TITLE
-                ---
-                """);
+            ---
+            title: CUSTOM TITLE
+            ---
+            """
+        );
         vault.addDocumentInPath("Journal/Markers/🪵", """
-                ---
-                title: Status log
-                group-by-date: true
-                ---
-                """);
+            ---
+            title: Status log
+            group-by-date: true
+            ---
+            """
+        );
         vault.addDocumentInPath("Journal/2024/2024-08-11", """
-                ## Log
-                
-                - [[Project 42]]
-                    - [[🪵]] Entry one
-                    - [[🪵]] Entry two
-                """);
+            ## Log
+            
+            - [[Project 42]]
+                - [[🪵]] Entry one
+                - [[🪵]] Entry two
+            """
+        );
         vault.addDocumentInPath("Journal/2024/2024-08-12", """
-                ## Log
-                
-                - [[Project 42]]
-                    - [[🪵]] Entry three
-                """);
+            ## Log
+            
+            - [[Project 42]]
+                - [[🪵]] Entry three
+            """
+        );
         vault.addDocumentInPath("Projects/Project 42", """
-                <!--query:marked markers: [🪵]-->
-                <!--/query-->
-                """);
+            <!--query:marked markers: [🪵]-->
+            <!--/query-->
+            """
+        );
         var journal =
-                new Journal(vault, new JournalSettings("Journal", "Markers", "Log", "Projects",
-                        WeekFields.ISO));
+            new Journal(vault, new JournalSettings("Journal", "Markers", "Log", "Projects",
+                WeekFields.ISO
+            )
+            );
         journal.fullRefresh();
         return journal;
     }
