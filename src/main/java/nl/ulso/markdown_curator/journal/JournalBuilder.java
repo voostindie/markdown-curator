@@ -1,5 +1,6 @@
 package nl.ulso.markdown_curator.journal;
 
+import nl.ulso.markdown_curator.Change;
 import nl.ulso.markdown_curator.vault.*;
 
 import java.time.LocalDate;
@@ -11,7 +12,7 @@ import static nl.ulso.markdown_curator.journal.Weekly.DOCUMENT_NAME_PATTERN;
 import static nl.ulso.markdown_curator.vault.Section.EMPTY_SECTION;
 
 class JournalBuilder
-        extends BreadthFirstVaultVisitor
+    extends BreadthFirstVaultVisitor
 {
     private final Set<Daily> dailies = new HashSet<>();
     private final Set<Weekly> weeklies = new HashSet<>();
@@ -50,18 +51,19 @@ class JournalBuilder
     @Override
     public void visit(Document document)
     {
-        var weekly = parseWeeklyFrom(document);
-        weekly.ifPresentOrElse(weeklies::add,
-                () -> parseDateFrom(document).ifPresent(date -> {
-                    this.currentDate = date;
-                    dailyFound = false;
-                    super.visit(document);
-                    if (!dailyFound)
-                    {
-                        dailies.add(parseDailiesFrom(EMPTY_SECTION, date)
-                                .orElseThrow());
-                    }
-                }));
+        parseWeeklyFrom(document).ifPresentOrElse(
+            weeklies::add,
+            () -> parseDateFrom(document).ifPresent(date -> {
+                this.currentDate = date;
+                dailyFound = false;
+                super.visit(document);
+                if (!dailyFound)
+                {
+                    dailies.add(parseDailiesFrom(EMPTY_SECTION, date)
+                        .orElseThrow());
+                }
+            })
+        );
     }
 
     @Override
@@ -80,5 +82,8 @@ class JournalBuilder
         return dailies;
     }
 
-    Set<Weekly> weeklies() {return weeklies;}
+    Set<Weekly> weeklies()
+    {
+        return weeklies;
+    }
 }

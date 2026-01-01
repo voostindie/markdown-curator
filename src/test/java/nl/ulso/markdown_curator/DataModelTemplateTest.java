@@ -1,16 +1,16 @@
 package nl.ulso.markdown_curator;
 
-import nl.ulso.markdown_curator.vault.event.VaultChangedEvent;
+import nl.ulso.markdown_curator.vault.*;
 import org.assertj.core.api.junit.jupiter.SoftAssertionsExtension;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
+import java.util.Collection;
 import java.util.stream.Stream;
 
-import static nl.ulso.markdown_curator.Changelog.emptyChangelog;
-import static nl.ulso.markdown_curator.vault.event.VaultChangedEvent.*;
+import static java.util.Collections.emptyList;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @ExtendWith(SoftAssertionsExtension.class)
@@ -18,37 +18,36 @@ class DataModelTemplateTest
 {
     @ParameterizedTest
     @MethodSource("provideEvents")
-    void processFullRefresh(VaultChangedEvent event)
+    void processFullRefresh(Change<?> event)
     {
         var model = new DummyDataModel();
         assertThat(model.refreshed).isFalse();
-        model.vaultChanged(event, emptyChangelog());
+        model.fullRefresh();
         assertThat(model.refreshed).isTrue();
     }
 
     public static Stream<Arguments> provideEvents()
     {
         return Stream.of(
-                Arguments.of(vaultRefreshed()),
-                Arguments.of(folderAdded(null)),
-                Arguments.of(folderRemoved(null)),
-                Arguments.of(documentAdded(null)),
-                Arguments.of(documentChanged(null)),
-                Arguments.of(documentRemoved(null))
+            Arguments.of(Change.modification(null, Vault.class)),
+            Arguments.of(Change.creation(null, Folder.class)),
+            Arguments.of(Change.deletion(null, Folder.class)),
+            Arguments.of(Change.creation(null, Document.class)),
+            Arguments.of(Change.modification(null, Document.class)),
+            Arguments.of(Change.deletion(null, Document.class))
         );
     }
 
-
     private static class DummyDataModel
-            extends DataModelTemplate
+        extends DataModelTemplate
     {
         private boolean refreshed = false;
 
         @Override
-        public Changelog fullRefresh(Changelog changelog)
+        public Collection<Change<?>> fullRefresh()
         {
             refreshed = true;
-            return emptyChangelog();
+            return emptyList();
         }
     }
 }

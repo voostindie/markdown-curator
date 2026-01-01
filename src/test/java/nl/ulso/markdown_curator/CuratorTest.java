@@ -1,6 +1,5 @@
 package nl.ulso.markdown_curator;
 
-import nl.ulso.markdown_curator.vault.event.VaultChangedEvent;
 import org.junit.jupiter.api.Test;
 
 import java.util.Set;
@@ -38,7 +37,7 @@ class CuratorTest
         }
 
         @Override
-        public Changelog vaultChanged(VaultChangedEvent event, Changelog changelog)
+        public Changelog process(Changelog changelog)
         {
             return emptyChangelog();
         }

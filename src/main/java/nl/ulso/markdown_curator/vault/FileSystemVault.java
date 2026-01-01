@@ -4,8 +4,8 @@ import io.methvin.watcher.DirectoryChangeEvent;
 import io.methvin.watcher.DirectoryWatcher;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
+import nl.ulso.markdown_curator.Change;
 import nl.ulso.markdown_curator.DocumentPathResolver;
-import nl.ulso.markdown_curator.vault.event.VaultChangedEvent;
 import org.slf4j.Logger;
 
 import java.io.IOException;
@@ -23,8 +23,10 @@ import static java.text.Normalizer.normalize;
 import static java.util.Collections.reverse;
 import static java.util.Objects.requireNonNull;
 import static java.util.Optional.empty;
+import static nl.ulso.markdown_curator.Change.creation;
+import static nl.ulso.markdown_curator.Change.deletion;
+import static nl.ulso.markdown_curator.Change.modification;
 import static nl.ulso.markdown_curator.vault.Document.newDocument;
-import static nl.ulso.markdown_curator.vault.event.VaultChangedEvent.*;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
@@ -50,7 +52,7 @@ public final class FileSystemVault
     public FileSystemVault(Path absolutePath, Optional<WatchService> watchService)
     {
         super(absolutePath.toString());
-        this.callback = (VaultChangedEvent changeEvent) -> { /* Default: No-op */ };
+        this.callback = (Change<?> _) -> { /* Default: No-op */ };
         this.absolutePath = absolutePath;
         VaultBuilder vaultBuilder = new VaultBuilder(this, absolutePath);
         try
@@ -108,7 +110,7 @@ public final class FileSystemVault
     @Override
     public void triggerRefresh()
     {
-        callback.vaultChanged(externalChange());
+        callback.vaultChanged(modification(this, Vault.class));
     }
 
     @Override
@@ -139,21 +141,21 @@ public final class FileSystemVault
         var parent = resolveParentFolder(eventAbsolutePath);
         if (parent != null)
         {
-            var vaultChangedEvent = switch (event.eventType())
+            var change = switch (event.eventType())
             {
                 case CREATE -> processFileCreationEvent(event, parent);
                 case DELETE -> processFileDeletionEvent(event, parent);
                 case MODIFY -> processFileModificationEvent(event, parent);
                 default -> null;
             };
-            if (vaultChangedEvent != null)
+            if (change != null)
             {
-                callback.vaultChanged(vaultChangedEvent);
+                callback.vaultChanged(change);
             }
         }
     }
 
-    private VaultChangedEvent processFileCreationEvent(
+    private Change<?> processFileCreationEvent(
         DirectoryChangeEvent event, FileSystemFolder parent)
     {
         var eventAbsolutePath = event.path();
@@ -164,7 +166,7 @@ public final class FileSystemVault
             try
             {
                 walkFileTree(eventAbsolutePath, new VaultBuilder(folder, eventAbsolutePath));
-                return folderAdded(folder);
+                return creation(folder, Folder.class);
             }
             catch (IOException e)
             {
@@ -176,12 +178,12 @@ public final class FileSystemVault
             var document = newDocumentFromAbsolutePath(eventAbsolutePath);
             LOGGER.debug("Detected new document: {}", document);
             parent.addDocument(document);
-            return documentAdded(document);
+            return creation(document, Document.class);
         }
         return null;
     }
 
-    private VaultChangedEvent processFileModificationEvent(
+    private Change<?> processFileModificationEvent(
         DirectoryChangeEvent event, FileSystemFolder parent)
     {
         var eventAbsolutePath = event.path();
@@ -190,12 +192,12 @@ public final class FileSystemVault
             var document = newDocumentFromAbsolutePath(eventAbsolutePath);
             LOGGER.debug("Detected changes to document {}.", document);
             parent.addDocument(document);
-            return documentChanged(document);
+            return modification(document, Document.class);
         }
         return null;
     }
 
-    private VaultChangedEvent processFileDeletionEvent(
+    private Change<?> processFileDeletionEvent(
         DirectoryChangeEvent event, FileSystemFolder parent)
     {
         var eventAbsolutePath = event.path();
@@ -206,7 +208,7 @@ public final class FileSystemVault
             {
                 LOGGER.debug("Document deleted: {}", name);
                 parent.removeDocument(name);
-                return documentRemoved(document);
+                return deletion(document, Document.class);
             }).orElse(null);
         }
         else
@@ -216,7 +218,7 @@ public final class FileSystemVault
             {
                 LOGGER.debug("Folder deleted: {}", name);
                 parent.removeFolder(name);
-                return folderRemoved(folder);
+                return deletion(folder, Folder.class);
             }).orElse(null);
         }
     }

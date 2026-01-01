@@ -1,86 +1,131 @@
 package nl.ulso.markdown_curator;
 
-import nl.ulso.markdown_curator.vault.event.*;
+import nl.ulso.markdown_curator.vault.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Set;
+import java.util.*;
+import java.util.function.Function;
+import java.util.function.Predicate;
 
-import static nl.ulso.markdown_curator.vault.event.VaultChangedEvent.vaultRefreshed;
+import static nl.ulso.markdown_curator.Change.Kind.CREATION;
+import static nl.ulso.markdown_curator.Change.Kind.DELETION;
+import static nl.ulso.markdown_curator.Change.Kind.MODIFICATION;
+import static nl.ulso.markdown_curator.Changelog.changelogFor;
 
-/**
- * Base class for {@link DataModel} that can handle granular change events.
- * <p/>
- * The default implementation for each change event is to dispatch to
- * {@link #process(VaultRefreshed, Changelog)}, which in turn eventually calls
- * {@link #fullRefresh(Changelog)}. In other words, just implementing
- * {@link #fullRefresh(Changelog)} already works for all events. Override one of the
- * other {@code process} methods to make the refresh more granular and efficient for that
- * specific event.
- * <p/>
- * A curator can have many models and models may depend on one another. That means models needs
- * to be refreshed in the right order. See {@link Curator#orderDataModels(Set)}.
- */
+/// Base class for [DataModel] that can handle granular change events.
+///
+/// Data models are either refreshed fully or granurarly, based on the incoming changes. To handle
+/// granular changes, subclasses need to register one or more predicates to test changes against,
+/// and a change handler for each predicate.
+///
+/// Note that the same change can be accepted by multiple predicates!
 public abstract class DataModelTemplate
-        implements DataModel, VaultChangedEventHandler
+    implements DataModel
 {
     private static final Logger LOGGER = LoggerFactory.getLogger(DataModelTemplate.class);
 
-    @Override
-    public final Changelog vaultChanged(VaultChangedEvent event, Changelog changelog)
-    {
-        // Look ma, no instanceof!
-        return event.dispatch(this, changelog);
-    }
+    private final Map<Predicate<Change<?>>, Function<Change<?>, Collection<Change<?>>>>
+        changeHandlers = new HashMap<>();
 
     @Override
-    public final Changelog process(VaultRefreshed event, Changelog changelog)
+    public final Changelog process(Changelog changelog)
     {
-        LOGGER.debug("Performing a full refresh on data model: {}",
+        if (isFullRefreshRequired(changelog))
+        {
+            LOGGER.debug(
+                "Performing a full refresh on data model: {}",
+                this.getClass().getSimpleName()
+            );
+            return changelogFor(fullRefresh());
+        }
+        LOGGER.debug("Performing an incremental refresh on data model: {}",
             this.getClass().getSimpleName()
         );
-        return fullRefresh(changelog);
+        return changelogFor(incrementalRefresh(changelog));
     }
 
-    /**
-     * Fully refreshes the data model from the vault.
-     */
-    public abstract Changelog fullRefresh(Changelog changelog);
-
-    @Override
-    public Changelog process(FolderAdded event, Changelog changelog)
+    protected final void registerChangeHandler(
+        Predicate<Change<?>> predicate,
+        Function<Change<?>, Collection<Change<?>>> handler)
     {
-        return process(vaultRefreshed(), changelog);
+        changeHandlers.put(predicate, handler);
     }
 
-    @Override
-    public Changelog process(FolderRemoved event, Changelog changelog)
+    protected Predicate<Change<?>> hasObjectType(Class<?> objectType)
     {
-        return process(vaultRefreshed(), changelog);
+        return change -> change.objectType().equals(objectType);
     }
 
-    @Override
-    public Changelog process(DocumentAdded event, Changelog changelog)
+    protected Predicate<Change<?>> isCreation()
     {
-        return process(vaultRefreshed(), changelog);
+        return change -> change.kind() == CREATION;
     }
 
-    @Override
-    public Changelog process(DocumentChanged event, Changelog changelog)
+    protected Predicate<Change<?>> isModification()
     {
-        return process(vaultRefreshed(), changelog);
+        return change -> change.kind() == MODIFICATION;
     }
 
-    @Override
-    public Changelog process(DocumentRemoved event, Changelog changelog)
+    protected Predicate<Change<?>> isCreationOrModification()
     {
-        return process(vaultRefreshed(), changelog);
+        return isCreation().or(isModification());
     }
 
-    @Override
-    public Changelog process(ExternalChange event, Changelog changelog)
+    protected Predicate<Change<?>> isDeletion()
     {
-        // Do nothing by default, since no content in the vault itself changed.
-        return changelog;
+        return change -> change.kind() == DELETION;
+    }
+
+    protected Function<Change<?>, Collection<Change<?>>> fullRefreshHandler()
+    {
+        return _ ->
+        {
+            LOGGER.debug(
+                "Incremental change is leading to a full refresh on data model: {}",
+                this.getClass().getSimpleName()
+            );
+            return fullRefresh();
+        };
+    }
+
+    protected boolean isInHierarchyOf(Vault vault, Folder parent, Folder child)
+    {
+        var folder = child;
+        while (folder != parent)
+        {
+            if (folder == vault)
+            {
+                return false;
+            }
+            folder = folder.parent();
+        }
+        return true;
+    }
+
+    private boolean isFullRefreshRequired(Changelog changelog)
+    {
+        return changeHandlers.isEmpty() || changelog.changesFor(Vault.class).findAny().isPresent();
+    }
+
+    /// Performs a full refresh of the data model.
+    public abstract Collection<Change<?>> fullRefresh();
+
+    /// Performs an incremental refresh of the data model, based on introspection of the changelog.
+    private Collection<Change<?>> incrementalRefresh(Changelog changelog)
+    {
+        var changes = new ArrayList<Change<?>>();
+        changelog.changes().forEach(
+            change -> changeHandlers.forEach(
+                (predicate, handler) ->
+                {
+                    if (predicate.test(change))
+                    {
+                        changes.addAll(handler.apply(change));
+                    }
+                }
+            )
+        );
+        return changes;
     }
 }

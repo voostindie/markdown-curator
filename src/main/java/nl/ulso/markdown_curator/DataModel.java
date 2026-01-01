@@ -1,7 +1,5 @@
 package nl.ulso.markdown_curator;
 
-import nl.ulso.markdown_curator.vault.event.VaultChangedEvent;
-
 import java.util.Set;
 
 import static java.util.Collections.emptySet;
@@ -20,12 +18,10 @@ import static java.util.Collections.emptySet;
 /// concurrently.
 public interface DataModel
 {
-    /// Process a change-event in the vault in this data model.
-    ///
-    /// @param event     the change-event to process.
-    /// @param changelog changelog of changes collected so far.
-    /// @return changelog with changes in this data model.
-    Changelog vaultChanged(VaultChangedEvent event, Changelog changelog);
+    /// Process a changelog on this data model.
+    /// @param changelog changelog to process.
+    /// @return changelog with changes in this data model, if any.
+    Changelog process(Changelog changelog);
 
     /// Returns the set of data models that this model depends on.
     ///

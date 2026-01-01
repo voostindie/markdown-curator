@@ -1,11 +1,10 @@
 package nl.ulso.markdown_curator;
 
-import nl.ulso.markdown_curator.vault.event.VaultChangedEvent;
-
+import java.util.Collection;
 import java.util.stream.Stream;
 
-/// Log of changes applied by [DataModel]s in their [DataModel#vaultChanged(VaultChangedEvent)]
-/// method. Other data models can use this log to better determine what happened.
+/// Log of changes applied by [DataModel]s in their [DataModel#process(Changelog)] method. Other
+/// data models can use this log to better determine what happened.
 public interface Changelog
 {
     static Changelog emptyChangelog()
@@ -16,6 +15,11 @@ public interface Changelog
     static Changelog changelogFor(Change<?>... changes)
     {
         return new ChangelogImpl(changes);
+    }
+
+    static Changelog changelogFor(Collection<Change<?>> changes)
+    {
+        return (changes.isEmpty()) ? emptyChangelog() : new ChangelogImpl(changes);
     }
 
     boolean isEmpty();

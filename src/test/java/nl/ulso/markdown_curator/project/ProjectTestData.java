@@ -7,7 +7,6 @@ import java.time.LocalDate;
 import java.util.Map;
 import java.util.Set;
 
-import static nl.ulso.markdown_curator.Changelog.emptyChangelog;
 import static nl.ulso.markdown_curator.project.ProjectProperty.*;
 
 public class ProjectTestData
@@ -54,7 +53,7 @@ public class ProjectTestData
     static ProjectPropertyRepository creoateProjectPropertyRepository(Vault vault)
     {
         var projectRepository = new ProjectRepository(vault, new ProjectSettings("Projects"));
-        projectRepository.fullRefresh(emptyChangelog());
+        projectRepository.fullRefresh();
         var registry = new ValueResolverRegistryImpl(Set.of(
             new FrontMatterValueResolver(PROJECT_PROPERTIES.get(STATUS), vault),
             new FrontMatterValueResolver(PROJECT_PROPERTIES.get(LEAD), vault),
@@ -66,7 +65,7 @@ public class ProjectTestData
         var result = new ProjectPropertyRepository(PROJECT_PROPERTIES, projectRepository, registry,
             new InMemoryFrontMatterCollector(vault)
         );
-        result.fullRefresh(emptyChangelog());
+        result.fullRefresh();
         return result;
     }
 }

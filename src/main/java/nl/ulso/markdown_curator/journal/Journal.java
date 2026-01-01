@@ -2,31 +2,38 @@ package nl.ulso.markdown_curator.journal;
 
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
-import nl.ulso.markdown_curator.Changelog;
+import nl.ulso.markdown_curator.Change;
 import nl.ulso.markdown_curator.DataModelTemplate;
 import nl.ulso.markdown_curator.vault.*;
 import nl.ulso.markdown_curator.vault.Dictionary;
-import nl.ulso.markdown_curator.vault.event.*;
 import org.slf4j.Logger;
 
 import java.time.LocalDate;
 import java.util.*;
 import java.util.Map.Entry;
+import java.util.function.Predicate;
 import java.util.stream.Stream;
 
+import static java.util.Collections.emptyList;
 import static java.util.Collections.emptyMap;
 import static java.util.Collections.unmodifiableMap;
 import static java.util.Comparator.naturalOrder;
 import static java.util.Comparator.reverseOrder;
 import static java.util.stream.Collectors.toMap;
 import static java.util.stream.Collectors.toUnmodifiableSet;
-import static nl.ulso.markdown_curator.Changelog.emptyChangelog;
+import static nl.ulso.markdown_curator.Change.Kind.DELETION;
+import static nl.ulso.markdown_curator.Change.creation;
+import static nl.ulso.markdown_curator.Change.deletion;
+import static nl.ulso.markdown_curator.Change.modification;
+import static nl.ulso.markdown_curator.journal.JournalBuilder.parseDateFrom;
+import static nl.ulso.markdown_curator.journal.JournalBuilder.parseWeeklyFrom;
 import static nl.ulso.markdown_curator.vault.Dictionary.emptyDictionary;
+import static nl.ulso.markdown_curator.vault.LocalDates.parseDateOrNull;
 import static org.slf4j.LoggerFactory.getLogger;
 
 @Singleton
 public class Journal
-        extends DataModelTemplate
+    extends DataModelTemplate
 {
     private static final Logger LOGGER = getLogger(Journal.class);
 
@@ -44,87 +51,169 @@ public class Journal
         this.dailies = new TreeMap<>();
         this.weeklies = new TreeSet<>();
         this.markers = new HashMap<>();
+        this.registerChangeHandler(isDailyEntry(), this::handleDailyUpdate);
+        this.registerChangeHandler(isWeeklyEntry(), this::handleWeeklyUpdate);
+        this.registerChangeHandler(isMarkerEntry(), this::handleMarkerUpdate);
+        this.registerChangeHandler(isJournalFolder().and(isDeletion()), fullRefreshHandler());
+    }
+
+    private Predicate<Change<?>> isJournalFolder()
+    {
+        return hasObjectType(Folder.class).and((Change<?> change) ->
+        {
+            var folder = (Folder) change.object();
+            return vault.folder(settings.journalFolderName())
+                .map(root -> isInHierarchyOf(vault, root, folder))
+                .orElse(false);
+        });
+    }
+
+    private Predicate<Change<?>> isJournalEntry()
+    {
+        return hasObjectType(Document.class).and((Change<?> change) ->
+        {
+            var document = (Document) change.object();
+            return vault.folder(settings.journalFolderName())
+                .map(root -> isInHierarchyOf(vault, root, document.folder()))
+                .orElse(false);
+        });
+    }
+
+    private Predicate<Change<?>> isDailyEntry()
+    {
+        return isJournalEntry().and((Change<?> change) ->
+            parseDateFrom((Document) change.object()).isPresent());
+    }
+
+    private Predicate<Change<?>> isWeeklyEntry()
+    {
+        return isJournalEntry().and((Change<?> change) ->
+            parseWeeklyFrom((Document) change.object()).isPresent());
+    }
+
+    public Predicate<Change<?>> isMarkerEntry()
+    {
+        return isJournalEntry().and((Change<?> change) ->
+        {
+            var document = (Document) change.object();
+            return document.folder().name().contentEquals(settings.markerSubFolderName())
+                   && document.folder().parent().name()
+                       .contentEquals(settings.journalFolderName());
+        });
     }
 
     @Override
-    public Changelog fullRefresh(Changelog changelog)
+    public Collection<Change<?>> fullRefresh()
     {
-        var builder = new JournalBuilder(settings);
-        vault.accept(builder);
         dailies.clear();
         weeklies.clear();
-        builder.dailies().forEach(daily -> dailies.put(daily.date(), daily));
-        weeklies.addAll(builder.weeklies());
         markers.clear();
+        var builder = new JournalBuilder(settings);
+        vault.accept(builder);
+        var changes = new ArrayList<Change<?>>();
+        builder.dailies().forEach(daily ->
+        {
+            dailies.put(daily.date(), daily);
+            changes.add(creation(daily, Daily.class));
+        });
+        builder.weeklies().forEach(weekly ->
+        {
+            weeklies.add(weekly);
+            changes.add(creation(weekly, Weekly.class));
+        });
+        weeklies.addAll(builder.weeklies());
         vault.folder(settings.journalFolderName())
-                .flatMap(journalFolder -> journalFolder.folder(settings.markerSubFolderName()))
-                .ifPresent(markerFolder -> markerFolder.documents()
-                        .forEach(document -> markers.put(document.name(), document)));
+            .flatMap(journalFolder -> journalFolder.folder(settings.markerSubFolderName()))
+            .ifPresent(markerFolder -> markerFolder.documents()
+                .forEach(document -> markers.put(document.name(), document)));
         if (LOGGER.isDebugEnabled())
         {
             LOGGER.debug("Built a journal for {} days, {} weeks and {} known markers.",
-                    dailies.size(), weeklies.size(), markers.size());
+                dailies.size(), weeklies.size(), markers.size()
+            );
         }
-        return emptyChangelog();
+        return changes;
     }
 
-    @Override
-    public Changelog process(DocumentAdded event, Changelog changelog)
+    private Collection<Change<?>> handleDailyUpdate(Change<?> change)
     {
-        return processDocumentUpdate(event.document(), changelog);
-    }
-
-    @Override
-    public Changelog process(DocumentChanged event, Changelog changelog)
-    {
-        return processDocumentUpdate(event.document(), changelog);
-    }
-
-    private Changelog processDocumentUpdate(Document document, Changelog changelog)
-    {
-        if (isMarkerDocument(document))
+        var document = (Document) change.object();
+        var date = parseDateOrNull(document.name());
+        if (date == null)
         {
-            markers.put(document.name(), document);
+            throw new IllegalStateException(
+                "Cannot parse date from document name: " + document.name());
         }
-        if (isJournalEntry(document))
+        if (change.kind() == DELETION)
+        {
+            var daily = dailies.remove(date);
+            LOGGER.debug("Removed daily {} from the journal", date);
+            return List.of(deletion(daily, Daily.class));
+        }
+        else
         {
             var builder = new JournalBuilder(settings);
             document.accept(builder);
-            builder.dailies().forEach(daily -> dailies.put(daily.date(), daily));
-            weeklies.addAll(builder.weeklies());
+            var daily = builder.dailies().iterator().next();
+            var previous = dailies.put(daily.date(), daily);
             LOGGER.debug("Updated the journal for {}", document.name());
+            if (previous == null)
+            {
+                return List.of(creation(daily, Daily.class));
+            }
+            else
+            {
+                return List.of(modification(daily, Daily.class));
+            }
         }
-        return emptyChangelog();
     }
 
-    @Override
-    public Changelog process(DocumentRemoved event, Changelog changelog)
+    private Collection<Change<?>> handleWeeklyUpdate(Change<?> change)
     {
-        var document = event.document();
-        if (isMarkerDocument(document))
+        var document = (Document) change.object();
+        var newChange = parseWeeklyFrom(document).map(weekly ->
+        {
+            if (change.kind() == DELETION)
+            {
+                weeklies.remove(weekly);
+                LOGGER.debug("Removed weekly {} from the journal", weekly);
+                return deletion(weekly, Weekly.class);
+            }
+            else
+            {
+                LOGGER.debug("Updated the journal for {}", document.name());
+                if (weeklies.add(weekly))
+                {
+                    return creation(weekly, Weekly.class);
+                }
+                else
+                {
+                    return modification(weekly, Weekly.class);
+                }
+            }
+        }).orElseThrow(() -> new IllegalStateException(
+            "Cannot parse weekly from document name: " + document.name())
+        );
+        return List.of(newChange);
+    }
+
+    private Collection<Change<?>> handleMarkerUpdate(Change<?> change)
+    {
+        var document = (Document) change.object();
+        if (change.kind() == DELETION)
         {
             markers.remove(document.name());
         }
-        else if (isJournalEntry(document))
+        else
         {
-            var weekly = JournalBuilder.parseWeeklyFrom(document);
-            weekly.ifPresentOrElse(w -> {
-                weeklies.remove(w);
-                LOGGER.debug("Removed weekly {} from the journal", w);
-            }, () -> {
-                var date = JournalBuilder.parseDateFrom(document);
-                date.ifPresent(d -> {
-                    dailies.remove(d);
-                    LOGGER.debug("Removed date {} from the journal", d);
-                });
-            });
+            markers.put(document.name(), document);
         }
-        return emptyChangelog();
+        return emptyList();
     }
 
     public Optional<Daily> toDaily(Document dailyDocument)
     {
-        return JournalBuilder.parseDateFrom(dailyDocument).map(dailies::get);
+        return parseDateFrom(dailyDocument).map(dailies::get);
     }
 
     public boolean isJournalEntry(Document document)
@@ -151,27 +240,27 @@ public class Journal
     {
         var timeline = new TreeMap<LocalDate, String>(reverseOrder());
         dailiesFor(documentName).forEach(
-                daily -> timeline.put(daily.date(), daily.summaryFor(documentName)));
+            daily -> timeline.put(daily.date(), daily.summaryFor(documentName)));
         return timeline;
     }
 
     public Map<String, List<MarkedLine>> markedLinesFor(
-            String documentName, Set<String> markerNames)
+        String documentName, Set<String> markerNames)
     {
         return markedLinesFor(documentName, markerNames, true);
     }
 
     public Map<String, List<MarkedLine>> markedLinesFor(
-            String documentName, Set<String> markerNames, boolean removeMarkers)
+        String documentName, Set<String> markerNames, boolean removeMarkers)
     {
         return dailiesFor(documentName).flatMap(
-                        daily -> daily.markedLinesFor(documentName, markerNames, removeMarkers).entrySet()
-                                .stream())
-                .collect(toMap(Entry::getKey, Entry::getValue, Journal::mergeLists, TreeMap::new));
+                daily -> daily.markedLinesFor(documentName, markerNames, removeMarkers).entrySet()
+                    .stream())
+            .collect(toMap(Entry::getKey, Entry::getValue, Journal::mergeLists, TreeMap::new));
     }
 
     public Map<String, List<MarkedLine>> markedLinesFor(
-            String documentName, Set<String> markerNames, LocalDate date)
+        String documentName, Set<String> markerNames, LocalDate date)
     {
         var daily = dailies.get(date);
         if (daily == null)
@@ -209,7 +298,7 @@ public class Journal
     public Set<String> referencedDocumentsIn(Collection<Daily> entries)
     {
         return entries.stream().flatMap(daily -> daily.referencedDocuments().stream())
-                .collect(toUnmodifiableSet());
+            .collect(toUnmodifiableSet());
     }
 
     public Optional<LocalDate> mostRecentMentionOf(String documentName)
@@ -258,10 +347,10 @@ public class Journal
     {
         var weekFields = settings.weekFields();
         var firstDayOfWeek = LocalDate.now().with(weekFields.weekBasedYear(), weekly.year())
-                .with(weekFields.weekOfWeekBasedYear(), weekly.week())
-                .with(weekFields.dayOfWeek(), weekFields.getFirstDayOfWeek().getValue());
+            .with(weekFields.weekOfWeekBasedYear(), weekly.week())
+            .with(weekFields.dayOfWeek(), weekFields.getFirstDayOfWeek().getValue());
         return firstDayOfWeek.datesUntil(firstDayOfWeek.plusDays(7)).map(dailies::get)
-                .filter(Objects::nonNull);
+            .filter(Objects::nonNull);
     }
 
     public int dayOfWeekNumberFor(LocalDate date)

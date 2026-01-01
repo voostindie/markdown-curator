@@ -1,20 +1,18 @@
 package nl.ulso.markdown_curator.links;
 
-import nl.ulso.markdown_curator.Changelog;
-import nl.ulso.markdown_curator.DataModelTemplate;
-import nl.ulso.markdown_curator.vault.*;
-import nl.ulso.markdown_curator.vault.event.*;
-
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
+import nl.ulso.markdown_curator.*;
+import nl.ulso.markdown_curator.vault.*;
+
 import java.util.*;
 
 import static java.util.Collections.emptyList;
-import static nl.ulso.markdown_curator.Changelog.emptyChangelog;
+import static nl.ulso.markdown_curator.Change.Kind.DELETION;
 
 @Singleton
 public final class LinksModel
-        extends DataModelTemplate
+    extends DataModelTemplate
 {
     private final Vault vault;
     private final Map<String, Document> documentIndex;
@@ -24,6 +22,49 @@ public final class LinksModel
     {
         this.vault = vault;
         this.documentIndex = new HashMap<>();
+        this.registerChangeHandler(hasObjectType(Document.class), this::processDocumentChange);
+        this.registerChangeHandler(hasObjectType(Folder.class), this::processFolderChange);
+    }
+
+    @Override
+    public Collection<Change<?>> fullRefresh()
+    {
+        documentIndex.clear();
+        indexDocuments(vault);
+        return emptyList();
+    }
+
+    private Collection<Change<?>> processDocumentChange(Change<?> change)
+    {
+        var document = (Document) change.object();
+        if (change.kind() == DELETION)
+        {
+            documentIndex.remove(document.name());
+        }
+        else
+        {
+            indexDocuments(document);
+        }
+        return emptyList();
+    }
+
+    private Collection<Change<?>> processFolderChange(Change<?> change)
+    {
+        var folder = (Folder) change.object();
+        if (change.kind() == DELETION)
+        {
+            var finder = new DocumentFinder();
+            folder.accept(finder);
+            for (String document : finder.documents.keySet())
+            {
+                documentIndex.remove(document);
+            }
+        }
+        else
+        {
+            indexDocuments(folder);
+        }
+        return emptyList();
     }
 
     List<String> deadLinksFor(String documentName)
@@ -34,61 +75,12 @@ public final class LinksModel
             return emptyList();
         }
         return source.findInternalLinks().stream()
-                .map(InternalLink::targetDocument)
-                .filter(document -> !document.isBlank())
-                .filter(document -> !documentIndex.containsKey(document))
-                .sorted()
-                .distinct()
-                .toList();
-    }
-
-    @Override
-    public Changelog fullRefresh(Changelog changelog)
-    {
-        documentIndex.clear();
-        indexDocuments(vault);
-        return emptyChangelog();
-    }
-
-    @Override
-    public Changelog process(DocumentAdded event, Changelog changelog)
-    {
-        indexDocuments(event.document());
-        return emptyChangelog();
-    }
-
-    @Override
-    public Changelog process(DocumentChanged event, Changelog changelog)
-    {
-        indexDocuments(event.document());
-        return emptyChangelog();
-    }
-
-    @Override
-    public Changelog process(DocumentRemoved event, Changelog changelog)
-    {
-        var documentName = event.document().name();
-        documentIndex.remove(documentName);
-        return emptyChangelog();
-    }
-
-    @Override
-    public Changelog process(FolderAdded event, Changelog changelog)
-    {
-        indexDocuments(event.folder());
-        return emptyChangelog();
-    }
-
-    @Override
-    public Changelog process(FolderRemoved event, Changelog changelog)
-    {
-        var finder = new DocumentFinder();
-        event.folder().accept(finder);
-        for (String document : finder.documents.keySet())
-        {
-            documentIndex.remove(document);
-        }
-        return emptyChangelog();
+            .map(InternalLink::targetDocument)
+            .filter(document -> !document.isBlank())
+            .filter(document -> !documentIndex.containsKey(document))
+            .sorted()
+            .distinct()
+            .toList();
     }
 
     private void indexDocuments(Visitable visitable)
@@ -99,7 +91,7 @@ public final class LinksModel
     }
 
     private static class DocumentFinder
-            extends BreadthFirstVaultVisitor
+        extends BreadthFirstVaultVisitor
     {
         private final Map<String, Document> documents = new HashMap<>();
 

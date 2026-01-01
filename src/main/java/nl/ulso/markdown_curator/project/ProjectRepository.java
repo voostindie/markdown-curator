@@ -2,17 +2,20 @@ package nl.ulso.markdown_curator.project;
 
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
-import nl.ulso.markdown_curator.*;
+import nl.ulso.markdown_curator.Change;
+import nl.ulso.markdown_curator.DataModelTemplate;
 import nl.ulso.markdown_curator.vault.*;
-import nl.ulso.markdown_curator.vault.event.*;
 import org.slf4j.Logger;
 
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Predicate;
 
 import static java.util.Collections.unmodifiableCollection;
 import static java.util.Collections.unmodifiableMap;
-import static nl.ulso.markdown_curator.Changelog.emptyChangelog;
+import static nl.ulso.markdown_curator.Change.Kind.DELETION;
+import static nl.ulso.markdown_curator.Change.creation;
+import static nl.ulso.markdown_curator.Change.deletion;
+import static nl.ulso.markdown_curator.Change.modification;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /// Represents a repository of projects on top of a single folder in the vault, excluding its
@@ -37,21 +40,77 @@ public final class ProjectRepository
     {
         this.vault = vault;
         this.projectFolderName = settings.projectFolderName();
-        this.projects = new ConcurrentHashMap<>();
+        this.projects = new HashMap<>();
+        registerChangeHandler(isProjectDocument(), this::handleProjectUpdate);
+        registerChangeHandler(isProjectFolder().and(isDeletion()), fullRefreshHandler());
+    }
+
+    Predicate<Change<?>> isProjectDocument()
+    {
+        return hasObjectType(Document.class).and(change ->
+            {
+                var document = (Document) change.object();
+                return isProjectFolder(document.folder());
+            }
+        );
+    }
+
+    private Predicate<Change<?>> isProjectFolder()
+    {
+        return hasObjectType(Folder.class).and(change ->
+        {
+            var folder = (Folder) change.object();
+            return isProjectFolder(folder);
+        });
+    }
+
+    private boolean isProjectFolder(Folder folder)
+    {
+        return folder != vault &&
+               folder.parent() == vault &&
+               folder.name().contentEquals(projectFolderName);
     }
 
     @Override
-    public Changelog fullRefresh(Changelog changelog)
+    public Collection<Change<?>> fullRefresh()
     {
         projects.clear();
+        var changes = new ArrayList<Change<?>>();
         var finder = new ProjectFinder();
         vault.accept(finder);
-        finder.projects.forEach(project -> projects.put(project.name(), project));
+        finder.projects.forEach(project ->
+        {
+            projects.put(project.name(), project);
+            changes.add(creation(project, Project.class));
+        });
         if (LOGGER.isDebugEnabled())
         {
             LOGGER.debug("Built a project repository of {} projects", projects.size());
         }
-        return emptyChangelog();
+        return changes;
+    }
+
+    private Collection<Change<?>> handleProjectUpdate(Change<?> change)
+    {
+        var document = (Document) change.object();
+        if (change.kind() == DELETION)
+        {
+            var project = projects.remove(document.name());
+            return List.of(deletion(project, Project.class));
+        }
+        else
+        {
+            var project = new Project(document);
+            var previous = projects.put(project.name(), project);
+            if (previous == null)
+            {
+                return List.of(creation(project, Project.class));
+            }
+            else
+            {
+                return List.of(modification(project, Project.class));
+            }
+        }
     }
 
     public Map<String, Project> projectsByName()
@@ -64,74 +123,9 @@ public final class ProjectRepository
         return unmodifiableCollection(projects.values());
     }
 
-    public boolean isProjectDocument(Document document)
-    {
-        return isProjectFolder(document.folder());
-    }
-
     public Optional<Project> projectFor(Document document)
     {
         return Optional.ofNullable(projects.get(document.name()));
-    }
-
-    boolean isProjectFolder(Folder folder)
-    {
-        return folder != vault &&
-               folder.parent() == vault &&
-               folder.name().contentEquals(projectFolderName);
-    }
-
-    @Override
-    public Changelog process(FolderAdded event, Changelog changelog)
-    {
-        return processFolderEventFor(event.folder(), changelog);
-    }
-
-    @Override
-    public Changelog process(FolderRemoved event, Changelog changelog)
-    {
-        return processFolderEventFor(event.folder(), changelog);
-    }
-
-    private Changelog processFolderEventFor(Folder folder, Changelog changelog)
-    {
-        if (isProjectFolder(folder))
-        {
-            return fullRefresh(changelog);
-        }
-        return emptyChangelog();
-    }
-
-    @Override
-    public Changelog process(DocumentAdded event, Changelog changelog)
-    {
-        return processDocumentEventFor(event.document(), changelog);
-    }
-
-    @Override
-    public Changelog process(DocumentChanged event, Changelog changelog)
-    {
-        return processDocumentEventFor(event.document(), changelog);
-    }
-
-    private Changelog processDocumentEventFor(Document document, Changelog changelog)
-    {
-        if (isProjectDocument(document))
-        {
-            var project = new Project(document);
-            projects.put(project.name(), new Project(document));
-        }
-        return emptyChangelog();
-    }
-
-    @Override
-    public Changelog process(DocumentRemoved event, Changelog changelog)
-    {
-        if (isProjectDocument(event.document()))
-        {
-            projects.remove(event.document().name());
-        }
-        return emptyChangelog();
     }
 
     private class ProjectFinder

@@ -12,8 +12,6 @@ import org.junit.jupiter.params.provider.MethodSource;
 
 import java.util.stream.Stream;
 
-import static nl.ulso.markdown_curator.Changelog.emptyChangelog;
-import static nl.ulso.markdown_curator.vault.event.VaultChangedEvent.vaultRefreshed;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @ExtendWith(SoftAssertionsExtension.class)
@@ -35,7 +33,7 @@ class DeadLinksQueryTest
         vault.addDocumentInPath("foo", "[[zzz]], [[bar]] and [[baz]]");
         vault.addDocumentInPath("bar", "");
         var model = new LinksModel(vault);
-        model.vaultChanged(vaultRefreshed(), emptyChangelog());
+        model.fullRefresh();
         var query = new DeadLinksQuery(model, new QueryResultFactory());
         var definition = new QueryDefinitionStub(query, vault.resolveDocumentInPath(documentName));
         var result = query.run(definition);

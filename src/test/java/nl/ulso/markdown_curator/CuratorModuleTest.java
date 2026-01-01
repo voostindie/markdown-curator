@@ -3,7 +3,6 @@ package nl.ulso.markdown_curator;
 import dagger.Module;
 import dagger.*;
 import nl.ulso.markdown_curator.query.*;
-import nl.ulso.markdown_curator.vault.event.VaultChangedEvent;
 import org.assertj.core.api.junit.jupiter.SoftAssertionsExtension;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -73,9 +72,8 @@ class CuratorModuleTest
             implements DataModel
     {
         @Override
-        public Changelog vaultChanged(VaultChangedEvent event, Changelog changelog)
+        public Changelog process(Changelog changelog)
         {
-            // Do nothing
             return emptyChangelog();
         }
     }

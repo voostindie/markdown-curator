@@ -13,9 +13,9 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.util.Queue;
 
+import static nl.ulso.markdown_curator.Change.modification;
 import static nl.ulso.markdown_curator.vault.ElementCounter.countAll;
 import static nl.ulso.markdown_curator.vault.QueryBlockTest.emptyQueryBlock;
-import static nl.ulso.markdown_curator.vault.event.VaultChangedEvent.vaultRefreshed;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @ExtendWith(SoftAssertionsExtension.class)
@@ -155,24 +155,24 @@ class MusicCuratorModuleTest
     @Test
     void runAllQueries()
     {
-        musicCurator.vaultChanged(vaultRefreshed());
+        musicCurator.vaultChanged(modification(vault, Vault.class));
         Queue<QueryOutput> items = musicCurator.runAllQueries();
         // We expect only (and all) queries in "queries-blank" to have new output:
         var list = items.stream()
-                .filter(QueryOutput::isChanged)
-                .peek(item -> System.out.println(
-                        item.queryBlock().document().name() + " - " +
-                        item.queryBlock().queryName() + ": " +
-                        item.hash()))
-                .map(item -> item.queryBlock().document().name())
-                .filter(name -> !name.contentEquals("queries-blank"))
-                .toList();
+            .filter(QueryOutput::isChanged)
+            .peek(item -> System.out.println(
+                item.queryBlock().document().name() + " - " +
+                item.queryBlock().queryName() + ": " +
+                item.hash()))
+            .map(item -> item.queryBlock().document().name())
+            .filter(name -> !name.contentEquals("queries-blank"))
+            .toList();
         softly.assertThat(list).isEmpty();
     }
 
     @Test
     void writeDocument()
-            throws IOException
+        throws IOException
     {
         var original = vault.document("queries-blank").orElseThrow();
         var expected = vault.document("queries-expected").orElseThrow();

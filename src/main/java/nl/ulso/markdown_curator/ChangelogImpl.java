@@ -1,7 +1,6 @@
 package nl.ulso.markdown_curator;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Stream;
 
 import static java.util.Collections.emptyList;
@@ -15,6 +14,11 @@ final class ChangelogImpl
     private final List<Change<?>> changes;
 
     ChangelogImpl(List<Change<?>> changes)
+    {
+        this.changes = copyOf(changes);
+    }
+
+    ChangelogImpl(Collection<Change<?>> changes)
     {
         this.changes = copyOf(changes);
     }

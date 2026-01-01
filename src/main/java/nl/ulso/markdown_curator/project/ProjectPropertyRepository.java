@@ -4,13 +4,13 @@ import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 import nl.ulso.markdown_curator.*;
 import nl.ulso.markdown_curator.vault.Document;
-import nl.ulso.markdown_curator.vault.event.*;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
+import static java.util.Collections.emptyList;
 import static java.util.Objects.requireNonNull;
-import static nl.ulso.markdown_curator.Changelog.emptyChangelog;
+import static nl.ulso.markdown_curator.Change.Kind.DELETION;
 
 /// Model to keep track of project properties and update front matter accordingly.
 ///
@@ -41,11 +41,34 @@ public class ProjectPropertyRepository
         this.valueResolverRegistry = valueResolverRegistry;
         this.frontMatterUpdateCollector = frontMatterUpdateCollector;
         this.projectPropertyValues = new ConcurrentHashMap<>();
+        registerChangeHandler(hasObjectType(Project.class), this::updateProjectProperties);
     }
 
-    public Map<String, ProjectProperty> projectProperties()
+    Map<String, ProjectProperty> projectProperties()
     {
         return projectProperties;
+    }
+
+    @Override
+    public Collection<Change<?>> fullRefresh()
+    {
+        projectPropertyValues.clear();
+        projectRepository.projects().forEach(this::processProject);
+        return emptyList();
+    }
+
+    private Collection<Change<?>> updateProjectProperties(Change<?> change)
+    {
+        var project = (Project) change.object();
+        if (change.kind() == DELETION)
+        {
+            removeProjectFrontMatter(project.document());
+        }
+        else
+        {
+            processProject(project);
+        }
+        return emptyList();
     }
 
     public Collection<Project> projects()
@@ -63,19 +86,11 @@ public class ProjectPropertyRepository
         return requireNonNull(projectProperties.get(propertyName));
     }
 
-    @Override
-    public Changelog fullRefresh(Changelog changelog)
-    {
-        projectPropertyValues.clear();
-        projectRepository.projects().forEach(this::processProject);
-        return emptyChangelog();
-    }
-
     private void processProject(Project project)
     {
         var properties = projectPropertyValues.computeIfAbsent(
             project,
-            _ -> new ConcurrentHashMap<>(projectProperties.size())
+            _ -> new HashMap<>(projectProperties.size())
         );
         frontMatterUpdateCollector.updateFrontMatterFor(project.document(), dictionary ->
             {
@@ -107,33 +122,6 @@ public class ProjectPropertyRepository
             }
         }
         return Optional.empty();
-    }
-
-    @Override
-    public Changelog process(FolderRemoved event, Changelog changelog)
-    {
-        if (projectRepository.isProjectFolder(event.folder()))
-        {
-            projectRepository.projects()
-                .forEach(project -> removeProjectFrontMatter(project.document()));
-        }
-        return super.process(event, changelog);
-    }
-
-    @Override
-    public Changelog process(DocumentRemoved event, Changelog changelog)
-    {
-        if (projectRepository.isProjectDocument(event.document()))
-        {
-            removeProjectFrontMatter(event.document());
-        }
-        return super.process(event, changelog);
-    }
-
-    @Override
-    public Changelog process(ExternalChange event, Changelog changelog)
-    {
-        return fullRefresh(changelog);
     }
 
     private void removeProjectFrontMatter(Document document)

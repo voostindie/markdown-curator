@@ -4,8 +4,6 @@ import jakarta.inject.Inject;
 import nl.ulso.markdown_curator.query.*;
 import nl.ulso.markdown_curator.vault.*;
 import nl.ulso.markdown_curator.vault.Dictionary;
-import nl.ulso.markdown_curator.vault.event.DocumentChanged;
-import nl.ulso.markdown_curator.vault.event.VaultChangedEvent;
 import org.slf4j.Logger;
 import org.slf4j.MDC;
 
@@ -26,10 +24,11 @@ import static java.util.concurrent.Executors.newVirtualThreadPerTaskExecutor;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static java.util.stream.Collectors.groupingBy;
 import static nl.ulso.hash.ShortHasher.shortHashOf;
-import static nl.ulso.markdown_curator.Changelog.emptyChangelog;
+import static nl.ulso.markdown_curator.Change.Kind.MODIFICATION;
+import static nl.ulso.markdown_curator.Change.modification;
+import static nl.ulso.markdown_curator.Changelog.changelogFor;
 import static nl.ulso.markdown_curator.DocumentRewriter.rewriteDocument;
 import static nl.ulso.markdown_curator.vault.Dictionary.emptyDictionary;
-import static nl.ulso.markdown_curator.vault.event.VaultChangedEvent.vaultRefreshed;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
@@ -132,22 +131,22 @@ public class Curator
     public void runOnce()
     {
         LOGGER.info("Running this curator once");
-        vaultChanged(vaultRefreshed());
+        vaultChanged(modification(vault, Vault.class));
         cancelQueryWriteRunIfPresent();
         performQueryWriteRun();
     }
 
     public void run()
     {
-        refreshAllDataModels(vaultRefreshed());
+        refreshAllDataModels(modification(vault, Vault.class));
         vault.setVaultChangedCallback(this);
         vault.watchForChanges();
     }
 
     @Override
-    public final synchronized void vaultChanged(VaultChangedEvent event)
+    public final synchronized void vaultChanged(Change<?> change)
     {
-        if (checkSelfTriggeredUpdate(event))
+        if (checkSelfTriggeredUpdate(change))
         {
             return;
         }
@@ -156,7 +155,7 @@ public class Curator
             LOGGER.debug(">".repeat(80));
         }
         cancelQueryWriteRunIfPresent();
-        refreshAllDataModels(event);
+        refreshAllDataModels(change);
         scheduleQueryWriteRun();
         if (LOGGER.isDebugEnabled())
         {
@@ -170,16 +169,16 @@ public class Curator
      * keeps track of the files it changed, and then compares them with the changes it detects. If
      * they match, the change was self-triggered.
      *
-     * @param event Event that triggered the curator.
+     * @param change Change that triggered the curator.
      * @return {@code true} if the change was self-triggered, {@code false} otherwise.
      */
-    private boolean checkSelfTriggeredUpdate(VaultChangedEvent event)
+    private boolean checkSelfTriggeredUpdate(Change<?> change)
     {
-        if (!(event instanceof DocumentChanged changeEvent))
+        if (!(change.objectType().equals(Document.class) && change.kind() == MODIFICATION))
         {
             return false;
         }
-        var document = changeEvent.document();
+        var document = (Document) change.object();
         var documentName = document.name();
         var timestamp = writtenDocuments.get(documentName);
         if (timestamp == null)
@@ -250,25 +249,25 @@ public class Curator
     }
 
     /**
-     * Refresh all data models for the incoming event.
+     * Refresh all data models for the incoming change.
      * <p/>
      * Refreshing of data models must be done sequentially, because models can depend on other
      * models, and they are not necessarily protected against and built for concurrency.
      *
-     * @param event The event to process.
+     * @param change The change to process.
      */
-    private void refreshAllDataModels(VaultChangedEvent event)
+    private void refreshAllDataModels(Change<?> change)
     {
         if (LOGGER.isDebugEnabled())
         {
             LOGGER.debug("Refreshing {} data model(s)", dataModels.size());
         }
-        var changelog = emptyChangelog();
+        var changelog = changelogFor(change);
         for (DataModel model : dataModels)
         {
             try
             {
-                changelog = changelog.append(model.vaultChanged(event, changelog));
+                changelog = changelog.append(model.process(changelog));
                 if (LOGGER.isDebugEnabled())
                 {
                     LOGGER.debug("Refreshed data model {}", model.getClass().getSimpleName());
