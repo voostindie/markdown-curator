@@ -13,6 +13,7 @@ import static nl.ulso.markdown_curator.Change.Kind.CREATION;
 import static nl.ulso.markdown_curator.Change.Kind.DELETION;
 import static nl.ulso.markdown_curator.Change.Kind.MODIFICATION;
 import static nl.ulso.markdown_curator.Changelog.changelogFor;
+import static nl.ulso.markdown_curator.Changelog.emptyChangelog;
 
 /// Base class for [DataModel] that can handle granular change events.
 ///
@@ -39,7 +40,7 @@ public abstract class DataModelTemplate
     @Override
     public final Changelog process(Changelog changelog)
     {
-        if (changeHandlers.isEmpty() || isFullRefreshRequired(changelog))
+        if (isFullRefreshRequired(changelog))
         {
             LOGGER.debug(
                 "Performing a full refresh on data model: {}",
@@ -47,10 +48,15 @@ public abstract class DataModelTemplate
             );
             return changelogFor(fullRefresh());
         }
-        LOGGER.debug("Performing an incremental refresh on data model: {}",
-            this.getClass().getSimpleName()
-        );
-        return changelogFor(incrementalRefresh(changelog));
+        if (!changeHandlers.isEmpty())
+        {
+            LOGGER.debug("Performing an incremental refresh on data model: {}",
+                this.getClass().getSimpleName()
+            );
+            return changelogFor(incrementalRefresh(changelog));
+        }
+        LOGGER.debug("Nothing to do for data model: {}", this.getClass().getSimpleName());
+        return emptyChangelog();
     }
 
     protected final void registerChangeHandler(
@@ -83,18 +89,6 @@ public abstract class DataModelTemplate
     protected Predicate<Change<?>> isDeletion()
     {
         return change -> change.kind() == DELETION;
-    }
-
-    protected Function<Change<?>, Collection<Change<?>>> fullRefreshHandler()
-    {
-        return _ ->
-        {
-            LOGGER.debug(
-                "Incremental change triggers a full refresh on data model: {}",
-                this.getClass().getSimpleName()
-            );
-            return fullRefresh();
-        };
     }
 
     protected boolean isInHierarchyOf(Vault vault, Folder parent, Folder child)

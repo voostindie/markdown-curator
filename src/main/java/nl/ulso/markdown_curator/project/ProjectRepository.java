@@ -2,8 +2,7 @@ package nl.ulso.markdown_curator.project;
 
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
-import nl.ulso.markdown_curator.Change;
-import nl.ulso.markdown_curator.DataModelTemplate;
+import nl.ulso.markdown_curator.*;
 import nl.ulso.markdown_curator.vault.*;
 import org.slf4j.Logger;
 
@@ -42,13 +41,19 @@ public final class ProjectRepository
         this.projectFolderName = settings.projectFolderName();
         this.projects = new HashMap<>();
         registerChangeHandler(isProjectDocument(), this::handleProjectUpdate);
-        registerChangeHandler(isProjectFolder().and(isDeletion()), fullRefreshHandler());
     }
 
     @Override
     public Set<Class<?>> producedObjectTypes()
     {
         return Set.of(Project.class);
+    }
+
+    @Override
+    protected boolean isFullRefreshRequired(Changelog changelog)
+    {
+        return super.isFullRefreshRequired(changelog) ||
+               changelog.changes().anyMatch(isProjectFolder().and(isDeletion().or(isCreation())));
     }
 
     Predicate<Change<?>> isProjectDocument()

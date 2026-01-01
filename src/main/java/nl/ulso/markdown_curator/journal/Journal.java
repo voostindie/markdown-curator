@@ -64,8 +64,7 @@ public class Journal
     protected boolean isFullRefreshRequired(Changelog changelog)
     {
         return super.isFullRefreshRequired(changelog) ||
-               changelog.changesFor(Folder.class).anyMatch(
-                   isJournalFolder().and(isDeletion().or(isCreation())));
+               changelog.changes().anyMatch(isJournalFolder().and(isDeletion().or(isCreation())));
     }
 
     private Predicate<Change<?>> isJournalFolder()
@@ -102,7 +101,7 @@ public class Journal
             parseWeeklyFrom((Document) change.object()).isPresent());
     }
 
-    public Predicate<Change<?>> isMarkerEntry()
+    private Predicate<Change<?>> isMarkerEntry()
     {
         return isJournalEntry().and((Change<?> change) ->
         {

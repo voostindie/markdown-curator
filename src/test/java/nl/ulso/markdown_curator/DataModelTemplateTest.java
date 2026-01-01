@@ -50,5 +50,11 @@ class DataModelTemplateTest
             refreshed = true;
             return emptyList();
         }
+
+        @Override
+        protected boolean isFullRefreshRequired(Changelog changelog)
+        {
+            return true;
+        }
     }
 }
