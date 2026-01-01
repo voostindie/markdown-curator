@@ -60,15 +60,19 @@ public abstract class CuratorModule
     abstract QueryCatalog bindQueryCatalog(InMemoryQueryCatalog queryCatalog);
 
     @Binds
+    abstract DataModelOrchestrator bindDataModelOrchestrator(
+        DataModelOrchestratorImpl orchestrator);
+
+    @Binds
     abstract GeneralMessages bindGeneralMessages(ResourceBundledGeneralMessages generalMessages);
 
     @Binds
     abstract FrontMatterUpdateCollector bindFrontMatterCollector(
-            InMemoryFrontMatterCollector collector);
+        InMemoryFrontMatterCollector collector);
 
     @Binds
     abstract FrontMatterRewriteResolver bindFrontMatterRewriteResolver(
-            InMemoryFrontMatterCollector collector);
+        InMemoryFrontMatterCollector collector);
 
     @Binds
     @IntoSet

@@ -70,4 +70,12 @@ final class ChangelogImpl
             .filter(change -> change.objectType().equals(objectType))
             .map(change -> (Change<T>) change);
     }
+
+    @Override
+    public Changelog changelogFor(Set<Class<?>> objectTypes)
+    {
+        return Changelog.changelogFor(changes.stream()
+            .filter(change -> objectTypes.contains(change.objectType()))
+            .toList());
+    }
 }

@@ -57,6 +57,12 @@ public class Journal
         this.registerChangeHandler(isJournalFolder().and(isDeletion()), fullRefreshHandler());
     }
 
+    @Override
+    public Set<Class<?>> producedObjectTypes()
+    {
+        return Set.of(Daily.class, Weekly.class);
+    }
+
     private Predicate<Change<?>> isJournalFolder()
     {
         return hasObjectType(Folder.class).and((Change<?> change) ->

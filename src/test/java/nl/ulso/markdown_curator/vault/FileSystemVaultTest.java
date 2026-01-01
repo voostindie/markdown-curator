@@ -1,7 +1,6 @@
 package nl.ulso.markdown_curator.vault;
 
 import nl.ulso.markdown_curator.Change;
-import nl.ulso.markdown_curator.vault.event.*;
 import org.assertj.core.api.SoftAssertions;
 import org.assertj.core.api.junit.jupiter.InjectSoftAssertions;
 import org.assertj.core.api.junit.jupiter.SoftAssertionsExtension;

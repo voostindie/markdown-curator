@@ -17,8 +17,6 @@ import static java.lang.Thread.currentThread;
 import static java.nio.file.Files.getLastModifiedTime;
 import static java.nio.file.Files.writeString;
 import static java.util.Collections.emptyList;
-import static java.util.Collections.reverse;
-import static java.util.List.copyOf;
 import static java.util.concurrent.Executors.newScheduledThreadPool;
 import static java.util.concurrent.Executors.newVirtualThreadPerTaskExecutor;
 import static java.util.concurrent.TimeUnit.SECONDS;
@@ -26,7 +24,6 @@ import static java.util.stream.Collectors.groupingBy;
 import static nl.ulso.hash.ShortHasher.shortHashOf;
 import static nl.ulso.markdown_curator.Change.Kind.MODIFICATION;
 import static nl.ulso.markdown_curator.Change.modification;
-import static nl.ulso.markdown_curator.Changelog.changelogFor;
 import static nl.ulso.markdown_curator.DocumentRewriter.rewriteDocument;
 import static nl.ulso.markdown_curator.vault.Dictionary.emptyDictionary;
 import static org.slf4j.LoggerFactory.getLogger;
@@ -65,7 +62,7 @@ public class Curator
     private final DocumentPathResolver documentPathResolver;
     private final FrontMatterRewriteResolver frontMatterRewriteResolver;
     private final QueryCatalog queryCatalog;
-    private final List<DataModel> dataModels;
+    private final DataModelOrchestrator dataModelProcessor;
     private final Map<String, Long> writtenDocuments;
     private final ExecutorService parallelExecutor;
     private final ScheduledExecutorService delayedExecutor;
@@ -76,56 +73,18 @@ public class Curator
     public Curator(
         Vault vault, DocumentPathResolver documentPathResolver,
         FrontMatterRewriteResolver frontMatterRewriteResolver, QueryCatalog queryCatalog,
-        Set<DataModel> dataModels)
+        DataModelOrchestrator dataModelProcessor)
     {
         this.vault = vault;
         this.documentPathResolver = documentPathResolver;
         this.frontMatterRewriteResolver = frontMatterRewriteResolver;
         this.queryCatalog = queryCatalog;
-        this.dataModels = orderDataModels(dataModels);
+        this.dataModelProcessor = dataModelProcessor;
         this.writtenDocuments = new HashMap<>();
         this.parallelExecutor = newVirtualThreadPerTaskExecutor();
         this.delayedExecutor = newScheduledThreadPool(1);
         this.runTask = null;
         this.curatorName = currentThread().getName();
-    }
-
-    /// Orders the data models by placing data models that other models depend on first.
-    ///
-    /// In theory this algorithm can run into an endless loop: if there is a cyclic dependency
-    /// between data models. In practice this doesn't happen because in this system all dependencies
-    /// are injected in constructors by Dagger. If there is a cyclic dependency, the code fails to
-    /// compile.
-    static List<DataModel> orderDataModels(Set<DataModel> dataModels)
-    {
-        var size = dataModels.size();
-        var list = new ArrayList<DataModel>(size);
-        var queue = new LinkedList<>(dataModels);
-        while (!queue.isEmpty())
-        {
-            var model = queue.pollFirst();
-            var index = model.dependentModels().stream()
-                .mapToInt(list::indexOf)
-                .min()
-                .orElse(0);
-            if (index == -1)
-            {
-                queue.addLast(model);
-            }
-            else
-            {
-                list.add(index, model);
-            }
-        }
-        reverse(list);
-        if (LOGGER.isDebugEnabled())
-        {
-            LOGGER.debug("{} data models will be refreshed in this order: {}", list.size(),
-                list.stream().map(model -> model.getClass().getSimpleName())
-                    .collect(Collectors.joining(", "))
-            );
-        }
-        return copyOf(list);
     }
 
     public void runOnce()
@@ -138,7 +97,7 @@ public class Curator
 
     public void run()
     {
-        refreshAllDataModels(modification(vault, Vault.class));
+        dataModelProcessor.refreshAllDataModels(modification(vault, Vault.class));
         vault.setVaultChangedCallback(this);
         vault.watchForChanges();
     }
@@ -155,7 +114,7 @@ public class Curator
             LOGGER.debug(">".repeat(80));
         }
         cancelQueryWriteRunIfPresent();
-        refreshAllDataModels(change);
+        dataModelProcessor.refreshAllDataModels(change);
         scheduleQueryWriteRun();
         if (LOGGER.isDebugEnabled())
         {
@@ -245,40 +204,6 @@ public class Curator
                 frontMatterRewrites.getOrDefault(document, emptyDictionary()),
                 queryOutputs.getOrDefault(document, emptyList())
             );
-        }
-    }
-
-    /**
-     * Refresh all data models for the incoming change.
-     * <p/>
-     * Refreshing of data models must be done sequentially, because models can depend on other
-     * models, and they are not necessarily protected against and built for concurrency.
-     *
-     * @param change The change to process.
-     */
-    private void refreshAllDataModels(Change<?> change)
-    {
-        if (LOGGER.isDebugEnabled())
-        {
-            LOGGER.debug("Refreshing {} data model(s)", dataModels.size());
-        }
-        var changelog = changelogFor(change);
-        for (DataModel model : dataModels)
-        {
-            try
-            {
-                changelog = changelog.append(model.process(changelog));
-                if (LOGGER.isDebugEnabled())
-                {
-                    LOGGER.debug("Refreshed data model {}", model.getClass().getSimpleName());
-                }
-            }
-            catch (RuntimeException e)
-            {
-                LOGGER.error("Caught runtime exception while refreshing data model {}",
-                    model.getClass().getSimpleName(), e
-                );
-            }
         }
     }
 

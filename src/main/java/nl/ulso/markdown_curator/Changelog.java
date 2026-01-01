@@ -1,6 +1,7 @@
 package nl.ulso.markdown_curator;
 
 import java.util.Collection;
+import java.util.Set;
 import java.util.stream.Stream;
 
 /// Log of changes applied by [DataModel]s in their [DataModel#process(Changelog)] method. Other
@@ -29,4 +30,6 @@ public interface Changelog
     Stream<Change<?>> changes();
 
     <T> Stream<Change<T>> changesFor(Class<T> objectType);
+
+    Changelog changelogFor(Set<Class<?>> objectTypes);
 }

@@ -1,6 +1,7 @@
 package nl.ulso.markdown_curator;
 
-import nl.ulso.markdown_curator.vault.*;
+import nl.ulso.markdown_curator.vault.Folder;
+import nl.ulso.markdown_curator.vault.Vault;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -103,6 +104,9 @@ public abstract class DataModelTemplate
         return true;
     }
 
+    /// A full refresh of the data model is required if the list of change handlers is empty - in
+    /// other words: an incremental update wouldn't do anything - or the changelog contains a change
+    /// for a [Vault] object.
     private boolean isFullRefreshRequired(Changelog changelog)
     {
         return changeHandlers.isEmpty() || changelog.changesFor(Vault.class).findAny().isPresent();

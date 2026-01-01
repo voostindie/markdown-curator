@@ -45,6 +45,12 @@ public final class ProjectRepository
         registerChangeHandler(isProjectFolder().and(isDeletion()), fullRefreshHandler());
     }
 
+    @Override
+    public Set<Class<?>> producedObjectTypes()
+    {
+        return Set.of(Project.class);
+    }
+
     Predicate<Change<?>> isProjectDocument()
     {
         return hasObjectType(Document.class).and(change ->

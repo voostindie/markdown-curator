@@ -2,6 +2,8 @@ package nl.ulso.markdown_curator;
 
 import org.junit.jupiter.api.Test;
 
+import java.util.Set;
+
 import static nl.ulso.markdown_curator.Change.creation;
 import static nl.ulso.markdown_curator.Changelog.changelogFor;
 import static nl.ulso.markdown_curator.Changelog.emptyChangelog;
@@ -105,5 +107,17 @@ class ChangelogTest
         var changes = changelog.changesFor(Integer.class).toList();
         var object = changes.getFirst().object();
         assertThat(object).isEqualTo(42);
+    }
+
+    @Test
+    void changeLogsCanBeFiltered()
+    {
+        var changelog = changelogFor(
+            creation(new Object(), Object.class),
+            creation(42, Integer.class),
+            creation(true, Boolean.class)
+        );
+        var filteredChangelog = changelog.changelogFor(Set.of(Integer.class, Boolean.class));
+        assertThat(filteredChangelog.changes().toList()).hasSize(2);
     }
 }
