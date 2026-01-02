@@ -4,15 +4,16 @@ import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 import nl.ulso.markdown_curator.*;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.Set;
 
 import static java.util.Collections.emptyList;
 
 /// Writes project attribute values to front matter.
 ///
 /// By the time this model gets processed, all attribute values for all projects have been resolved
-/// where necessary: the [AttributeRegistryImpl] has been consuming all these changes, building up its
-/// internal registry.
+/// where necessary: the [AttributeRegistryImpl] has been consuming all these changes, building up
+/// its internal registry.
 @Singleton
 public final class FrontMatterPropertyWriter
     extends ChangeProcessorTemplate
@@ -55,8 +56,10 @@ public final class FrontMatterPropertyWriter
                             ),
                         () ->
                             dictionary.removeProperty(definition.frontMatterProperty())
-                    ))
-            ));
+                    )
+                )
+            )
+        );
         return emptyList();
     }
 }

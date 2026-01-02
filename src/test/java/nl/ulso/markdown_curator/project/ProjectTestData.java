@@ -1,6 +1,7 @@
 package nl.ulso.markdown_curator.project;
 
-import nl.ulso.markdown_curator.vault.*;
+import nl.ulso.markdown_curator.vault.Document;
+import nl.ulso.markdown_curator.vault.VaultStub;
 
 import java.time.LocalDate;
 import java.util.*;
@@ -48,7 +49,7 @@ public class ProjectTestData
         PRIORITY, newAttributeDefinition(Integer.class, PRIORITY)
     );
 
-    static AttributeRegistry createAttributeRegistry(VaultStub vault)
+    static AttributeRegistryStub createAttributeRegistry(VaultStub vault)
     {
         var vincent = vault.resolveDocumentInPath("Contacts/Vincent");
         var marieke = vault.resolveDocumentInPath("Contacts/Marieke");
@@ -65,7 +66,7 @@ public class ProjectTestData
             .withAttribute(project3, "priority", 1);
     }
 
-    private static final class AttributeRegistryStub
+    static final class AttributeRegistryStub
         implements AttributeRegistry
     {
         private final Map<Project, Map<AttributeDefinition, Object>> attributes = new HashMap<>();
@@ -100,12 +101,5 @@ public class ProjectTestData
         {
             return Optional.ofNullable(attributes.get(project).get(definition));
         }
-
-        @Override
-        public Optional<Project> projectFor(Document document)
-        {
-            return Optional.empty();
-        }
     }
-
 }

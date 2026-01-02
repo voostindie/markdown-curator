@@ -3,7 +3,6 @@ package nl.ulso.markdown_curator.project;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 import nl.ulso.markdown_curator.*;
-import nl.ulso.markdown_curator.vault.Document;
 
 import java.util.*;
 
@@ -119,19 +118,16 @@ final class AttributeRegistryImpl
     @Override
     public Optional<?> attributeValue(Project project, AttributeDefinition definition)
     {
-        var set = projectAttributes.get(project).get(definition);
+        var attribute = projectAttributes.get(project);
+        if (attribute == null)
+        {
+            return Optional.empty();
+        }
+        var set = attribute.get(definition);
         if (set == null || set.isEmpty())
         {
             return Optional.empty();
         }
         return Optional.ofNullable(set.first().value());
-    }
-
-    @Override
-    public Optional<Project> projectFor(Document document)
-    {
-        return projectAttributes.keySet().stream()
-            .filter(project -> project.document().name().equals(document.name()))
-            .findFirst();
     }
 }

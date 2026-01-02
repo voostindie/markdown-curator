@@ -22,13 +22,13 @@ public final class FrontMatterAttributeProducer
     extends ChangeProcessorTemplate
 {
     private static final int WEIGHT = 0;
-    private final Map<String, AttributeDefinition> attributeDefinitions;
+    private final Collection<AttributeDefinition> attributeDefinitions;
     private final Vault vault;
 
     @Inject
     FrontMatterAttributeProducer(Map<String, AttributeDefinition> attributeDefinitions, Vault vault)
     {
-        this.attributeDefinitions = attributeDefinitions;
+        this.attributeDefinitions = attributeDefinitions.values();
         this.vault = vault;
         registerChangeHandler(_ -> true, this::processProject);
     }
@@ -56,7 +56,7 @@ public final class FrontMatterAttributeProducer
         var project = change.objectAs(Project.class);
         var document = project.document();
         var changes = new ArrayList<Change<?>>();
-        for (var definition : attributeDefinitions.values())
+        for (var definition : attributeDefinitions)
         {
             if (change.kind() == DELETE)
             {

@@ -1,7 +1,6 @@
 package nl.ulso.markdown_curator.project;
 
 import nl.ulso.markdown_curator.ChangeProcessor;
-import nl.ulso.markdown_curator.vault.Document;
 
 import java.util.*;
 
@@ -25,9 +24,6 @@ public interface AttributeRegistry
     /// @return All projects known by this registry; these are guaranteed to be the same as the ones
     /// managed by the [ProjectRepository].
     Set<Project> projects();
-
-    /// @return The project matching the provided document, if any.
-    Optional<Project> projectFor(Document document);
 
     /// @return the value of the attribute with the
     Optional<?> attributeValue(Project project, String attributeName);
