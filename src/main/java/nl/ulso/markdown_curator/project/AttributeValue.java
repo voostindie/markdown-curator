@@ -58,13 +58,13 @@ public record AttributeValue(
     {
         if (!project.equals(other.project))
         {
-            throw new IllegalStateException(
+            throw new IllegalArgumentException(
                 "Cannot compare attribute values of different projects");
 
         }
         if (!definition.equals(other.definition))
         {
-            throw new IllegalStateException(
+            throw new IllegalArgumentException(
                 "Cannot compare values of different attributes definitions");
         }
     }

@@ -44,7 +44,7 @@ final class AttributeDefinitionImpl
         requireNonNull(value);
         if (!valueType.isInstance(value))
         {
-            throw new IllegalStateException(
+            throw new IllegalArgumentException(
                 String.format("Value '%s' must have type '%s'", value, valueType));
         }
         return asFrontMatterFunction.apply(value);
