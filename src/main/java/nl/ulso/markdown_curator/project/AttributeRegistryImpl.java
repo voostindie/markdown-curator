@@ -7,6 +7,7 @@ import nl.ulso.markdown_curator.vault.Document;
 
 import java.util.*;
 
+import static java.util.HashSet.newHashSet;
 import static nl.ulso.markdown_curator.project.AttributeRegistryUpdate.REGISTRY_CHANGE;
 
 @Singleton
@@ -88,7 +89,7 @@ final class AttributeRegistryImpl
     @Override
     protected Collection<Change<?>> createChangeCollection()
     {
-        return new HashSet<>(1);
+        return newHashSet(1);
     }
 
     @Override

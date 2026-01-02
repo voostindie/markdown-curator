@@ -62,27 +62,27 @@ public abstract class ChangeProcessorTemplate
         changeHandlers.put(predicate, handler);
     }
 
-    protected Predicate<Change<?>> isObjectType(Class<?> objectType)
+    protected final Predicate<Change<?>> isObjectType(Class<?> objectType)
     {
         return change -> change.objectType().equals(objectType);
     }
 
-    protected Predicate<Change<?>> isCreate()
+    protected final Predicate<Change<?>> isCreate()
     {
         return change -> change.kind() == CREATE;
     }
 
-    protected Predicate<Change<?>> isUpdate()
+    protected final Predicate<Change<?>> isUpdate()
     {
         return change -> change.kind() == UPDATE;
     }
 
-    protected Predicate<Change<?>> isCreateOrUpdate()
+    protected final Predicate<Change<?>> isCreateOrUpdate()
     {
         return isCreate().or(isUpdate());
     }
 
-    protected Predicate<Change<?>> isDelete()
+    protected final Predicate<Change<?>> isDelete()
     {
         return change -> change.kind() == DELETE;
     }
@@ -96,7 +96,7 @@ public abstract class ChangeProcessorTemplate
     }
 
     /// Performs a full refresh.
-    public Collection<Change<?>> fullRefresh()
+    protected Collection<Change<?>> fullRefresh()
     {
         throw new IllegalStateException(
             "A full refresh is triggered, but not supported by this change processor: " +

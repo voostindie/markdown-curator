@@ -2,6 +2,7 @@ package nl.ulso.markdown_curator;
 
 import nl.ulso.markdown_curator.vault.*;
 import org.assertj.core.api.junit.jupiter.SoftAssertionsExtension;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -13,21 +14,39 @@ import java.util.stream.Stream;
 import static java.util.Collections.emptyList;
 import static nl.ulso.markdown_curator.Changelog.changelogFor;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 @ExtendWith(SoftAssertionsExtension.class)
 class ChangeProcessorTemplateTest
 {
     @ParameterizedTest
-    @MethodSource("provideEvents")
+    @MethodSource("provideChanges")
     void runFullRefresh(Change<?> change)
     {
-        var model = new DummyChangeProcessor();
-        assertThat(model.refreshed).isFalse();
-        model.run(changelogFor(change));
-        assertThat(model.refreshed).isTrue();
+        var processor = new DummyChangeProcessor();
+        assertThat(processor.refreshed).isFalse();
+        processor.run(changelogFor(change));
+        assertThat(processor.refreshed).isTrue();
     }
 
-    public static Stream<Arguments> provideEvents()
+    @Test
+    void processorWithoutFullRefreshAndChangeHandlersDoesNothing()
+    {
+        var log = new NoOpChangeProcessor(false)
+            .run(changelogFor(Change.update(null, Vault.class)));
+        assertThat(log.isEmpty()).isTrue();
+    }
+
+    @Test
+    void processorWithFullRefreshButNoImplementationThrows()
+    {
+        var processor = new NoOpChangeProcessor(true);
+        var changelog = changelogFor(Change.update(null, Vault.class));
+        assertThatThrownBy(() -> processor.run(changelog))
+            .isInstanceOf(IllegalStateException.class);
+    }
+
+    public static Stream<Arguments> provideChanges()
     {
         return Stream.of(
             Arguments.of(Change.update(null, Vault.class)),
@@ -55,6 +74,23 @@ class ChangeProcessorTemplateTest
         protected boolean isFullRefreshRequired(Changelog changelog)
         {
             return true;
+        }
+    }
+
+    private static class NoOpChangeProcessor
+        extends ChangeProcessorTemplate
+    {
+        private boolean fullRefresh;
+
+        NoOpChangeProcessor(boolean fullRefresh)
+        {
+            this.fullRefresh = fullRefresh;
+        }
+
+        @Override
+        protected boolean isFullRefreshRequired(Changelog changelog)
+        {
+            return fullRefresh;
         }
     }
 }

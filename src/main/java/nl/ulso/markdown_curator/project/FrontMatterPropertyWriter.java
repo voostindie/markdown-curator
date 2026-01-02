@@ -46,7 +46,7 @@ public final class FrontMatterPropertyWriter
     {
         attributeRegistry.projects().forEach(project ->
             frontMatterUpdateCollector.updateFrontMatterFor(project.document(), dictionary ->
-                attributeRegistry.attributeDefinitions().forEach((definition) ->
+                attributeRegistry.attributeDefinitions().forEach(definition ->
                     attributeRegistry.attributeValue(project, definition).ifPresentOrElse(
                         value ->
                             dictionary.setProperty(
