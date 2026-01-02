@@ -7,13 +7,11 @@ import jakarta.inject.Singleton;
 import nl.ulso.markdown_curator.DataModel;
 import nl.ulso.markdown_curator.query.Query;
 import nl.ulso.markdown_curator.vault.Document;
-import nl.ulso.markdown_curator.vault.Vault;
 
 import java.time.LocalDate;
 import java.util.Map;
-import java.util.Set;
 
-import static nl.ulso.markdown_curator.project.ProjectProperty.*;
+import static nl.ulso.markdown_curator.project.AttributeDefinition.*;
 
 /// Provides a pluggable project model based on a set of documents in a subfolder of the vault.
 /// Project data can be extended with metadata from several sources.
@@ -24,10 +22,43 @@ import static nl.ulso.markdown_curator.project.ProjectProperty.*;
 public abstract class ProjectModule
 {
     @Multibinds
-    abstract Map<String, ProjectProperty> bindProjectProperties();
+    abstract Map<String, AttributeDefinition> bindAttributeDefinitions();
 
-    @Multibinds
-    abstract Set<ValueResolver> bindProjectPropertyResolvers();
+    @Provides
+    @Singleton
+    @IntoMap
+    @StringKey(LAST_MODIFIED)
+    static AttributeDefinition provideLastModifiedAttribute()
+    {
+        return newAttributeDefinition(LocalDate.class, "last_modified", Object::toString);
+    }
+
+    @Provides
+    @Singleton
+    @IntoMap
+    @StringKey(LEAD)
+    static AttributeDefinition provideLeadAttribute()
+    {
+        return newAttributeDefinition(Document.class, "lead", d -> ((Document) d).link());
+    }
+
+    @Provides
+    @Singleton
+    @IntoMap
+    @StringKey(PRIORITY)
+    static AttributeDefinition providePriorityAttribute()
+    {
+        return newAttributeDefinition(Integer.class, "priority");
+    }
+
+    @Provides
+    @Singleton
+    @IntoMap
+    @StringKey(STATUS)
+    static AttributeDefinition provideStatusAttribute()
+    {
+        return newAttributeDefinition(String.class, "status");
+    }
 
     @Binds
     @IntoSet
@@ -35,80 +66,18 @@ public abstract class ProjectModule
 
     @Binds
     @IntoSet
-    abstract DataModel bindProjectPropertyRepository(
-        ProjectPropertyRepository projectPropertyRepository);
+    abstract DataModel bindFrontMatterAttributeProducer(FrontMatterAttributeProducer producer);
 
     @Binds
-    abstract ValueResolverRegistry bindResolverRegistry(
-        ValueResolverRegistryImpl registry);
-
-    @Provides
-    @Singleton
-    @IntoMap
-    @StringKey(LAST_MODIFIED)
-    static ProjectProperty provideLastModifiedProperty()
-    {
-        return newProperty(LocalDate.class, "last_modified", Object::toString);
-    }
-
-    @Provides
     @IntoSet
-    static ValueResolver provideLastModifiedFrontMatterResolver(
-        Map<String, ProjectProperty> properties, Vault vault)
-    {
-        return new FrontMatterValueResolver(properties.get(LAST_MODIFIED), vault);
-    }
+    abstract DataModel bindAttributeRegistryModel(AttributeRegistryImpl registry);
 
-    @Provides
-    @Singleton
-    @IntoMap
-    @StringKey(LEAD)
-    static ProjectProperty provideLeadProperty()
-    {
-        return newProperty(Document.class, "lead", d -> ((Document) d).link());
-    }
+    @Binds
+    abstract AttributeRegistry bindAttributeRegistry(AttributeRegistryImpl registry);
 
-    @Provides
+    @Binds
     @IntoSet
-    static ValueResolver provideLeadFrontMatterResolver(
-        Map<String, ProjectProperty> properties, Vault vault)
-    {
-        return new FrontMatterValueResolver(properties.get(LEAD), vault);
-    }
-
-    @Provides
-    @Singleton
-    @IntoMap
-    @StringKey(PRIORITY)
-    static ProjectProperty providePriorityProperty()
-    {
-        return newProperty(Integer.class, "priority");
-    }
-
-    @Provides
-    @IntoSet
-    static ValueResolver providePriorityFrontMatterResolver(
-        Map<String, ProjectProperty> properties, Vault vault)
-    {
-        return new FrontMatterValueResolver(properties.get(PRIORITY), vault);
-    }
-
-    @Provides
-    @Singleton
-    @IntoMap
-    @StringKey(STATUS)
-    static ProjectProperty provideStatusProperty()
-    {
-        return newProperty(String.class, "status");
-    }
-
-    @Provides
-    @IntoSet
-    static ValueResolver provideStatusFrontMatterResolver(
-        Map<String, ProjectProperty> properties, Vault vault)
-    {
-        return new FrontMatterValueResolver(properties.get(STATUS), vault);
-    }
+    abstract DataModel bindFrontMatterPropertyWriter(FrontMatterPropertyWriter producer);
 
     @Binds
     @IntoSet

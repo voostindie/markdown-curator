@@ -12,14 +12,14 @@ import static java.util.Collections.unmodifiableMap;
 import static nl.ulso.markdown_curator.vault.Dictionary.mutableDictionary;
 
 @Singleton
-public class InMemoryFrontMatterCollector
+final class FrontMatterCollector
         implements FrontMatterUpdateCollector, FrontMatterRewriteResolver
 {
     private final Vault vault;
     private final Map<String, MutableDictionary> documentFrontMatters;
 
     @Inject
-    public InMemoryFrontMatterCollector(Vault vault)
+    public FrontMatterCollector(Vault vault)
     {
         this.vault = vault;
         documentFrontMatters = new HashMap<>();
@@ -37,7 +37,7 @@ public class InMemoryFrontMatterCollector
     {
         var documentName = document.name();
         var dictionary =
-                documentFrontMatters.computeIfAbsent(documentName, k -> mutableDictionary());
+                documentFrontMatters.computeIfAbsent(documentName, _ -> mutableDictionary());
         dictionaryConsumer.accept(dictionary);
         if (dictionary.isEmpty())
         {

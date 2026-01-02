@@ -153,7 +153,7 @@ class DataModelOrchestratorTest
         }
 
         @Override
-        public Set<DataModel> dependentModels()
+        public Set<?> dependentModels()
         {
             return dependentModels;
         }

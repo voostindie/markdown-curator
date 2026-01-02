@@ -26,6 +26,10 @@ public interface Change<T>
 
     T object();
 
+    <U> Change<U> as(Class<U> objectType);
+
+    <U> U objectAs(Class<U> objectType);
+
     Class<?> objectType();
 
     Kind kind();

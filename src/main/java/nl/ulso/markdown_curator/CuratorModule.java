@@ -41,6 +41,10 @@ public abstract class CuratorModule
     @Multibinds
     abstract Set<DataModel> dataModels();
 
+    @Multibinds
+    @ExternalChangeObjectType
+    abstract Set<Class<?>> externalChangeObjectTypes();
+
     @BindsOptionalOf
     abstract WatchService optionalWatchService();
 
@@ -68,11 +72,11 @@ public abstract class CuratorModule
 
     @Binds
     abstract FrontMatterUpdateCollector bindFrontMatterCollector(
-        InMemoryFrontMatterCollector collector);
+        FrontMatterCollector collector);
 
     @Binds
     abstract FrontMatterRewriteResolver bindFrontMatterRewriteResolver(
-        InMemoryFrontMatterCollector collector);
+        FrontMatterCollector collector);
 
     @Binds
     @IntoSet

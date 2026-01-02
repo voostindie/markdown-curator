@@ -36,7 +36,7 @@ public interface DataModel
     /// such a way that dependent models are refreshed before models that depend on them.
     ///
     /// @return the set of data models this data model depends on.
-    default Set<DataModel> dependentModels()
+    default Set<?> dependentModels()
     {
         return emptySet();
     }

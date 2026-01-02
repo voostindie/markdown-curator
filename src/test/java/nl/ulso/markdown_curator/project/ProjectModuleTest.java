@@ -13,6 +13,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Map;
 
 @ExtendWith(SoftAssertionsExtension.class)
 class ProjectModuleTest
@@ -32,14 +33,12 @@ class ProjectModuleTest
     void eachPropertyHasOneResolver()
     {
         var factory = DaggerProjectModuleTest_FactoryStub.create();
-        var registry = factory.createProjectPropertyResolverRegistry();
-        softly.assertThat(registry).isNotNull();
-        var repository = factory.createProjectPropertyRepository();
+        var producer = factory.frontMatterAttributeProducer();
+        softly.assertThat(producer).isNotNull();
+        var repository = factory.attributeRegistry();
         softly.assertThat(repository).isNotNull();
-        var properties = repository.projectProperties();
-        softly.assertThat(properties).hasSize(4);
-        properties.forEach(
-                (key, value) -> softly.assertThat(registry.resolversFor(value)).hasSize(1));
+        var attributes = factory.attributeDefinitions();
+        softly.assertThat(attributes).hasSize(4);
     }
 
     @Singleton
@@ -53,9 +52,11 @@ class ProjectModuleTest
             return "Stub";
         }
 
-        ValueResolverRegistry createProjectPropertyResolverRegistry();
+        FrontMatterAttributeProducer frontMatterAttributeProducer();
 
-        ProjectPropertyRepository createProjectPropertyRepository();
+        Map<String, AttributeDefinition> attributeDefinitions();
+
+        AttributeRegistry attributeRegistry();
     }
 
     @Module(includes = {

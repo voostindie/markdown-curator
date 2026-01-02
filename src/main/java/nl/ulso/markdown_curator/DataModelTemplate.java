@@ -114,7 +114,11 @@ public abstract class DataModelTemplate
     }
 
     /// Performs a full refresh of the data model.
-    public abstract Collection<Change<?>> fullRefresh();
+    public Collection<Change<?>> fullRefresh()
+    {
+        throw new IllegalStateException(
+            "A full refresh is triggered, but not supported by this data model.");
+    }
 
     /// Performs an incremental refresh of the data model, based on introspection of the changelog.
     private Collection<Change<?>> incrementalRefresh(Changelog changelog)

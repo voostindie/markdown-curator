@@ -2,9 +2,9 @@ package nl.ulso.markdown_curator.project;
 
 import java.util.function.UnaryOperator;
 
-/// Defines a pluggable project property of a certain type.
+/// Defines a pluggable project attribute of a certain type.
 ///
-/// Project properties have several benefits. They are:
+/// Project attributes have several benefits. They are:
 ///
 /// - Efficient: their values are resolved exactly once per query run.
 /// - Pluggable: they can be extended; modules can add their own properties to the system.
@@ -18,44 +18,45 @@ import java.util.function.UnaryOperator;
 /// - [#LEAD]: the lead on the project, a [nl.ulso.markdown_curator.vault.Document].
 /// - [#PRIORITY]: the priority of the project, an [Integer].
 /// - [#STATUS]: the status of the project, a [String].
-///
-public interface ProjectProperty
+public interface AttributeDefinition
 {
     String LAST_MODIFIED = "last_modified";
     String LEAD = "lead";
     String PRIORITY = "priority";
     String STATUS = "status";
 
-    /// Defines a new project property.
+    /// Defines a new attribute definition.
     ///
     /// The intended use is to call this method from a provider method in a Dagger module:
     ///
     /// ```java
     /// @Provides @Singleton @IntoSet @StringKey("special")
-    /// ProjectProperty provideSpecialProjectProperty()
+    /// AttributeDefinition provideSpecialAttributeDefinition()
     /// {
-    ///     return newProperty(String.class, "special");
+    ///     return newAttributeDefinition(String.class, "special");
     /// }
     /// ```
     ///
-    /// **Important**: a property alone is not enough. It also needs at least one [ValueResolver].
+    /// **Important**: an attribute definition alone is meaningless. It also needs models that
+    /// produce attribute values.
     ///
     /// @see ProjectModule
-    /// @see ValueResolver
-    static ProjectProperty newProperty(Class<?> valueType, String frontMatterProperty)
+    static AttributeDefinition newAttributeDefinition(
+        Class<?> valueType, String frontMatterProperty)
     {
-        return new ProjectPropertyImpl(valueType, frontMatterProperty);
+        return new AttributeDefinitionImpl(valueType, frontMatterProperty);
     }
 
-    /// Defines a new project property with a custom function to convert its value to a front matter
-    /// property value.
+    /// Defines a new attribute definition with a custom function to convert its values to front
+    /// matter property values.
     ///
-    /// @see #newProperty(Class, String)
-    static ProjectProperty newProperty(
-        Class<?> valueType, String frontMatterProperty,
+    /// @see #newAttributeDefinition(Class, String)
+    static AttributeDefinition newAttributeDefinition(
+        Class<?> valueType,
+        String frontMatterProperty,
         UnaryOperator<Object> asFrontMatterFunction)
     {
-        return new ProjectPropertyImpl(valueType, frontMatterProperty, asFrontMatterFunction);
+        return new AttributeDefinitionImpl(valueType, frontMatterProperty, asFrontMatterFunction);
     }
 
     /// @return the type of the property value.
@@ -64,7 +65,7 @@ public interface ProjectProperty
     /// @return the name of the front matter property this property maps to.
     String frontMatterProperty();
 
-    /// @return the value of the property in a proper format for the associated front matter
+    /// @return the value of the attribute in a proper format for the associated front matter
     /// property.
     Object asFrontMatterValue(Object value);
 }

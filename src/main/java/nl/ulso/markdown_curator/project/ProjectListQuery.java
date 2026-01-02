@@ -10,16 +10,16 @@ import java.util.Map;
 
 import static java.lang.Integer.MAX_VALUE;
 import static java.util.Comparator.comparingInt;
-import static nl.ulso.markdown_curator.project.ProjectProperty.LAST_MODIFIED;
-import static nl.ulso.markdown_curator.project.ProjectProperty.LEAD;
-import static nl.ulso.markdown_curator.project.ProjectProperty.PRIORITY;
-import static nl.ulso.markdown_curator.project.ProjectProperty.STATUS;
+import static nl.ulso.markdown_curator.project.AttributeDefinition.LAST_MODIFIED;
+import static nl.ulso.markdown_curator.project.AttributeDefinition.LEAD;
+import static nl.ulso.markdown_curator.project.AttributeDefinition.PRIORITY;
+import static nl.ulso.markdown_curator.project.AttributeDefinition.STATUS;
 
 /// Lists all active projects, either in a simple list, or in a table.
 public final class ProjectListQuery
     implements Query
 {
-    private final ProjectPropertyRepository projectPropertyRepository;
+    private final AttributeRegistry attributeRegistry;
     private final GeneralMessages messages;
     private final QueryResultFactory resultFactory;
 
@@ -34,11 +34,11 @@ public final class ProjectListQuery
 
     @Inject
     public ProjectListQuery(
-        ProjectPropertyRepository projectPropertyRepository,
+        AttributeRegistry attributeRegistry,
         GeneralMessages messages,
         QueryResultFactory resultFactory)
     {
-        this.projectPropertyRepository = projectPropertyRepository;
+        this.attributeRegistry = attributeRegistry;
         this.messages = messages;
         this.resultFactory = resultFactory;
     }
@@ -69,10 +69,8 @@ public final class ProjectListQuery
         {
             return resultFactory.error("Unsupported format");
         }
-        var projects = projectPropertyRepository.projects().stream()
-            .sorted(comparingInt(p -> projectPropertyRepository.propertyValue(p,
-                    projectPropertyRepository.property(PRIORITY)
-                )
+        var projects = attributeRegistry.projects().stream()
+            .sorted(comparingInt(p -> attributeRegistry.attributeValue(p, PRIORITY)
                 .map(i -> ((Integer) i))
                 .orElse(MAX_VALUE)));
         return switch (format)
@@ -89,24 +87,24 @@ public final class ProjectListQuery
                 ),
                 projects.map((Project project) -> Map.of(
                         messages.projectPriority(),
-                        projectPropertyRepository.propertyValue(project, PRIORITY)
+                        attributeRegistry.attributeValue(project, PRIORITY)
                             .map(i -> (Integer) i)
                             .map(p -> Integer.toString(p))
                             .orElse(messages.projectPriorityUnknown()),
                         messages.projectName(),
                         project.document().link(),
                         messages.projectLead(),
-                        projectPropertyRepository.propertyValue(project, LEAD)
+                        attributeRegistry.attributeValue(project, LEAD)
                             .map(d -> (Document) d)
                             .map(Document::link)
                             .orElse(messages.projectLeadUnknown()),
                         messages.projectLastModified(),
-                        projectPropertyRepository.propertyValue(project, LAST_MODIFIED)
+                        attributeRegistry.attributeValue(project, LAST_MODIFIED)
                             .map(d -> (LocalDate) d)
                             .map(d -> "[[" + d + "]]")
                             .orElse(messages.projectDateUnknown()),
                         messages.projectStatus(),
-                        projectPropertyRepository.propertyValue(project, STATUS)
+                        attributeRegistry.attributeValue(project, STATUS)
                             .map(s -> (String) s)
                             .orElse(messages.projectStatusUnknown())
                     ))

@@ -8,6 +8,7 @@ import org.slf4j.Logger;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static java.util.Collections.emptySet;
 import static java.util.List.copyOf;
 import static nl.ulso.markdown_curator.Changelog.changelogFor;
 import static org.slf4j.LoggerFactory.getLogger;
@@ -24,7 +25,8 @@ final class DataModelOrchestratorImpl
     private final List<DataModel> dataModels;
 
     @Inject
-    DataModelOrchestratorImpl(Set<DataModel> dataModels)
+    DataModelOrchestratorImpl(
+        Set<DataModel> dataModels, @ExternalChangeObjectType Set<Class<?>> externalObjectTypes)
     {
         if (producesAnyOf(dataModels, RESERVED_OBJECT_TYPES))
         {
@@ -35,7 +37,12 @@ final class DataModelOrchestratorImpl
                     .collect(Collectors.joining(", "))
             );
         }
-        this.dataModels = orderDataModels(dataModels);
+        this.dataModels = orderDataModels(dataModels, externalObjectTypes);
+    }
+
+    DataModelOrchestratorImpl(Set<DataModel> dataModels)
+    {
+        this(dataModels, emptySet());
     }
 
     List<DataModel> dataModels()
@@ -44,10 +51,24 @@ final class DataModelOrchestratorImpl
     }
 
     /// Order the available set of data models in accordance to the requirements of the
-    /// orchestrator: prodducers before consumers, dependencies before dependents.
-    private List<DataModel> orderDataModels(Set<DataModel> dataModels)
+    /// orchestrator: producers before consumers, dependencies before dependents.
+    ///
+    /// This algorithm creates a queue of all available models, initially in undefined order and
+    /// then processes the queue until it is empty. If the item at the front of the queue cannot be
+    /// placed in the ordered list yet, because it has some unsatisfied dependency, it is placed
+    /// back at the end of the queue.
+    ///
+    /// The worst-case scenario is that all items except the last item in the queue need to be
+    /// placed back in the queue for every iteration. That means the running time of this O(n^2).
+    /// The maximum number of iterations is (n * (n + 1) / 2). If more is needed, then there is
+    /// either a dependency cycle or a dependency that can never be satisfied. Both are programming
+    /// errors.
+    private List<DataModel> orderDataModels(
+        Set<DataModel> dataModels,
+        Set<Class<?>> customObjectTypes)
     {
         var availableObjectTypes = new HashSet<>(RESERVED_OBJECT_TYPES);
+        availableObjectTypes.addAll(customObjectTypes);
         var queue = new LinkedList<>(dataModels);
         var size = dataModels.size();
         var maxIterations = (size * (size + 1)) / 2;

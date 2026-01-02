@@ -108,9 +108,9 @@ public final class FileSystemVault
     }
 
     @Override
-    public void triggerRefresh()
+    public void triggerRefresh(Change<?> change)
     {
-        callback.vaultChanged(modification(this, Vault.class));
+        callback.vaultChanged(change);
     }
 
     @Override

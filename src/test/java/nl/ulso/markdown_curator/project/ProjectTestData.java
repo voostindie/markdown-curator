@@ -1,13 +1,12 @@
 package nl.ulso.markdown_curator.project;
 
-import nl.ulso.markdown_curator.InMemoryFrontMatterCollector;
 import nl.ulso.markdown_curator.vault.*;
 
 import java.time.LocalDate;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
-import static nl.ulso.markdown_curator.project.ProjectProperty.*;
+import static nl.ulso.markdown_curator.project.AttributeDefinition.*;
+import static nl.ulso.markdown_curator.vault.LocalDates.parseDateOrNull;
 
 public class ProjectTestData
 {
@@ -42,30 +41,71 @@ public class ProjectTestData
         return vault;
     }
 
-    static final Map<String, ProjectProperty> PROJECT_PROPERTIES = Map.of(
-        STATUS, newProperty(String.class, STATUS),
-        LEAD, newProperty(Document.class, LEAD, d -> ((Document) d).link()),
-        LAST_MODIFIED,
-        newProperty(LocalDate.class, LAST_MODIFIED, Object::toString),
-        PRIORITY, newProperty(Integer.class, PRIORITY)
+    static final Map<String, AttributeDefinition> ATTRIBUTE_DEFINITIONS = Map.of(
+        STATUS, newAttributeDefinition(String.class, STATUS),
+        LEAD, newAttributeDefinition(Document.class, LEAD, d -> ((Document) d).link()),
+        LAST_MODIFIED, newAttributeDefinition(LocalDate.class, LAST_MODIFIED, Object::toString),
+        PRIORITY, newAttributeDefinition(Integer.class, PRIORITY)
     );
 
-    static ProjectPropertyRepository creoateProjectPropertyRepository(Vault vault)
+    static AttributeRegistry createAttributeRegistry(VaultStub vault)
     {
-        var projectRepository = new ProjectRepository(vault, new ProjectSettings("Projects"));
-        projectRepository.fullRefresh();
-        var registry = new ValueResolverRegistryImpl(Set.of(
-            new FrontMatterValueResolver(PROJECT_PROPERTIES.get(STATUS), vault),
-            new FrontMatterValueResolver(PROJECT_PROPERTIES.get(LEAD), vault),
-            new FrontMatterValueResolver(PROJECT_PROPERTIES.get(LAST_MODIFIED),
-                vault
-            ),
-            new FrontMatterValueResolver(PROJECT_PROPERTIES.get(PRIORITY), vault)
-        ));
-        var result = new ProjectPropertyRepository(PROJECT_PROPERTIES, projectRepository, registry,
-            new InMemoryFrontMatterCollector(vault)
-        );
-        result.fullRefresh();
-        return result;
+        var vincent = vault.resolveDocumentInPath("Contacts/Vincent");
+        var marieke = vault.resolveDocumentInPath("Contacts/Marieke");
+        var project1 = vault.resolveDocumentInPath("Projects/Project 1");
+        var project2 = vault.resolveDocumentInPath("Projects/Project 2");
+        var project3 = vault.resolveDocumentInPath("Projects/Project 3");
+        return new AttributeRegistryStub()
+            .withAttribute(project1, "lead", vincent)
+            .withAttribute(project1, "status", "🟢")
+            .withAttribute(project1, "last_modified", parseDateOrNull("2025-05-03"))
+            .withAttribute(project2, "lead", marieke)
+            .withAttribute(project2, "status", "In progress")
+            .withAttribute(project3, "lead", vincent)
+            .withAttribute(project3, "priority", 1);
     }
+
+    private static final class AttributeRegistryStub
+        implements AttributeRegistry
+    {
+        private final Map<Project, Map<AttributeDefinition, Object>> attributes = new HashMap<>();
+
+        AttributeRegistryStub withAttribute(Document document, String attributeName, Object value)
+        {
+            attributes.computeIfAbsent(new Project(document), _ -> new HashMap<>())
+                .put(ATTRIBUTE_DEFINITIONS.get(attributeName), value);
+            return this;
+        }
+
+        @Override
+        public Set<Project> projects()
+        {
+            return attributes.keySet();
+        }
+
+        @Override
+        public Collection<AttributeDefinition> attributeDefinitions()
+        {
+            return ATTRIBUTE_DEFINITIONS.values();
+        }
+
+        @Override
+        public Optional<?> attributeValue(Project project, String attributeName)
+        {
+            return attributeValue(project, ATTRIBUTE_DEFINITIONS.get(attributeName));
+        }
+
+        @Override
+        public Optional<?> attributeValue(Project project, AttributeDefinition definition)
+        {
+            return Optional.ofNullable(attributes.get(project).get(definition));
+        }
+
+        @Override
+        public Optional<Project> projectFor(Document document)
+        {
+            return Optional.empty();
+        }
+    }
+
 }

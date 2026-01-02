@@ -14,6 +14,18 @@ package nl.ulso.markdown_curator;
 /// can consume. If there are none, the model is not refreshed. When a data model produces object
 /// types other than it advocates, that is considered a programming error and will throw an
 /// [IllegalStateException].
+///
+/// In case there is a model that consumes changes that are not produced by other data models, the
+/// associated object type must be registered as an [ExternalChangeObjectType] in the system, in the
+/// Dagger module:
+///
+/// ```java
+///     @Provides @IntoSet @ExternalChangeObjectType
+///     static Class<?> provideExternalChangeObjectType()
+///     {
+///         return SomeCustomType.class;
+///     }
+/// ```
 public interface DataModelOrchestrator
 {
     /// Refreshes all data models in the system in the right order and only when needed based on the
