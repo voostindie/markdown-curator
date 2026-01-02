@@ -13,7 +13,7 @@ import static nl.ulso.markdown_curator.vault.Dictionary.mutableDictionary;
 
 @Singleton
 final class FrontMatterCollector
-        implements FrontMatterUpdateCollector, FrontMatterRewriteResolver
+    implements FrontMatterUpdateCollector, FrontMatterRewriteResolver
 {
     private final Vault vault;
     private final Map<String, MutableDictionary> documentFrontMatters;
@@ -33,11 +33,11 @@ final class FrontMatterCollector
 
     @Override
     public void updateFrontMatterFor(
-            Document document, Consumer<MutableDictionary> dictionaryConsumer)
+        Document document, Consumer<MutableDictionary> dictionaryConsumer)
     {
         var documentName = document.name();
         var dictionary =
-                documentFrontMatters.computeIfAbsent(documentName, _ -> mutableDictionary());
+            documentFrontMatters.computeIfAbsent(documentName, _ -> mutableDictionary());
         dictionaryConsumer.accept(dictionary);
         if (dictionary.isEmpty())
         {
@@ -54,7 +54,7 @@ final class FrontMatterCollector
     }
 
     private class FrontMatterRewriteFinder
-            extends BreadthFirstVaultVisitor
+        extends BreadthFirstVaultVisitor
     {
         private final Map<Document, Dictionary> newFrontMatters = new HashMap<>();
 
@@ -63,7 +63,8 @@ final class FrontMatterCollector
         {
             var documentName = document.name();
             var newFrontMatter = computeNewFrontMatter(document.frontMatter(),
-                    documentFrontMatters.get(documentName));
+                documentFrontMatters.get(documentName)
+            );
             if (newFrontMatter != null)
             {
                 newFrontMatters.put(document, newFrontMatter);
@@ -100,8 +101,8 @@ final class FrontMatterCollector
         // If all updates have the same values as their originals, then the update is void and
         // nothing needs to be done.
         private boolean isUpdateVoid(
-                Dictionary original, Dictionary updates,
-                List<String> updatedPropertyNames)
+            Dictionary original, Dictionary updates,
+            List<String> updatedPropertyNames)
         {
             for (String updatedPropertyName : updatedPropertyNames)
             {
@@ -123,13 +124,13 @@ final class FrontMatterCollector
         // If there are updates, then create new front matter, as a copy of the original, with the
         // updates applied, and an extra property that lists all the updates keys.
         private MutableDictionary createNewDictionary(
-                Dictionary original, Dictionary updates, List<String> updatedPropertyNames)
+            Dictionary original, Dictionary updates, List<String> updatedPropertyNames)
         {
             var newDictionary = Dictionary.mutableDictionary(original);
             for (String updatedPropertyName : updatedPropertyNames)
             {
                 updates.getProperty(updatedPropertyName).ifPresent(property ->
-                        newDictionary.setProperty(updatedPropertyName, property));
+                    newDictionary.setProperty(updatedPropertyName, property));
             }
             newDictionary.setProperty(PROPERTY_GENERATED_KEYS, updatedPropertyNames);
             return newDictionary;

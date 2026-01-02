@@ -28,7 +28,7 @@ final class AttributeRegistryImpl
             this::processProjectDeletion
         );
         registerChangeHandler(
-            isObjectType(AttributeValue.class).and(isCreate().or(isUpdate())),
+            isObjectType(AttributeValue.class).and(isCreateOrUpdate()),
             this::processAttributeValueChange
         );
         registerChangeHandler(

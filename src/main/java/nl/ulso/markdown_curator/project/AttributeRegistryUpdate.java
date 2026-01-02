@@ -10,7 +10,7 @@ import static nl.ulso.markdown_curator.Change.update;
 /// Object produced by the [AttributeRegistry] whenever it processed one or more changes.
 ///
 /// The registry always produces either zero or one [AttributeRegistryUpdate] objects.
-record AttributeRegistryUpdate()
+public record AttributeRegistryUpdate()
 {
     static final Collection<Change<?>> REGISTRY_CHANGE =
         List.of(update(new AttributeRegistryUpdate(), AttributeRegistryUpdate.class));

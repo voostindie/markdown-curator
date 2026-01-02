@@ -16,6 +16,10 @@ import java.util.*;
 /// Values are not only made available to other parts of the system through this registry, they are
 /// also persisted in the front matter of the underlying project documents. See
 /// [FrontMatterAttributeProducer].
+///
+/// The registry is fully updated when a [AttributeRegistryUpdate] is published on the changelog.
+/// Change processors that depend on this registry should consume that object to ensure it comes
+/// after.
 public interface AttributeRegistry
 {
     /// @return All attribute definitions managed by this registry.

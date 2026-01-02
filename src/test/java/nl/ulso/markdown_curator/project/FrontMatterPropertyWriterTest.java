@@ -4,26 +4,21 @@ import nl.ulso.markdown_curator.FrontMatterUpdateCollector;
 import nl.ulso.markdown_curator.project.ProjectTestData.AttributeRegistryStub;
 import nl.ulso.markdown_curator.vault.*;
 import nl.ulso.markdown_curator.vault.Dictionary;
-import org.assertj.core.api.SoftAssertions;
-import org.assertj.core.api.junit.jupiter.InjectSoftAssertions;
-import org.assertj.core.api.junit.jupiter.SoftAssertionsExtension;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 
-import java.time.LocalDate;
 import java.util.*;
 import java.util.function.Consumer;
 
+import static nl.ulso.markdown_curator.Change.create;
+import static nl.ulso.markdown_curator.Change.delete;
 import static nl.ulso.markdown_curator.Changelog.changelogFor;
+import static nl.ulso.markdown_curator.project.ProjectTestData.ATTRIBUTE_DEFINITIONS;
+import static nl.ulso.markdown_curator.vault.Dictionary.mutableDictionary;
 import static org.assertj.core.api.Assertions.assertThat;
 
-@ExtendWith(SoftAssertionsExtension.class)
 class FrontMatterPropertyWriterTest
 {
-    @InjectSoftAssertions
-    private SoftAssertions softly;
-
     private VaultStub vault;
     private AttributeRegistryStub registry;
     private FrontMatterPropertyWriter writer;
@@ -52,26 +47,51 @@ class FrontMatterPropertyWriterTest
     }
 
     @Test
-    void attributeValuesBecomeFrontMatter()
+    void attributeValueUpdateBecomesFrontMatter()
     {
-        registry
-            .withAttribute(
-                vault.resolveDocumentInPath("Projects/Project 1"),
-                "status",
-                "NEW FRONTMATTER"
-            )
-            .withAttribute(
-                vault.resolveDocumentInPath("Projects/Project 2"),
-                "last_modified",
-                LocalDate.of(2026, 1, 2)
-            );
-        writer.run(changelogFor(AttributeRegistryUpdate.REGISTRY_CHANGE));
-        softly.assertThat(
-                collector.frontMatterUpdates.get("Project 1").string("status", null))
+        registry.withAttribute(
+            vault.resolveDocumentInPath("Projects/Project 1"),
+            "status",
+            "NEW FRONTMATTER"
+        );
+        var changelog = changelogFor(
+            create(
+                new AttributeValue(
+                    new Project(vault.resolveDocumentInPath("Projects/Project 1")),
+                    ATTRIBUTE_DEFINITIONS.get("status"),
+                    "NEW FRONTMATTER",
+                    0
+                ),
+                AttributeValue.class
+            ),
+            AttributeRegistryUpdate.REGISTRY_CHANGE.iterator().next()
+        );
+        writer.run(changelog);
+        assertThat(collector.frontMatterUpdates.get("Project 1").string("status", null))
             .isEqualTo("NEW FRONTMATTER");
-        softly.assertThat(
-                collector.frontMatterUpdates.get("Project 2").date("last_modified", null))
-            .isEqualTo(LocalDate.of(2026, 1, 2));
+    }
+
+    @Test
+    void attributeValueDeleteRemovesFrontMatter()
+    {
+        var changelog = changelogFor(
+            delete(
+                new AttributeValue(
+                    new Project(vault.resolveDocumentInPath("Projects/Project 3")),
+                    ATTRIBUTE_DEFINITIONS.get("status"),
+                    null,
+                    0
+                ),
+                AttributeValue.class
+            ),
+            AttributeRegistryUpdate.REGISTRY_CHANGE.iterator().next()
+        );
+        var dictionary = mutableDictionary();
+        dictionary.setProperty("status", "NEW FRUNTMATTER");
+        collector.frontMatterUpdates.put("Project 3", dictionary);
+        writer.run(changelog);
+        assertThat(collector.frontMatterUpdates.get("Project 3").string("status", null))
+            .isNull();
     }
 
     private static class FrontMatterUpdateCollectorStub
@@ -91,7 +111,7 @@ class FrontMatterPropertyWriterTest
             Consumer<MutableDictionary> dictionaryConsumer)
         {
             var dictionary = frontMatterUpdates
-                .computeIfAbsent(document.name(), _ -> Dictionary.mutableDictionary());
+                .computeIfAbsent(document.name(), _ -> mutableDictionary());
             dictionaryConsumer.accept(dictionary);
         }
     }
