@@ -9,9 +9,9 @@ import nl.ulso.markdown_curator.vault.Dictionary;
 import java.time.LocalDate;
 import java.util.*;
 
-import static nl.ulso.markdown_curator.Change.Kind.DELETION;
-import static nl.ulso.markdown_curator.Change.creation;
-import static nl.ulso.markdown_curator.Change.deletion;
+import static nl.ulso.markdown_curator.Change.Kind.DELETE;
+import static nl.ulso.markdown_curator.Change.create;
+import static nl.ulso.markdown_curator.Change.delete;
 
 /// Produces attribute values for all available attribute definitions from front matter properties.
 ///
@@ -19,7 +19,7 @@ import static nl.ulso.markdown_curator.Change.deletion;
 /// producer have a weight of 0 and are expected to be overruled by other attribute producers.
 @Singleton
 public final class FrontMatterAttributeProducer
-    extends DataModelTemplate
+    extends ChangeProcessorTemplate
 {
     private static final int WEIGHT = 0;
     private final Map<String, AttributeDefinition> attributeDefinitions;
@@ -51,12 +51,6 @@ public final class FrontMatterAttributeProducer
         return false;
     }
 
-    @Override
-    public Collection<Change<?>> fullRefresh()
-    {
-        throw new IllegalStateException("This method should never be called!");
-    }
-
     private Collection<Change<?>> processProject(Change<?> change)
     {
         var project = change.objectAs(Project.class);
@@ -64,9 +58,9 @@ public final class FrontMatterAttributeProducer
         var changes = new ArrayList<Change<?>>();
         for (var definition : attributeDefinitions.values())
         {
-            if (change.kind() == DELETION)
+            if (change.kind() == DELETE)
             {
-                changes.add(deletion(
+                changes.add(delete(
                     new AttributeValue(project, definition, null, WEIGHT),
                     AttributeValue.class
                 ));
@@ -77,7 +71,7 @@ public final class FrontMatterAttributeProducer
                 var frontMatter = document.frontMatter();
                 convertProperty(frontMatterProperty, frontMatter, definition).ifPresentOrElse(
                     value ->
-                        changes.add(creation(
+                        changes.add(create(
                                 new AttributeValue(
                                     project,
                                     definition,
@@ -88,7 +82,7 @@ public final class FrontMatterAttributeProducer
                             )
                         ),
                     () ->
-                        changes.add(deletion(
+                        changes.add(delete(
                                 new AttributeValue(
                                     project,
                                     definition,

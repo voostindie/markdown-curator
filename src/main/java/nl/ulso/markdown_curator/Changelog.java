@@ -4,8 +4,19 @@ import java.util.Collection;
 import java.util.Set;
 import java.util.stream.Stream;
 
-/// Log of changes applied by [DataModel]s in their [DataModel#process(Changelog)] method. Other
-/// data models can use this log to better determine what happened.
+/// Log of changes consumed and produced by [ChangeProcessor]s.
+///
+/// The changelog acts like an event bus with multiple topics. Events on the bus are [Change]s, the
+/// topics are the object types of the [Change]. At the same time the changelog is a sequential log
+/// of what's happening in a single run of the system, whenever a change is detected.
+///
+/// Starting with an initial change - typically a change to a file in the vault - all
+/// [ChangeProcessor]s that consume vault changes are executed in order. In turn they can produce
+/// other changes with other, domain-specific object types, to be picked up by other
+/// [ChangeProcessor]s later in the same run. At the end of the run the full changelog provides
+/// a complete view on what has happened.
+///
+/// @see ChangeProcessor
 public interface Changelog
 {
     static Changelog emptyChangelog()

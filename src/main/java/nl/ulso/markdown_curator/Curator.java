@@ -22,31 +22,32 @@ import static java.util.concurrent.Executors.newVirtualThreadPerTaskExecutor;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static java.util.stream.Collectors.groupingBy;
 import static nl.ulso.hash.ShortHasher.shortHashOf;
-import static nl.ulso.markdown_curator.Change.Kind.MODIFICATION;
-import static nl.ulso.markdown_curator.Change.modification;
+import static nl.ulso.markdown_curator.Change.Kind.UPDATE;
+import static nl.ulso.markdown_curator.Change.update;
 import static nl.ulso.markdown_curator.DocumentRewriter.rewriteDocument;
 import static nl.ulso.markdown_curator.vault.Dictionary.emptyDictionary;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
- * Markdown curator on top of a {@link Vault} and custom {@link DataModel}s and {@link Query}s.
+ * Markdown curator on top of a {@link Vault} and custom {@link ChangeProcessor}s and
+ * {@link Query}s.
  * <p/>
- * Whenever a change in the underlying vault is detected, the data models are refreshed, after which
- * all queries are collected from all documents in the vault, executed and compared to the existing
- * query results as stored inside the documents. If a query result has changed, the document that
- * contains it is rewritten to disk, with the old query result replaced.
+ * Whenever a change in the underlying vault is detected, the change processors are executed, after
+ * which all queries are collected from all documents in the vault, executed and compared to the
+ * existing query results as stored inside the documents. If a query result has changed, the
+ * document that contains it is rewritten to disk, with the old query result replaced.
  * <p/>
  * Queries are not executed after every detected change. Instead, the running of queries and writing
  * of documents to disk is scheduled to take place after a short delay. If during this delay new
- * changes come in the task is rescheduled. This prevents superfluous query execution and writes to
+ * changes come in, the task is rescheduled. This prevents superfluous query execution and writes to
  * disk, at the cost of the user having to wait a little while after saving the last change. This is
- * especially useful when using Obsidian, which automatically write changes to disk every few
+ * especially useful when using Obsidian, which automatically writes changes to disk every few
  * seconds.
  * <p/>
  * This curator runs all queries, of which there can be many, in parallel. Once all queries have
- * completed the documents whose contents have changed are written back to disk, sequentially. In
+ * completed, the documents whose contents have changed are written back to disk, sequentially. In
  * practice there are many queries embedded in documents, while the number of documents that need
- * updating is limited, because most queries won't have new output.
+ * updating is limited because most queries won't have new output.
  * <p/>
  * I haven't taken the time to prove that this parallel implementation is faster than a sequential
  * one. I applied parallelism simply because I don't want the 10 cores of the M1 Pro processor in my
@@ -62,7 +63,7 @@ public class Curator
     private final DocumentPathResolver documentPathResolver;
     private final FrontMatterRewriteResolver frontMatterRewriteResolver;
     private final QueryCatalog queryCatalog;
-    private final DataModelOrchestrator dataModelProcessor;
+    private final ChangeProcessorOrchestrator changeProcessorOrchestrator;
     private final Map<String, Long> writtenDocuments;
     private final ExecutorService parallelExecutor;
     private final ScheduledExecutorService delayedExecutor;
@@ -73,13 +74,13 @@ public class Curator
     public Curator(
         Vault vault, DocumentPathResolver documentPathResolver,
         FrontMatterRewriteResolver frontMatterRewriteResolver, QueryCatalog queryCatalog,
-        DataModelOrchestrator dataModelProcessor)
+        ChangeProcessorOrchestrator changeProcessorOrchestrator)
     {
         this.vault = vault;
         this.documentPathResolver = documentPathResolver;
         this.frontMatterRewriteResolver = frontMatterRewriteResolver;
         this.queryCatalog = queryCatalog;
-        this.dataModelProcessor = dataModelProcessor;
+        this.changeProcessorOrchestrator = changeProcessorOrchestrator;
         this.writtenDocuments = new HashMap<>();
         this.parallelExecutor = newVirtualThreadPerTaskExecutor();
         this.delayedExecutor = newScheduledThreadPool(1);
@@ -90,14 +91,14 @@ public class Curator
     public void runOnce()
     {
         LOGGER.info("Running this curator once");
-        vaultChanged(modification(vault, Vault.class));
+        vaultChanged(update(vault, Vault.class));
         cancelQueryWriteRunIfPresent();
         performQueryWriteRun();
     }
 
     public void run()
     {
-        dataModelProcessor.refreshAllDataModels(modification(vault, Vault.class));
+        changeProcessorOrchestrator.runFor(update(vault, Vault.class));
         vault.setVaultChangedCallback(this);
         vault.watchForChanges();
     }
@@ -114,7 +115,7 @@ public class Curator
             LOGGER.debug(">".repeat(80));
         }
         cancelQueryWriteRunIfPresent();
-        dataModelProcessor.refreshAllDataModels(change);
+        changeProcessorOrchestrator.runFor(change);
         scheduleQueryWriteRun();
         if (LOGGER.isDebugEnabled())
         {
@@ -133,7 +134,7 @@ public class Curator
      */
     private boolean checkSelfTriggeredUpdate(Change<?> change)
     {
-        if (!(change.objectType().equals(Document.class) && change.kind() == MODIFICATION))
+        if (!(change.objectType().equals(Document.class) && change.kind() == UPDATE))
         {
             return false;
         }

@@ -1,18 +1,19 @@
 package nl.ulso.markdown_curator;
 
 import com.google.common.jimfs.Configuration;
-import com.google.common.jimfs.Jimfs;
 
 import java.io.IOException;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
+
+import static com.google.common.jimfs.Jimfs.newFileSystem;
 
 abstract class InMemoryCuratorModule
 {
     protected static Path copyVaultToMemory(Path sourceRoot, String targetPath)
     {
         var configuration = Configuration.unix().toBuilder().build();
-        var targetFileSystem = Jimfs.newFileSystem(configuration);
+        var targetFileSystem = newFileSystem(configuration);
         var targetRoot = targetFileSystem.getPath(targetPath);
         try
         {
@@ -42,7 +43,7 @@ abstract class InMemoryCuratorModule
      * actual filesystem, while the target is in memory.
      */
     private static class RecursiveCopier
-            extends SimpleFileVisitor<Path>
+        extends SimpleFileVisitor<Path>
     {
         private final Path sourceRoot;
         private final Path targetRoot;
@@ -55,9 +56,9 @@ abstract class InMemoryCuratorModule
 
         @Override
         public FileVisitResult preVisitDirectory(
-                Path sourceDirectory,
-                BasicFileAttributes attributes)
-                throws IOException
+            Path sourceDirectory,
+            BasicFileAttributes attributes)
+            throws IOException
         {
             Path targetPath = resolveTargetPath(sourceDirectory);
             Files.createDirectory(targetPath);
@@ -66,7 +67,7 @@ abstract class InMemoryCuratorModule
 
         @Override
         public FileVisitResult visitFile(Path sourceFile, BasicFileAttributes attributes)
-                throws IOException
+            throws IOException
         {
             Files.copy(sourceFile, resolveTargetPath(sourceFile));
             return FileVisitResult.CONTINUE;

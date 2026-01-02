@@ -23,9 +23,9 @@ import static java.text.Normalizer.normalize;
 import static java.util.Collections.reverse;
 import static java.util.Objects.requireNonNull;
 import static java.util.Optional.empty;
-import static nl.ulso.markdown_curator.Change.creation;
-import static nl.ulso.markdown_curator.Change.deletion;
-import static nl.ulso.markdown_curator.Change.modification;
+import static nl.ulso.markdown_curator.Change.create;
+import static nl.ulso.markdown_curator.Change.delete;
+import static nl.ulso.markdown_curator.Change.update;
 import static nl.ulso.markdown_curator.vault.Document.newDocument;
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -166,7 +166,7 @@ public final class FileSystemVault
             try
             {
                 walkFileTree(eventAbsolutePath, new VaultBuilder(folder, eventAbsolutePath));
-                return creation(folder, Folder.class);
+                return create(folder, Folder.class);
             }
             catch (IOException e)
             {
@@ -178,7 +178,7 @@ public final class FileSystemVault
             var document = newDocumentFromAbsolutePath(eventAbsolutePath);
             LOGGER.debug("Detected new document: {}", document);
             parent.addDocument(document);
-            return creation(document, Document.class);
+            return create(document, Document.class);
         }
         return null;
     }
@@ -192,7 +192,7 @@ public final class FileSystemVault
             var document = newDocumentFromAbsolutePath(eventAbsolutePath);
             LOGGER.debug("Detected changes to document {}.", document);
             parent.addDocument(document);
-            return modification(document, Document.class);
+            return update(document, Document.class);
         }
         return null;
     }
@@ -208,7 +208,7 @@ public final class FileSystemVault
             {
                 LOGGER.debug("Document deleted: {}", name);
                 parent.removeDocument(name);
-                return deletion(document, Document.class);
+                return delete(document, Document.class);
             }).orElse(null);
         }
         else
@@ -218,7 +218,7 @@ public final class FileSystemVault
             {
                 LOGGER.debug("Folder deleted: {}", name);
                 parent.removeFolder(name);
-                return deletion(folder, Folder.class);
+                return delete(folder, Folder.class);
             }).orElse(null);
         }
     }

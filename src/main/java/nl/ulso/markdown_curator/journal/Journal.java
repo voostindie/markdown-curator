@@ -19,10 +19,10 @@ import static java.util.Comparator.naturalOrder;
 import static java.util.Comparator.reverseOrder;
 import static java.util.stream.Collectors.toMap;
 import static java.util.stream.Collectors.toUnmodifiableSet;
-import static nl.ulso.markdown_curator.Change.Kind.DELETION;
-import static nl.ulso.markdown_curator.Change.creation;
-import static nl.ulso.markdown_curator.Change.deletion;
-import static nl.ulso.markdown_curator.Change.modification;
+import static nl.ulso.markdown_curator.Change.Kind.DELETE;
+import static nl.ulso.markdown_curator.Change.create;
+import static nl.ulso.markdown_curator.Change.delete;
+import static nl.ulso.markdown_curator.Change.update;
 import static nl.ulso.markdown_curator.journal.JournalBuilder.parseDateFrom;
 import static nl.ulso.markdown_curator.journal.JournalBuilder.parseWeeklyFrom;
 import static nl.ulso.markdown_curator.vault.Dictionary.emptyDictionary;
@@ -31,7 +31,7 @@ import static org.slf4j.LoggerFactory.getLogger;
 
 @Singleton
 public class Journal
-    extends DataModelTemplate
+    extends ChangeProcessorTemplate
 {
     private static final Logger LOGGER = getLogger(Journal.class);
 
@@ -64,12 +64,12 @@ public class Journal
     protected boolean isFullRefreshRequired(Changelog changelog)
     {
         return super.isFullRefreshRequired(changelog) ||
-               changelog.changes().anyMatch(isJournalFolder().and(isDeletion().or(isCreation())));
+               changelog.changes().anyMatch(isJournalFolder().and(isDelete().or(isCreate())));
     }
 
     private Predicate<Change<?>> isJournalFolder()
     {
-        return hasObjectType(Folder.class).and((Change<?> change) ->
+        return isObjectType(Folder.class).and((Change<?> change) ->
         {
             var folder = (Folder) change.object();
             return vault.folder(settings.journalFolderName())
@@ -80,13 +80,27 @@ public class Journal
 
     private Predicate<Change<?>> isJournalEntry()
     {
-        return hasObjectType(Document.class).and((Change<?> change) ->
+        return isObjectType(Document.class).and((Change<?> change) ->
         {
             var document = (Document) change.object();
             return vault.folder(settings.journalFolderName())
                 .map(root -> isInHierarchyOf(vault, root, document.folder()))
                 .orElse(false);
         });
+    }
+
+    private boolean isInHierarchyOf(Vault vault, Folder parent, Folder child)
+    {
+        var folder = child;
+        while (folder != parent)
+        {
+            if (folder == vault)
+            {
+                return false;
+            }
+            folder = folder.parent();
+        }
+        return true;
     }
 
     private Predicate<Change<?>> isDailyEntry()
@@ -124,12 +138,12 @@ public class Journal
         builder.dailies().forEach(daily ->
         {
             dailies.put(daily.date(), daily);
-            changes.add(creation(daily, Daily.class));
+            changes.add(create(daily, Daily.class));
         });
         builder.weeklies().forEach(weekly ->
         {
             weeklies.add(weekly);
-            changes.add(creation(weekly, Weekly.class));
+            changes.add(create(weekly, Weekly.class));
         });
         weeklies.addAll(builder.weeklies());
         vault.folder(settings.journalFolderName())
@@ -139,7 +153,7 @@ public class Journal
                 {
                     var marker = new Marker(document);
                     markers.put(document.name(), marker);
-                    changes.add(creation(marker, Marker.class));
+                    changes.add(create(marker, Marker.class));
                 }));
         if (LOGGER.isDebugEnabled())
         {
@@ -159,11 +173,11 @@ public class Journal
             throw new IllegalStateException(
                 "Cannot parse date from document name: " + document.name());
         }
-        if (change.kind() == DELETION)
+        if (change.kind() == DELETE)
         {
             var daily = dailies.remove(date);
             LOGGER.debug("Removed daily {} from the journal", date);
-            return List.of(deletion(daily, Daily.class));
+            return List.of(delete(daily, Daily.class));
         }
         else
         {
@@ -174,11 +188,11 @@ public class Journal
             LOGGER.debug("Updated the journal for {}", document.name());
             if (previous == null)
             {
-                return List.of(creation(daily, Daily.class));
+                return List.of(create(daily, Daily.class));
             }
             else
             {
-                return List.of(modification(daily, Daily.class));
+                return List.of(update(daily, Daily.class));
             }
         }
     }
@@ -188,22 +202,22 @@ public class Journal
         var document = (Document) change.object();
         var newChange = parseWeeklyFrom(document).map(weekly ->
         {
-            if (change.kind() == DELETION)
+            if (change.kind() == DELETE)
             {
                 weeklies.remove(weekly);
                 LOGGER.debug("Removed weekly {} from the journal", weekly);
-                return deletion(weekly, Weekly.class);
+                return delete(weekly, Weekly.class);
             }
             else
             {
                 LOGGER.debug("Updated the journal for {}", document.name());
                 if (weeklies.add(weekly))
                 {
-                    return creation(weekly, Weekly.class);
+                    return create(weekly, Weekly.class);
                 }
                 else
                 {
-                    return modification(weekly, Weekly.class);
+                    return update(weekly, Weekly.class);
                 }
             }
         }).orElseThrow(() -> new IllegalStateException(
@@ -215,16 +229,16 @@ public class Journal
     private Collection<Change<?>> handleMarkerUpdate(Change<?> change)
     {
         var document = (Document) change.object();
-        if (change.kind() == DELETION)
+        if (change.kind() == DELETE)
         {
             var marker = markers.remove(document.name());
-            return List.of(deletion(marker, Marker.class));
+            return List.of(delete(marker, Marker.class));
         }
         else
         {
             var marker = new Marker(document);
             markers.put(document.name(), marker);
-            return List.of(creation(marker, Marker.class));
+            return List.of(create(marker, Marker.class));
         }
     }
 

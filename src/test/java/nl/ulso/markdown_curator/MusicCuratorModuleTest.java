@@ -13,7 +13,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.util.Queue;
 
-import static nl.ulso.markdown_curator.Change.modification;
+import static nl.ulso.markdown_curator.Change.update;
 import static nl.ulso.markdown_curator.vault.ElementCounter.countAll;
 import static nl.ulso.markdown_curator.vault.QueryBlockTest.emptyQueryBlock;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -155,7 +155,7 @@ class MusicCuratorModuleTest
     @Test
     void runAllQueries()
     {
-        musicCurator.vaultChanged(modification(vault, Vault.class));
+        musicCurator.vaultChanged(update(vault, Vault.class));
         Queue<QueryOutput> items = musicCurator.runAllQueries();
         // We expect only (and all) queries in "queries-blank" to have new output:
         var list = items.stream()

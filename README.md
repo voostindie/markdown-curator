@@ -51,7 +51,7 @@ By default, this tool provides just a couple of built-in generic queries. See th
 
 This tool also provided optional queries, in separate modules. By plugging in these modules into your application and providing some necessary configuration, you instantly gain additional queries to use.
 
-To use this system, you have to code your own Java application, define this tool as a dependency, and implement your own curator, custom data models, and custom queries. See further on for an example.
+To use this system, you have to code your own Java application, define this tool as a dependency, and implement your own curator, custom change processors, and custom queries. See further on for an example.
 
 The [markdown-demo-curator](https://github.com/voostindie/markdown-curator-demo) provides a simple example of a repository of notes and an application on top of it to monitor it for changes and process queries.
 
@@ -133,7 +133,7 @@ Creating your own application means that you'll need to:
 - Create a new Java artifact
 - Create and publish a custom curator
 - Create and register one or more queries
-- Create your own custom data models
+- Create your own custom change processors
 
 ### Create a new Java artifact
 
@@ -176,30 +176,30 @@ Try changing a file in any Markdown document in your document repository now. Fo
 
 Rebooting your application should result in the availability of the new query.
 
-### Create your own custom data models
+### Create your own custom change processors
 
 Once you've implemented a couple of queries, you might run into one or two issues:
 
 1. **Duplication**. Extracting specific values from documents might be complex, and the same values might be needed across queries.
 2. **Heavy processing**. Running many queries across large data sets on every change, no matter how small, can be CPU intensive.
 
-To solve these issues, you can create your own data models, which you can then build your queries upon.
+To solve these issues, you can create your own change processors that can transform incoming changes to the vault into other things like custom data models, which you can then build your queries upon.
 
-To do so, implement the `DataModel` interface and register it in your curator module:
+To do so, implement the `ChangeProcessor` interface and register it in your curator module:
 
 ```java
-@Binds @IntoSet abstract DataModel bindMyOwnCustomDataModel(MyOwnCustomDataModel dataModel);
+@Binds @IntoSet abstract ChangeProcessor bindMyOwnCustomProcessor(MyOwnCustomChangeProcessor processor);
 ```
 
-Now you can use (inject) it in your own queries. Whenever a change is detected, the curator requests your data models to update themselves accordingly, through the `vaultChanged` method. It runs the queries afterward. 
+Whenever a change is detected, the curator executes your processors to handle the incoming change, optionally producing new changes for your own domain objects. After all processors have been executed it runs the queries. 
 
-> The curator *always* runs all queries. It's not smart enough to detect that a query depends on a specific `DataModel` and that the `DataModel` might not have changed internally. This would require information that is not available at run-time, except through reflection, which this library is not using. A possible solution is to build a Dagger plugin that extracts the necessary information. That would be cool, but would also be solving a problem that I currently do not have; see the FAQ.
+> The curator *always* runs all queries. It's not (yet) smart enough to detect that a query's output will not change based on the changes processed. That would be a cool feature to add to the system, but it would also be solving a problem that I currently do not have; see the FAQ.
 
-**IMPORTANT**: make sure your data models are registered as `@Singleton`s!
+**IMPORTANT**: make sure your change processor are registered as `@Singleton`s!
 
-By extending the `DataModelTemplate` class you get full refreshes basically for free, and an easy way to process events in a more granular fashion, if so desired: override the `process` methods of choice and provide your own implementation.
+By extending the `ChangeProcessorTemplate` class you get the choice between full and incremental change processing, and an easy way to split the logic of the various processing in separate methods.
 
-As an example of a custom data model, see the built-in `Journal` or `ProjectRepository` models.
+As an example of a custom change processor, see the built-in `Journal` or `ProjectRepository`.
 
 ## Query collections
 
@@ -469,7 +469,7 @@ I've gone out of my way to limit both the amount of memory and CPU it uses. This
 
 However, this application reads *all* Markdown files in memory and keeps them there. Note that this is *excluding* the output of the queries in the content; those are only kept in memory during a processing run. I made this choice explicitly; see ADR00003. This means that the amount of memory used grows with the number and size of documents in a repository. Since those documents are normally written by hand, I figured it would take about forever to use more memory than is available in modern hardware. And by that time the amount of memory will likely have doubled at least. 
 
-When changes are detected, the application kicks in by first refreshing all data models, then running all queries embedded in the content, and finally writing to disk only those files that have changed. The queries run in parallel, using Java virtual threads.
+When changes are detected, the application kicks in by first executing all available change processors, then running all queries embedded in the content, and finally writing to disk only those files that have changed. The queries run in parallel, using Java virtual threads.
 
 This is all nice and good, but what does it actually mean?
 

@@ -15,7 +15,7 @@ import static java.util.Collections.emptyList;
 /// internal registry.
 @Singleton
 public final class FrontMatterPropertyWriter
-    extends DataModelTemplate
+    extends ChangeProcessorTemplate
 {
     private final AttributeRegistry attributeRegistry;
     private final FrontMatterUpdateCollector frontMatterUpdateCollector;
@@ -32,13 +32,7 @@ public final class FrontMatterPropertyWriter
     @Override
     public Set<Class<?>> consumedObjectTypes()
     {
-        return Set.of(AttributeValue.class);
-    }
-
-    @Override
-    public Set<?> dependentModels()
-    {
-        return Set.of(attributeRegistry);
+        return Set.of(AttributeRegistryUpdate.class);
     }
 
     @Override

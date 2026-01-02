@@ -4,9 +4,9 @@ import nl.ulso.markdown_curator.vault.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import static nl.ulso.markdown_curator.Change.creation;
-import static nl.ulso.markdown_curator.Change.deletion;
-import static nl.ulso.markdown_curator.Change.modification;
+import static nl.ulso.markdown_curator.Change.create;
+import static nl.ulso.markdown_curator.Change.delete;
+import static nl.ulso.markdown_curator.Change.update;
 import static nl.ulso.markdown_curator.Changelog.changelogFor;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -41,7 +41,7 @@ class LinksModelTest
     void newDocumentBazFixesDeadLinks()
     {
         var document = vault.addDocumentInPath("baz", "");
-        model.process(changelogFor(creation(document, Document.class)));
+        model.run(changelogFor(create(document, Document.class)));
         assertThat(model.deadLinksFor("foo")).isEmpty();
     }
 
@@ -49,7 +49,7 @@ class LinksModelTest
     void updatedDocumentFixedDeadLinks()
     {
         var document = vault.addDocumentInPath("a/foo", "[[bar]]");
-        model.process(changelogFor(modification(document, Document.class)));
+        model.run(changelogFor(update(document, Document.class)));
         assertThat(model.deadLinksFor("foo")).isEmpty();
     }
 
@@ -57,7 +57,7 @@ class LinksModelTest
     void removedDocumentBarAddsDeadLinks()
     {
         var bar = vault.resolveDocumentInPath("b/bar");
-        model.process(changelogFor(deletion(bar, Document.class)));
+        model.run(changelogFor(delete(bar, Document.class)));
         assertThat(model.deadLinksFor("foo")).hasSize(2);
     }
 
@@ -65,14 +65,14 @@ class LinksModelTest
     void newFolderFixesDeadLinks()
     {
         vault.addDocumentInPath("folder/baz", "");
-        model.process(changelogFor(creation(vault.folder("folder").orElseThrow(), Folder.class)));
+        model.run(changelogFor(create(vault.folder("folder").orElseThrow(), Folder.class)));
         assertThat(model.deadLinksFor("foo")).isEmpty();
     }
 
     @Test
     void deletedFolderAddsDeadLinks()
     {
-        model.process(changelogFor(deletion(vault.folder("b").orElseThrow(), Folder.class)));
+        model.run(changelogFor(delete(vault.folder("b").orElseThrow(), Folder.class)));
         assertThat(model.deadLinksFor("foo")).hasSize(2);
     }
 }

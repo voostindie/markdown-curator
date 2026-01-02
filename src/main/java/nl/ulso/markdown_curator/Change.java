@@ -4,24 +4,24 @@ public interface Change<T>
 {
     enum Kind
     {
-        CREATION,
-        MODIFICATION,
-        DELETION
+        CREATE,
+        UPDATE,
+        DELETE
     }
 
-    static <T> Change<T> creation(T object, Class<T> objectType)
+    static <T> Change<T> create(T object, Class<T> objectType)
     {
-        return new ChangeImpl<>(object, objectType, Kind.CREATION);
+        return new ChangeImpl<>(object, objectType, Kind.CREATE);
     }
 
-    static <T> Change<T> modification(T object, Class<T> objectType)
+    static <T> Change<T> update(T object, Class<T> objectType)
     {
-        return new ChangeImpl<>(object, objectType, Kind.MODIFICATION);
+        return new ChangeImpl<>(object, objectType, Kind.UPDATE);
     }
 
-    static <T> Change<T> deletion(T object, Class<T> objectType)
+    static <T> Change<T> delete(T object, Class<T> objectType)
     {
-        return new ChangeImpl<>(object, objectType, Kind.DELETION);
+        return new ChangeImpl<>(object, objectType, Kind.DELETE);
     }
 
     T object();

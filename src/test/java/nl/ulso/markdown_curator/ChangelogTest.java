@@ -4,7 +4,7 @@ import org.junit.jupiter.api.Test;
 
 import java.util.Set;
 
-import static nl.ulso.markdown_curator.Change.creation;
+import static nl.ulso.markdown_curator.Change.create;
 import static nl.ulso.markdown_curator.Changelog.changelogFor;
 import static nl.ulso.markdown_curator.Changelog.emptyChangelog;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -28,14 +28,14 @@ class ChangelogTest
     @Test
     void changelogWithOneEntryisNotEmpty()
     {
-        var changelog = changelogFor(creation(new Object(), Object.class));
+        var changelog = changelogFor(create(new Object(), Object.class));
         assertThat(changelog.isEmpty()).isFalse();
     }
 
     @Test
     void changelogWithOneEntryHasOneItem()
     {
-        var items = changelogFor(creation(new Object(), Object.class)).changes().toList();
+        var items = changelogFor(create(new Object(), Object.class)).changes().toList();
         assertThat(items).hasSize(1);
 
     }
@@ -60,7 +60,7 @@ class ChangelogTest
     @Test
     void appendingEmptyChangelogToNonEmptyChangelogResultsInFirstChangelog()
     {
-        var log1 = changelogFor(creation(new Object(), Object.class));
+        var log1 = changelogFor(create(new Object(), Object.class));
         var log2 = emptyChangelog();
         assertThat(log1.append(log2)).isSameAs(log1);
     }
@@ -69,7 +69,7 @@ class ChangelogTest
     void appendingNonEmptyChangelogToEmptyChangelogResultsInSecondChangelog()
     {
         var log1 = emptyChangelog();
-        var log2 = changelogFor(creation(new Object(), Object.class));
+        var log2 = changelogFor(create(new Object(), Object.class));
         assertThat(log1.append(log2)).isSameAs(log2);
     }
 
@@ -77,9 +77,9 @@ class ChangelogTest
     void objectTypesCanBeMixed()
     {
         var changelog = changelogFor(
-            creation(new Object(), Object.class),
-            creation(42, Integer.class),
-            creation(true, Boolean.class)
+            create(new Object(), Object.class),
+            create(42, Integer.class),
+            create(true, Boolean.class)
         );
         assertThat(changelog.changes().toList()).hasSize(3);
     }
@@ -88,9 +88,9 @@ class ChangelogTest
     void mixedObjectTypesCanBeSplit()
     {
         var changelog = changelogFor(
-            creation(new Object(), Object.class),
-            creation(42, Integer.class),
-            creation(true, Boolean.class)
+            create(new Object(), Object.class),
+            create(42, Integer.class),
+            create(true, Boolean.class)
         );
         var changes = changelog.changesFor(Object.class).toList();
         assertThat(changes).hasSize(1);
@@ -100,9 +100,9 @@ class ChangelogTest
     void changedObjectsAreTypeSafe()
     {
         var changelog = changelogFor(
-            creation(new Object(), Object.class),
-            creation(42, Integer.class),
-            creation(true, Boolean.class)
+            create(new Object(), Object.class),
+            create(42, Integer.class),
+            create(true, Boolean.class)
         );
         var changes = changelog.changesFor(Integer.class).toList();
         var object = changes.getFirst().object();
@@ -113,9 +113,9 @@ class ChangelogTest
     void changeLogsCanBeFiltered()
     {
         var changelog = changelogFor(
-            creation(new Object(), Object.class),
-            creation(42, Integer.class),
-            creation(true, Boolean.class)
+            create(new Object(), Object.class),
+            create(42, Integer.class),
+            create(true, Boolean.class)
         );
         var filteredChangelog = changelog.changelogFor(Set.of(Integer.class, Boolean.class));
         assertThat(filteredChangelog.changes().toList()).hasSize(2);

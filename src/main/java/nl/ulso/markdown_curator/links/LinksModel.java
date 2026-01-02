@@ -8,11 +8,11 @@ import nl.ulso.markdown_curator.vault.*;
 import java.util.*;
 
 import static java.util.Collections.emptyList;
-import static nl.ulso.markdown_curator.Change.Kind.DELETION;
+import static nl.ulso.markdown_curator.Change.Kind.DELETE;
 
 @Singleton
 public final class LinksModel
-    extends DataModelTemplate
+    extends ChangeProcessorTemplate
 {
     private final Vault vault;
     private final Map<String, Document> documentIndex;
@@ -22,8 +22,8 @@ public final class LinksModel
     {
         this.vault = vault;
         this.documentIndex = new HashMap<>();
-        this.registerChangeHandler(hasObjectType(Document.class), this::processDocumentChange);
-        this.registerChangeHandler(hasObjectType(Folder.class), this::processFolderChange);
+        this.registerChangeHandler(isObjectType(Document.class), this::processDocumentChange);
+        this.registerChangeHandler(isObjectType(Folder.class), this::processFolderChange);
     }
 
     @Override
@@ -37,7 +37,7 @@ public final class LinksModel
     private Collection<Change<?>> processDocumentChange(Change<?> change)
     {
         var document = (Document) change.object();
-        if (change.kind() == DELETION)
+        if (change.kind() == DELETE)
         {
             documentIndex.remove(document.name());
         }
@@ -51,7 +51,7 @@ public final class LinksModel
     private Collection<Change<?>> processFolderChange(Change<?> change)
     {
         var folder = (Folder) change.object();
-        if (change.kind() == DELETION)
+        if (change.kind() == DELETE)
         {
             var finder = new DocumentFinder();
             folder.accept(finder);

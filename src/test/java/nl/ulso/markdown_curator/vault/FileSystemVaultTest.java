@@ -18,8 +18,8 @@ import java.util.concurrent.TimeUnit;
 
 import static java.text.Normalizer.normalize;
 import static java.util.Collections.synchronizedList;
-import static nl.ulso.markdown_curator.Change.Kind.CREATION;
-import static nl.ulso.markdown_curator.Change.Kind.DELETION;
+import static nl.ulso.markdown_curator.Change.Kind.CREATE;
+import static nl.ulso.markdown_curator.Change.Kind.DELETE;
 import static nl.ulso.markdown_curator.vault.ElementCounter.countAll;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
@@ -144,7 +144,7 @@ class FileSystemVaultTest
                 softly.assertThat(actors.documents().size()).isEqualTo(5);
                 softly.assertThat(actors.document("Christopher Waltz")).isPresent();
                 softly.assertThat(changes.stream().map(Change::kind))
-                        .containsExactly(CREATION, CREATION);
+                        .containsExactly(CREATE, CREATE);
             }
         });
     }
@@ -199,7 +199,7 @@ class FileSystemVaultTest
                 softly.assertThat(vault.folder("People").orElseThrow().documents().size())
                         .isEqualTo(4);
                 softly.assertThat(changes.stream().map(Change::kind))
-                        .contains(DELETION, CREATION);
+                        .contains(DELETE, CREATE);
             }
         });
     }
@@ -225,7 +225,7 @@ class FileSystemVaultTest
                 softly.assertThat(vault.folder("Characters").orElseThrow().document("M"))
                         .isNotPresent();
                 softly.assertThat(changes.stream().map(Change::kind))
-                        .containsExactly(DELETION);
+                        .containsExactly(DELETE);
             }
         });
     }

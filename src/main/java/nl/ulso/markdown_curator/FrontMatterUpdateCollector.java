@@ -5,16 +5,13 @@ import nl.ulso.markdown_curator.vault.*;
 import java.util.Optional;
 import java.util.function.Consumer;
 
-/**
- * Collects updates to front matter from {@link DataModel}s.
- * <p/>
- * Front matter is ideally <em>derived</em> from content, and not maintained separately, nor
- * duplicated.
- * <p/>
- * Inject a {@link FrontMatterUpdateCollector} in your {@link DataModel}, and use it to manage
- * custom front matter for documents. When the {@link Curator} runs, it updates the front matter
- * of these documents on disk, when needed.
- */
+/// Collects updates to front matter from [ChangeProcessor]s.
+///
+/// Front matter is ideally _derived_ from content and not maintained separately nor duplicated.
+///
+/// Inject a [FrontMatterUpdateCollector] in your [ChangeProcessor] and use it to manage custom
+/// front matter for documents. When the [Curator] runs, it updates the front matter of these
+/// documents on disk, when needed.
 public interface FrontMatterUpdateCollector
 {
     Optional<Dictionary> frontMatterFor(Document document);

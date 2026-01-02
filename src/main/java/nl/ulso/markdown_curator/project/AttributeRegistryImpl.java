@@ -7,11 +7,11 @@ import nl.ulso.markdown_curator.vault.Document;
 
 import java.util.*;
 
-import static java.util.Collections.emptyList;
+import static nl.ulso.markdown_curator.project.AttributeRegistryUpdate.REGISTRY_CHANGE;
 
 @Singleton
 final class AttributeRegistryImpl
-    extends DataModelTemplate
+    extends ChangeProcessorTemplate
     implements AttributeRegistry
 {
     private final Map<String, AttributeDefinition> attributeDefinitions;
@@ -24,23 +24,35 @@ final class AttributeRegistryImpl
         this.attributeDefinitions = attributeDefinitions;
         this.projectAttributes = new HashMap<>();
         registerChangeHandler(
-            hasObjectType(Project.class).and(isDeletion()),
+            isObjectType(Project.class).and(isDelete()),
             this::processProjectDeletion
         );
         registerChangeHandler(
-            hasObjectType(AttributeValue.class).and(isCreation().or(isModification())),
+            isObjectType(AttributeValue.class).and(isCreate().or(isUpdate())),
             this::processAttributeValueChange
         );
         registerChangeHandler(
-            hasObjectType(AttributeValue.class).and(isDeletion()),
+            isObjectType(AttributeValue.class).and(isDelete()),
             this::processAttributeValueDeletion
         );
+    }
+
+    @Override
+    public Set<Class<?>> consumedObjectTypes()
+    {
+        return Set.of(Project.class, AttributeValue.class);
+    }
+
+    @Override
+    public Set<Class<?>> producedObjectTypes()
+    {
+        return Set.of(AttributeRegistryUpdate.class);
     }
 
     private Collection<Change<?>> processProjectDeletion(Change<?> change)
     {
         projectAttributes.remove(change.objectAs(Project.class));
-        return emptyList();
+        return REGISTRY_CHANGE;
     }
 
     private Collection<Change<?>> processAttributeValueChange(Change<?> change)
@@ -53,7 +65,7 @@ final class AttributeRegistryImpl
             value.definition(), _ -> new TreeSet<>());
         values.remove(value);
         values.add(value);
-        return emptyList();
+        return REGISTRY_CHANGE;
     }
 
     private Collection<Change<?>> processAttributeValueDeletion(Change<?> change)
@@ -68,25 +80,21 @@ final class AttributeRegistryImpl
                 values.remove(value);
             }
         }
-        return emptyList();
+        return REGISTRY_CHANGE;
+    }
+
+    /// Collect the changes in a set instead of a list, so that at the end of the run there is
+    /// exactly one change in the changelog.
+    @Override
+    protected Collection<Change<?>> createChangeCollection()
+    {
+        return new HashSet<>(1);
     }
 
     @Override
     protected boolean isFullRefreshRequired(Changelog changelog)
     {
         return false;
-    }
-
-    @Override
-    public Collection<Change<?>> fullRefresh()
-    {
-        throw new IllegalStateException("This method should never be called!");
-    }
-
-    @Override
-    public Set<Class<?>> consumedObjectTypes()
-    {
-        return Set.of(Project.class, AttributeValue.class);
     }
 
     @Override

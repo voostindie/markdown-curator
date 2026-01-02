@@ -4,7 +4,7 @@ import dagger.*;
 import dagger.Module;
 import dagger.multibindings.*;
 import jakarta.inject.Singleton;
-import nl.ulso.markdown_curator.DataModel;
+import nl.ulso.markdown_curator.ChangeProcessor;
 import nl.ulso.markdown_curator.query.Query;
 import nl.ulso.markdown_curator.vault.Document;
 
@@ -62,22 +62,25 @@ public abstract class ProjectModule
 
     @Binds
     @IntoSet
-    abstract DataModel bindProjectRepository(ProjectRepository projectRepository);
+    abstract ChangeProcessor bindProjectRepositoryProcessor(ProjectRepositoryImpl projectRepository);
+
+    @Binds
+    abstract ProjectRepository bindProjectRepository(ProjectRepositoryImpl projectRepository);
 
     @Binds
     @IntoSet
-    abstract DataModel bindFrontMatterAttributeProducer(FrontMatterAttributeProducer producer);
+    abstract ChangeProcessor bindFrontMatterAttributeProducer(FrontMatterAttributeProducer producer);
 
     @Binds
     @IntoSet
-    abstract DataModel bindAttributeRegistryModel(AttributeRegistryImpl registry);
+    abstract ChangeProcessor bindAttributeRegistryProcessor(AttributeRegistryImpl registry);
 
     @Binds
     abstract AttributeRegistry bindAttributeRegistry(AttributeRegistryImpl registry);
 
     @Binds
     @IntoSet
-    abstract DataModel bindFrontMatterPropertyWriter(FrontMatterPropertyWriter producer);
+    abstract ChangeProcessor bindFrontMatterPropertyWriter(FrontMatterPropertyWriter producer);
 
     @Binds
     @IntoSet

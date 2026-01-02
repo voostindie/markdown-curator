@@ -3,7 +3,7 @@ package nl.ulso.markdown_curator.links;
 import dagger.Binds;
 import dagger.Module;
 import dagger.multibindings.IntoSet;
-import nl.ulso.markdown_curator.DataModel;
+import nl.ulso.markdown_curator.ChangeProcessor;
 import nl.ulso.markdown_curator.query.Query;
 
 /**
@@ -16,7 +16,7 @@ public abstract class LinksModule
 {
     @Binds
     @IntoSet
-    abstract DataModel bindDataModel(LinksModel linksModel);
+    abstract ChangeProcessor bindDataModel(LinksModel linksModel);
 
     @Binds
     @IntoSet

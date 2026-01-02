@@ -68,11 +68,11 @@ class CuratorModuleTest
     }
 
     @Singleton
-    private static class DataModelStub
-            implements DataModel
+    private static class ChangeProcessorStub
+            implements ChangeProcessor
     {
         @Override
-        public Changelog process(Changelog changelog)
+        public Changelog run(Changelog changelog)
         {
             return emptyChangelog();
         }

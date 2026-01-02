@@ -15,9 +15,9 @@ import java.time.temporal.WeekFields;
 import java.util.*;
 import java.util.stream.Stream;
 
-import static nl.ulso.markdown_curator.Change.creation;
-import static nl.ulso.markdown_curator.Change.deletion;
-import static nl.ulso.markdown_curator.Change.modification;
+import static nl.ulso.markdown_curator.Change.create;
+import static nl.ulso.markdown_curator.Change.delete;
+import static nl.ulso.markdown_curator.Change.update;
 import static nl.ulso.markdown_curator.Changelog.changelogFor;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -52,7 +52,7 @@ class JournalTest
             - [[foo]]
             """
         );
-        journal.process(changelogFor(creation(document, Document.class)));
+        journal.run(changelogFor(create(document, Document.class)));
         assertThat(journal.timelineFor("foo")).hasSize(4);
     }
 
@@ -67,7 +67,7 @@ class JournalTest
             - [[foo]]
             """
         );
-        journal.process(changelogFor(modification(document, Document.class)));
+        journal.run(changelogFor(update(document, Document.class)));
         assertThat(journal.timelineFor("baz")).hasSize(2);
     }
 
@@ -77,7 +77,7 @@ class JournalTest
         var journal = createTestJournal();
         var vault = (VaultStub) journal.vault();
         var document = vault.resolveDocumentInPath("Journal/2023/2023-01-25");
-        journal.process(changelogFor(deletion(document, Document.class)));
+        journal.run(changelogFor(delete(document, Document.class)));
         assertThat(journal.timelineFor("foo")).hasSize(2);
     }
 

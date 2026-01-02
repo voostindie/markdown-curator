@@ -1,12 +1,13 @@
 package nl.ulso.markdown_curator.project;
 
 import nl.ulso.markdown_curator.Change;
+import nl.ulso.markdown_curator.ChangeProcessor;
 
 import java.util.Objects;
 
 /// Represents a single attribute value of a project. Objects of this type are to be published by
-/// data models as [Change]s. The [AttributeRegistryImpl] tracks these and provides actual values to
-/// other models and queries.
+/// [ChangeProcessor]s as [Change]s. The [AttributeRegistry] tracks these and provides actual
+/// values to other models and queries.
 ///
 /// An attribute value has a weight. In case there are multiple producers of the same attribute
 /// value, the system uses the value with the highest weight.

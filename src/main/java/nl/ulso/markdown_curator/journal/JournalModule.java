@@ -3,7 +3,7 @@ package nl.ulso.markdown_curator.journal;
 import dagger.Binds;
 import dagger.Module;
 import dagger.multibindings.IntoSet;
-import nl.ulso.markdown_curator.DataModel;
+import nl.ulso.markdown_curator.ChangeProcessor;
 import nl.ulso.markdown_curator.query.Query;
 
 /**
@@ -27,7 +27,7 @@ public abstract class JournalModule
 {
     @Binds
     @IntoSet
-    abstract DataModel bindDataModel(Journal journal);
+    abstract ChangeProcessor bindDataModel(Journal journal);
 
     @Binds
     @IntoSet
