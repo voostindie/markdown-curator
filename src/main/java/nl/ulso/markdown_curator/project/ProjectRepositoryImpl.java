@@ -87,7 +87,7 @@ final class ProjectRepositoryImpl
     public Collection<Change<?>> fullRefresh()
     {
         projects.clear();
-        var changes = new ArrayList<Change<?>>();
+        var changes = createChangeCollection();
         var finder = new ProjectFinder();
         vault.accept(finder);
         finder.projects.forEach(project ->

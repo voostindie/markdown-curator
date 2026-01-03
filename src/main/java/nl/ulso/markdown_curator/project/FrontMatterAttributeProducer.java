@@ -55,7 +55,7 @@ public final class FrontMatterAttributeProducer
     {
         var project = change.objectAs(Project.class);
         var document = project.document();
-        var changes = new ArrayList<Change<?>>();
+        var changes = createChangeCollection();
         for (var definition : attributeDefinitions)
         {
             if (change.kind() == DELETE)

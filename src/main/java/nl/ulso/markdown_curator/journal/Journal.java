@@ -134,7 +134,7 @@ public class Journal
         markers.clear();
         var builder = new JournalBuilder(settings);
         vault.accept(builder);
-        var changes = new ArrayList<Change<?>>();
+        var changes = createChangeCollection();
         builder.dailies().forEach(daily ->
         {
             dailies.put(daily.date(), daily);
