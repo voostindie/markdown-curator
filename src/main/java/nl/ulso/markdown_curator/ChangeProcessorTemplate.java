@@ -128,6 +128,6 @@ public abstract class ChangeProcessorTemplate
     /// Creates the collection to capture the changes of the various change handlers in.
     protected Collection<Change<?>> createChangeCollection()
     {
-        return new LinkedList<>();
+        return new ArrayList<>();
     }
 }

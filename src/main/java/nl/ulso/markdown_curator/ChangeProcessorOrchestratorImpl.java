@@ -68,7 +68,7 @@ final class ChangeProcessorOrchestratorImpl
     {
         var availableObjectTypes = new HashSet<>(RESERVED_OBJECT_TYPES);
         availableObjectTypes.addAll(customObjectTypes);
-        var queue = new LinkedList<>(changeProcessors);
+        var queue = new ArrayDeque<>(changeProcessors);
         var size = changeProcessors.size();
         var maxIterations = (size * (size + 1)) / 2;
         int iteration = 0;
