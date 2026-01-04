@@ -1,58 +1,42 @@
 package nl.ulso.markdown_curator;
 
 import jakarta.inject.Inject;
-import nl.ulso.markdown_curator.query.*;
+import nl.ulso.markdown_curator.query.Query;
 import nl.ulso.markdown_curator.vault.*;
-import nl.ulso.markdown_curator.vault.Dictionary;
 import org.slf4j.Logger;
 import org.slf4j.MDC;
 
 import java.io.IOException;
-import java.util.*;
-import java.util.concurrent.*;
-import java.util.function.Consumer;
-import java.util.stream.Collectors;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
 
 import static java.lang.Thread.currentThread;
 import static java.nio.file.Files.getLastModifiedTime;
 import static java.nio.file.Files.writeString;
-import static java.util.Collections.emptyList;
 import static java.util.concurrent.Executors.newScheduledThreadPool;
-import static java.util.concurrent.Executors.newVirtualThreadPerTaskExecutor;
 import static java.util.concurrent.TimeUnit.SECONDS;
-import static java.util.stream.Collectors.groupingBy;
-import static nl.ulso.hash.ShortHasher.shortHashOf;
 import static nl.ulso.markdown_curator.Change.Kind.UPDATE;
 import static nl.ulso.markdown_curator.Change.update;
 import static nl.ulso.markdown_curator.DocumentRewriter.rewriteDocument;
-import static nl.ulso.markdown_curator.vault.Dictionary.emptyDictionary;
 import static org.slf4j.LoggerFactory.getLogger;
 
-/**
- * Markdown curator on top of a {@link Vault} and custom {@link ChangeProcessor}s and
- * {@link Query}s.
- * <p/>
- * Whenever a change in the underlying vault is detected, the change processors are executed, after
- * which all queries are collected from all documents in the vault, executed and compared to the
- * existing query results as stored inside the documents. If a query result has changed, the
- * document that contains it is rewritten to disk, with the old query result replaced.
- * <p/>
- * Queries are not executed after every detected change. Instead, the running of queries and writing
- * of documents to disk is scheduled to take place after a short delay. If during this delay new
- * changes come in, the task is rescheduled. This prevents superfluous query execution and writes to
- * disk, at the cost of the user having to wait a little while after saving the last change. This is
- * especially useful when using Obsidian, which automatically writes changes to disk every few
- * seconds.
- * <p/>
- * This curator runs all queries, of which there can be many, in parallel. Once all queries have
- * completed, the documents whose contents have changed are written back to disk, sequentially. In
- * practice there are many queries embedded in documents, while the number of documents that need
- * updating is limited because most queries won't have new output.
- * <p/>
- * I haven't taken the time to prove that this parallel implementation is faster than a sequential
- * one. I applied parallelism simply because I don't want the 10 cores of the M1 Pro processor in my
- * MacBook Pro go to waste. And because it was fun to do.
- */
+/// Markdown curator on top of a [Vault] and custom [ChangeProcessor]s and [Query]s.
+///
+/// Whenever a change in the underlying vault is detected, a three-step process kicks in:
+///
+/// 1. All relevant [ChangeProcessor]s are executed in the right order by the
+/// [ChangeProcessorOrchestrator].
+/// 2. All relevant [Query]s are executed by the [QueryOrchestrator].
+/// 3. All updates resulting from query execution are written to disk.
+///
+/// Queries are not executed after every detected change. Instead, the running of queries and
+/// writing of documents to disk is scheduled to take place after a short delay. If during this
+/// delay new changes come in, the task is rescheduled. This prevents superfluous query execution
+/// and writes to disk, at the cost of the user having to wait a few seconds after saving the last
+/// change. This is especially useful when using Obsidian, which automatically writes changes to
+/// disk every few seconds.
 public class Curator
     implements VaultChangedCallback
 {
@@ -60,78 +44,73 @@ public class Curator
     private static final long SCHEDULE_TIMEOUT_IN_SECONDS = 3;
 
     private final Vault vault;
-    private final DocumentPathResolver documentPathResolver;
-    private final FrontMatterRewriteResolver frontMatterRewriteResolver;
-    private final QueryCatalog queryCatalog;
     private final ChangeProcessorOrchestrator changeProcessorOrchestrator;
+    private final QueryOrchestrator queryOrchestrator;
+    private final DocumentPathResolver documentPathResolver;
     private final Map<String, Long> writtenDocuments;
-    private final ExecutorService parallelExecutor;
     private final ScheduledExecutorService delayedExecutor;
     private ScheduledFuture<?> runTask;
-    private final String curatorName;
 
     @Inject
     public Curator(
-        Vault vault, DocumentPathResolver documentPathResolver,
-        FrontMatterRewriteResolver frontMatterRewriteResolver, QueryCatalog queryCatalog,
-        ChangeProcessorOrchestrator changeProcessorOrchestrator)
+        Vault vault,
+        ChangeProcessorOrchestrator changeProcessorOrchestrator,
+        QueryOrchestrator queryOrchestrator, DocumentPathResolver documentPathResolver)
     {
         this.vault = vault;
-        this.documentPathResolver = documentPathResolver;
-        this.frontMatterRewriteResolver = frontMatterRewriteResolver;
-        this.queryCatalog = queryCatalog;
         this.changeProcessorOrchestrator = changeProcessorOrchestrator;
+        this.queryOrchestrator = queryOrchestrator;
+        this.documentPathResolver = documentPathResolver;
         this.writtenDocuments = new HashMap<>();
-        this.parallelExecutor = newVirtualThreadPerTaskExecutor();
         this.delayedExecutor = newScheduledThreadPool(1);
         this.runTask = null;
-        this.curatorName = currentThread().getName();
     }
 
     public void runOnce()
     {
         LOGGER.info("Running this curator once");
-        vaultChanged(update(vault, Vault.class));
+        MDC.put("curator", currentThread().getName());
+        var changelog = vaultChanged(update(vault, Vault.class));
         cancelQueryWriteRunIfPresent();
-        performQueryWriteRun();
+        queryOrchestrator.runFor(changelog).forEach(this::writeDocument);
     }
 
     public void run()
     {
+        MDC.put("curator", currentThread().getName());
         changeProcessorOrchestrator.runFor(update(vault, Vault.class));
         vault.setVaultChangedCallback(this);
         vault.watchForChanges();
     }
 
     @Override
-    public final synchronized void vaultChanged(Change<?> change)
+    public final synchronized Changelog vaultChanged(Change<?> change)
     {
         if (checkSelfTriggeredUpdate(change))
         {
-            return;
+            return Changelog.emptyChangelog();
         }
         if (LOGGER.isDebugEnabled())
         {
             LOGGER.debug(">".repeat(80));
         }
         cancelQueryWriteRunIfPresent();
-        changeProcessorOrchestrator.runFor(change);
-        scheduleQueryWriteRun();
+        var changelog = changeProcessorOrchestrator.runFor(change);
+        scheduleQueryWriteRun(changelog);
         if (LOGGER.isDebugEnabled())
         {
             LOGGER.debug("<".repeat(80));
         }
+        return changelog;
     }
 
-    /**
-     * A change is self-triggered if it was the result of the curator writing a file to disk. To
-     * cancel out those changes - no query will produce different output, guaranteed - the curator
-     * keeps track of the files it changed, and then compares them with the changes it detects. If
-     * they match, the change was self-triggered.
-     *
-     * @param change Change that triggered the curator.
-     * @return {@code true} if the change was self-triggered, {@code false} otherwise.
-     */
+    /// A change is self-triggered if it was the result of the curator writing a file to disk. To
+    /// cancel out those changes - no query will produce different output, guaranteed - the curator
+    /// keeps track of the files it writes and then compares them with the changes it detects. If
+    /// they match, the change was self-triggered.
+    ///
+    /// @param change Change that triggered the curator.
+    /// @return `true` if the change was self-triggered, `false` otherwise.
     private boolean checkSelfTriggeredUpdate(Change<?> change)
     {
         if (!(change.objectType().equals(Document.class) && change.kind() == UPDATE))
@@ -154,10 +133,8 @@ public class Curator
         return true;
     }
 
-    /**
-     * Since there is an incoming change, there's no need to write changes to disk from the previous
-     * processing run; a new one will be scheduled shortly.
-     */
+    /// If there is an incoming change, there's no need to write changes to disk from the previous
+    /// processing run, if that exists; a new one will be scheduled shortly.
     private void cancelQueryWriteRunIfPresent()
     {
         if (runTask != null)
@@ -167,106 +144,33 @@ public class Curator
         }
     }
 
-    /**
-     * A change was detected, which means all queries need to be executed, and changes written to
-     * disk. That work is scheduled for a few seconds from now. If new changes come in in the
-     * meantime, the task will be cancelled and replaced by a new one.
-     */
-    private void scheduleQueryWriteRun()
+    /// A change was detected, which means the queries need to be executed, and changes written to
+    /// disk. That work is scheduled for a few seconds from now. If new changes come in in the
+    /// meantime, the task will be cancelled and replaced by a new one.
+    private void scheduleQueryWriteRun(Changelog changelog)
     {
         LOGGER.debug("Scheduling query processing and document writing task to run in {} seconds",
             SCHEDULE_TIMEOUT_IN_SECONDS
         );
-        runTask = delayedExecutor.schedule(this::performQueryWriteRun, SCHEDULE_TIMEOUT_IN_SECONDS,
+        var curatorName = MDC.get("curator");
+        runTask = delayedExecutor.schedule(
+            () ->
+            {
+                MDC.put("curator", curatorName);
+                queryOrchestrator.runFor(changelog).forEach(this::writeDocument);
+            },
+            SCHEDULE_TIMEOUT_IN_SECONDS,
             SECONDS
         );
     }
 
-    /**
-     * Run all queries, collect all output, throw away all output except from the ones that changed,
-     * and write the changes back to disk.
-     */
-    private void performQueryWriteRun()
+    /// Executing queries has resulted in a set of []DocumentUpdate]s. These must be written to
+    /// disk. The writes are registered in order to detect self-triggered changes later on.
+    private void writeDocument(DocumentUpdate documentUpdate)
     {
-        MDC.put("curator", curatorName);
-        LOGGER.debug("Running all queries and writing document updates to disk");
-        var frontMatterRewrites = frontMatterRewriteResolver.resolveFrontMatterRewrites();
-        var queryOutputs =
-            runAllQueries().stream().collect(groupingBy(item -> item.queryBlock().document()));
-        var changedDocuments = new HashSet<Document>();
-        changedDocuments.addAll(frontMatterRewrites.keySet());
-        changedDocuments.addAll(queryOutputs.entrySet().stream()
-            .filter(entry -> entry.getValue().stream().anyMatch(QueryOutput::isChanged))
-            .map(Map.Entry::getKey).collect(Collectors.toSet()));
-        for (Document document : changedDocuments)
-        {
-            writeDocument(
-                document,
-                frontMatterRewrites.getOrDefault(document, emptyDictionary()),
-                queryOutputs.getOrDefault(document, emptyList())
-            );
-        }
-    }
-
-    /**
-     * Run all queries in the vault and collect the queries whose outputs have changed compared to
-     * what's in memory right now.
-     * <p/>
-     * Note that we have to collect and keep the output of all queries, even the ones that didn't
-     * change. Query output is not kept in memory between runs. Documents may embed more than one
-     * query, and documents are written to disks a whole. So, the outputs of all embedded queries
-     * need to be available.
-     * <p/>
-     * The queries are executed in parallel as much as possible, because there can be thousands of
-     * them.
-     */
-    Queue<QueryOutput> runAllQueries()
-    {
-        var writeQueue = new ConcurrentLinkedQueue<QueryOutput>();
-        var queryBlocks = vault.findAllQueryBlocks();
-        var duration = runInParallel(queryBlocks, queryBlock -> {
-                var query = queryCatalog.query(queryBlock.queryName());
-                if (LOGGER.isTraceEnabled())
-                {
-                    LOGGER.trace("Running query '{}' in document: {}", query.name(),
-                        queryBlock.document()
-                    );
-                }
-                final QueryResult result;
-                try
-                {
-                    result = query.run(queryBlock);
-                }
-                catch (RuntimeException e)
-                {
-                    LOGGER.warn(
-                        "Ignoring output due to exception while running query '{}' in document: {}",
-                        query.name(), queryBlock.document().name(), e
-                    );
-                    return;
-                }
-                var output = result.toMarkdown();
-                var hash = shortHashOf(output);
-                var isChanged = !queryBlock.outputHash().contentEquals(hash);
-                writeQueue.add(new QueryOutput(queryBlock, output, hash, isChanged));
-            }
-        );
-        LOGGER.info("Executed {} queries in {} ms", queryBlocks.size(), duration);
-        return writeQueue;
-    }
-
-    /**
-     * Write a document to disk, but only if it hasn't changed since the start of the run.
-     *
-     * @param document     The document to write.
-     * @param frontMatter  The new front matter for this document; can be an empty dictionary, in
-     *                     which case the existing front matter is kept.
-     * @param queryOutputs The fresh output of all queries on the page.
-     */
-    void writeDocument(Document document, Dictionary frontMatter, List<QueryOutput> queryOutputs)
-    {
-        LOGGER.info("Rewriting document: {}", document);
-        var newDocumentContent = rewriteDocument(document, frontMatter, queryOutputs);
+        var document = documentUpdate.document();
+        LOGGER.info("Rewriting document: {}", documentUpdate.document());
+        var newDocumentContent = rewriteDocument(documentUpdate);
         try
         {
             var path = documentPathResolver.resolveAbsolutePath(document);
@@ -283,48 +187,5 @@ public class Curator
             LOGGER.warn("Couldn't write document: {}", document);
             LOGGER.error(e.getMessage(), e);
         }
-    }
-
-    /**
-     * Run an action against each of the items in the collection in parallel and wait for all
-     * actions to finish.
-     *
-     * @param items  Collection of items to apply an action on.
-     * @param action Action to apply to each item.
-     * @param <I>    Class of the item.
-     * @return The duration of the run in milliseconds
-     */
-    private <I> long runInParallel(Collection<I> items, Consumer<I> action)
-    {
-        var latch = new CountDownLatch(items.size());
-        var startTime = System.currentTimeMillis();
-        for (I item : items)
-        {
-            parallelExecutor.submit(() -> {
-                MDC.put("curator", curatorName);
-                try
-                {
-                    action.accept(item);
-                }
-                catch (RuntimeException e)
-                {
-                    LOGGER.error("Job failed to execute.", e);
-                }
-                finally
-                {
-                    latch.countDown();
-                }
-            });
-        }
-        try
-        {
-            latch.await();
-        }
-        catch (InterruptedException e)
-        {
-            Thread.currentThread().interrupt();
-            throw new CuratorException(e);
-        }
-        return System.currentTimeMillis() - startTime;
     }
 }

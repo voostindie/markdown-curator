@@ -26,56 +26,57 @@ class DocumentRewriterTest
     {
         var vault = new VaultStub();
         var document = vault.addDocument("test", expected);
-        var content = rewriteDocument(document, emptyDictionary(), emptyList());
+        var update = new DocumentUpdate(document, emptyDictionary(), emptyList());
+        var content = rewriteDocument(update);
         assertThat(content).isEqualTo(expected);
     }
 
     public static Stream<Arguments> provideDocuments()
     {
         return Stream.of(
-                Arguments.of("""
-                        One liner
-                        """),
-                Arguments.of("""
-                        
-                        
-                        Lots of blank lines
-                        
-                        
-                        """),
-                Arguments.of("""
-                        ---
-                        front: matter
-                        ---
-                        # Title
-                        
-                        ## Section 1
-                        ### Subsection 1.1
-                        
-                        Lorem ipsum
-                        
-                        ### Subsection 1.2
-                        With text close together to
-                        ### ...Subsection 1.3
-                        
-                        
-                        
-                        ...and then nothing for a while...
-                        
-                        
-                        
-                        ## Section 2
-                        
-                        Code sample:
-                        
-                        ```java
-                        public static void main(String[] arguments) {
-                            System.out.println("Hello, world!");
-                        }
-                        ```
-                        
-                        Seems to work!
-                        """)
+            Arguments.of("""
+                One liner
+                """),
+            Arguments.of("""
+                
+                
+                Lots of blank lines
+                
+                
+                """),
+            Arguments.of("""
+                ---
+                front: matter
+                ---
+                # Title
+                
+                ## Section 1
+                ### Subsection 1.1
+                
+                Lorem ipsum
+                
+                ### Subsection 1.2
+                With text close together to
+                ### ...Subsection 1.3
+                
+                
+                
+                ...and then nothing for a while...
+                
+                
+                
+                ## Section 2
+                
+                Code sample:
+                
+                ```java
+                public static void main(String[] arguments) {
+                    System.out.println("Hello, world!");
+                }
+                ```
+                
+                Seems to work!
+                """)
         );
     }
 
@@ -84,16 +85,18 @@ class DocumentRewriterTest
     {
         var vault = new VaultStub();
         var document = vault.addDocument("document", """
-                Content
-                """);
+            Content
+            """
+        );
         var newFrontMatter = Dictionary.mapDictionary(Map.of("foo", "bar"));
-        var content = rewriteDocument(document, newFrontMatter, emptyList());
+        var update = new DocumentUpdate(document, newFrontMatter, emptyList());
+        var content = rewriteDocument(update);
         assertThat(content).isEqualTo("""
-                ---
-                foo: bar
-                ---
-                Content
-                """);
+            ---
+            foo: bar
+            ---
+            Content
+            """);
     }
 
     @Test
@@ -101,19 +104,21 @@ class DocumentRewriterTest
     {
         var vault = new VaultStub();
         var document = vault.addDocument("document", """
-                ---
-                foo: bar
-                ---
-                Content
-                """);
+            ---
+            foo: bar
+            ---
+            Content
+            """
+        );
         var newFrontMatter = Dictionary.mapDictionary(Map.of("foo", "baz", "bar", "qux"));
-        var content = rewriteDocument(document, newFrontMatter, emptyList());
+        var update = new DocumentUpdate(document, newFrontMatter, emptyList());
+        var content = rewriteDocument(update);
         assertThat(content).isEqualTo("""
-                ---
-                bar: qux
-                foo: baz
-                ---
-                Content
-                """);
+            ---
+            bar: qux
+            foo: baz
+            ---
+            Content
+            """);
     }
 }

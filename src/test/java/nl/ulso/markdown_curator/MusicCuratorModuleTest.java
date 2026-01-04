@@ -24,6 +24,7 @@ class MusicCuratorModuleTest
     private Curator musicCurator;
     private Vault vault;
     private QueryCatalog queryCatalog;
+    private QueryOrchestratorImpl queryOrchestrator;
     private DocumentPathResolver documentPathResolver;
 
     @InjectSoftAssertions
@@ -35,6 +36,7 @@ class MusicCuratorModuleTest
         var component = DaggerMusicCurator.create();
         musicCurator = component.curator();
         queryCatalog = component.queryCatalog();
+        queryOrchestrator = (QueryOrchestratorImpl) component.queryOrchestrator();
         vault = component.vault();
         documentPathResolver = component.documentPathResolver();
     }
@@ -156,7 +158,7 @@ class MusicCuratorModuleTest
     void runAllQueries()
     {
         musicCurator.vaultChanged(update(vault, Vault.class));
-        Queue<QueryOutput> items = musicCurator.runAllQueries();
+        Queue<QueryOutput> items = queryOrchestrator.runAllQueries();
         // We expect only (and all) queries in "queries-blank" to have new output:
         var list = items.stream()
             .filter(QueryOutput::isChanged)

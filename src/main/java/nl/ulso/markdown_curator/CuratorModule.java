@@ -63,6 +63,9 @@ public abstract class CuratorModule
         ChangeProcessorOrchestratorImpl orchestrator);
 
     @Binds
+    abstract QueryOrchestrator bindQueryOrchestrator(QueryOrchestratorImpl orchestrator);
+
+    @Binds
     abstract GeneralMessages bindGeneralMessages(ResourceBundledGeneralMessages generalMessages);
 
     @Binds

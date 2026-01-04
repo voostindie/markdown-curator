@@ -20,6 +20,7 @@ import static java.text.Normalizer.normalize;
 import static java.util.Collections.synchronizedList;
 import static nl.ulso.markdown_curator.Change.Kind.CREATE;
 import static nl.ulso.markdown_curator.Change.Kind.DELETE;
+import static nl.ulso.markdown_curator.Changelog.changelogFor;
 import static nl.ulso.markdown_curator.vault.ElementCounter.countAll;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
@@ -39,15 +40,16 @@ class FileSystemVaultTest
 
     @BeforeEach
     void setUpFileSystemForTesting()
-            throws IOException
+        throws IOException
     {
         testVaultRoot = Files.createTempDirectory("macu-");
         writeFile("README.md", """
-                ---
-                aliases: [Index, Home]
-                ---
-                This is a dummy vault, for testing purposes.
-                """);
+            ---
+            aliases: [Index, Home]
+            ---
+            This is a dummy vault, for testing purposes.
+            """
+        );
         writeFile(".obsidian/hidden", "");
         writeFile("Movies/No Time to Die.md", "## Year\n\n2021");
         writeFile("Movies/Spectre.md", "## Year\n\n2015");
@@ -117,7 +119,8 @@ class FileSystemVaultTest
     {
         var document = vault.document("README").orElseThrow();
         assertThat(document.frontMatter().listOfStrings("aliases")).containsExactly("Index",
-                "Home");
+            "Home"
+        );
     }
 
     @Test
@@ -127,7 +130,7 @@ class FileSystemVaultTest
         {
             @Override
             public int changeFileSystem(FileSystem fileSystem)
-                    throws IOException
+                throws IOException
             {
                 writeFile("Characters/Blofeld.md", "Ernst Stavro");
                 writeFile("Actors/Christopher Waltz.md", "Played [[Ernst Stavro Blofeld]]");
@@ -144,7 +147,7 @@ class FileSystemVaultTest
                 softly.assertThat(actors.documents().size()).isEqualTo(5);
                 softly.assertThat(actors.document("Christopher Waltz")).isPresent();
                 softly.assertThat(changes.stream().map(Change::kind))
-                        .containsExactly(CREATE, CREATE);
+                    .containsExactly(CREATE, CREATE);
             }
         });
     }
@@ -157,7 +160,7 @@ class FileSystemVaultTest
         {
             @Override
             public int changeFileSystem(FileSystem fileSystem)
-                    throws IOException
+                throws IOException
             {
                 writeFile("Studios/MGM.md", "Metro-Goldwyn-Mayer");
                 return 2;
@@ -167,11 +170,11 @@ class FileSystemVaultTest
             public void verify(List<Change<?>> changes)
             {
                 softly.assertThat(vault.folder("Studios").orElseThrow().document("MGM"))
-                        .isPresent();
+                    .isPresent();
                 softly.assertThat(changes.stream()
                         .map(Change::objectType))
-                        .map(c ->(Class) c)
-                        .containsExactly(Folder.class, Document.class);
+                    .map(c -> (Class) c)
+                    .containsExactly(Folder.class, Document.class);
             }
         });
     }
@@ -183,7 +186,7 @@ class FileSystemVaultTest
         {
             @Override
             public int changeFileSystem(FileSystem fileSystem)
-                    throws IOException
+                throws IOException
             {
                 var oldPath = testVaultRoot.resolve("Actors");
                 var newPath = testVaultRoot.resolve("People");
@@ -197,9 +200,9 @@ class FileSystemVaultTest
                 softly.assertThat(vault.folder("Actors")).isNotPresent();
                 softly.assertThat(vault.folder("People")).isPresent();
                 softly.assertThat(vault.folder("People").orElseThrow().documents().size())
-                        .isEqualTo(4);
+                    .isEqualTo(4);
                 softly.assertThat(changes.stream().map(Change::kind))
-                        .contains(DELETE, CREATE);
+                    .contains(DELETE, CREATE);
             }
         });
     }
@@ -211,7 +214,7 @@ class FileSystemVaultTest
         {
             @Override
             public int changeFileSystem(FileSystem fileSystem)
-                    throws IOException
+                throws IOException
             {
                 Files.delete(testVaultRoot.resolve("Characters/M.md"));
                 return 1;
@@ -221,11 +224,11 @@ class FileSystemVaultTest
             public void verify(List<Change<?>> changes)
             {
                 softly.assertThat(vault.folder("Characters").orElseThrow().documents().size())
-                        .isEqualTo(2);
+                    .isEqualTo(2);
                 softly.assertThat(vault.folder("Characters").orElseThrow().document("M"))
-                        .isNotPresent();
+                    .isNotPresent();
                 softly.assertThat(changes.stream().map(Change::kind))
-                        .containsExactly(DELETE);
+                    .containsExactly(DELETE);
             }
         });
     }
@@ -239,7 +242,7 @@ class FileSystemVaultTest
 
             @Override
             public int changeFileSystem(FileSystem fileSystem)
-                    throws IOException
+                throws IOException
             {
                 m = vault.folder("Characters").orElseThrow().document("M").orElseThrow();
                 writeFile("Characters/M.md", "Played by several actors");
@@ -284,7 +287,7 @@ class FileSystemVaultTest
         {
             @Override
             public int changeFileSystem(FileSystem fileSystem)
-                    throws IOException
+                throws IOException
             {
                 writeFile(normalize("Unicode/éë - NFC.md", Normalizer.Form.NFC), "NFC");
                 writeFile(normalize("Unicode/éë - NFD.md", Normalizer.Form.NFD), "NFD");
@@ -309,7 +312,10 @@ class FileSystemVaultTest
     void whileWatchingForChanges(TestCase testCase)
     {
         var events = synchronizedList(new ArrayList<Change<?>>());
-        vault.setVaultChangedCallback(events::add);
+        vault.setVaultChangedCallback(e -> {
+            events.add(e);
+            return changelogFor(e);
+        });
 
         var background = Thread.ofVirtual().factory().newThread(() -> vault.watchForChanges());
         background.start();
@@ -327,7 +333,7 @@ class FileSystemVaultTest
         {
             int expectedEventCount = testCase.changeFileSystem(testVaultRoot.getFileSystem());
             await().atMost(FILESYSTEM_WAIT_TIME_MILLISECONDS, TimeUnit.MILLISECONDS)
-                    .until(() -> events.size() >= expectedEventCount);
+                .until(() -> events.size() >= expectedEventCount);
         }
         catch (IOException e)
         {
@@ -338,18 +344,19 @@ class FileSystemVaultTest
     }
 
     private void writeFile(String relativePath, String content)
-            throws IOException
+        throws IOException
     {
         var absolutePath = testVaultRoot.resolve(relativePath);
         Files.createDirectories(absolutePath.getParent());
         Files.write(absolutePath, List.of(content.split(System.lineSeparator())),
-                StandardCharsets.UTF_8);
+            StandardCharsets.UTF_8
+        );
     }
 
     public interface TestCase
     {
         int changeFileSystem(FileSystem fileSystem)
-                throws IOException;
+            throws IOException;
 
         void verify(List<Change<?>> changes);
     }

@@ -26,7 +26,7 @@ import static java.util.stream.Collectors.toMap;
  * </ul>
  */
 final class DocumentRewriter
-        extends BreadthFirstVaultVisitor
+    extends BreadthFirstVaultVisitor
 {
     private final StringWriter out;
     private final Dictionary newFrontMatter;
@@ -36,7 +36,7 @@ final class DocumentRewriter
     {
         this.newFrontMatter = newFrontMatter;
         this.queryOutputs =
-                queryOutputs.stream().collect(toMap(QueryOutput::queryBlock, Function.identity()));
+            queryOutputs.stream().collect(toMap(QueryOutput::queryBlock, Function.identity()));
         this.out = new StringWriter();
     }
 
@@ -87,11 +87,10 @@ final class DocumentRewriter
         out.write(textBlock.markdown());
     }
 
-    static String rewriteDocument(
-            Document document, Dictionary frontMatter, List<QueryOutput> queryOutputs)
+    static String rewriteDocument(DocumentUpdate documentUpdate)
     {
-        var writer = new DocumentRewriter(frontMatter, queryOutputs);
-        document.accept(writer);
+        var writer = new DocumentRewriter(documentUpdate.frontMatter(), documentUpdate.queryOutputs());
+        documentUpdate.document().accept(writer);
         return writer.out.toString();
     }
 }

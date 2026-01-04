@@ -16,5 +16,7 @@ interface MusicCurator
 
     QueryCatalog queryCatalog();
 
+    QueryOrchestrator queryOrchestrator();
+
     DocumentPathResolver documentPathResolver();
 }

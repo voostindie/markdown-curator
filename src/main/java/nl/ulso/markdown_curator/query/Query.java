@@ -1,5 +1,6 @@
 package nl.ulso.markdown_curator.query;
 
+import nl.ulso.markdown_curator.Changelog;
 import nl.ulso.markdown_curator.vault.QueryBlock;
 
 import java.util.Map;
@@ -33,6 +34,11 @@ public interface Query
      * Markdown one-liner.
      */
     Map<String, String> supportedConfiguration();
+
+    default boolean isImpactedBy(Changelog changelog)
+    {
+        return true;
+    }
 
     /**
      * Runs the query against and produces result.
