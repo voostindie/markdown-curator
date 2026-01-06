@@ -1,5 +1,6 @@
 package nl.ulso.markdown_curator.journal;
 
+import nl.ulso.markdown_curator.Changelog;
 import nl.ulso.markdown_curator.query.*;
 
 import jakarta.inject.Inject;
@@ -9,6 +10,7 @@ import java.util.LinkedHashSet;
 import java.util.Map;
 
 import static java.lang.System.lineSeparator;
+import static nl.ulso.markdown_curator.Change.isObjectType;
 
 /**
  * Generates an overview of marked lines for a document, one section per marker
@@ -52,10 +54,17 @@ public class MarkedQuery
     }
 
     @Override
+    public boolean isImpactedBy(Changelog changelog, QueryDefinition definition)
+    {
+        return changelog.changes()
+            .anyMatch(isObjectType(Daily.class).and(change ->
+                change.objectAs(Daily.class).refersTo(resolveDocumentName(definition))));
+    }
+
+    @Override
     public QueryResult run(QueryDefinition definition)
     {
-        var documentName =
-                definition.configuration().string("document", definition.document().name());
+        var documentName = resolveDocumentName(definition);
         var markers = new LinkedHashSet<>(definition.configuration().listOfStrings("markers"));
         var level = "#".repeat(definition.configuration().integer("level", 2));
         var markedLines = journal.markedLinesFor(documentName, markers);
@@ -94,5 +103,10 @@ public class MarkedQuery
             result.append(lineSeparator());
         }
         return resultFactory.string(result.toString());
+    }
+
+    private String resolveDocumentName(QueryDefinition definition)
+    {
+        return definition.configuration().string("document", definition.document().name());
     }
 }

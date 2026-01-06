@@ -7,9 +7,6 @@ import org.slf4j.LoggerFactory;
 import java.util.*;
 import java.util.function.Predicate;
 
-import static nl.ulso.markdown_curator.Change.Kind.CREATE;
-import static nl.ulso.markdown_curator.Change.Kind.DELETE;
-import static nl.ulso.markdown_curator.Change.Kind.UPDATE;
 import static nl.ulso.markdown_curator.Changelog.changelogFor;
 import static nl.ulso.markdown_curator.Changelog.emptyChangelog;
 
@@ -23,9 +20,6 @@ import static nl.ulso.markdown_curator.Changelog.emptyChangelog;
 ///
 /// Note that the same change can be accepted by multiple predicates, and that the order in which
 /// change handlers are executed is not guaranteed.
-///
-/// To aid in the definition of predicates, this template class contains a number of factory methods
-/// for predicates that can be combined at will.
 public abstract class ChangeProcessorTemplate
     implements ChangeProcessor
 {
@@ -60,31 +54,6 @@ public abstract class ChangeProcessorTemplate
         ChangeHandler handler)
     {
         changeHandlers.put(predicate, handler);
-    }
-
-    protected final Predicate<Change<?>> isObjectType(Class<?> objectType)
-    {
-        return change -> change.objectType().equals(objectType);
-    }
-
-    protected final Predicate<Change<?>> isCreate()
-    {
-        return change -> change.kind() == CREATE;
-    }
-
-    protected final Predicate<Change<?>> isUpdate()
-    {
-        return change -> change.kind() == UPDATE;
-    }
-
-    protected final Predicate<Change<?>> isCreateOrUpdate()
-    {
-        return isCreate().or(isUpdate());
-    }
-
-    protected final Predicate<Change<?>> isDelete()
-    {
-        return change -> change.kind() == DELETE;
     }
 
     /// Determines whether a full refresh is required based on the changelog.

@@ -1,6 +1,7 @@
 package nl.ulso.markdown_curator.project;
 
 import jakarta.inject.Inject;
+import nl.ulso.markdown_curator.Changelog;
 import nl.ulso.markdown_curator.query.*;
 import nl.ulso.markdown_curator.vault.Document;
 
@@ -10,6 +11,7 @@ import java.util.Map;
 
 import static java.lang.Integer.MAX_VALUE;
 import static java.util.Comparator.comparingInt;
+import static nl.ulso.markdown_curator.Change.isObjectType;
 import static nl.ulso.markdown_curator.project.AttributeDefinition.LAST_MODIFIED;
 import static nl.ulso.markdown_curator.project.AttributeDefinition.LEAD;
 import static nl.ulso.markdown_curator.project.AttributeDefinition.PRIORITY;
@@ -52,6 +54,13 @@ public final class ProjectLeadQuery
         return Map.of("lead",
             "Project lead (contact) to select; defaults to the name of the current document."
         );
+    }
+
+    @Override
+    public boolean isImpactedBy(Changelog changelog, QueryDefinition definition)
+    {
+        return changelog.changes()
+            .anyMatch(isObjectType(AttributeRegistryUpdate.class));
     }
 
     @Override

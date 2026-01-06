@@ -1,22 +1,23 @@
 package nl.ulso.markdown_curator.journal;
 
+import jakarta.inject.Inject;
+import nl.ulso.markdown_curator.Changelog;
 import nl.ulso.markdown_curator.query.*;
 import nl.ulso.markdown_curator.vault.*;
 
-import jakarta.inject.Inject;
 import java.time.LocalDate;
 import java.util.*;
 import java.util.stream.Stream;
 
 import static java.util.Comparator.comparing;
+import static nl.ulso.markdown_curator.Change.isObjectType;
 
 public class PeriodQuery
-        implements Query
+    implements Query
 {
     private final Journal journal;
     private final String defaultFolder;
     private final QueryResultFactory resultFactory;
-
 
     @Inject
     PeriodQuery(Journal journal, JournalSettings settings, QueryResultFactory resultFactory)
@@ -43,9 +44,28 @@ public class PeriodQuery
     public Map<String, String> supportedConfiguration()
     {
         return Map.of(
-                "start", "First date to include in the period, in YYYY-MM-DD format",
-                "end", "Last date to include in the period, in YYYY-MM-DD format",
-                "folder", "Folder of notes to report on; defaults to '" + defaultFolder + "'"
+            "start", "First date to include in the period, in YYYY-MM-DD format",
+            "end", "Last date to include in the period, in YYYY-MM-DD format",
+            "folder", "Folder of notes to report on; defaults to '" + defaultFolder + "'"
+        );
+    }
+
+    @Override
+    public boolean isImpactedBy(Changelog changelog, QueryDefinition definition)
+    {
+        var start = resolveStartDate(definition);
+        var end = resolveEndDate(definition);
+        if (start == null || end == null)
+        {
+            return false;
+        }
+        return changelog.changes().anyMatch(isObjectType(Daily.class)
+            .and(change ->
+                {
+                    var date = change.objectAs(Daily.class).date();
+                    return date.isAfter(start.minusDays(1)) && date.isBefore(end.plusDays(1));
+                }
+            )
         );
     }
 
@@ -58,10 +78,10 @@ public class PeriodQuery
         var finder = new DocumentFinder(documentNames, folder);
         journal.vault().accept(finder);
         return resultFactory.unorderedList(
-                finder.selectedDocuments.stream()
-                        .sorted(comparing(Document::sortableTitle))
-                        .map(Document::link)
-                        .toList());
+            finder.selectedDocuments.stream()
+                .sorted(comparing(Document::sortableTitle))
+                .map(Document::link)
+                .toList());
     }
 
     protected Journal journal()
@@ -96,7 +116,7 @@ public class PeriodQuery
     }
 
     private static class DocumentFinder
-            extends BreadthFirstVaultVisitor
+        extends BreadthFirstVaultVisitor
     {
         private final Set<String> documentNames;
         private final String selectedFolderName;

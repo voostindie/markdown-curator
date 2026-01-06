@@ -19,10 +19,8 @@ import static java.util.Comparator.naturalOrder;
 import static java.util.Comparator.reverseOrder;
 import static java.util.stream.Collectors.toMap;
 import static java.util.stream.Collectors.toUnmodifiableSet;
+import static nl.ulso.markdown_curator.Change.*;
 import static nl.ulso.markdown_curator.Change.Kind.DELETE;
-import static nl.ulso.markdown_curator.Change.create;
-import static nl.ulso.markdown_curator.Change.delete;
-import static nl.ulso.markdown_curator.Change.update;
 import static nl.ulso.markdown_curator.journal.JournalBuilder.parseDateFrom;
 import static nl.ulso.markdown_curator.journal.JournalBuilder.parseWeeklyFrom;
 import static nl.ulso.markdown_curator.vault.Dictionary.emptyDictionary;
@@ -247,20 +245,6 @@ public class Journal
         return parseDateFrom(dailyDocument).map(dailies::get);
     }
 
-    public boolean isJournalEntry(Document document)
-    {
-        var folder = document.folder();
-        while (folder != vault)
-        {
-            if (folder.name().contentEquals(settings.journalFolderName()))
-            {
-                return true;
-            }
-            folder = folder.parent();
-        }
-        return false;
-    }
-
     public boolean isMarkerDocument(Document document)
     {
         return document.folder().name().contentEquals(settings.markerSubFolderName())
@@ -357,11 +341,16 @@ public class Journal
         return Optional.ofNullable(weeklies.higher(weekly));
     }
 
-    public Optional<Weekly> weeklyFor(LocalDate date)
+    public Weekly computeWeeklyFor(LocalDate date)
     {
         var year = date.get(settings.weekFields().weekBasedYear());
         var week = date.get(settings.weekFields().weekOfWeekBasedYear());
-        var weekly = new Weekly(year, week);
+        return new Weekly(year, week);
+    }
+
+    public Optional<Weekly> weeklyFor(LocalDate date)
+    {
+        var weekly = computeWeeklyFor(date);
         if (weeklies.contains(weekly))
         {
             return Optional.of(weekly);

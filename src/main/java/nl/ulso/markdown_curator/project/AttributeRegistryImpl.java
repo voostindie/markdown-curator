@@ -7,6 +7,9 @@ import nl.ulso.markdown_curator.*;
 import java.util.*;
 
 import static java.util.HashSet.newHashSet;
+import static nl.ulso.markdown_curator.Change.isCreateOrUpdate;
+import static nl.ulso.markdown_curator.Change.isDelete;
+import static nl.ulso.markdown_curator.Change.isObjectType;
 import static nl.ulso.markdown_curator.project.AttributeRegistryUpdate.REGISTRY_CHANGE;
 
 @Singleton

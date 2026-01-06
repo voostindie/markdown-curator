@@ -1,5 +1,6 @@
 package nl.ulso.markdown_curator.links;
 
+import nl.ulso.markdown_curator.Changelog;
 import nl.ulso.markdown_curator.query.*;
 
 import jakarta.inject.Inject;
@@ -17,6 +18,12 @@ public final class DeadLinksQuery
     {
         this.linksModel = linksModel;
         this.resultFactory = resultFactory;
+    }
+
+    @Override
+    public boolean isImpactedBy(Changelog changelog, QueryDefinition definition)
+    {
+        return true;
     }
 
     @Override

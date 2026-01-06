@@ -14,4 +14,10 @@ public record AttributeRegistryUpdate()
 {
     static final Collection<Change<?>> REGISTRY_CHANGE =
         List.of(update(new AttributeRegistryUpdate(), AttributeRegistryUpdate.class));
+
+    @Override
+    public String toString()
+    {
+        return "AttributeRegistry";
+    }
 }

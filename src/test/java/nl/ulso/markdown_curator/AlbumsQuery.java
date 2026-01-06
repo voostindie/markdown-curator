@@ -35,6 +35,12 @@ public class AlbumsQuery
     }
 
     @Override
+    public boolean isImpactedBy(Changelog changelog, QueryDefinition definition)
+    {
+        return true;
+    }
+
+    @Override
     public Map<String, String> supportedConfiguration()
     {
         return Map.of("artist", "Name of the artist. Defaults to document name.",

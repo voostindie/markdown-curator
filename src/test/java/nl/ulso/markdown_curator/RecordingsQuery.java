@@ -40,6 +40,12 @@ public class RecordingsQuery
     }
 
     @Override
+    public boolean isImpactedBy(Changelog changelog, QueryDefinition definition)
+    {
+        return true;
+    }
+
+    @Override
     public QueryResult run(QueryDefinition definition)
     {
         var song = definition.configuration().string("song", definition.document().name());

@@ -33,7 +33,7 @@ class ChangeProcessorTemplateTest
     void processorWithoutFullRefreshAndChangeHandlersDoesNothing()
     {
         var log = new NoOpChangeProcessor(false)
-            .run(changelogFor(Change.update(null, Vault.class)));
+            .run(changelogFor(Change.create(null, Vault.class)));
         assertThat(log.isEmpty()).isTrue();
     }
 
@@ -41,7 +41,7 @@ class ChangeProcessorTemplateTest
     void processorWithFullRefreshButNoImplementationThrows()
     {
         var processor = new NoOpChangeProcessor(true);
-        var changelog = changelogFor(Change.update(null, Vault.class));
+        var changelog = changelogFor(Change.create(null, Vault.class));
         assertThatThrownBy(() -> processor.run(changelog))
             .isInstanceOf(IllegalStateException.class);
     }
@@ -80,7 +80,7 @@ class ChangeProcessorTemplateTest
     private static class NoOpChangeProcessor
         extends ChangeProcessorTemplate
     {
-        private boolean fullRefresh;
+        private final boolean fullRefresh;
 
         NoOpChangeProcessor(boolean fullRefresh)
         {

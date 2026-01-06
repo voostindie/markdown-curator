@@ -40,6 +40,12 @@ public class MembersQuery
     }
 
     @Override
+    public boolean isImpactedBy(Changelog changelog, QueryDefinition definition)
+    {
+        return true;
+    }
+
+    @Override
     public QueryResult run(QueryDefinition definition)
     {
         var band = definition.configuration().string("artist", definition.document().name());

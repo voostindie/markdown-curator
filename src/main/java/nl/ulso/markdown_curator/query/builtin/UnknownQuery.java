@@ -1,5 +1,6 @@
 package nl.ulso.markdown_curator.query.builtin;
 
+import nl.ulso.markdown_curator.Changelog;
 import nl.ulso.markdown_curator.query.*;
 
 import java.util.Map;
@@ -37,6 +38,12 @@ public final class UnknownQuery
     public Map<String, String> supportedConfiguration()
     {
         return emptyMap();
+    }
+
+    @Override
+    public boolean isImpactedBy(Changelog changelog, QueryDefinition definition)
+    {
+        return false;
     }
 
     @Override

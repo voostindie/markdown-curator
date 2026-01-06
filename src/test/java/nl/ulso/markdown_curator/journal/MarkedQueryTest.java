@@ -34,7 +34,7 @@ class MarkedQueryTest
     void description()
     {
         assertThat(query.description()).contains(
-                "Generates an overview of the marked lines for the selected document");
+            "Generates an overview of the marked lines for the selected document");
     }
 
     @Test
@@ -47,21 +47,21 @@ class MarkedQueryTest
     void basicMarkers()
     {
         var document =
-                ((VaultStub) journal.vault()).resolveDocumentInPath("Projects/foo");
+            ((VaultStub) journal.vault()).resolveDocumentInPath("Projects/foo");
         var definition = new QueryDefinitionStub(query, document)
-                .withConfiguration("markers", List.of("❗️", "❓"));
+            .withConfiguration("markers", List.of("❗️", "❓"));
         var result = query.run(definition);
         assertThat(result.toMarkdown()).isEqualTo("""
-                ## ❗️
-                
-                - Remember this
-                - Remember this too
-                
-                ## ❓
-                
-                - Important question!
-                
-                """);
+            ## ❗️
+            
+            - Remember this
+            - Remember this too
+            
+            ## ❓
+            
+            - Important question!
+            
+            """);
     }
 
     @Test
@@ -69,14 +69,14 @@ class MarkedQueryTest
     {
         var document = ((VaultStub) journal.vault()).resolveDocumentInPath("Projects/bar");
         var definition = new QueryDefinitionStub(query, document)
-                .withConfiguration("markers", "❗️");
+            .withConfiguration("markers", "❗️");
         var result = query.run(definition);
         assertThat(result.toMarkdown()).isEqualTo("""
-                ## ❗️
-                
-                - baR marker
-                
-                """);
+            ## ❗️
+            
+            - baR marker
+            
+            """);
     }
 
     @Test
@@ -84,14 +84,14 @@ class MarkedQueryTest
     {
         var document = ((VaultStub) journal.vault()).resolveDocumentInPath("Projects/bar");
         var definition = new QueryDefinitionStub(query, document)
-                .withConfiguration("markers", "❌");
+            .withConfiguration("markers", "❌");
         var result = query.run(definition);
         assertThat(result.toMarkdown()).isEqualTo("""
-                ## CUSTOM TITLE
-                
-                - Special marker
-                
-                """);
+            ## CUSTOM TITLE
+            
+            - Special marker
+            
+            """);
     }
 
     @Test
@@ -101,15 +101,15 @@ class MarkedQueryTest
         var definition = (QueryDefinition) document.fragments().get(1);
         var result = query.run(definition);
         assertThat(result.toMarkdown()).isEqualTo("""
-                ## Status log
-                
-                - [[2024-08-11]]:
-                    - Entry one
-                    - Entry two
-                - [[2024-08-12]]:
-                    - Entry three
-               
-                """);
+            ## Status log
+            
+            - [[2024-08-11]]:
+                - Entry one
+                - Entry two
+            - [[2024-08-12]]:
+                - Entry three
+            
+            """);
 
     }
 

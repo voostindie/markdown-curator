@@ -42,35 +42,35 @@ class ListQueryTest
     static Stream<Arguments> provideConfigurations()
     {
         return Stream.of(
-                Arguments.of(
-                        emptyMap(), """
+            Arguments.of(
+                emptyMap(), """
                                 - [[1]]
                                 - [[2]]
                                 """
-                ),
-                Arguments.of(
-                        Map.of("reverse", true), """
+            ),
+            Arguments.of(
+                Map.of("reverse", true), """
                                 - [[2]]
                                 - [[1]]
                                 """
-                ),
-                Arguments.of(
-                        Map.of("recurse", true), """
+            ),
+            Arguments.of(
+                Map.of("recurse", true), """
                                 - [[1]]
                                 - [[2]]
                                 - [[3]]
                                 """
-                ),
-                Arguments.of(
-                        Map.of("recurse", true, "reverse", true), """
+            ),
+            Arguments.of(
+                Map.of("recurse", true, "reverse", true), """
                                 - [[3]]
                                 - [[2]]
                                 - [[1]]
                                 """
-                ),
-                Arguments.of(
-                        Map.of("folder", "B"), "No results"
-                )
+            ),
+            Arguments.of(
+                Map.of("folder", "B"), "No results"
+            )
         );
     }
 

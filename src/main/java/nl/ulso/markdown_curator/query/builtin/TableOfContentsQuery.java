@@ -1,13 +1,14 @@
 package nl.ulso.markdown_curator.query.builtin;
 
+import nl.ulso.markdown_curator.Changelog;
 import nl.ulso.markdown_curator.query.*;
-import nl.ulso.markdown_curator.vault.BreadthFirstVaultVisitor;
-import nl.ulso.markdown_curator.vault.Section;
+import nl.ulso.markdown_curator.vault.*;
 
 import jakarta.inject.Inject;
 import java.util.*;
 
 import static java.lang.System.lineSeparator;
+import static nl.ulso.markdown_curator.Change.isObjectType;
 
 /**
  * Generates a table of contents from the current document.
@@ -37,6 +38,13 @@ public final class TableOfContentsQuery
     {
         return Map.of("minimum-level", "minimum section level to include, defaults to 2",
                 "maximum-level", "maximum section level to include, defaults to 6");
+    }
+
+    @Override
+    public boolean isImpactedBy(Changelog changelog, QueryDefinition definition)
+    {
+        return changelog.changes().anyMatch(isObjectType(Document.class).and(change ->
+            change.objectAs(Document.class).equals(definition.document())));
     }
 
     @Override

@@ -4,6 +4,8 @@ import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 import nl.ulso.markdown_curator.vault.*;
 import nl.ulso.markdown_curator.vault.Dictionary;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.*;
 import java.util.function.Consumer;
@@ -15,6 +17,8 @@ import static nl.ulso.markdown_curator.vault.Dictionary.mutableDictionary;
 final class FrontMatterCollector
     implements FrontMatterUpdateCollector, FrontMatterRewriteResolver
 {
+    private static final Logger LOGGER = LoggerFactory.getLogger(FrontMatterCollector.class);
+
     private final Vault vault;
     private final Map<String, MutableDictionary> documentFrontMatters;
 
@@ -50,6 +54,9 @@ final class FrontMatterCollector
     {
         var finder = new FrontMatterRewriteFinder();
         vault.accept(finder);
+        LOGGER.debug("Found {} documents that require an update to their front matter.",
+            finder.newFrontMatters.size()
+        );
         return unmodifiableMap(finder.newFrontMatters);
     }
 

@@ -100,6 +100,12 @@ class CuratorModuleTest
         }
 
         @Override
+        public boolean isImpactedBy(Changelog changelog, QueryDefinition definition)
+        {
+            return false;
+        }
+
+        @Override
         public QueryResult run(QueryDefinition definition)
         {
             // Do nothing

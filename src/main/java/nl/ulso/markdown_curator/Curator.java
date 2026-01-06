@@ -18,7 +18,7 @@ import static java.nio.file.Files.writeString;
 import static java.util.concurrent.Executors.newScheduledThreadPool;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static nl.ulso.markdown_curator.Change.Kind.UPDATE;
-import static nl.ulso.markdown_curator.Change.update;
+import static nl.ulso.markdown_curator.Change.create;
 import static nl.ulso.markdown_curator.DocumentRewriter.rewriteDocument;
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -70,7 +70,7 @@ public class Curator
     {
         LOGGER.info("Running this curator once");
         MDC.put("curator", currentThread().getName());
-        var changelog = vaultChanged(update(vault, Vault.class));
+        var changelog = vaultChanged(create(vault, Vault.class));
         cancelQueryWriteRunIfPresent();
         queryOrchestrator.runFor(changelog).forEach(this::writeDocument);
     }
@@ -78,7 +78,7 @@ public class Curator
     public void run()
     {
         MDC.put("curator", currentThread().getName());
-        changeProcessorOrchestrator.runFor(update(vault, Vault.class));
+        changeProcessorOrchestrator.runFor(create(vault, Vault.class));
         vault.setVaultChangedCallback(this);
         vault.watchForChanges();
     }
@@ -90,17 +90,11 @@ public class Curator
         {
             return Changelog.emptyChangelog();
         }
-        if (LOGGER.isDebugEnabled())
-        {
-            LOGGER.debug(">".repeat(80));
-        }
+        LOGGER.info("-".repeat(80));
+        LOGGER.info("{} detected for {}.", change.kind(), change.object());
         cancelQueryWriteRunIfPresent();
         var changelog = changeProcessorOrchestrator.runFor(change);
         scheduleQueryWriteRun(changelog);
-        if (LOGGER.isDebugEnabled())
-        {
-            LOGGER.debug("<".repeat(80));
-        }
         return changelog;
     }
 

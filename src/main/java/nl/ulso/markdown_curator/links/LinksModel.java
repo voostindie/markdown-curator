@@ -9,6 +9,7 @@ import java.util.*;
 
 import static java.util.Collections.emptyList;
 import static nl.ulso.markdown_curator.Change.Kind.DELETE;
+import static nl.ulso.markdown_curator.Change.isObjectType;
 
 @Singleton
 public final class LinksModel

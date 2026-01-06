@@ -130,7 +130,7 @@ public final class FileSystemVault
     @Override
     public void watchForChanges()
     {
-        LOGGER.info("Watching {} for changes", absolutePath);
+        LOGGER.info("Watching {} for changes.", absolutePath);
         watcher.watch();
     }
 

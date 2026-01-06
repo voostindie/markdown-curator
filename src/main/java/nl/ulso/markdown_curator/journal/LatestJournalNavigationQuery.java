@@ -1,18 +1,23 @@
 package nl.ulso.markdown_curator.journal;
 
-import nl.ulso.markdown_curator.query.*;
-
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
+import nl.ulso.markdown_curator.Changelog;
+import nl.ulso.markdown_curator.query.*;
+
 import java.util.Map;
+
+import static nl.ulso.markdown_curator.Change.isCreate;
+import static nl.ulso.markdown_curator.Change.isDelete;
+import static nl.ulso.markdown_curator.Change.isObjectType;
 
 @Singleton
 public class LatestJournalNavigationQuery
-        extends NavigationQueryTemplate
+    extends NavigationQueryTemplate
 {
     @Inject
     protected LatestJournalNavigationQuery(
-            Journal journal, QueryResultFactory resultFactory, GeneralMessages messages)
+        Journal journal, QueryResultFactory resultFactory, GeneralMessages messages)
     {
         super(journal, resultFactory, messages);
     }
@@ -33,7 +38,22 @@ public class LatestJournalNavigationQuery
     public Map<String, String> supportedConfiguration()
     {
         return Map.of("prefix", "Markdown to prefix the link with",
-                "postfix", "Markdown to postfix the link with");
+            "postfix", "Markdown to postfix the link with"
+        );
+    }
+
+    @Override
+    public boolean isImpactedBy(Changelog changelog, QueryDefinition definition)
+    {
+        return journal.latest().map(latestDaily ->
+                changelog.changes().anyMatch(isObjectType(Daily.class)
+                    .and(isCreate().or(isDelete()))
+                    .and(change ->
+                        change.objectAs(Daily.class).date().equals(latestDaily.date())
+                    )
+                )
+            )
+            .orElse(false);
     }
 
     @Override
@@ -42,11 +62,11 @@ public class LatestJournalNavigationQuery
         var prefix = definition.configuration().string("prefix", "");
         var postfix = definition.configuration().string("postfix", "");
         return journal.latest()
-                .map(daily -> resultFactory.string(
-                        prefix +
-                        "[[" + daily.date() + "|" + messages.journalLatest() + "]]" +
-                        postfix)
-                )
-                .orElse(resultFactory.empty());
+            .map(daily -> resultFactory.string(
+                prefix +
+                "[[" + daily.date() + "|" + messages.journalLatest() + "]]" +
+                postfix)
+            )
+            .orElse(resultFactory.empty());
     }
 }

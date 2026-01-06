@@ -11,10 +11,8 @@ import java.util.function.Predicate;
 
 import static java.util.Collections.unmodifiableCollection;
 import static java.util.Collections.unmodifiableMap;
+import static nl.ulso.markdown_curator.Change.*;
 import static nl.ulso.markdown_curator.Change.Kind.DELETE;
-import static nl.ulso.markdown_curator.Change.create;
-import static nl.ulso.markdown_curator.Change.delete;
-import static nl.ulso.markdown_curator.Change.update;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /// Represents a repository of projects on top of a single folder in the vault, excluding its

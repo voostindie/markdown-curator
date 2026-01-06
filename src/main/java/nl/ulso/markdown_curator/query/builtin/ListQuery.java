@@ -1,10 +1,10 @@
 package nl.ulso.markdown_curator.query.builtin;
 
+import jakarta.inject.Inject;
 import nl.ulso.markdown_curator.query.*;
 import nl.ulso.markdown_curator.vault.Document;
 import nl.ulso.markdown_curator.vault.Vault;
 
-import jakarta.inject.Inject;
 import java.util.ArrayList;
 import java.util.Map;
 
@@ -12,15 +12,15 @@ import static java.util.Collections.reverse;
 import static java.util.Comparator.comparing;
 
 public final class ListQuery
-        implements Query
+    extends FolderQuery
+    implements Query
 {
-    private final Vault vault;
     private final QueryResultFactory resultFactory;
 
     @Inject
     public ListQuery(Vault vault, QueryResultFactory resultFactory)
     {
-        this.vault = vault;
+        super(vault);
         this.resultFactory = resultFactory;
     }
 
@@ -40,10 +40,10 @@ public final class ListQuery
     public Map<String, String> supportedConfiguration()
     {
         return Map.of(
-                "folder",
-                "folder to list pages from; defaults to the folder of the current document",
-                "recurse", "whether to recurse into directories; defaults to false",
-                "reverse", "whether to reverse the list; defaults to false"
+            "folder",
+            "folder to list pages from; defaults to the folder of the current document",
+            "recurse", "whether to recurse into directories; defaults to false",
+            "reverse", "whether to reverse the list; defaults to false"
         );
     }
 
@@ -51,16 +51,15 @@ public final class ListQuery
     public QueryResult run(QueryDefinition definition)
     {
         var configuration = definition.configuration();
-        var documentFolder = definition.document().folder().name();
-        var folder = configuration.string("folder", documentFolder);
+        var folder = resolveFolderName(definition);
         var recurse = configuration.bool("recurse", false);
         var reverse = configuration.bool("reverse", false);
         var finder = new PageFinder(folder, recurse);
-        vault.accept(finder);
+        vault().accept(finder);
         var list = new ArrayList<>(finder.pages().stream()
-                .sorted(comparing(Document::sortableTitle))
-                .map(Document::link)
-                .toList());
+            .sorted(comparing(Document::sortableTitle))
+            .map(Document::link)
+            .toList());
         if (reverse)
         {
             reverse(list);

@@ -8,6 +8,7 @@ import java.util.Collection;
 import java.util.Set;
 
 import static java.util.Collections.emptyList;
+import static nl.ulso.markdown_curator.Change.isObjectType;
 
 /// Writes project attribute values to front matter.
 ///

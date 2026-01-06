@@ -117,7 +117,7 @@ final class ChangeProcessorOrchestratorImpl
     {
         if (LOGGER.isDebugEnabled())
         {
-            LOGGER.debug("Executing {} request processor(s)", changeProcessors.size());
+            LOGGER.debug("Executing {} change processor(s)", changeProcessors.size());
         }
         var changelog = changelogFor(change);
         for (ChangeProcessor processor : changeProcessors)

@@ -182,7 +182,6 @@ public class Application
                             name, e
                         );
                     }
-
                 }
             })).toList();
             executor.invokeAll(curators);

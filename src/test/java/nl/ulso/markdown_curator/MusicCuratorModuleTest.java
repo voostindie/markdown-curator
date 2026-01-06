@@ -11,9 +11,9 @@ import org.junit.jupiter.api.extension.ExtendWith;
 
 import java.io.IOException;
 import java.nio.file.Files;
-import java.util.Queue;
 
-import static nl.ulso.markdown_curator.Change.update;
+import static nl.ulso.markdown_curator.Change.create;
+import static nl.ulso.markdown_curator.Changelog.changelogFor;
 import static nl.ulso.markdown_curator.vault.ElementCounter.countAll;
 import static nl.ulso.markdown_curator.vault.QueryBlockTest.emptyQueryBlock;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -157,19 +157,12 @@ class MusicCuratorModuleTest
     @Test
     void runAllQueries()
     {
-        musicCurator.vaultChanged(update(vault, Vault.class));
-        Queue<QueryOutput> items = queryOrchestrator.runAllQueries();
-        // We expect only (and all) queries in "queries-blank" to have new output:
-        var list = items.stream()
-            .filter(QueryOutput::isChanged)
-            .peek(item -> System.out.println(
-                item.queryBlock().document().name() + " - " +
-                item.queryBlock().queryName() + ": " +
-                item.hash()))
-            .map(item -> item.queryBlock().document().name())
-            .filter(name -> !name.contentEquals("queries-blank"))
+        var changelog = changelogFor(create(vault, Vault.class));
+        var updates = queryOrchestrator.runFor(changelog).stream()
+            .map(item -> item.document().name())
+            .filter(name -> !name.contentEquals("queries-expected"))
             .toList();
-        softly.assertThat(list).isEmpty();
+        assertThat(updates).containsExactly("queries-blank");
     }
 
     @Test

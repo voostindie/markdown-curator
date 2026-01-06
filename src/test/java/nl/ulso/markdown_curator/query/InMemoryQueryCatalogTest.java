@@ -1,5 +1,6 @@
 package nl.ulso.markdown_curator.query;
 
+import nl.ulso.markdown_curator.Changelog;
 import org.assertj.core.api.SoftAssertions;
 import org.assertj.core.api.junit.jupiter.InjectSoftAssertions;
 import org.assertj.core.api.junit.jupiter.SoftAssertionsExtension;
@@ -55,6 +56,12 @@ class InMemoryQueryCatalogTest
         public Map<String, String> supportedConfiguration()
         {
             return emptyMap();
+        }
+
+        @Override
+        public boolean isImpactedBy(Changelog changelog, QueryDefinition definition)
+        {
+            return false;
         }
 
         @Override

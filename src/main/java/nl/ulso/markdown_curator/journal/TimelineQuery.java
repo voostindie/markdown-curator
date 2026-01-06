@@ -1,20 +1,22 @@
 package nl.ulso.markdown_curator.journal;
 
-import nl.ulso.markdown_curator.query.*;
-
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
+import nl.ulso.markdown_curator.Changelog;
+import nl.ulso.markdown_curator.query.*;
+
 import java.util.Map;
 
 import static java.lang.System.lineSeparator;
 import static java.util.stream.Collectors.joining;
+import static nl.ulso.markdown_curator.Change.isObjectType;
 
 /**
  * Generates a timeline for a document, extracted from the daily logs, Logseq-style.
  */
 @Singleton
 public class TimelineQuery
-        implements Query
+    implements Query
 {
     private final Journal journal;
     private final QueryResultFactory resultFactory;
@@ -43,14 +45,22 @@ public class TimelineQuery
     public Map<String, String> supportedConfiguration()
     {
         return Map.of("document", "Name of the document; defaults to the current document",
-                "limit", "Maximum number of entries to include; defaults to all");
+            "limit", "Maximum number of entries to include; defaults to all"
+        );
+    }
+
+    @Override
+    public boolean isImpactedBy(Changelog changelog, QueryDefinition definition)
+    {
+        return changelog.changes()
+            .anyMatch(isObjectType(Daily.class).and(change ->
+                change.objectAs(Daily.class).refersTo(resolveDocumentName(definition))));
     }
 
     @Override
     public QueryResult run(QueryDefinition definition)
     {
-        var documentName =
-                definition.configuration().string("document", definition.document().name());
+        var documentName = resolveDocumentName(definition);
         var limit = definition.configuration().integer("limit", -1);
         var timeline = journal.timelineFor(documentName);
         var stream = timeline.entrySet().stream();
@@ -59,9 +69,14 @@ public class TimelineQuery
             stream = stream.limit(limit);
         }
         var result = stream
-                .map(entry -> "- **[[" + entry.getKey() + "]]**:" + lineSeparator() +
-                              entry.getValue().indent(4))
-                .collect(joining());
+            .map(entry -> "- **[[" + entry.getKey() + "]]**:" + lineSeparator() +
+                          entry.getValue().indent(4))
+            .collect(joining());
         return resultFactory.string(result + lineSeparator());
+    }
+
+    private String resolveDocumentName(QueryDefinition definition)
+    {
+        return definition.configuration().string("document", definition.document().name());
     }
 }

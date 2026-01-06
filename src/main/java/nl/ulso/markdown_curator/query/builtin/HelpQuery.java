@@ -1,14 +1,15 @@
 package nl.ulso.markdown_curator.query.builtin;
 
+import jakarta.inject.Inject;
+import nl.ulso.markdown_curator.Changelog;
 import nl.ulso.markdown_curator.query.*;
 
-import jakarta.inject.Inject;
 import java.util.Map;
 
 import static java.lang.System.lineSeparator;
 
 public final class HelpQuery
-        implements Query
+    implements Query
 {
     private final QueryCatalog catalog;
 
@@ -34,8 +35,14 @@ public final class HelpQuery
     public Map<String, String> supportedConfiguration()
     {
         return Map.of(
-                "name", "Name of the query to get help for."
+            "name", "Name of the query to get help for."
         );
+    }
+
+    @Override
+    public boolean isImpactedBy(Changelog changelog, QueryDefinition definition)
+    {
+        return false;
     }
 
     @Override
@@ -47,12 +54,12 @@ public final class HelpQuery
         {
             var builder = new StringBuilder();
             builder.append("### ")
-                    .append(queryName)
-                    .append(lineSeparator())
-                    .append(lineSeparator())
-                    .append(query.description())
-                    .append(lineSeparator())
-                    .append(lineSeparator());
+                .append(queryName)
+                .append(lineSeparator())
+                .append(lineSeparator())
+                .append(query.description())
+                .append(lineSeparator())
+                .append(lineSeparator());
             var config = query.supportedConfiguration();
             if (config.isEmpty())
             {
@@ -61,14 +68,14 @@ public final class HelpQuery
             else
             {
                 builder.append("Configuration options:")
-                        .append(lineSeparator())
-                        .append(lineSeparator());
+                    .append(lineSeparator())
+                    .append(lineSeparator());
                 config.keySet().stream().sorted().forEach(name ->
-                        builder.append("- **")
-                                .append(name)
-                                .append("**: ")
-                                .append(config.get(name))
-                                .append(lineSeparator()));
+                    builder.append("- **")
+                        .append(name)
+                        .append("**: ")
+                        .append(config.get(name))
+                        .append(lineSeparator()));
             }
             return builder.toString();
         };
