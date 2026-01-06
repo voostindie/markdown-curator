@@ -10,6 +10,7 @@ import java.util.stream.Collectors;
 
 import static java.util.Collections.emptySet;
 import static java.util.List.copyOf;
+import static java.util.stream.Collectors.toSet;
 import static nl.ulso.markdown_curator.Changelog.changelogFor;
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -26,9 +27,26 @@ final class ChangeProcessorOrchestratorImpl
 
     @Inject
     ChangeProcessorOrchestratorImpl(
-        Set<ChangeProcessor> changeProcessors, @ExternalChangeObjectType Set<Class<?>> externalObjectTypes)
+        Set<ChangeProcessor> changeProcessors,
+        @ExternalChangeObjectType Set<Class<?>> externalObjectTypes)
     {
-        if (producesAnyOf(changeProcessors, RESERVED_OBJECT_TYPES))
+        verifyReservedObjectTypeProducers(changeProcessors);
+        this.changeProcessors = orderChangeProcessors(changeProcessors, externalObjectTypes);
+    }
+
+    ChangeProcessorOrchestratorImpl(Set<ChangeProcessor> changeProcessors)
+    {
+        this(changeProcessors, emptySet());
+    }
+
+    /// Verify that none of the provided change processors produce object types that are reserved
+    /// by the core system.
+    private void verifyReservedObjectTypeProducers(Set<ChangeProcessor> changeProcessors)
+    {
+        var processorsToVerify = changeProcessors.stream()
+            .filter(processor -> !processor.getClass().equals(VaultReloader.class))
+            .collect(toSet());
+        if (producesAnyOf(processorsToVerify, RESERVED_OBJECT_TYPES))
         {
             throw new IllegalArgumentException(
                 "Change processors may not produce any of the reserved object types: " +
@@ -37,12 +55,6 @@ final class ChangeProcessorOrchestratorImpl
                     .collect(Collectors.joining(", "))
             );
         }
-        this.changeProcessors = orderChangeProcessors(changeProcessors, externalObjectTypes);
-    }
-
-    ChangeProcessorOrchestratorImpl(Set<ChangeProcessor> changeProcessors)
-    {
-        this(changeProcessors, emptySet());
     }
 
     List<ChangeProcessor> changeProcessors()
@@ -60,8 +72,8 @@ final class ChangeProcessorOrchestratorImpl
     ///
     /// The worst-case scenario is that all items except the last item in the queue need to be
     /// placed back in the queue for every iteration. That means the running time of this O(n^2).
-    /// The maximum number of iterations is (n * (n + 1) / 2). If more is needed, then there is
-    /// a dependency that can never be satisfied. That is a programming error.
+    /// The maximum number of iterations is (n * (n + 1) / 2). If more is needed, then there is a
+    /// dependency that can never be satisfied. That is a programming error.
     private List<ChangeProcessor> orderChangeProcessors(
         Set<ChangeProcessor> changeProcessors,
         Set<Class<?>> customObjectTypes)
@@ -137,7 +149,9 @@ final class ChangeProcessorOrchestratorImpl
                 changelog = changelog.append(newChangelog);
                 if (LOGGER.isDebugEnabled())
                 {
-                    LOGGER.debug("Executed change processor {}", processor.getClass().getSimpleName());
+                    LOGGER.debug("Executed change processor {}",
+                        processor.getClass().getSimpleName()
+                    );
                 }
             }
             catch (RuntimeException e)
@@ -170,10 +184,10 @@ final class ChangeProcessorOrchestratorImpl
                     newChangelog.changes()
                         .map(Change::objectType)
                         .map(Class::getSimpleName)
-                        .collect(Collectors.toSet()),
+                        .collect(toSet()),
                     processor.producedObjectTypes().stream()
                         .map(Class::getSimpleName)
-                        .collect(Collectors.toSet())
+                        .collect(toSet())
                 );
             }
             throw new IllegalStateException(

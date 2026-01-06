@@ -4,6 +4,7 @@ import dagger.*;
 import dagger.Module;
 import dagger.multibindings.IntoSet;
 import dagger.multibindings.Multibinds;
+import jakarta.inject.Named;
 import nl.ulso.markdown_curator.query.*;
 import nl.ulso.markdown_curator.query.builtin.*;
 import nl.ulso.markdown_curator.vault.*;
@@ -34,7 +35,7 @@ public abstract class CuratorModule
     abstract Set<Query> queries();
 
     @Multibinds
-    abstract Set<ChangeProcessor> dataModels();
+    abstract Set<ChangeProcessor> changeProcessors();
 
     @Multibinds
     @ExternalChangeObjectType
@@ -67,6 +68,14 @@ public abstract class CuratorModule
 
     @Binds
     abstract GeneralMessages bindGeneralMessages(ResourceBundledGeneralMessages generalMessages);
+
+    @BindsOptionalOf
+    @Named("watchdoc")
+    abstract String watchDocumentName();
+
+    @Binds
+    @IntoSet
+    abstract ChangeProcessor bindVaultReloader(VaultReloader vaultReloader);
 
     @Binds
     abstract FrontMatterUpdateCollector bindFrontMatterCollector(

@@ -78,7 +78,7 @@ public class Curator
     public void run()
     {
         MDC.put("curator", currentThread().getName());
-        changeProcessorOrchestrator.runFor(create(vault, Vault.class));
+        vaultChanged(create(vault, Vault.class));
         vault.setVaultChangedCallback(this);
         vault.watchForChanges();
     }

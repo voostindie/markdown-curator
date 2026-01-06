@@ -84,9 +84,9 @@ final class QueryOrchestratorImpl
     /// curator wasn't running. Optionally, the change can also be published if a specific document
     /// in the vault has changed by the user.
     ///
-    /// If there is no [Vault] change in the changelog, then this methods returns all documents in
+    /// If there is no [Vault] change in the changelog, then this method returns all documents in
     /// the vault that have a query in them that is impacted by the changelog. To verify that, this
-    /// method calls  `isImpactedBy` for each query in each document. There can be many queries, so
+    /// method calls `isImpactedBy` for each query in each document. There can be many queries, so
     /// this is done in parallel.
     private Set<Document> findImpactedDocuments(Changelog changelog)
     {
@@ -97,7 +97,7 @@ final class QueryOrchestratorImpl
                 "Detected change to the complete vault. Running all queries for all documents.");
             return queryBlocks.stream().map(QueryBlock::document).collect(toSet());
         }
-        LOGGER.debug("Verifying impact of the changelog on all documents in the vault");
+        LOGGER.debug("Verifying impact of the changelog on all documents in the vault.");
         var impactedDocuments = ConcurrentHashMap.<Document>newKeySet();
         if (queryBlocks.isEmpty())
         {
@@ -116,7 +116,7 @@ final class QueryOrchestratorImpl
                 if (hash == null || hash.isEmpty())
                 {
                     LOGGER.debug(
-                        "Document {} has a query block without output hash. Adding document.",
+                        "Document {} has a query block without output hash. Adding.",
                         queryBlock.document()
                     );
                     impactedDocuments.add(queryBlock.document());
