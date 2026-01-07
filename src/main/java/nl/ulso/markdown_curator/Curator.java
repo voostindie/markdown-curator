@@ -12,13 +12,13 @@ import java.util.Map;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 
-import static java.lang.Thread.currentThread;
 import static java.nio.file.Files.getLastModifiedTime;
 import static java.nio.file.Files.writeString;
 import static java.util.concurrent.Executors.newScheduledThreadPool;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static nl.ulso.markdown_curator.Change.Kind.UPDATE;
 import static nl.ulso.markdown_curator.Change.create;
+import static nl.ulso.markdown_curator.Changelog.emptyChangelog;
 import static nl.ulso.markdown_curator.DocumentRewriter.rewriteDocument;
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -37,18 +37,24 @@ import static org.slf4j.LoggerFactory.getLogger;
 /// and writes to disk, at the cost of the user having to wait a few seconds after saving the last
 /// change. This is especially useful when using Obsidian, which automatically writes changes to
 /// disk every few seconds.
+///
+/// The query run is performed with the changelog that has been built up from processing all
+/// incoming changes. After the queries have finally run and updated documents are written to disk,
+/// the changelog is reset.
 public class Curator
     implements VaultChangedCallback
 {
     private static final Logger LOGGER = getLogger(Curator.class);
     private static final long SCHEDULE_TIMEOUT_IN_SECONDS = 3;
 
+    private final String curatorName;
     private final Vault vault;
     private final ChangeProcessorOrchestrator changeProcessorOrchestrator;
     private final QueryOrchestrator queryOrchestrator;
     private final DocumentPathResolver documentPathResolver;
     private final Map<String, Long> writtenDocuments;
     private final ScheduledExecutorService delayedExecutor;
+    private Changelog backlog;
     private ScheduledFuture<?> runTask;
 
     @Inject
@@ -57,45 +63,46 @@ public class Curator
         ChangeProcessorOrchestrator changeProcessorOrchestrator,
         QueryOrchestrator queryOrchestrator, DocumentPathResolver documentPathResolver)
     {
+        this.curatorName = Thread.currentThread().getName();
         this.vault = vault;
         this.changeProcessorOrchestrator = changeProcessorOrchestrator;
         this.queryOrchestrator = queryOrchestrator;
         this.documentPathResolver = documentPathResolver;
         this.writtenDocuments = new HashMap<>();
         this.delayedExecutor = newScheduledThreadPool(1);
+        this.backlog = emptyChangelog();
         this.runTask = null;
     }
 
     public void runOnce()
     {
         LOGGER.info("Running this curator once");
-        MDC.put("curator", currentThread().getName());
-        var changelog = vaultChanged(create(vault, Vault.class));
+        vaultChanged(create(vault, Vault.class));
         cancelQueryWriteRunIfPresent();
-        queryOrchestrator.runFor(changelog).forEach(this::writeDocument);
+        performQueryWriteRun();
     }
 
     public void run()
     {
-        MDC.put("curator", currentThread().getName());
         vaultChanged(create(vault, Vault.class));
         vault.setVaultChangedCallback(this);
         vault.watchForChanges();
     }
 
+    /// This method is synchronized to ensure it doesn't run concurrently with
+    /// [#performQueryWriteRun].
     @Override
-    public final synchronized Changelog vaultChanged(Change<?> change)
+    public synchronized final void vaultChanged(Change<?> change)
     {
         if (checkSelfTriggeredUpdate(change))
         {
-            return Changelog.emptyChangelog();
+            return;
         }
         LOGGER.info("-".repeat(80));
         LOGGER.info("{} detected for {}.", change.kind(), change.object());
         cancelQueryWriteRunIfPresent();
-        var changelog = changeProcessorOrchestrator.runFor(change);
-        scheduleQueryWriteRun(changelog);
-        return changelog;
+        backlog = backlog.append(changeProcessorOrchestrator.runFor(change));
+        scheduleQueryWriteRun();
     }
 
     /// A change is self-triggered if it was the result of the curator writing a file to disk. To
@@ -141,21 +148,24 @@ public class Curator
     /// A change was detected, which means the queries need to be executed, and changes written to
     /// disk. That work is scheduled for a few seconds from now. If new changes come in in the
     /// meantime, the task will be cancelled and replaced by a new one.
-    private void scheduleQueryWriteRun(Changelog changelog)
+    private void scheduleQueryWriteRun()
     {
         LOGGER.debug("Scheduling query processing and document writing task to run in {} seconds",
             SCHEDULE_TIMEOUT_IN_SECONDS
         );
-        var curatorName = MDC.get("curator");
         runTask = delayedExecutor.schedule(
-            () ->
-            {
-                MDC.put("curator", curatorName);
-                queryOrchestrator.runFor(changelog).forEach(this::writeDocument);
-            },
-            SCHEDULE_TIMEOUT_IN_SECONDS,
-            SECONDS
+            this::performQueryWriteRun,
+            SCHEDULE_TIMEOUT_IN_SECONDS, SECONDS
         );
+    }
+
+    /// This method is synchronized to ensure it doesn't run concurrently with
+    /// [#vaultChanged(Change)].
+    private synchronized void performQueryWriteRun()
+    {
+        MDC.put("curator", curatorName);
+        queryOrchestrator.runFor(backlog).forEach(this::writeDocument);
+        backlog = emptyChangelog();
     }
 
     /// Executing queries has resulted in a set of []DocumentUpdate]s. These must be written to

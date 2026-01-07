@@ -20,7 +20,6 @@ import static java.text.Normalizer.normalize;
 import static java.util.Collections.synchronizedList;
 import static nl.ulso.markdown_curator.Change.Kind.CREATE;
 import static nl.ulso.markdown_curator.Change.Kind.DELETE;
-import static nl.ulso.markdown_curator.Changelog.changelogFor;
 import static nl.ulso.markdown_curator.vault.ElementCounter.countAll;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
@@ -312,10 +311,7 @@ class FileSystemVaultTest
     void whileWatchingForChanges(TestCase testCase)
     {
         var events = synchronizedList(new ArrayList<Change<?>>());
-        vault.setVaultChangedCallback(e -> {
-            events.add(e);
-            return changelogFor(e);
-        });
+        vault.setVaultChangedCallback(events::add);
 
         var background = Thread.ofVirtual().factory().newThread(() -> vault.watchForChanges());
         background.start();
