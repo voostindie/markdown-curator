@@ -107,7 +107,7 @@ final class QueryOrchestratorImpl
             {
                 if (impactedDocuments.contains(queryBlock.document()))
                 {
-                    LOGGER.debug("Impact on document {} already determined. Skipping validation.",
+                    LOGGER.debug("Impact on document '{}' already determined. Skipping validation.",
                         queryBlock.document()
                     );
                     return;
@@ -116,7 +116,8 @@ final class QueryOrchestratorImpl
                 if (hash == null || hash.isEmpty())
                 {
                     LOGGER.debug(
-                        "Document {} has a query block without output hash. Adding.",
+                        "Document '{}' has a query block without output hash. " +
+                        "Adding.",
                         queryBlock.document()
                     );
                     impactedDocuments.add(queryBlock.document());
@@ -126,14 +127,15 @@ final class QueryOrchestratorImpl
                 if (query.isImpactedBy(changelog, queryBlock))
                 {
                     LOGGER.debug(
-                        "Document {} has a query that might be impacted by the changelog. Adding.",
+                        "Document '{}' has a query that might be impacted by the changelog. " +
+                        "Adding.",
                         queryBlock.document()
                     );
                     impactedDocuments.add(queryBlock.document());
                 }
             }
         );
-        LOGGER.info("Validated {} queries in {} ms.", queryBlocks.size(), duration);
+        LOGGER.info("Validated {} queries in {}ms.", queryBlocks.size(), duration);
         return impactedDocuments;
     }
 
@@ -160,7 +162,7 @@ final class QueryOrchestratorImpl
                 var query = queryCatalog.query(queryBlock.queryName());
                 if (LOGGER.isTraceEnabled())
                 {
-                    LOGGER.trace("Running query '{}' in document: {}", query.name(),
+                    LOGGER.trace("Running query '{}' in document: '{}'.", query.name(),
                         queryBlock.document()
                     );
                 }
@@ -172,7 +174,8 @@ final class QueryOrchestratorImpl
                 catch (RuntimeException e)
                 {
                     LOGGER.warn(
-                        "Ignoring output due to exception while running query '{}' in document: {}",
+                        "Ignoring output due to exception while running query '{}' " +
+                        "in document: '{}'.",
                         query.name(), queryBlock.document().name(), e
                     );
                     return;
@@ -183,7 +186,7 @@ final class QueryOrchestratorImpl
                 writeQueue.add(new QueryOutput(queryBlock, output, hash, isChanged));
             }
         );
-        LOGGER.info("Executed {} queries in {} ms.", queryBlocks.size(), duration);
+        LOGGER.info("Executed {} queries in {}ms.", queryBlocks.size(), duration);
         return writeQueue;
     }
 

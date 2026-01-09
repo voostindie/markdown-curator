@@ -85,7 +85,7 @@ final class JavaScriptForAutomationFromClasspath
         }
         try
         {
-            LOGGER.debug("Running compiled script '{}' from path {}", name, path);
+            LOGGER.debug("Running compiled script '{}' from path '{}'.", name, path);
             var process = new ProcessBuilder(command).start();
             try (var reader = process.inputReader())
             {
@@ -109,7 +109,7 @@ final class JavaScriptForAutomationFromClasspath
         var scriptPath = scriptCache.get(scriptName);
         if (scriptPath != null && Files.exists(scriptPath))
         {
-            LOGGER.trace("Reusing compiled script '{}' from path {}", scriptName, scriptPath);
+            LOGGER.trace("Reusing compiled script '{}' from path '{}'.", scriptName, scriptPath);
             return scriptPath;
         }
         scriptCache.remove(scriptName);
@@ -121,7 +121,7 @@ final class JavaScriptForAutomationFromClasspath
     private List<String> loadScriptSource(String scriptName)
     {
         String sourcePath = SOURCE_PACKAGE + scriptName + SOURCE_EXTENSION;
-        LOGGER.debug("Loading script '{}' from classpath: {}", scriptName, sourcePath);
+        LOGGER.debug("Loading script '{}' from classpath '{}'.", scriptName, sourcePath);
         try (var inputStream = this.getClass().getResourceAsStream(sourcePath))
         {
             if (inputStream == null)
@@ -145,7 +145,7 @@ final class JavaScriptForAutomationFromClasspath
         {
             var outputFile = File.createTempFile(scriptName + "-", COMPILED_SCRIPT_EXTENSION);
             var outputPath = outputFile.toPath();
-            LOGGER.debug("Compiling script '{}' to path: {}", scriptName, outputPath);
+            LOGGER.debug("Compiling script '{}' to path '{}'.", scriptName, outputPath);
             var process = new ProcessBuilder(
                 COMPILE,
                 "-l", "JavaScript",

@@ -76,7 +76,7 @@ public class Curator
 
     public void runOnce()
     {
-        LOGGER.info("Running this curator once");
+        LOGGER.info("Running this curator once.");
         vaultChanged(create(vault, Vault.class));
         cancelQueryWriteRunIfPresent();
         performQueryWriteRun();
@@ -99,7 +99,7 @@ public class Curator
             return;
         }
         LOGGER.info("-".repeat(80));
-        LOGGER.info("{} detected for {}.", change.kind(), change.object());
+        LOGGER.info("{} detected for document '{}'.", change.kind(), change.object());
         cancelQueryWriteRunIfPresent();
         backlog = backlog.append(changeProcessorOrchestrator.runFor(change));
         scheduleQueryWriteRun();
@@ -130,7 +130,9 @@ public class Curator
         {
             return false;
         }
-        LOGGER.debug("Ignoring change on {} because this curator caused it.", documentName);
+        LOGGER.debug("Ignoring change on document '{}' because this curator caused it.",
+            documentName
+        );
         return true;
     }
 
@@ -140,7 +142,7 @@ public class Curator
     {
         if (runTask != null)
         {
-            LOGGER.trace("Cancelling currently scheduled task");
+            LOGGER.debug("Cancelling currently scheduled task.");
             runTask.cancel(false);
         }
     }
@@ -150,7 +152,7 @@ public class Curator
     /// meantime, the task will be cancelled and replaced by a new one.
     private void scheduleQueryWriteRun()
     {
-        LOGGER.debug("Scheduling query processing and document writing task to run in {} seconds",
+        LOGGER.debug("Scheduling query processing and document writing task to run in {} seconds.",
             SCHEDULE_TIMEOUT_IN_SECONDS
         );
         runTask = delayedExecutor.schedule(
@@ -180,7 +182,7 @@ public class Curator
             var path = documentPathResolver.resolveAbsolutePath(document);
             if (document.lastModified() != getLastModifiedTime(path).toMillis())
             {
-                LOGGER.warn("Skipping rewrite, document has changed on disk: {}", document);
+                LOGGER.warn("Document '{}' has changed on disk. Skipping.", document);
                 return;
             }
             writeString(path, newDocumentContent);
@@ -188,7 +190,7 @@ public class Curator
         }
         catch (IOException e)
         {
-            LOGGER.warn("Couldn't write document: {}", document);
+            LOGGER.warn("Couldn't write document '{}' to disk.", document);
             LOGGER.error(e.getMessage(), e);
         }
     }

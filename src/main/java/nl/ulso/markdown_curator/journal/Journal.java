@@ -174,7 +174,7 @@ public class Journal
         if (change.kind() == DELETE)
         {
             var daily = dailies.remove(date);
-            LOGGER.debug("Removed daily {} from the journal", date);
+            LOGGER.debug("Removed daily '{}' from the journal.", date);
             return List.of(delete(daily, Daily.class));
         }
         else
@@ -183,7 +183,7 @@ public class Journal
             document.accept(builder);
             var daily = builder.dailies().iterator().next();
             var previous = dailies.put(daily.date(), daily);
-            LOGGER.debug("Updated the journal for {}", document.name());
+            LOGGER.debug("Updated the journal for daily '{}'.", document.name());
             if (previous == null)
             {
                 return List.of(create(daily, Daily.class));
@@ -203,12 +203,12 @@ public class Journal
             if (change.kind() == DELETE)
             {
                 weeklies.remove(weekly);
-                LOGGER.debug("Removed weekly {} from the journal", weekly);
+                LOGGER.debug("Removed weekly '{}' from the journal.", weekly);
                 return delete(weekly, Weekly.class);
             }
             else
             {
-                LOGGER.debug("Updated the journal for {}", document.name());
+                LOGGER.debug("Updated the journal for weekly '{}'", document.name());
                 if (weeklies.add(weekly))
                 {
                     return create(weekly, Weekly.class);

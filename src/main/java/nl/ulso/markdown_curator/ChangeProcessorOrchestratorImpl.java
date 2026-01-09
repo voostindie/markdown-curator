@@ -129,7 +129,7 @@ final class ChangeProcessorOrchestratorImpl
     {
         if (LOGGER.isDebugEnabled())
         {
-            LOGGER.debug("Executing {} change processor(s)", changeProcessors.size());
+            LOGGER.debug("Executing {} change processors.", changeProcessors.size());
         }
         var changelog = changelogFor(change);
         for (ChangeProcessor processor : changeProcessors)
@@ -139,7 +139,7 @@ final class ChangeProcessorOrchestratorImpl
                 var filteredChangelog = changelog.changelogFor(processor.consumedObjectTypes());
                 if (filteredChangelog.isEmpty())
                 {
-                    LOGGER.debug("No relevant changes for processor {} available. Skipping.",
+                    LOGGER.debug("No relevant changes for processor '{}' available. Skipping.",
                         processor.getClass().getSimpleName()
                     );
                     continue;
@@ -149,14 +149,14 @@ final class ChangeProcessorOrchestratorImpl
                 changelog = changelog.append(newChangelog);
                 if (LOGGER.isDebugEnabled())
                 {
-                    LOGGER.debug("Executed change processor {}",
+                    LOGGER.debug("Executed change processor '{}'.",
                         processor.getClass().getSimpleName()
                     );
                 }
             }
             catch (RuntimeException e)
             {
-                LOGGER.error("Caught runtime exception while executing change processor {}",
+                LOGGER.error("Caught runtime exception while executing change processor '{}'.",
                     processor.getClass().getSimpleName(), e
                 );
             }
@@ -178,7 +178,7 @@ final class ChangeProcessorOrchestratorImpl
             if (LOGGER.isDebugEnabled())
             {
                 LOGGER.debug(
-                    "Change processor {} produced changes of a type that it doesn't claim to " +
+                    "Change processor '{}' produced changes of a type that it doesn't claim to " +
                     "produce. Produced types: {}. Allowed types: {}.",
                     processor.getClass().getSimpleName(),
                     newChangelog.changes()

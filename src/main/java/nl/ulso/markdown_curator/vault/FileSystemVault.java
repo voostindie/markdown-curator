@@ -130,7 +130,7 @@ public final class FileSystemVault
     @Override
     public void watchForChanges()
     {
-        LOGGER.info("Watching {} for changes.", absolutePath);
+        LOGGER.info("Watching '{}' for changes.", absolutePath);
         watcher.watch();
     }
 
@@ -162,7 +162,7 @@ public final class FileSystemVault
         if (event.isDirectory() && !isHidden(eventAbsolutePath))
         {
             var folder = parent.addFolder(folderName(eventAbsolutePath));
-            LOGGER.debug("Detected new folder: {}", folder);
+            LOGGER.debug("Detected new folder '{}'.", folder);
             try
             {
                 walkFileTree(eventAbsolutePath, new VaultBuilder(folder, eventAbsolutePath));
@@ -170,13 +170,13 @@ public final class FileSystemVault
             }
             catch (IOException e)
             {
-                LOGGER.warn("Error while processing file tree", e);
+                LOGGER.warn("Error while processing file tree.", e);
             }
         }
         else if (isDocument(eventAbsolutePath))
         {
             var document = newDocumentFromAbsolutePath(eventAbsolutePath);
-            LOGGER.debug("Detected new document: {}", document);
+            LOGGER.debug("Detected new document '{}'.", document);
             parent.addDocument(document);
             return create(document, Document.class);
         }
@@ -190,7 +190,7 @@ public final class FileSystemVault
         if (isDocument(eventAbsolutePath))
         {
             var document = newDocumentFromAbsolutePath(eventAbsolutePath);
-            LOGGER.debug("Detected changes to document {}.", document);
+            LOGGER.debug("Detected changes to document '{}'.", document);
             parent.addDocument(document);
             return update(document, Document.class);
         }
@@ -206,7 +206,7 @@ public final class FileSystemVault
             var name = documentName(eventAbsolutePath);
             return parent.document(name).map(document ->
             {
-                LOGGER.debug("Document deleted: {}", name);
+                LOGGER.debug("Deleted document '{}'.", name);
                 parent.removeDocument(name);
                 return delete(document, Document.class);
             }).orElse(null);
@@ -216,7 +216,7 @@ public final class FileSystemVault
             var name = folderName(eventAbsolutePath);
             return parent.folder(name).map(folder ->
             {
-                LOGGER.debug("Folder deleted: {}", name);
+                LOGGER.debug("Deleted folder '{}'.", name);
                 parent.removeFolder(name);
                 return delete(folder, Folder.class);
             }).orElse(null);
@@ -234,13 +234,13 @@ public final class FileSystemVault
             var directory = relativePath.getName(i);
             if (isHidden(directory))
             {
-                LOGGER.trace("Hidden directory. Doing nothing: {}", relativePath);
+                LOGGER.trace("Hidden directory '{}'. Skipping.", relativePath);
                 return null;
             }
             var subfolder = folder.folder(folderName(directory)).orElse(null);
             if (subfolder == null)
             {
-                LOGGER.trace("Couldn't find subfolder '{}' in folder '{}'. Doing nothing.",
+                LOGGER.trace("Couldn't find subfolder '{}' in folder '{}'. Skipping.",
                     directory, folder
                 );
                 return null;
@@ -304,7 +304,7 @@ public final class FileSystemVault
             path = path.resolve(parent.name());
         }
         path = path.resolve(document.name() + ".md");
-        LOGGER.trace("Resolved absolute path for document: {}", path);
+        LOGGER.trace("Resolved absolute path for document '{}'.", path);
         return path;
     }
 
@@ -326,7 +326,7 @@ public final class FileSystemVault
         {
             if (isHidden(directory))
             {
-                LOGGER.trace("Skipping directory {}", directory);
+                LOGGER.trace("Skipping directory '{}'.", directory);
                 return FileVisitResult.SKIP_SUBTREE;
             }
             if (!root.equals(directory))
@@ -354,7 +354,7 @@ public final class FileSystemVault
             if (exception != null)
             {
                 LOGGER.warn(
-                    "Traversing {} threw an exception; this might lead to unexpected behavior",
+                    "Traversing '{}' threw an exception; this might lead to unexpected behavior.",
                     directory, exception
                 );
             }
