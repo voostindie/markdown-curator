@@ -45,11 +45,15 @@ public class LatestJournalNavigationQuery
     @Override
     public boolean isImpactedBy(Changelog changelog, QueryDefinition definition)
     {
-        return journal.latest().map(latestDaily ->
+        return journal.latest().map(Daily::date).map(latestDaily ->
                 changelog.changes().anyMatch(isObjectType(Daily.class)
                     .and(isCreate().or(isDelete()))
                     .and(change ->
-                        change.objectAs(Daily.class).date().equals(latestDaily.date())
+                        {
+                            var documentDate = change.objectAs(Daily.class).date();
+                            return documentDate.isEqual(latestDaily) || // Creation of the latest
+                                   documentDate.isAfter(latestDaily);   // Deletion of a newer
+                        }
                     )
                 )
             )
