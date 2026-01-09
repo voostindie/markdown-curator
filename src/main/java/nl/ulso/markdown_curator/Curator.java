@@ -99,7 +99,9 @@ public class Curator
             return;
         }
         LOGGER.info("-".repeat(80));
-        LOGGER.info("{} detected for document '{}'.", change.kind(), change.object());
+        LOGGER.info("{} detected for {} '{}'.",
+            change.kind(), change.objectType().getSimpleName(), change.object()
+        );
         cancelQueryWriteRunIfPresent();
         backlog = backlog.append(changeProcessorOrchestrator.runFor(change));
         scheduleQueryWriteRun();
