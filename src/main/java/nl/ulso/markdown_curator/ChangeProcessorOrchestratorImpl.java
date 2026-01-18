@@ -8,7 +8,6 @@ import org.slf4j.Logger;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static java.util.Collections.emptySet;
 import static java.util.List.copyOf;
 import static java.util.stream.Collectors.toSet;
 import static nl.ulso.markdown_curator.Changelog.changelogFor;
@@ -26,21 +25,14 @@ final class ChangeProcessorOrchestratorImpl
     private final List<ChangeProcessor> changeProcessors;
 
     @Inject
-    ChangeProcessorOrchestratorImpl(
-        Set<ChangeProcessor> changeProcessors,
-        @ExternalChangeObjectType Set<Class<?>> externalObjectTypes)
-    {
-        verifyReservedObjectTypeProducers(changeProcessors);
-        this.changeProcessors = orderChangeProcessors(changeProcessors, externalObjectTypes);
-    }
-
     ChangeProcessorOrchestratorImpl(Set<ChangeProcessor> changeProcessors)
     {
-        this(changeProcessors, emptySet());
+        verifyReservedObjectTypeProducers(changeProcessors);
+        this.changeProcessors = orderChangeProcessors(changeProcessors);
     }
 
-    /// Verify that none of the provided change processors produce object types that are reserved
-    /// by the core system.
+    /// Verify that none of the provided change processors produce object types that are reserved by
+    /// the core system.
     private void verifyReservedObjectTypeProducers(Set<ChangeProcessor> changeProcessors)
     {
         var processorsToVerify = changeProcessors.stream()
@@ -74,12 +66,9 @@ final class ChangeProcessorOrchestratorImpl
     /// placed back in the queue for every iteration. That means the running time of this O(n^2).
     /// The maximum number of iterations is (n * (n + 1) / 2). If more is needed, then there is a
     /// dependency that can never be satisfied. That is a programming error.
-    private List<ChangeProcessor> orderChangeProcessors(
-        Set<ChangeProcessor> changeProcessors,
-        Set<Class<?>> customObjectTypes)
+    private List<ChangeProcessor> orderChangeProcessors(Set<ChangeProcessor> changeProcessors)
     {
         var availableObjectTypes = new HashSet<>(RESERVED_OBJECT_TYPES);
-        availableObjectTypes.addAll(customObjectTypes);
         var queue = new ArrayDeque<>(changeProcessors);
         var size = changeProcessors.size();
         var maxIterations = (size * (size + 1)) / 2;

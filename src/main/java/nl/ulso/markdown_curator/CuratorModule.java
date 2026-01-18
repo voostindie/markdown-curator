@@ -37,10 +37,6 @@ public abstract class CuratorModule
     @Multibinds
     abstract Set<ChangeProcessor> changeProcessors();
 
-    @Multibinds
-    @ExternalChangeObjectType
-    abstract Set<Class<?>> externalChangeObjectTypes();
-
     @BindsOptionalOf
     abstract WatchService optionalWatchService();
 
