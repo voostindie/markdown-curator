@@ -65,7 +65,7 @@ public final class VaultReloader
         return changelog.changes().anyMatch(
             isObjectType(Document.class).and(isUpdate()).and(change ->
             {
-                LOGGER.debug("Watch document has changed. Forcing a complete refresh.");
+                LOGGER.info("Watch document has changed. Forcing a complete refresh.");
                 var document = change.objectAs(Document.class);
                 return document.name().equals(watchDocumentName);
             })
