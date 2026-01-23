@@ -44,7 +44,7 @@ public final class TableOfContentsQuery
     public boolean isImpactedBy(Changelog changelog, QueryDefinition definition)
     {
         return changelog.changes().anyMatch(isObjectType(Document.class).and(change ->
-            change.objectAs(Document.class).equals(definition.document())));
+            change.as(Document.class).object().equals(definition.document())));
     }
 
     @Override

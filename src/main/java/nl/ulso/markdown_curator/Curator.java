@@ -120,7 +120,7 @@ public class Curator
         {
             return false;
         }
-        var document = (Document) change.object();
+        var document = change.as(Document.class).object();
         var documentName = document.name();
         var timestamp = writtenDocuments.get(documentName);
         if (timestamp == null)

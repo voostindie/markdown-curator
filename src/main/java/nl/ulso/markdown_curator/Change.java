@@ -6,7 +6,8 @@ import static nl.ulso.markdown_curator.Change.Kind.CREATE;
 import static nl.ulso.markdown_curator.Change.Kind.DELETE;
 import static nl.ulso.markdown_curator.Change.Kind.UPDATE;
 
-public interface Change<T>
+public sealed interface Change<T>
+    permits Create, Update1, Update2, Delete
 {
     enum Kind
     {
@@ -15,19 +16,24 @@ public interface Change<T>
         DELETE
     }
 
-    static <T> Change<T> create(T object, Class<T> objectType)
+    static <T> Change<T> create(T newObject, Class<T> objectType)
     {
-        return new ChangeImpl<>(object, objectType, Kind.CREATE);
+        return new Create<>(newObject, objectType);
     }
 
     static <T> Change<T> update(T object, Class<T> objectType)
     {
-        return new ChangeImpl<>(object, objectType, Kind.UPDATE);
+        return new Update1<>(object, objectType);
     }
 
-    static <T> Change<T> delete(T object, Class<T> objectType)
+    static <T> Change<T> update(T oldObject, T newObject, Class<T> objectType)
     {
-        return new ChangeImpl<>(object, objectType, Kind.DELETE);
+        return new Update2<>(oldObject, newObject, objectType);
+    }
+
+    static <T> Change<T> delete(T oldObject, Class<T> objectType)
+    {
+        return new Delete<>(oldObject, objectType);
     }
 
     static Predicate<Change<?>> isObjectType(Class<?> objectType)
@@ -57,11 +63,21 @@ public interface Change<T>
 
     T object();
 
-    <U> Change<U> as(Class<U> objectType);
+    T oldObject();
 
-    <U> U objectAs(Class<U> objectType);
+    T newObject();
 
     Class<?> objectType();
 
     Kind kind();
+
+    @SuppressWarnings("unchecked")
+    default <U> Change<U> as(Class<U> objectType)
+    {
+        if (!this.objectType().equals(objectType))
+        {
+            throw new IllegalStateException("Cannot cast change to different object type");
+        }
+        return (Change<U>) this;
+    }
 }

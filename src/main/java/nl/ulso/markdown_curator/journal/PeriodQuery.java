@@ -62,7 +62,7 @@ public class PeriodQuery
         return changelog.changes().anyMatch(isObjectType(Daily.class)
             .and(change ->
                 {
-                    var date = change.objectAs(Daily.class).date();
+                    var date = change.as(Daily.class).object().date();
                     return date.isAfter(start.minusDays(1)) && date.isBefore(end.plusDays(1));
                 }
             )

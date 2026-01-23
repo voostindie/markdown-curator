@@ -51,7 +51,7 @@ public class DayNavigationQuery
                     .and(isCreate().or(isDelete()))
                     .and(change ->
                         {
-                            var daily = change.objectAs(Daily.class).date();
+                            var daily = change.as(Daily.class).object().date();
                             var dailyBefore = journal.dailyBefore(daily).orElse(null);
                             var dailyAfter = journal.dailyAfter(daily).orElse(null);
                             return documentDate.equals(daily)
@@ -70,7 +70,8 @@ public class DayNavigationQuery
                 changelog.changes().anyMatch(isObjectType(Weekly.class)
                     .and(isCreate().or(isDelete()))
                     .and(change ->
-                        journal.computeWeeklyFor(documentDate).equals(change.objectAs(Weekly.class))
+                        journal.computeWeeklyFor(documentDate)
+                            .equals(change.as(Weekly.class).object())
                     )
                 )
             )

@@ -4,7 +4,8 @@ import io.methvin.watcher.DirectoryChangeEvent;
 import io.methvin.watcher.DirectoryWatcher;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
-import nl.ulso.markdown_curator.*;
+import nl.ulso.markdown_curator.Change;
+import nl.ulso.markdown_curator.DocumentPathResolver;
 import org.slf4j.Logger;
 
 import java.io.IOException;
@@ -25,7 +26,6 @@ import static java.util.Optional.empty;
 import static nl.ulso.markdown_curator.Change.create;
 import static nl.ulso.markdown_curator.Change.delete;
 import static nl.ulso.markdown_curator.Change.update;
-import static nl.ulso.markdown_curator.Changelog.emptyChangelog;
 import static nl.ulso.markdown_curator.vault.Document.newDocument;
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -52,7 +52,7 @@ public final class FileSystemVault
     public FileSystemVault(Path absolutePath, Optional<WatchService> watchService)
     {
         super(absolutePath.toString());
-        this.callback = (Change<?> _) -> emptyChangelog();
+        this.callback = _ -> {}; // By default, do nothing.
         this.absolutePath = absolutePath;
         VaultBuilder vaultBuilder = new VaultBuilder(this, absolutePath);
         try
@@ -189,10 +189,10 @@ public final class FileSystemVault
         var eventAbsolutePath = event.path();
         if (isDocument(eventAbsolutePath))
         {
-            var document = newDocumentFromAbsolutePath(eventAbsolutePath);
-            LOGGER.debug("Detected changes to document '{}'.", document);
-            parent.addDocument(document);
-            return update(document, Document.class);
+            var newDocument = newDocumentFromAbsolutePath(eventAbsolutePath);
+            LOGGER.debug("Detected changes to document '{}'.", newDocument);
+            var oldDocument = parent.addDocument(newDocument);
+            return update(oldDocument, newDocument, Document.class);
         }
         return null;
     }

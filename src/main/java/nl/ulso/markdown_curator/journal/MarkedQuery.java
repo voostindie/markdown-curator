@@ -58,7 +58,18 @@ public class MarkedQuery
     {
         return changelog.changes()
             .anyMatch(isObjectType(Daily.class).and(change ->
-                change.objectAs(Daily.class).refersTo(resolveDocumentName(definition))));
+                {
+                    var documentName = resolveDocumentName(definition);
+                    var dailyChange = change.as(Daily.class);
+                    return switch (dailyChange.kind())
+                    {
+                        case CREATE -> dailyChange.newObject().refersTo(documentName);
+                        case UPDATE -> dailyChange.oldObject().refersTo(documentName)
+                                       || dailyChange.newObject().refersTo(documentName);
+                        case DELETE -> dailyChange.oldObject().refersTo(documentName);
+                    };
+                })
+            );
     }
 
     @Override

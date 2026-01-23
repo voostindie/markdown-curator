@@ -118,7 +118,7 @@ final class ProjectRepositoryImpl
             }
             else
             {
-                return List.of(update(project, Project.class));
+                return List.of(update(previous, project, Project.class));
             }
         }
     }

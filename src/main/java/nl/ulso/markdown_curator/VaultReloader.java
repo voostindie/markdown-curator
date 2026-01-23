@@ -32,6 +32,7 @@ public final class VaultReloader
     private final Vault vault;
     private final String watchDocumentName;
 
+    @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
     @Inject
     VaultReloader(Vault vault, @Named(WATCH_DOCUMENT_KEY) Optional<String> watchDocumentName)
     {
@@ -64,17 +65,14 @@ public final class VaultReloader
         }
         return changelog.changes().anyMatch(
             isObjectType(Document.class).and(isUpdate()).and(change ->
-            {
-                LOGGER.info("Watch document has changed. Forcing a complete refresh.");
-                var document = change.objectAs(Document.class);
-                return document.name().equals(watchDocumentName);
-            })
+                change.as(Document.class).object().name().equals(watchDocumentName))
         );
     }
 
     @Override
     protected Collection<Change<?>> fullRefresh()
     {
+        LOGGER.info("Watch document has changed. Forcing a complete refresh.");
         return List.of(update(vault, Vault.class));
     }
 }

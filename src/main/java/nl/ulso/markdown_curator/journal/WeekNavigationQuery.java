@@ -51,7 +51,7 @@ public class WeekNavigationQuery
                 changelog.changes().anyMatch(isObjectType(Daily.class)
                     .and(isCreate().or(isDelete()))
                     .and(change ->
-                        journal.weeklyFor(change.objectAs(Daily.class).date())
+                        journal.weeklyFor(change.as(Daily.class).object().date())
                             .map(documentWeekly::equals)
                             .orElse(false)
                     ))
@@ -66,7 +66,7 @@ public class WeekNavigationQuery
                 changelog.changes().anyMatch(isObjectType(Weekly.class)
                     .and(isCreate().or(isDelete()))
                     .and(change -> {
-                            var weekly = change.objectAs(Weekly.class);
+                            var weekly = change.as(Weekly.class).object();
                             var weeklyBefore = journal.weeklyBefore(weekly).orElse(null);
                             var weeklyAfter = journal.weeklyAfter(weekly).orElse(null);
                             return documentWeekly.equals(weekly) ||

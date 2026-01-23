@@ -21,6 +21,13 @@ class ChangeTest
     }
 
     @Test
+    void createObject()
+    {
+        var change = create(42, Integer.class);
+        assertThat(change.newObject()).isEqualTo(42);
+    }
+
+    @Test
     void updateKind()
     {
         var change = update(42, Integer.class);
@@ -28,10 +35,38 @@ class ChangeTest
     }
 
     @Test
+    void updateWithSingleObject()
+    {
+        var change = update(42, Integer.class);
+        assertThat(change.object()).isEqualTo(42);
+    }
+
+    @Test
+    void updateWithOldObject()
+    {
+        var change = update(0, 42, Integer.class);
+        assertThat(change.oldObject()).isEqualTo(0);
+    }
+
+    @Test
+    void updateWithNewObject()
+    {
+        var change = update(0, 42, Integer.class);
+        assertThat(change.newObject()).isEqualTo(42);
+    }
+
+    @Test
     void deleteKind()
     {
         var change = delete(42, Integer.class);
         assertThat(change.kind()).isSameAs(DELETE);
+    }
+
+    @Test
+    void deleteObject()
+    {
+        var change = delete(42, Integer.class);
+        assertThat(change.oldObject()).isEqualTo(42);
     }
 
     @Test
@@ -54,7 +89,7 @@ class ChangeTest
     void asObject()
     {
         var change = create(42, Integer.class);
-        var integer = change.objectAs(Integer.class);
+        var integer = change.as(Integer.class).object();
         assertThat(integer).isEqualTo(42);
     }
 
@@ -62,7 +97,47 @@ class ChangeTest
     void asObjectInvalid()
     {
         var change = create(42, Integer.class);
-        assertThatThrownBy(() -> change.objectAs(String.class))
+        assertThatThrownBy(() -> change.as(String.class).object())
             .isInstanceOf(IllegalStateException.class);
+    }
+
+    @Test
+    void updateWithSingleObjectHasNoOldObject()
+    {
+        var change = update(42, Integer.class);
+        assertThatThrownBy(change::oldObject)
+            .isInstanceOf(UnsupportedOperationException.class);
+    }
+
+    @Test
+    void updateWithSingleObjectHasNewObject()
+    {
+        var change = update(42, Integer.class);
+        var integer = change.as(Integer.class).newObject();
+        assertThat(integer).isEqualTo(42);
+    }
+
+    @Test
+    void updateWithOldAndNewObjectsReturnsNewObject()
+    {
+        var change = update(0, 42, Integer.class);
+        var integer = change.as(Integer.class).newObject();
+        assertThat(integer).isEqualTo(42);
+    }
+
+    @Test
+    void createHasNoOldObject()
+    {
+        var change = create(42, Integer.class);
+        assertThatThrownBy(change::oldObject)
+            .isInstanceOf(UnsupportedOperationException.class);
+    }
+
+    @Test
+    void deleteHasNoNewObject()
+    {
+        var change = delete(42, Integer.class);
+        assertThatThrownBy(change::newObject)
+            .isInstanceOf(UnsupportedOperationException.class);
     }
 }

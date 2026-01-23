@@ -129,11 +129,13 @@ public class FileSystemFolder
     /**
      * Add a document to the current folder. If a document with the same name already exists, it is
      * replaced.
+     *
+     * @return The document that was replaced, or null if this is a new document.
      */
-    void addDocument(Document document)
+    Document addDocument(Document document)
     {
         document.setFolder(this);
-        documents.put(document.name(), document);
+        return documents.put(document.name(), document);
     }
 
     void removeDocument(String name)

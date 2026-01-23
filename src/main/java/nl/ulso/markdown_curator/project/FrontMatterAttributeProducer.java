@@ -53,7 +53,7 @@ public final class FrontMatterAttributeProducer
 
     private Collection<Change<?>> processProject(Change<?> change)
     {
-        var project = change.objectAs(Project.class);
+        var project = change.as(Project.class).object();
         var document = project.document();
         var changes = createChangeCollection();
         for (var definition : attributeDefinitions)

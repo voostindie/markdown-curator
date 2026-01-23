@@ -50,7 +50,7 @@ public class LatestJournalNavigationQuery
                     .and(isCreate().or(isDelete()))
                     .and(change ->
                         {
-                            var documentDate = change.objectAs(Daily.class).date();
+                            var documentDate = change.as(Daily.class).object().date();
                             return documentDate.isEqual(latestDaily) || // Creation of the latest
                                    documentDate.isAfter(latestDaily);   // Deletion of a newer
                         }

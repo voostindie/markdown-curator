@@ -190,7 +190,7 @@ public class Journal
             }
             else
             {
-                return List.of(update(daily, Daily.class));
+                return List.of(update(previous, daily, Daily.class));
             }
         }
     }

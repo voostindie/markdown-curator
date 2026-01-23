@@ -50,7 +50,7 @@ public final class FrontMatterPropertyWriter
 
     private Collection<Change<?>> processAttributeValue(Change<?> change)
     {
-        var attributeValue = change.objectAs(AttributeValue.class);
+        var attributeValue = change.as(AttributeValue.class).object();
         var project = attributeValue.project();
         var definition = attributeValue.definition();
         frontMatterUpdateCollector.updateFrontMatterFor(project.document(), dictionary ->

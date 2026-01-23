@@ -29,7 +29,7 @@ abstract class FolderQuery
         return isObjectType(Document.class).and(change ->
             isInHierarchyOf(
                 vault,
-                resolveFolderName(definition), change.objectAs(Document.class).folder()
+                resolveFolderName(definition), change.as(Document.class).object().folder()
             )
         );
     }
@@ -39,7 +39,7 @@ abstract class FolderQuery
         return isObjectType(Folder.class).and(change ->
             isInHierarchyOf(
                 vault,
-                resolveFolderName(definition), change.objectAs(Folder.class)
+                resolveFolderName(definition), change.as(Folder.class).object()
             )
         );
     }

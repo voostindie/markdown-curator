@@ -54,13 +54,13 @@ final class AttributeRegistryImpl
 
     private Collection<Change<?>> processProjectDeletion(Change<?> change)
     {
-        projectAttributes.remove(change.objectAs(Project.class));
+        projectAttributes.remove(change.as(Project.class).object());
         return REGISTRY_CHANGE;
     }
 
     private Collection<Change<?>> processAttributeValueChange(Change<?> change)
     {
-        var value = change.objectAs(AttributeValue.class);
+        var value = change.as(AttributeValue.class).object();
         var attribute = projectAttributes.computeIfAbsent(
             value.project(), _ -> new HashMap<>()
         );
@@ -73,7 +73,7 @@ final class AttributeRegistryImpl
 
     private Collection<Change<?>> processAttributeValueDeletion(Change<?> change)
     {
-        var value = change.objectAs(AttributeValue.class);
+        var value = change.as(AttributeValue.class).object();
         var attribute = projectAttributes.get(value.project());
         if (attribute != null)
         {
