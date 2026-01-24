@@ -22,16 +22,16 @@ class VaultReloaderTest
     }
 
     @Test
-    void consumedObjectTypes()
+    void consumedPayloadTypes()
     {
-        var set = new VaultReloader(vault, Optional.empty()).consumedObjectTypes();
+        var set = new VaultReloader(vault, Optional.empty()).consumedPayloadTypes();
         assertThat(set).containsExactly(Document.class);
     }
 
     @Test
-    void producedObjectTypes()
+    void producedPayloadTypes()
     {
-        var set = new VaultReloader(vault, Optional.empty()).producedObjectTypes();
+        var set = new VaultReloader(vault, Optional.empty()).producedPayloadTypes();
         assertThat(set).containsExactly(Vault.class);
     }
 
@@ -59,6 +59,6 @@ class VaultReloaderTest
         var inputChangelog = changelogFor(update(document, Document.class));
         var outputChangelog = reloader.run(inputChangelog);
         assertThat(outputChangelog.changes()
-            .allMatch(change -> change.objectType() == Vault.class)).isTrue();
+            .allMatch(change -> change.payloadType() == Vault.class)).isTrue();
     }
 }

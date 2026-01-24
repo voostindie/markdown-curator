@@ -64,18 +64,18 @@ final class ChangelogImpl
 
     @SuppressWarnings("unchecked")
     @Override
-    public <T> Stream<Change<T>> changesFor(Class<T> objectType)
+    public <T> Stream<Change<T>> changesFor(Class<T> payloadType)
     {
         return changes.stream()
-            .filter(change -> change.objectType().equals(objectType))
+            .filter(change -> change.payloadType().equals(payloadType))
             .map(change -> (Change<T>) change);
     }
 
     @Override
-    public Changelog changelogFor(Set<Class<?>> objectTypes)
+    public Changelog changelogFor(Set<Class<?>> payloadTypes)
     {
         return Changelog.changelogFor(changes.stream()
-            .filter(change -> objectTypes.contains(change.objectType()))
+            .filter(change -> payloadTypes.contains(change.payloadType()))
             .toList());
     }
 }

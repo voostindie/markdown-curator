@@ -74,7 +74,7 @@ class ChangelogTest
     }
 
     @Test
-    void objectTypesCanBeMixed()
+    void payloadsCanBeMixed()
     {
         var changelog = changelogFor(
             create(new Object(), Object.class),
@@ -85,7 +85,7 @@ class ChangelogTest
     }
 
     @Test
-    void mixedObjectTypesCanBeSplit()
+    void mixedPayloadsCanBeSplit()
     {
         var changelog = changelogFor(
             create(new Object(), Object.class),
@@ -105,7 +105,7 @@ class ChangelogTest
             create(true, Boolean.class)
         );
         var changes = changelog.changesFor(Integer.class).toList();
-        var object = changes.getFirst().object();
+        var object = changes.getFirst().value();
         assertThat(object).isEqualTo(42);
     }
 

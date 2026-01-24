@@ -43,7 +43,7 @@ final class ProjectRepositoryImpl
     }
 
     @Override
-    public Set<Class<?>> producedObjectTypes()
+    public Set<Class<?>> producedPayloadTypes()
     {
         return Set.of(Project.class);
     }
@@ -57,9 +57,9 @@ final class ProjectRepositoryImpl
 
     Predicate<Change<?>> isProjectDocument()
     {
-        return isObjectType(Document.class).and(change ->
+        return isPayloadType(Document.class).and(change ->
             {
-                var document = (Document) change.object();
+                var document = (Document) change.value();
                 return isProjectFolder(document.folder());
             }
         );
@@ -67,9 +67,9 @@ final class ProjectRepositoryImpl
 
     private Predicate<Change<?>> isProjectFolder()
     {
-        return isObjectType(Folder.class).and(change ->
+        return isPayloadType(Folder.class).and(change ->
         {
-            var folder = (Folder) change.object();
+            var folder = (Folder) change.value();
             return isProjectFolder(folder);
         });
     }
@@ -102,7 +102,7 @@ final class ProjectRepositoryImpl
 
     private Collection<Change<?>> handleProjectUpdate(Change<?> change)
     {
-        var document = (Document) change.object();
+        var document = (Document) change.value();
         if (change.kind() == DELETE)
         {
             var project = projects.remove(document.name());

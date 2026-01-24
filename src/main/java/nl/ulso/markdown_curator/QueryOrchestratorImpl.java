@@ -18,7 +18,7 @@ import static java.util.concurrent.Executors.newVirtualThreadPerTaskExecutor;
 import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.toSet;
 import static nl.ulso.hash.ShortHasher.shortHashOf;
-import static nl.ulso.markdown_curator.Change.isObjectType;
+import static nl.ulso.markdown_curator.Change.isPayloadType;
 import static nl.ulso.markdown_curator.vault.Dictionary.emptyDictionary;
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -91,7 +91,7 @@ final class QueryOrchestratorImpl
     private Set<Document> findImpactedDocuments(Changelog changelog)
     {
         var queryBlocks = vault.findAllQueryBlocks();
-        if (changelog.changes().anyMatch(isObjectType(Vault.class)))
+        if (changelog.changes().anyMatch(isPayloadType(Vault.class)))
         {
             LOGGER.debug(
                 "Detected change to the complete vault. Running all queries for all documents.");

@@ -29,14 +29,14 @@ import static org.slf4j.LoggerFactory.getLogger;
 /// 1. All relevant [ChangeProcessor]s are executed in the right order by the
 /// [ChangeProcessorOrchestrator].
 /// 2. All relevant [Query]s are executed by the [QueryOrchestrator].
-/// 3. All updates resulting from query execution are written to disk.
+/// 3. All updated documents resulting from query execution are written to disk.
 ///
 /// Queries are not executed after every detected change. Instead, the running of queries and
 /// writing of documents to disk is scheduled to take place after a short delay. If during this
 /// delay new changes come in, the task is rescheduled. This prevents superfluous query execution
 /// and writes to disk, at the cost of the user having to wait a few seconds after saving the last
 /// change. This is especially useful when using Obsidian, which automatically writes changes to
-/// disk every few seconds.
+/// disk, every few seconds.
 ///
 /// The query run is performed with the changelog that has been built up from processing all
 /// incoming changes. After the queries have finally run and updated documents are written to disk,
@@ -98,9 +98,8 @@ public class Curator
         {
             return;
         }
-        LOGGER.info("-".repeat(80));
         LOGGER.info("{} detected for {} '{}'.",
-            change.kind(), change.objectType().getSimpleName(), change.object()
+            change.kind(), change.payloadType().getSimpleName(), change.value()
         );
         cancelQueryWriteRunIfPresent();
         backlog = backlog.append(changeProcessorOrchestrator.runFor(change));
@@ -116,11 +115,11 @@ public class Curator
     /// @return `true` if the change was self-triggered, `false` otherwise.
     private boolean checkSelfTriggeredUpdate(Change<?> change)
     {
-        if (!(change.objectType().equals(Document.class) && change.kind() == UPDATE))
+        if (!(change.payloadType().equals(Document.class) && change.kind() == UPDATE))
         {
             return false;
         }
-        var document = change.as(Document.class).object();
+        var document = change.as(Document.class).value();
         var documentName = document.name();
         var timestamp = writtenDocuments.get(documentName);
         if (timestamp == null)
@@ -168,12 +167,14 @@ public class Curator
     private synchronized void performQueryWriteRun()
     {
         MDC.put("curator", curatorName);
+        LOGGER.info("-".repeat(80));
         queryOrchestrator.runFor(backlog).forEach(this::writeDocument);
         backlog = emptyChangelog();
+        LOGGER.info("-".repeat(80));
     }
 
-    /// Executing queries has resulted in a set of []DocumentUpdate]s. These must be written to
-    /// disk. The writes are registered in order to detect self-triggered changes later on.
+    /// Executing queries has resulted in a set of [DocumentUpdate]s. These must be written to
+    /// disk. The writes are registered to detect self-triggered changes later on.
     private void writeDocument(DocumentUpdate documentUpdate)
     {
         var document = documentUpdate.document();

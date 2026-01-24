@@ -171,7 +171,7 @@ class FileSystemVaultTest
                 softly.assertThat(vault.folder("Studios").orElseThrow().document("MGM"))
                     .isPresent();
                 softly.assertThat(changes.stream()
-                        .map(Change::objectType))
+                        .map(Change::payloadType))
                     .map(c -> (Class) c)
                     .containsExactly(Folder.class, Document.class);
             }

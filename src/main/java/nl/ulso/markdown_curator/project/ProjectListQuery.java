@@ -11,7 +11,7 @@ import java.util.Map;
 
 import static java.lang.Integer.MAX_VALUE;
 import static java.util.Comparator.comparingInt;
-import static nl.ulso.markdown_curator.Change.isObjectType;
+import static nl.ulso.markdown_curator.Change.isPayloadType;
 import static nl.ulso.markdown_curator.project.AttributeDefinition.LAST_MODIFIED;
 import static nl.ulso.markdown_curator.project.AttributeDefinition.LEAD;
 import static nl.ulso.markdown_curator.project.AttributeDefinition.PRIORITY;
@@ -67,7 +67,7 @@ public final class ProjectListQuery
     public boolean isImpactedBy(Changelog changelog, QueryDefinition definition)
     {
         return changelog.changes()
-            .anyMatch(isObjectType(AttributeRegistryUpdate.class));
+            .anyMatch(isPayloadType(AttributeRegistryUpdate.class));
     }
 
     @Override

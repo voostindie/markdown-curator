@@ -26,7 +26,7 @@ class ChangeProcessorOrchestratorTest
     }
 
     @Test
-    void acceptVaultObjectConsumers()
+    void acceptVaultConsumers()
     {
         var model1 = new ChangeProcessorStub(1).consuming(Vault.class);
         var model2 = new ChangeProcessorStub(2).consuming(Document.class);
@@ -38,13 +38,13 @@ class ChangeProcessorOrchestratorTest
 
     @ParameterizedTest
     @ValueSource(classes = {Vault.class, Document.class, Folder.class})
-    void rejectVaultObjectProducer(Class<?> objectType)
+    void rejectVaultProducer(Class<?> payloadType)
     {
-        var model = new ChangeProcessorStub(1).producing(objectType);
+        var model = new ChangeProcessorStub(1).producing(payloadType);
         var models = createModelSet(model);
         assertThatThrownBy(() -> new ChangeProcessorOrchestratorImpl(models))
             .isInstanceOf(IllegalArgumentException.class)
-            .hasMessageContaining("reserved object type");
+            .hasMessageContaining("reserved payload type");
 
     }
 
@@ -80,23 +80,23 @@ class ChangeProcessorOrchestratorTest
         implements ChangeProcessor, Comparable<ChangeProcessorStub>
     {
         private final int order;
-        private final Set<Class<?>> processedObjectTypes = new HashSet<>();
-        private final Set<Class<?>> consumedObjectTypes = new HashSet<>();
+        private final Set<Class<?>> processedPayloadTypes = new HashSet<>();
+        private final Set<Class<?>> consumedPayloadTypes = new HashSet<>();
 
         ChangeProcessorStub(int order)
         {
             this.order = order;
         }
 
-        ChangeProcessorStub consuming(Class<?> objectType)
+        ChangeProcessorStub consuming(Class<?> payloadType)
         {
-            consumedObjectTypes.add(objectType);
+            consumedPayloadTypes.add(payloadType);
             return this;
         }
 
-        ChangeProcessorStub producing(Class<?> objectType)
+        ChangeProcessorStub producing(Class<?> payloadType)
         {
-            processedObjectTypes.add(objectType);
+            processedPayloadTypes.add(payloadType);
             return this;
         }
 
@@ -119,15 +119,15 @@ class ChangeProcessorOrchestratorTest
         }
 
         @Override
-        public Set<Class<?>> consumedObjectTypes()
+        public Set<Class<?>> consumedPayloadTypes()
         {
-            return consumedObjectTypes;
+            return consumedPayloadTypes;
         }
 
         @Override
-        public Set<Class<?>> producedObjectTypes()
+        public Set<Class<?>> producedPayloadTypes()
         {
-            return processedObjectTypes;
+            return processedPayloadTypes;
         }
     }
 }

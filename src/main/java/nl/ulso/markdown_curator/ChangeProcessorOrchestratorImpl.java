@@ -17,7 +17,7 @@ import static org.slf4j.LoggerFactory.getLogger;
 final class ChangeProcessorOrchestratorImpl
     implements ChangeProcessorOrchestrator
 {
-    private static final Set<Class<?>> RESERVED_OBJECT_TYPES =
+    private static final Set<Class<?>> RESERVED_PAYLOAD_TYPES =
         Set.of(Vault.class, Folder.class, Document.class);
 
     private static final Logger LOGGER = getLogger(ChangeProcessorOrchestratorImpl.class);
@@ -27,22 +27,22 @@ final class ChangeProcessorOrchestratorImpl
     @Inject
     ChangeProcessorOrchestratorImpl(Set<ChangeProcessor> changeProcessors)
     {
-        verifyReservedObjectTypeProducers(changeProcessors);
+        verifyReservedPayloadTypeProducers(changeProcessors);
         this.changeProcessors = orderChangeProcessors(changeProcessors);
     }
 
-    /// Verify that none of the provided change processors produce object types that are reserved by
-    /// the core system.
-    private void verifyReservedObjectTypeProducers(Set<ChangeProcessor> changeProcessors)
+    /// Verify that none of the provided change processors produce payload types that are reserved
+    /// by the core system.
+    private void verifyReservedPayloadTypeProducers(Set<ChangeProcessor> changeProcessors)
     {
         var processorsToVerify = changeProcessors.stream()
             .filter(processor -> !processor.getClass().equals(VaultReloader.class))
             .collect(toSet());
-        if (producesAnyOf(processorsToVerify, RESERVED_OBJECT_TYPES))
+        if (producesAnyOf(processorsToVerify, RESERVED_PAYLOAD_TYPES))
         {
             throw new IllegalArgumentException(
-                "Change processors may not produce any of the reserved object types: " +
-                RESERVED_OBJECT_TYPES.stream()
+                "Change processors may not produce any of the reserved payload types: " +
+                RESERVED_PAYLOAD_TYPES.stream()
                     .map(Class::getSimpleName)
                     .collect(Collectors.joining(", "))
             );
@@ -57,7 +57,7 @@ final class ChangeProcessorOrchestratorImpl
     /// Order the available set of change processors in accordance to the requirements of the
     /// orchestrator.
     ///
-    /// This algorithm creates a queue of all available models, initially in undefined order and
+    /// This algorithm creates a queue of all available models, initially in undefined order, and
     /// then processes the queue until it is empty. If the item at the front of the queue cannot be
     /// placed in the ordered list yet, because it has some unsatisfied dependency, it is placed
     /// back at the end of the queue.
@@ -68,7 +68,7 @@ final class ChangeProcessorOrchestratorImpl
     /// dependency that can never be satisfied. That is a programming error.
     private List<ChangeProcessor> orderChangeProcessors(Set<ChangeProcessor> changeProcessors)
     {
-        var availableObjectTypes = new HashSet<>(RESERVED_OBJECT_TYPES);
+        var availablePayloadTypes = new HashSet<>(RESERVED_PAYLOAD_TYPES);
         var queue = new ArrayDeque<>(changeProcessors);
         var size = changeProcessors.size();
         var maxIterations = (size * (size + 1)) / 2;
@@ -82,18 +82,18 @@ final class ChangeProcessorOrchestratorImpl
                 throw new IllegalStateException("Dependency cycle or unsatisfied consumer.");
             }
             var processor = queue.pollFirst();
-            if (!availableObjectTypes.containsAll(processor.consumedObjectTypes()))
+            if (!availablePayloadTypes.containsAll(processor.consumedPayloadTypes()))
             {
                 queue.addLast(processor);
                 continue;
             }
-            if (producesAnyOf(queue, processor.consumedObjectTypes()))
+            if (producesAnyOf(queue, processor.consumedPayloadTypes()))
             {
                 queue.addLast(processor);
                 continue;
             }
             result.add(processor);
-            availableObjectTypes.addAll(processor.producedObjectTypes());
+            availablePayloadTypes.addAll(processor.producedPayloadTypes());
         }
         if (LOGGER.isDebugEnabled())
         {
@@ -105,13 +105,13 @@ final class ChangeProcessorOrchestratorImpl
         return copyOf(result);
     }
 
-    /// Checks if any of the processors in the collection produce any of the given object types.
+    /// Checks if any of the processors in the collection produce any of the given payload types.
     private boolean producesAnyOf(
-        Collection<ChangeProcessor> changeProcessors, Set<Class<?>> objectTypes)
+        Collection<ChangeProcessor> changeProcessors, Set<Class<?>> payloadTypes)
     {
         return changeProcessors.stream().anyMatch(processor ->
-            objectTypes.stream().anyMatch(objectType ->
-                processor.producedObjectTypes().contains(objectType)));
+            payloadTypes.stream().anyMatch(payloadType ->
+                processor.producedPayloadTypes().contains(payloadType)));
     }
 
     public Changelog runFor(Change<?> change)
@@ -125,7 +125,7 @@ final class ChangeProcessorOrchestratorImpl
         {
             try
             {
-                var filteredChangelog = changelog.changelogFor(processor.consumedObjectTypes());
+                var filteredChangelog = changelog.changelogFor(processor.consumedPayloadTypes());
                 if (filteredChangelog.isEmpty())
                 {
                     LOGGER.debug("No relevant changes for processor '{}' available. Skipping.",
@@ -162,7 +162,7 @@ final class ChangeProcessorOrchestratorImpl
     private static void verifyChanges(ChangeProcessor processor, Changelog newChangelog)
     {
         if (newChangelog.changes()
-            .anyMatch(c -> !processor.producedObjectTypes().contains(c.objectType())))
+            .anyMatch(c -> !processor.producedPayloadTypes().contains(c.payloadType())))
         {
             if (LOGGER.isDebugEnabled())
             {
@@ -171,10 +171,10 @@ final class ChangeProcessorOrchestratorImpl
                     "produce. Produced types: {}. Allowed types: {}.",
                     processor.getClass().getSimpleName(),
                     newChangelog.changes()
-                        .map(Change::objectType)
+                        .map(Change::payloadType)
                         .map(Class::getSimpleName)
                         .collect(toSet()),
-                    processor.producedObjectTypes().stream()
+                    processor.producedPayloadTypes().stream()
                         .map(Class::getSimpleName)
                         .collect(toSet())
                 );

@@ -9,7 +9,7 @@ import java.util.Map;
 
 import static nl.ulso.markdown_curator.Change.isCreate;
 import static nl.ulso.markdown_curator.Change.isDelete;
-import static nl.ulso.markdown_curator.Change.isObjectType;
+import static nl.ulso.markdown_curator.Change.isPayloadType;
 
 @Singleton
 public class LatestJournalNavigationQuery
@@ -46,11 +46,11 @@ public class LatestJournalNavigationQuery
     public boolean isImpactedBy(Changelog changelog, QueryDefinition definition)
     {
         return journal.latest().map(Daily::date).map(latestDaily ->
-                changelog.changes().anyMatch(isObjectType(Daily.class)
+                changelog.changes().anyMatch(isPayloadType(Daily.class)
                     .and(isCreate().or(isDelete()))
                     .and(change ->
                         {
-                            var documentDate = change.as(Daily.class).object().date();
+                            var documentDate = change.as(Daily.class).value().date();
                             return documentDate.isEqual(latestDaily) || // Creation of the latest
                                    documentDate.isAfter(latestDaily);   // Deletion of a newer
                         }

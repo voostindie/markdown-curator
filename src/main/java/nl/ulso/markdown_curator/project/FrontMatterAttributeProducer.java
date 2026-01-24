@@ -34,13 +34,13 @@ public final class FrontMatterAttributeProducer
     }
 
     @Override
-    public Set<Class<?>> consumedObjectTypes()
+    public Set<Class<?>> consumedPayloadTypes()
     {
         return Set.of(Project.class);
     }
 
     @Override
-    public Set<Class<?>> producedObjectTypes()
+    public Set<Class<?>> producedPayloadTypes()
     {
         return Set.of(AttributeValue.class);
     }
@@ -53,7 +53,7 @@ public final class FrontMatterAttributeProducer
 
     private Collection<Change<?>> processProject(Change<?> change)
     {
-        var project = change.as(Project.class).object();
+        var project = change.as(Project.class).value();
         var document = project.document();
         var changes = createChangeCollection();
         for (var definition : attributeDefinitions)

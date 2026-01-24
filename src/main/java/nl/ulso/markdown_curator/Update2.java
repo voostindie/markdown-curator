@@ -2,13 +2,13 @@ package nl.ulso.markdown_curator;
 
 import static nl.ulso.markdown_curator.Change.Kind.UPDATE;
 
-record Update2<T>(T oldObject, T newObject, Class<T> objectType)
+record Update2<T>(T oldValue, T newValue, Class<T> payloadType)
     implements Change<T>
 {
     @Override
-    public T object()
+    public T value()
     {
-        return newObject;
+        return newValue;
     }
 
     @Override

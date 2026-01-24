@@ -9,7 +9,7 @@ import java.util.*;
 import static java.util.HashSet.newHashSet;
 import static nl.ulso.markdown_curator.Change.isCreateOrUpdate;
 import static nl.ulso.markdown_curator.Change.isDelete;
-import static nl.ulso.markdown_curator.Change.isObjectType;
+import static nl.ulso.markdown_curator.Change.isPayloadType;
 import static nl.ulso.markdown_curator.project.AttributeRegistryUpdate.REGISTRY_CHANGE;
 
 @Singleton
@@ -27,40 +27,40 @@ final class AttributeRegistryImpl
         this.attributeDefinitions = attributeDefinitions;
         this.projectAttributes = new HashMap<>();
         registerChangeHandler(
-            isObjectType(Project.class).and(isDelete()),
+            isPayloadType(Project.class).and(isDelete()),
             this::processProjectDeletion
         );
         registerChangeHandler(
-            isObjectType(AttributeValue.class).and(isCreateOrUpdate()),
+            isPayloadType(AttributeValue.class).and(isCreateOrUpdate()),
             this::processAttributeValueChange
         );
         registerChangeHandler(
-            isObjectType(AttributeValue.class).and(isDelete()),
+            isPayloadType(AttributeValue.class).and(isDelete()),
             this::processAttributeValueDeletion
         );
     }
 
     @Override
-    public Set<Class<?>> consumedObjectTypes()
+    public Set<Class<?>> consumedPayloadTypes()
     {
         return Set.of(Project.class, AttributeValue.class);
     }
 
     @Override
-    public Set<Class<?>> producedObjectTypes()
+    public Set<Class<?>> producedPayloadTypes()
     {
         return Set.of(AttributeRegistryUpdate.class);
     }
 
     private Collection<Change<?>> processProjectDeletion(Change<?> change)
     {
-        projectAttributes.remove(change.as(Project.class).object());
+        projectAttributes.remove(change.as(Project.class).value());
         return REGISTRY_CHANGE;
     }
 
     private Collection<Change<?>> processAttributeValueChange(Change<?> change)
     {
-        var value = change.as(AttributeValue.class).object();
+        var value = change.as(AttributeValue.class).value();
         var attribute = projectAttributes.computeIfAbsent(
             value.project(), _ -> new HashMap<>()
         );
@@ -73,7 +73,7 @@ final class AttributeRegistryImpl
 
     private Collection<Change<?>> processAttributeValueDeletion(Change<?> change)
     {
-        var value = change.as(AttributeValue.class).object();
+        var value = change.as(AttributeValue.class).value();
         var attribute = projectAttributes.get(value.project());
         if (attribute != null)
         {

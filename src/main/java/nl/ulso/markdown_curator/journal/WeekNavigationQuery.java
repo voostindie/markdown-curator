@@ -12,7 +12,7 @@ import java.util.stream.Stream;
 import static java.lang.System.lineSeparator;
 import static nl.ulso.markdown_curator.Change.isCreate;
 import static nl.ulso.markdown_curator.Change.isDelete;
-import static nl.ulso.markdown_curator.Change.isObjectType;
+import static nl.ulso.markdown_curator.Change.isPayloadType;
 import static nl.ulso.markdown_curator.journal.JournalBuilder.parseWeeklyFrom;
 
 @Singleton
@@ -48,10 +48,10 @@ public class WeekNavigationQuery
     {
         return parseWeeklyFrom(definition.document())
             .map(documentWeekly ->
-                changelog.changes().anyMatch(isObjectType(Daily.class)
+                changelog.changes().anyMatch(isPayloadType(Daily.class)
                     .and(isCreate().or(isDelete()))
                     .and(change ->
-                        journal.weeklyFor(change.as(Daily.class).object().date())
+                        journal.weeklyFor(change.as(Daily.class).value().date())
                             .map(documentWeekly::equals)
                             .orElse(false)
                     ))
@@ -63,10 +63,10 @@ public class WeekNavigationQuery
     {
         return parseWeeklyFrom(definition.document())
             .map(documentWeekly ->
-                changelog.changes().anyMatch(isObjectType(Weekly.class)
+                changelog.changes().anyMatch(isPayloadType(Weekly.class)
                     .and(isCreate().or(isDelete()))
                     .and(change -> {
-                            var weekly = change.as(Weekly.class).object();
+                            var weekly = change.as(Weekly.class).value();
                             var weeklyBefore = journal.weeklyBefore(weekly).orElse(null);
                             var weeklyAfter = journal.weeklyAfter(weekly).orElse(null);
                             return documentWeekly.equals(weekly) ||

@@ -15,8 +15,8 @@ import static nl.ulso.markdown_curator.Changelog.emptyChangelog;
 /// Change processors either process the changes in a changelog all at once or one by one. A full
 /// refresh is executed whenever [#isFullRefreshRequired(Changelog)] returns `true`.
 ///
-/// In order to support granular change processing, subclasses need to register one or more
-/// predicates to test changes against, and a change handler for each predicate.
+/// To support granular change processing, subclasses need to register one or more predicates to
+/// test changes against, and a change handler for each predicate.
 ///
 /// Note that the same change can be accepted by multiple predicates, and that the order in which
 /// change handlers are executed is not guaranteed.
@@ -94,7 +94,9 @@ public abstract class ChangeProcessorTemplate
         return changes;
     }
 
-    /// Creates the collection to capture the changes of the various change handlers in.
+    /// Creates the collection to capture the changes of the various change handlers in. The default
+    /// implementation creates an [ArrayList]. Maybe a subclass wants to collect unique changes
+    /// only. In such a case: override this method to return a set.
     protected Collection<Change<?>> createChangeCollection()
     {
         return new ArrayList<>();

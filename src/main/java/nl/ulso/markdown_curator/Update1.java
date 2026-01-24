@@ -5,24 +5,24 @@ import org.slf4j.LoggerFactory;
 
 import static nl.ulso.markdown_curator.Change.Kind.UPDATE;
 
-record Update1<T>(T object, Class<T> objectType)
+record Update1<T>(T value, Class<T> payloadType)
     implements Change<T>
 {
     private static final Logger LOGGER = LoggerFactory.getLogger(Update1.class);
 
     @Override
-    public T oldObject()
+    public T oldValue()
     {
-        var error =
-            new UnsupportedOperationException("UPDATE on a single object does not have an old object.");
+        var error = new UnsupportedOperationException(
+            "UPDATE on a single object does not have an old value.");
         LOGGER.error(error.getMessage(), error);
         throw error;
     }
 
     @Override
-    public T newObject()
+    public T newValue()
     {
-        return object;
+        return value;
     }
 
     @Override

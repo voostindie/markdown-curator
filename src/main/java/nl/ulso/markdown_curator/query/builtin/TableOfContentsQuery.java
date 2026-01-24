@@ -8,7 +8,7 @@ import jakarta.inject.Inject;
 import java.util.*;
 
 import static java.lang.System.lineSeparator;
-import static nl.ulso.markdown_curator.Change.isObjectType;
+import static nl.ulso.markdown_curator.Change.isPayloadType;
 
 /**
  * Generates a table of contents from the current document.
@@ -43,8 +43,8 @@ public final class TableOfContentsQuery
     @Override
     public boolean isImpactedBy(Changelog changelog, QueryDefinition definition)
     {
-        return changelog.changes().anyMatch(isObjectType(Document.class).and(change ->
-            change.as(Document.class).object().equals(definition.document())));
+        return changelog.changes().anyMatch(isPayloadType(Document.class).and(change ->
+            change.as(Document.class).value().equals(definition.document())));
     }
 
     @Override

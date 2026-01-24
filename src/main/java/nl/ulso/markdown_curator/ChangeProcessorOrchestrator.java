@@ -7,12 +7,12 @@ package nl.ulso.markdown_curator;
 /// startup the orchestrator orders the processors in such a way that all requirements are
 /// satisfied:
 ///
-/// - Producers of certain object types before consumers of these object types.
-/// - All consumed object types have at least one producer.
+/// - Producers of certain payload types before consumers of these pauload types.
+/// - All consumed payload types have at least one producer.
 ///
-/// When a processor is executed from a [Changelog], it receives only changes of object types it can
-/// consume. If there are none, the processor is not executed at all. When a processor produces
-/// object types other than it advocates, that is considered a programming error and will throw an
+/// When a processor is executed from a [Changelog], it receives only changes of payload types it
+/// can consume. If there are none, the processor is not executed at all. When a processor produces
+/// payload types other than it advocates, that is considered a programming error and will throw an
 /// [IllegalStateException].
 public interface ChangeProcessorOrchestrator
 {

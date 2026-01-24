@@ -5,22 +5,21 @@ import org.slf4j.LoggerFactory;
 
 import static nl.ulso.markdown_curator.Change.Kind.CREATE;
 
-record Create<T>(T newObject, Class<T> objectType)
+record Create<T>(T newValue, Class<T> payloadType)
     implements Change<T>
 {
     private static final Logger LOGGER = LoggerFactory.getLogger(Create.class);
 
     @Override
-    public T object()
+    public T value()
     {
-        return newObject;
+        return newValue;
     }
 
     @Override
-    public T oldObject()
+    public T oldValue()
     {
-        var error =
-            new UnsupportedOperationException("CREATE does not have an old object.");
+        var error = new UnsupportedOperationException("CREATE does not have an old value.");
         LOGGER.error(error.getMessage(), error);
         throw error;
     }

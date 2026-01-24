@@ -34,16 +34,16 @@ class FrontMatterPropertyWriterTest
     }
 
     @Test
-    void consumedObjectTypes()
+    void consumedPayloadTypes()
     {
-        assertThat(writer.consumedObjectTypes())
+        assertThat(writer.consumedPayloadTypes())
             .containsAll(Set.of(AttributeRegistryUpdate.class));
     }
 
     @Test
-    void producedObjectTypes()
+    void producedPayloadTypes()
     {
-        assertThat(writer.producedObjectTypes()).isEmpty();
+        assertThat(writer.producedPayloadTypes()).isEmpty();
     }
 
     @Test

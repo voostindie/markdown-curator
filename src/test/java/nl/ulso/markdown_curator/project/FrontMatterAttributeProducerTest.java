@@ -27,16 +27,16 @@ class FrontMatterAttributeProducerTest
     }
 
     @Test
-    void consumedObjectTypes()
+    void consumedPayloadTypes()
     {
-        assertThat(producer.consumedObjectTypes())
+        assertThat(producer.consumedPayloadTypes())
             .containsAll(Set.of(Project.class));
     }
 
     @Test
-    void producedObjectTypes()
+    void producedPayloadTypes()
     {
-        assertThat(producer.producedObjectTypes())
+        assertThat(producer.producedPayloadTypes())
             .containsAll(Set.of(AttributeValue.class));
     }
 
@@ -47,7 +47,7 @@ class FrontMatterAttributeProducerTest
         var changelog = producer.run(changelogFor(delete(project, Project.class)));
         var changes = changelog.changesFor(AttributeValue.class)
             .filter(change -> change.kind() == DELETE)
-            .map(change -> change.object().definition().frontMatterProperty())
+            .map(change -> change.value().definition().frontMatterProperty())
             .toList();
         assertThat(changes).contains("last_modified", "lead", "priority", "status");
     }
@@ -59,7 +59,7 @@ class FrontMatterAttributeProducerTest
         var changelog = producer.run(changelogFor(update(project, Project.class)));
         var changes = changelog.changesFor(AttributeValue.class)
             .filter(change -> change.kind() == CREATE)
-            .map(change -> change.object().definition().frontMatterProperty())
+            .map(change -> change.value().definition().frontMatterProperty())
             .toList();
         assertThat(changes).contains("last_modified", "lead", "status");
     }

@@ -10,7 +10,7 @@ import java.util.LinkedHashSet;
 import java.util.Map;
 
 import static java.lang.System.lineSeparator;
-import static nl.ulso.markdown_curator.Change.isObjectType;
+import static nl.ulso.markdown_curator.Change.isPayloadType;
 
 /**
  * Generates an overview of marked lines for a document, one section per marker
@@ -57,16 +57,16 @@ public class MarkedQuery
     public boolean isImpactedBy(Changelog changelog, QueryDefinition definition)
     {
         return changelog.changes()
-            .anyMatch(isObjectType(Daily.class).and(change ->
+            .anyMatch(isPayloadType(Daily.class).and(change ->
                 {
                     var documentName = resolveDocumentName(definition);
                     var dailyChange = change.as(Daily.class);
                     return switch (dailyChange.kind())
                     {
-                        case CREATE -> dailyChange.newObject().refersTo(documentName);
-                        case UPDATE -> dailyChange.oldObject().refersTo(documentName)
-                                       || dailyChange.newObject().refersTo(documentName);
-                        case DELETE -> dailyChange.oldObject().refersTo(documentName);
+                        case CREATE -> dailyChange.newValue().refersTo(documentName);
+                        case UPDATE -> dailyChange.oldValue().refersTo(documentName)
+                                       || dailyChange.newValue().refersTo(documentName);
+                        case DELETE -> dailyChange.oldValue().refersTo(documentName);
                     };
                 })
             );

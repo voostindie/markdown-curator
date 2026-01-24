@@ -10,7 +10,7 @@ import java.util.*;
 import java.util.stream.Stream;
 
 import static java.util.Comparator.comparing;
-import static nl.ulso.markdown_curator.Change.isObjectType;
+import static nl.ulso.markdown_curator.Change.isPayloadType;
 
 public class PeriodQuery
     implements Query
@@ -59,10 +59,10 @@ public class PeriodQuery
         {
             return false;
         }
-        return changelog.changes().anyMatch(isObjectType(Daily.class)
+        return changelog.changes().anyMatch(isPayloadType(Daily.class)
             .and(change ->
                 {
-                    var date = change.as(Daily.class).object().date();
+                    var date = change.as(Daily.class).value().date();
                     return date.isAfter(start.minusDays(1)) && date.isBefore(end.plusDays(1));
                 }
             )

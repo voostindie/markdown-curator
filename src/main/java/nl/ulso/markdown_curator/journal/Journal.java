@@ -53,7 +53,7 @@ public class Journal
     }
 
     @Override
-    public Set<Class<?>> producedObjectTypes()
+    public Set<Class<?>> producedPayloadTypes()
     {
         return Set.of(Daily.class, Weekly.class, Marker.class);
     }
@@ -67,9 +67,9 @@ public class Journal
 
     private Predicate<Change<?>> isJournalFolder()
     {
-        return isObjectType(Folder.class).and((Change<?> change) ->
+        return isPayloadType(Folder.class).and((Change<?> change) ->
         {
-            var folder = (Folder) change.object();
+            var folder = (Folder) change.value();
             return vault.folder(settings.journalFolderName())
                 .map(root -> isInHierarchyOf(vault, root, folder))
                 .orElse(false);
@@ -78,9 +78,9 @@ public class Journal
 
     private Predicate<Change<?>> isJournalEntry()
     {
-        return isObjectType(Document.class).and((Change<?> change) ->
+        return isPayloadType(Document.class).and((Change<?> change) ->
         {
-            var document = (Document) change.object();
+            var document = (Document) change.value();
             return vault.folder(settings.journalFolderName())
                 .map(root -> isInHierarchyOf(vault, root, document.folder()))
                 .orElse(false);
@@ -104,20 +104,20 @@ public class Journal
     private Predicate<Change<?>> isDailyEntry()
     {
         return isJournalEntry().and((Change<?> change) ->
-            parseDateFrom((Document) change.object()).isPresent());
+            parseDateFrom((Document) change.value()).isPresent());
     }
 
     private Predicate<Change<?>> isWeeklyEntry()
     {
         return isJournalEntry().and((Change<?> change) ->
-            parseWeeklyFrom((Document) change.object()).isPresent());
+            parseWeeklyFrom((Document) change.value()).isPresent());
     }
 
     private Predicate<Change<?>> isMarkerEntry()
     {
         return isJournalEntry().and((Change<?> change) ->
         {
-            var document = (Document) change.object();
+            var document = (Document) change.value();
             return document.folder().name().contentEquals(settings.markerSubFolderName())
                    && document.folder().parent().name()
                        .contentEquals(settings.journalFolderName());
@@ -164,7 +164,7 @@ public class Journal
 
     private Collection<Change<?>> handleDailyUpdate(Change<?> change)
     {
-        var document = (Document) change.object();
+        var document = (Document) change.value();
         var date = parseDateOrNull(document.name());
         if (date == null)
         {
@@ -197,7 +197,7 @@ public class Journal
 
     private Collection<Change<?>> handleWeeklyUpdate(Change<?> change)
     {
-        var document = (Document) change.object();
+        var document = (Document) change.value();
         var newChange = parseWeeklyFrom(document).map(weekly ->
         {
             if (change.kind() == DELETE)
@@ -226,7 +226,7 @@ public class Journal
 
     private Collection<Change<?>> handleMarkerUpdate(Change<?> change)
     {
-        var document = (Document) change.object();
+        var document = (Document) change.value();
         if (change.kind() == DELETE)
         {
             var marker = markers.remove(document.name());

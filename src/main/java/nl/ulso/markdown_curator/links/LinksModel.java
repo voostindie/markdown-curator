@@ -9,7 +9,7 @@ import java.util.*;
 
 import static java.util.Collections.emptyList;
 import static nl.ulso.markdown_curator.Change.Kind.DELETE;
-import static nl.ulso.markdown_curator.Change.isObjectType;
+import static nl.ulso.markdown_curator.Change.isPayloadType;
 
 @Singleton
 public final class LinksModel
@@ -23,8 +23,8 @@ public final class LinksModel
     {
         this.vault = vault;
         this.documentIndex = new HashMap<>();
-        this.registerChangeHandler(isObjectType(Document.class), this::processDocumentChange);
-        this.registerChangeHandler(isObjectType(Folder.class), this::processFolderChange);
+        this.registerChangeHandler(isPayloadType(Document.class), this::processDocumentChange);
+        this.registerChangeHandler(isPayloadType(Folder.class), this::processFolderChange);
     }
 
     @Override
@@ -37,7 +37,7 @@ public final class LinksModel
 
     private Collection<Change<?>> processDocumentChange(Change<?> change)
     {
-        var document = (Document) change.object();
+        var document = (Document) change.value();
         if (change.kind() == DELETE)
         {
             documentIndex.remove(document.name());
@@ -51,7 +51,7 @@ public final class LinksModel
 
     private Collection<Change<?>> processFolderChange(Change<?> change)
     {
-        var folder = (Folder) change.object();
+        var folder = (Folder) change.value();
         if (change.kind() == DELETE)
         {
             var finder = new DocumentFinder();

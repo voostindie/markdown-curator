@@ -8,16 +8,16 @@ import org.slf4j.LoggerFactory;
 
 import java.util.*;
 
-import static nl.ulso.markdown_curator.Change.isObjectType;
 import static nl.ulso.markdown_curator.Change.isUpdate;
 import static nl.ulso.markdown_curator.Change.update;
 
-/// Special change processor that is only enabled if a watch document is configured in the module,
-/// under the name [#WATCH_DOCUMENT_KEY].
+/// Special change processor that is only enabled if a watch document is configured in the curator
+/// module, under the name [#WATCH_DOCUMENT_KEY].
 ///
-/// This processor monitors changes to the watch document. If it is updated it publishes a [Vault]
-/// update, which triggers a full refresh of all change processors, as well as the running of all
-/// queries in the vault, independent of the actual changes that were detected.
+/// This processor monitors changes to the watch document. If it is changed on disk, it publishes a
+/// [Vault] update, which change processors can consume to perform a full refresh of their internal
+/// data structures. The [Vault] update also triggers the execution of all queries, regardless of
+/// the actual changes that were detected.
 ///
 /// This provides an easy way to force a complete reload and refresh without having to restart the
 /// application. It's just "touch and go", but in a good way.
@@ -45,13 +45,13 @@ public final class VaultReloader
     }
 
     @Override
-    public Set<Class<?>> consumedObjectTypes()
+    public Set<Class<?>> consumedPayloadTypes()
     {
         return Set.of(Document.class);
     }
 
     @Override
-    public Set<Class<?>> producedObjectTypes()
+    public Set<Class<?>> producedPayloadTypes()
     {
         return Set.of(Vault.class);
     }
@@ -63,9 +63,8 @@ public final class VaultReloader
         {
             return false;
         }
-        return changelog.changes().anyMatch(
-            isObjectType(Document.class).and(isUpdate()).and(change ->
-                change.as(Document.class).object().name().equals(watchDocumentName))
+        return changelog.changes().anyMatch(isUpdate().and(change ->
+                change.as(Document.class).value().name().equals(watchDocumentName))
         );
     }
 

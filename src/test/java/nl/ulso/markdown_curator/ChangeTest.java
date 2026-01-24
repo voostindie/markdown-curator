@@ -21,10 +21,10 @@ class ChangeTest
     }
 
     @Test
-    void createObject()
+    void createValue()
     {
         var change = create(42, Integer.class);
-        assertThat(change.newObject()).isEqualTo(42);
+        assertThat(change.newValue()).isEqualTo(42);
     }
 
     @Test
@@ -35,24 +35,24 @@ class ChangeTest
     }
 
     @Test
-    void updateWithSingleObject()
+    void updateWithSingleValue()
     {
         var change = update(42, Integer.class);
-        assertThat(change.object()).isEqualTo(42);
+        assertThat(change.value()).isEqualTo(42);
     }
 
     @Test
-    void updateWithOldObject()
+    void updateWithOldValue()
     {
         var change = update(0, 42, Integer.class);
-        assertThat(change.oldObject()).isEqualTo(0);
+        assertThat(change.oldValue()).isEqualTo(0);
     }
 
     @Test
-    void updateWithNewObject()
+    void updateWithNewValue()
     {
         var change = update(0, 42, Integer.class);
-        assertThat(change.newObject()).isEqualTo(42);
+        assertThat(change.newValue()).isEqualTo(42);
     }
 
     @Test
@@ -63,10 +63,10 @@ class ChangeTest
     }
 
     @Test
-    void deleteObject()
+    void deleteValue()
     {
         var change = delete(42, Integer.class);
-        assertThat(change.oldObject()).isEqualTo(42);
+        assertThat(change.oldValue()).isEqualTo(42);
     }
 
     @Test
@@ -78,66 +78,58 @@ class ChangeTest
     }
 
     @Test
-    void asChangeInvalid()
-    {
-        Change<?> change1 = create(42, Integer.class);
-        assertThatThrownBy(() -> change1.as(String.class))
-            .isInstanceOf(IllegalStateException.class);
-    }
-
-    @Test
-    void asObject()
+    void asValue()
     {
         var change = create(42, Integer.class);
-        var integer = change.as(Integer.class).object();
+        var integer = change.as(Integer.class).value();
         assertThat(integer).isEqualTo(42);
     }
 
     @Test
-    void asObjectInvalid()
+    void asInvalidValue()
     {
         var change = create(42, Integer.class);
-        assertThatThrownBy(() -> change.as(String.class).object())
-            .isInstanceOf(IllegalStateException.class);
+        assertThatThrownBy(() -> change.as(String.class).value())
+            .isInstanceOf(IllegalArgumentException.class);
     }
 
     @Test
-    void updateWithSingleObjectHasNoOldObject()
+    void updateWithSingleValueHasNoOldValue()
     {
         var change = update(42, Integer.class);
-        assertThatThrownBy(change::oldObject)
+        assertThatThrownBy(change::oldValue)
             .isInstanceOf(UnsupportedOperationException.class);
     }
 
     @Test
-    void updateWithSingleObjectHasNewObject()
+    void updateWithSingleValueHasNewValue()
     {
         var change = update(42, Integer.class);
-        var integer = change.as(Integer.class).newObject();
+        var integer = change.as(Integer.class).newValue();
         assertThat(integer).isEqualTo(42);
     }
 
     @Test
-    void updateWithOldAndNewObjectsReturnsNewObject()
+    void updateWithOldAndNewValuesReturnsNewValue()
     {
         var change = update(0, 42, Integer.class);
-        var integer = change.as(Integer.class).newObject();
+        var integer = change.as(Integer.class).newValue();
         assertThat(integer).isEqualTo(42);
     }
 
     @Test
-    void createHasNoOldObject()
+    void createHasNoOldValue()
     {
         var change = create(42, Integer.class);
-        assertThatThrownBy(change::oldObject)
+        assertThatThrownBy(change::oldValue)
             .isInstanceOf(UnsupportedOperationException.class);
     }
 
     @Test
-    void deleteHasNoNewObject()
+    void deleteHasNoNewValue()
     {
         var change = delete(42, Integer.class);
-        assertThatThrownBy(change::newObject)
+        assertThatThrownBy(change::newValue)
             .isInstanceOf(UnsupportedOperationException.class);
     }
 }

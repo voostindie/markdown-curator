@@ -11,7 +11,7 @@ import java.util.stream.Stream;
 import static java.util.stream.Collectors.joining;
 import static nl.ulso.markdown_curator.Change.isCreate;
 import static nl.ulso.markdown_curator.Change.isDelete;
-import static nl.ulso.markdown_curator.Change.isObjectType;
+import static nl.ulso.markdown_curator.Change.isPayloadType;
 import static nl.ulso.markdown_curator.journal.JournalBuilder.parseDateFrom;
 
 @Singleton
@@ -47,11 +47,11 @@ public class DayNavigationQuery
     {
         return parseDateFrom(definition.document())
             .map(documentDate ->
-                changelog.changes().anyMatch(isObjectType(Daily.class)
+                changelog.changes().anyMatch(isPayloadType(Daily.class)
                     .and(isCreate().or(isDelete()))
                     .and(change ->
                         {
-                            var daily = change.as(Daily.class).object().date();
+                            var daily = change.as(Daily.class).value().date();
                             var dailyBefore = journal.dailyBefore(daily).orElse(null);
                             var dailyAfter = journal.dailyAfter(daily).orElse(null);
                             return documentDate.equals(daily)
@@ -67,11 +67,11 @@ public class DayNavigationQuery
     {
         return parseDateFrom(definition.document())
             .map(documentDate ->
-                changelog.changes().anyMatch(isObjectType(Weekly.class)
+                changelog.changes().anyMatch(isPayloadType(Weekly.class)
                     .and(isCreate().or(isDelete()))
                     .and(change ->
                         journal.computeWeeklyFor(documentDate)
-                            .equals(change.as(Weekly.class).object())
+                            .equals(change.as(Weekly.class).value())
                     )
                 )
             )

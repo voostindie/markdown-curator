@@ -40,16 +40,16 @@ class AttributeRegistryImplTest
     }
 
     @Test
-    void consumedObjectTypes()
+    void consumedPayloadTypes()
     {
-        assertThat(registry.consumedObjectTypes())
+        assertThat(registry.consumedPayloadTypes())
             .containsAll(Set.of(Project.class, AttributeValue.class));
     }
 
     @Test
-    void producedObjectTypes()
+    void producedPayloadTypes()
     {
-        assertThat(registry.producedObjectTypes()).containsAll(
+        assertThat(registry.producedPayloadTypes()).containsAll(
             Set.of(AttributeRegistryUpdate.class));
     }
 

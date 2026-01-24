@@ -5,22 +5,21 @@ import org.slf4j.LoggerFactory;
 
 import static nl.ulso.markdown_curator.Change.Kind.DELETE;
 
-record Delete<T>(T oldObject, Class<T> objectType)
+record Delete<T>(T oldValue, Class<T> payloadType)
     implements Change<T>
 {
     private static final Logger LOGGER = LoggerFactory.getLogger(Delete.class);
 
     @Override
-    public T object()
+    public T value()
     {
-        return oldObject;
+        return oldValue;
     }
 
     @Override
-    public T newObject()
+    public T newValue()
     {
-        var error =
-            new UnsupportedOperationException("DELETE does not have a new object.");
+        var error = new UnsupportedOperationException("DELETE does not have a new value.");
         LOGGER.error(error.getMessage(), error);
         throw error;
     }

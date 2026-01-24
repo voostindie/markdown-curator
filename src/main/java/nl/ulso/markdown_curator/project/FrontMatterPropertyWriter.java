@@ -8,11 +8,11 @@ import java.util.Collection;
 import java.util.Set;
 
 import static java.util.Collections.emptyList;
-import static nl.ulso.markdown_curator.Change.isObjectType;
+import static nl.ulso.markdown_curator.Change.isPayloadType;
 
 /// Writes project attribute values to front matter.
 ///
-/// This processor consumes the [AttributeRegistryUpdate] object type to ensure it will be executed
+/// This processor consumes the [AttributeRegistryUpdate] payload type to ensure it will be executed
 /// *after* the [AttributeRegistry] is fully updated. That means this processor can safely resolve
 /// attribute values through the registry for all projects.
 ///
@@ -33,11 +33,11 @@ public final class FrontMatterPropertyWriter
     {
         this.attributeRegistry = attributeRegistry;
         this.frontMatterUpdateCollector = frontMatterUpdateCollector;
-        registerChangeHandler(isObjectType(AttributeValue.class), this::processAttributeValue);
+        registerChangeHandler(isPayloadType(AttributeValue.class), this::processAttributeValue);
     }
 
     @Override
-    public Set<Class<?>> consumedObjectTypes()
+    public Set<Class<?>> consumedPayloadTypes()
     {
         return Set.of(AttributeRegistryUpdate.class, AttributeValue.class);
     }
@@ -50,7 +50,7 @@ public final class FrontMatterPropertyWriter
 
     private Collection<Change<?>> processAttributeValue(Change<?> change)
     {
-        var attributeValue = change.as(AttributeValue.class).object();
+        var attributeValue = change.as(AttributeValue.class).value();
         var project = attributeValue.project();
         var definition = attributeValue.definition();
         frontMatterUpdateCollector.updateFrontMatterFor(project.document(), dictionary ->

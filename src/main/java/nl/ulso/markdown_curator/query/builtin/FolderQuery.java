@@ -7,7 +7,7 @@ import nl.ulso.markdown_curator.vault.*;
 
 import java.util.function.Predicate;
 
-import static nl.ulso.markdown_curator.Change.isObjectType;
+import static nl.ulso.markdown_curator.Change.isPayloadType;
 
 abstract class FolderQuery
 {
@@ -26,20 +26,20 @@ abstract class FolderQuery
 
     private Predicate<Change<?>> isDocumentInHierarchy(QueryDefinition definition)
     {
-        return isObjectType(Document.class).and(change ->
+        return isPayloadType(Document.class).and(change ->
             isInHierarchyOf(
                 vault,
-                resolveFolderName(definition), change.as(Document.class).object().folder()
+                resolveFolderName(definition), change.as(Document.class).value().folder()
             )
         );
     }
 
     private Predicate<Change<?>> isFolderInHierarchy(QueryDefinition definition)
     {
-        return isObjectType(Folder.class).and(change ->
+        return isPayloadType(Folder.class).and(change ->
             isInHierarchyOf(
                 vault,
-                resolveFolderName(definition), change.as(Folder.class).object()
+                resolveFolderName(definition), change.as(Folder.class).value()
             )
         );
     }
