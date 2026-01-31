@@ -94,6 +94,34 @@ class ChangeTest
     }
 
     @Test
+    void createValueStream()
+    {
+        var change = create(42, Integer.class);
+        assertThat(change.as(Integer.class).values()).containsExactly(42);
+    }
+
+    @Test
+    void update1ValueStream()
+    {
+        var change = update(42, Integer.class);
+        assertThat(change.as(Integer.class).values()).containsExactly(42);
+    }
+
+    @Test
+    void update2ValueStream()
+    {
+        var change = update(42, 67, Integer.class);
+        assertThat(change.as(Integer.class).values()).containsExactly(42, 67);
+    }
+
+    @Test
+    void deleteValueStream()
+    {
+        var change = delete(42, Integer.class);
+        assertThat(change.as(Integer.class).values()).containsExactly(42);
+    }
+
+    @Test
     void updateWithSingleValueHasNoOldValue()
     {
         var change = update(42, Integer.class);

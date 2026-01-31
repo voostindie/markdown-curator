@@ -1,5 +1,7 @@
 package nl.ulso.markdown_curator;
 
+import java.util.stream.Stream;
+
 import static nl.ulso.markdown_curator.Change.Kind.UPDATE;
 
 record Update2<T>(T oldValue, T newValue, Class<T> payloadType)
@@ -9,6 +11,12 @@ record Update2<T>(T oldValue, T newValue, Class<T> payloadType)
     public T value()
     {
         return newValue;
+    }
+
+    @Override
+    public Stream<T> values()
+    {
+        return Stream.of(oldValue, newValue);
     }
 
     @Override

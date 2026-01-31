@@ -61,10 +61,10 @@ public class PeriodQuery
         }
         return changelog.changes().anyMatch(isPayloadType(Daily.class)
             .and(change ->
-                {
-                    var date = change.as(Daily.class).value().date();
-                    return date.isAfter(start.minusDays(1)) && date.isBefore(end.plusDays(1));
-                }
+                change.as(Daily.class).values().map(Daily::date)
+                    .anyMatch(date ->
+                        date.isAfter(start.minusDays(1))
+                        && date.isBefore(end.plusDays(1)))
             )
         );
     }

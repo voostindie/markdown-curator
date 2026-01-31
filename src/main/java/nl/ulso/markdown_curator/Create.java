@@ -3,6 +3,8 @@ package nl.ulso.markdown_curator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.stream.Stream;
+
 import static nl.ulso.markdown_curator.Change.Kind.CREATE;
 
 record Create<T>(T newValue, Class<T> payloadType)
@@ -14,6 +16,12 @@ record Create<T>(T newValue, Class<T> payloadType)
     public T value()
     {
         return newValue;
+    }
+
+    @Override
+    public Stream<T> values()
+    {
+        return Stream.of(newValue);
     }
 
     @Override

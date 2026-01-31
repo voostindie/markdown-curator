@@ -3,6 +3,8 @@ package nl.ulso.markdown_curator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.stream.Stream;
+
 import static nl.ulso.markdown_curator.Change.Kind.UPDATE;
 
 record Update1<T>(T value, Class<T> payloadType)
@@ -17,6 +19,12 @@ record Update1<T>(T value, Class<T> payloadType)
             "UPDATE on a single object does not have an old value.");
         LOGGER.error(error.getMessage(), error);
         throw error;
+    }
+
+    @Override
+    public Stream<T> values()
+    {
+        return Stream.of(value);
     }
 
     @Override

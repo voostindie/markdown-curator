@@ -1,6 +1,7 @@
 package nl.ulso.markdown_curator;
 
 import java.util.function.Predicate;
+import java.util.stream.Stream;
 
 import static nl.ulso.markdown_curator.Change.Kind.CREATE;
 import static nl.ulso.markdown_curator.Change.Kind.DELETE;
@@ -49,8 +50,8 @@ public sealed interface Change<T>
         return new Update1<>(value, payloadType);
     }
 
-    /// @param oldValue  the object that was replaced.
-    /// @param newValue  the object that replaces the old object.
+    /// @param oldValue    the object that was replaced.
+    /// @param newValue    the object that replaces the old object.
     /// @param payloadType the type of the object that was updated.
     /// @return a new `UPDATE` change.
     static <T> Change<T> update(T oldValue, T newValue, Class<T> payloadType)
@@ -58,7 +59,7 @@ public sealed interface Change<T>
         return new Update2<>(oldValue, newValue, payloadType);
     }
 
-    /// @param oldValue  the object that was deleted.
+    /// @param oldValue    the object that was deleted.
     /// @param payloadType the type of the object that was deleted.
     /// @return a new `DELETE` change.
     static <T> Change<T> delete(T oldValue, Class<T> payloadType)
@@ -108,6 +109,12 @@ public sealed interface Change<T>
     ///
     /// @return the most relevant value of the change, either [#newValue()] or [#oldValue()].
     T value();
+
+    /// Shorthand method to quickly get all values from a change - either one or two - depending on
+    /// the change's kind and type.
+    ///
+    /// @return all values from the change.
+    Stream<T> values();
 
     /// @return the type of the payload of the change.
     Class<?> payloadType();

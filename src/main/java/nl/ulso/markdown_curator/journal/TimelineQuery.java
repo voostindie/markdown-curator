@@ -52,19 +52,11 @@ public class TimelineQuery
     @Override
     public boolean isImpactedBy(Changelog changelog, QueryDefinition definition)
     {
+        var documentName = resolveDocumentName(definition);
         return changelog.changes()
             .anyMatch(isPayloadType(Daily.class).and(change ->
-                {
-                    var documentName = resolveDocumentName(definition);
-                    var dailyChange = change.as(Daily.class);
-                    return switch (dailyChange.kind())
-                    {
-                        case CREATE -> dailyChange.newValue().refersTo(documentName);
-                        case UPDATE -> dailyChange.oldValue().refersTo(documentName)
-                                       || dailyChange.newValue().refersTo(documentName);
-                        case DELETE -> dailyChange.oldValue().refersTo(documentName);
-                    };
-                })
+                change.as(Daily.class).values()
+                    .anyMatch(daily -> daily.refersTo(documentName)))
             );
     }
 

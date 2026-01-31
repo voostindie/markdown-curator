@@ -3,6 +3,8 @@ package nl.ulso.markdown_curator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.stream.Stream;
+
 import static nl.ulso.markdown_curator.Change.Kind.DELETE;
 
 record Delete<T>(T oldValue, Class<T> payloadType)
@@ -14,6 +16,12 @@ record Delete<T>(T oldValue, Class<T> payloadType)
     public T value()
     {
         return oldValue;
+    }
+
+    @Override
+    public Stream<T> values()
+    {
+        return Stream.of(oldValue);
     }
 
     @Override
