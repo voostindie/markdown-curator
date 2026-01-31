@@ -23,7 +23,7 @@
         <dependency>
             <groupId>ch.qos.logback</groupId>
             <artifactId>logback-classic</artifactId>
-            <version>1.5.22</version>
+            <version>1.5.27</version>
         </dependency>
     </dependencies>
 
@@ -62,7 +62,7 @@
                         <path>
                             <groupId>com.google.dagger</groupId>
                             <artifactId>dagger-compiler</artifactId>
-                            <version>2.57.2</version>
+                            <version>2.59</version>
                         </path>
                     </annotationProcessorPaths>
                 </configuration>
@@ -91,7 +91,7 @@
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
-                <version>4.0.0</version>
+                <version>4.0.2</version>
                 <executions>
                     <execution>
                         <goals>
