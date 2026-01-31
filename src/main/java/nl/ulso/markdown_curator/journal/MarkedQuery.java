@@ -1,10 +1,10 @@
 package nl.ulso.markdown_curator.journal;
 
+import jakarta.inject.Inject;
+import jakarta.inject.Singleton;
 import nl.ulso.markdown_curator.Changelog;
 import nl.ulso.markdown_curator.query.*;
 
-import jakarta.inject.Inject;
-import jakarta.inject.Singleton;
 import java.time.LocalDate;
 import java.util.LinkedHashSet;
 import java.util.Map;
@@ -17,7 +17,7 @@ import static nl.ulso.markdown_curator.Change.isPayloadType;
  */
 @Singleton
 public class MarkedQuery
-        implements Query
+    implements Query
 {
     private final Journal journal;
     private final QueryResultFactory resultFactory;
@@ -49,27 +49,22 @@ public class MarkedQuery
     public Map<String, String> supportedConfiguration()
     {
         return Map.of("document", "Name of the document; defaults to the current document",
-                "markers", "List of markers to include in the overview.",
-                "level", "The level of the sections to use, defaults to 2");
+            "markers", "List of markers to include in the overview.",
+            "level", "The level of the sections to use, defaults to 2"
+        );
     }
 
     @Override
     public boolean isImpactedBy(Changelog changelog, QueryDefinition definition)
     {
-        return changelog.changes()
-            .anyMatch(isPayloadType(Daily.class).and(change ->
-                {
-                    var documentName = resolveDocumentName(definition);
-                    var dailyChange = change.as(Daily.class);
-                    return switch (dailyChange.kind())
-                    {
-                        case CREATE -> dailyChange.newValue().refersTo(documentName);
-                        case UPDATE -> dailyChange.oldValue().refersTo(documentName)
-                                       || dailyChange.newValue().refersTo(documentName);
-                        case DELETE -> dailyChange.oldValue().refersTo(documentName);
-                    };
-                })
-            );
+        var documentName = resolveDocumentName(definition);
+        return changelog.changes().anyMatch(isPayloadType(Daily.class)
+            .and(change ->
+                change.as(Daily.class).values().anyMatch(
+                    daily -> daily.refersTo(documentName)
+                )
+            )
+        );
     }
 
     @Override
@@ -89,10 +84,10 @@ public class MarkedQuery
             }
             var markerSettings = journal.markerSettings(markerName);
             result.append(level)
-                    .append(" ")
-                    .append(markerSettings.string("title", markerName))
-                    .append(lineSeparator())
-                    .append(lineSeparator());
+                .append(" ")
+                .append(markerSettings.string("title", markerName))
+                .append(lineSeparator())
+                .append(lineSeparator());
             var groupByDate = markerSettings.bool("group-by-date", false);
             LocalDate currentDate = null;
             for (var line : lines)
@@ -103,9 +98,9 @@ public class MarkedQuery
                     {
                         currentDate = line.date();
                         result.append("- [[")
-                                .append(currentDate)
-                                .append("]]:")
-                                .append(lineSeparator());
+                            .append(currentDate)
+                            .append("]]:")
+                            .append(lineSeparator());
                     }
                     result.append("    ");
                 }
