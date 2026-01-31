@@ -16,7 +16,7 @@ Sir Tony Hoare:
 
 The easiest way to tackle many programming errors is to not use `null` at all. That can be overkill, especially with private methods or in isolated blocks of code. So, there it is allowed. 
 
-I've been applying ADR since the start of this project (and actually: in all my projects, since I don't know when), but I never wrote it down.
+I've been applying this ADR since the start of this project (and actually: in all my projects, since I don't know when), but I never wrote it down.
 
 ## Consequences
 

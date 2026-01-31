@@ -29,16 +29,16 @@ public interface Query
     Map<String, String> supportedConfiguration();
 
     /// Returns whether the changelog combined with the query definition might generate new output;
-    /// when unsure, reply `true`.
+    /// when unsure, return `true`.
     ///
     /// Returning `true` does not mean that the query output _must_ be different from what is
     /// persisted in the document, nor does it mean that the document with this query definition
     /// will be updated. Returning `true` _does_ guarantee that the query will be executed. The
     /// output hash will then be compared with the persisted hash. If it is the same and if there
     /// are no other changes for the same document, in the end nothing will happen; the document
-    /// will not be rewritten to disk.`
+    /// will not be rewritten to disk.
     ///
-    /// Returning `false` does not mean that the query will not be executed. If the document
+    /// Returning `false` does not mean that the query will _not_ be executed. If the document
     /// containing the query definition does not contain an output hash for the query, or if there
     /// is another query in the document that requires the document to be rewritten, then the query
     /// will be executed anyway.
