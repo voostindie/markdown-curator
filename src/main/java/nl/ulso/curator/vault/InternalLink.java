@@ -7,9 +7,7 @@ public record InternalLink(Fragment sourceLocation,
                            Optional<String> targetAnchor,
                            Optional<String> alias)
 {
-    /**
-     * @return The internal link as a Markdown string.
-     */
+    /// @return The internal link as a Markdown string.
     public String toMarkdown()
     {
         var builder = new StringBuilder();

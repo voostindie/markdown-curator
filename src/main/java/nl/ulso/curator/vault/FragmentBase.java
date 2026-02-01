@@ -4,10 +4,8 @@ import java.util.Optional;
 
 import static java.util.Objects.requireNonNull;
 
-/**
- * Base class for fragments in a document; it has back-references to the document and optionally
- * the section it is part of.
- */
+/// Base class for fragments in a document; it has back-references to the document and optionally
+/// the section it is part of.
 abstract class FragmentBase
         implements Visitable
 {

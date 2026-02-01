@@ -5,7 +5,7 @@ import java.util.List;
 import static java.lang.System.lineSeparator;
 import static java.util.Collections.unmodifiableList;
 
-class UnorderedListResult
+final class UnorderedListResult
         implements QueryResult
 {
     private final List<String> rows;

@@ -1,5 +1,7 @@
 package nl.ulso.curator;
 
+import nl.ulso.curator.changelog.Change;
+import nl.ulso.curator.changelog.Changelog;
 import nl.ulso.curator.vault.*;
 import org.assertj.core.api.junit.jupiter.SoftAssertionsExtension;
 import org.junit.jupiter.api.Test;
@@ -12,7 +14,7 @@ import java.util.Collection;
 import java.util.stream.Stream;
 
 import static java.util.Collections.emptyList;
-import static nl.ulso.curator.Changelog.changelogFor;
+import static nl.ulso.curator.changelog.Changelog.changelogFor;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 

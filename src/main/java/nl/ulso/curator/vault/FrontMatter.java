@@ -1,25 +1,25 @@
 package nl.ulso.curator.vault;
 
+import nl.ulso.dictionary.Dictionary;
+
 import java.time.LocalDate;
 import java.util.*;
 
 import static java.lang.System.lineSeparator;
-import static nl.ulso.curator.vault.Dictionary.emptyDictionary;
-import static nl.ulso.curator.vault.Dictionary.yamlDictionary;
+import static nl.ulso.dictionary.Dictionary.emptyDictionary;
+import static nl.ulso.dictionary.Dictionary.yamlDictionary;
 
-/**
- * Represents the front matter section in a {@link Document}. A {@link Document} object
- * <strong>always</strong> has such a section (as the first object in the list of fragments),
- * even if the underlying document has none; in that case the front matter is empty.
- * <p/>
- * This class wraps a {@link nl.ulso.curator.vault.Dictionary}. For ease of use it
- * implements its interface as well.
- * <p/>
- * This implementation holds both the original content (a {@link String}) as well as the processed
- * content (a {@link Dictionary}) of the front matter in memory. The original content is needed
- * to ensure that front matter is written back to disk unchanged, however the document author
- * formatted it.
- */
+/// Represents the front matter section in a [Document]. A [Document] object
+/// **always** has such a section (as the first object in the list of fragments),
+/// even if the underlying document has none; in that case the front matter is empty.
+///
+/// This class wraps a [Dictionary]. For ease of use it
+/// implements its interface as well.
+///
+/// This implementation holds both the original content (a [String]) as well as the processed
+/// content (a [Dictionary]) of the front matter in memory. The original content is needed
+/// to ensure that front matter is written back to disk unchanged, however the document author
+/// formatted it.
 public final class FrontMatter
         extends FragmentBase
         implements Fragment, Dictionary

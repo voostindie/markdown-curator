@@ -10,7 +10,7 @@ import java.util.*;
 import static java.lang.Character.toTitleCase;
 import static java.util.ResourceBundle.getBundle;
 
-public class ResourceBundledGeneralMessages
+final class ResourceBundledGeneralMessages
         implements GeneralMessages
 {
     private final ResourceBundle bundle;

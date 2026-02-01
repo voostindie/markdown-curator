@@ -4,8 +4,8 @@ import io.methvin.watcher.DirectoryChangeEvent;
 import io.methvin.watcher.DirectoryWatcher;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
-import nl.ulso.curator.Change;
-import nl.ulso.curator.DocumentPathResolver;
+import nl.ulso.curator.changelog.Change;
+import nl.ulso.curator.changelog.ExternalChangeHandler;
 import org.slf4j.Logger;
 
 import java.io.IOException;
@@ -23,23 +23,21 @@ import static java.text.Normalizer.normalize;
 import static java.util.Collections.reverse;
 import static java.util.Objects.requireNonNull;
 import static java.util.Optional.empty;
-import static nl.ulso.curator.Change.create;
-import static nl.ulso.curator.Change.delete;
-import static nl.ulso.curator.Change.update;
+import static nl.ulso.curator.changelog.Change.create;
+import static nl.ulso.curator.changelog.Change.delete;
+import static nl.ulso.curator.changelog.Change.update;
 import static nl.ulso.curator.vault.Document.newDocument;
 import static org.slf4j.LoggerFactory.getLogger;
 
-/**
- * {@link Vault} implementation on top of the (default) filesystem.
- * <p/>
- * On creation, it uses a {@link FileVisitor} to process all folders and documents and pull them in
- * memory. From then on it watches all folders and subfolders for changes using the file system's
- * {@link WatchService}.
- */
+/// [Vault] implementation on top of the (default) filesystem.
+///
+/// On creation, it uses a [FileVisitor] to process all folders and documents and pull them in
+/// memory. From then on it watches all folders and subfolders for changes using the file system's
+/// [WatchService].
 @Singleton
-public final class FileSystemVault
+final class FileSystemVault
     extends FileSystemFolder
-    implements Vault, DocumentPathResolver, VaultRefresher
+    implements Vault, DocumentPathResolver, ExternalChangeHandler
 {
     private static final Logger LOGGER = getLogger(FileSystemVault.class);
 
@@ -108,7 +106,7 @@ public final class FileSystemVault
     }
 
     @Override
-    public void triggerRefresh(Change<?> change)
+    public void process(Change<?> change)
     {
         callback.vaultChanged(change);
     }

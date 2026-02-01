@@ -4,14 +4,14 @@ import org.junit.jupiter.api.Test;
 
 import java.util.*;
 
-import static nl.ulso.curator.query.TableResult.Alignment.CENTER;
-import static nl.ulso.curator.query.TableResult.Alignment.LEFT;
-import static nl.ulso.curator.query.TableResult.Alignment.RIGHT;
+import static nl.ulso.curator.query.QueryResultFactory.Alignment.CENTER;
+import static nl.ulso.curator.query.QueryResultFactory.Alignment.LEFT;
+import static nl.ulso.curator.query.QueryResultFactory.Alignment.RIGHT;
 import static org.assertj.core.api.Assertions.assertThat;
 
 class QueryResultTest
 {
-    private final QueryResultFactory factory = new QueryResultFactory();
+    private final QueryResultFactoryImpl factory = new QueryResultFactoryImpl();
 
     @Test
     void error()

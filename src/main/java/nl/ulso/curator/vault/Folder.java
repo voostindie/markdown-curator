@@ -3,9 +3,7 @@ package nl.ulso.curator.vault;
 import java.util.Collection;
 import java.util.Optional;
 
-/**
- * Represents a folder, containing documents and other folders.
- */
+/// Represents a folder containing documents and other folders.
 public interface Folder
     extends Visitable
 {

@@ -4,9 +4,7 @@ import java.nio.file.Path;
 
 import static java.lang.System.getProperty;
 
-/**
- * Helper methods to create paths to vaults in various locations.
- */
+/// Helper methods to create paths to vaults in various locations.
 public final class VaultPaths
 {
     private static final String USER_HOME_SYSTEM_PROPERTY = "user.home";
@@ -32,7 +30,13 @@ public final class VaultPaths
 
     private static Path iCloudPath(String applicationName, String folderName)
     {
-        return Path.of(getProperty(USER_HOME_SYSTEM_PROPERTY), "Library", "Mobile Documents",
-                applicationName, "Documents", folderName);
+        return Path.of(
+            getProperty(USER_HOME_SYSTEM_PROPERTY),
+            "Library",
+            "Mobile Documents",
+            applicationName,
+            "Documents",
+            folderName
+        );
     }
 }

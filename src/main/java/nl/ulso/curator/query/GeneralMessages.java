@@ -6,6 +6,8 @@ public interface GeneralMessages
 {
     String noResults();
 
+    // TODO: the methods below do not really belong here; they belong in add-on specific messages.
+
     String journalDay(LocalDate date);
 
     String journalWeek(int year, int week);

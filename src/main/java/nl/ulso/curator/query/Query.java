@@ -1,12 +1,11 @@
 package nl.ulso.curator.query;
 
-import nl.ulso.curator.Changelog;
-import nl.ulso.curator.vault.QueryBlock;
+import nl.ulso.curator.changelog.Changelog;
 
 import java.util.Map;
 
-/// Represents a single query that can be executed against a [QueryBlock]; the configuration of the
-/// query comes from the block.
+/// Represents a single query that can be executed against a definition; the configuration of the
+/// query comes from the definition.
 ///
 /// Important:
 ///

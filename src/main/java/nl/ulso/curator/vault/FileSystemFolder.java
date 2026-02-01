@@ -4,14 +4,12 @@ import java.util.*;
 
 import static java.util.Collections.unmodifiableCollection;
 
-/**
- * Represents a folder, containing documents and other folders.
- * <p/>
- * From the outside - the public API - this is a read-only structure. From the inside -
- * within this package - it's mutable so that the {@link Vault} can apply changes it detects
- * on disk.
- * <p/>
- */
+/// Represents a folder containing documents and other folders.
+///
+/// From the outside - the public API - this is a read-only structure. From the inside -
+/// within this package - it's mutable so that the [Vault] can apply changes it detects
+/// on disk.
+///
 public class FileSystemFolder
         implements Folder
 {
@@ -20,12 +18,10 @@ public class FileSystemFolder
     private final Map<String, Folder> folders;
     private final Map<String, Document> documents;
 
-    /**
-     * Construct a new Folder with the specified name; this is always a <strong>root</strong>
-     * folder; it cannot be added to another folder as a subfolder.
-     * <p/>
-     * To add subfolders to a folder, use {@link #addFolder(String)}.
-     */
+    /// Construct a new Folder with the specified name; this is always a **root**
+    /// folder; it cannot be added to another folder as a subfolder.
+    ///
+    /// To add subfolders to a folder, use [#addFolder(String)].
     FileSystemFolder(String name)
     {
         this(null, name);
@@ -126,12 +122,10 @@ public class FileSystemFolder
         folders.remove(name);
     }
 
-    /**
-     * Add a document to the current folder. If a document with the same name already exists, it is
-     * replaced.
-     *
-     * @return The document that was replaced, or null if this is a new document.
-     */
+    /// Add a document to the current folder. If a document with the same name already exists, it is
+    /// replaced.
+    ///
+    /// @return The document that was replaced or null if this is a new document.
     Document addDocument(Document document)
     {
         document.setFolder(this);

@@ -1,6 +1,6 @@
 package nl.ulso.curator.query.builtin;
 
-import nl.ulso.curator.Changelog;
+import nl.ulso.curator.changelog.Changelog;
 import nl.ulso.curator.query.*;
 
 import java.util.Map;
@@ -10,7 +10,7 @@ import static java.util.Collections.emptyMap;
 import static java.util.Comparator.comparing;
 
 public final class UnknownQuery
-        implements Query
+    implements Query
 {
     private final QueryCatalog catalog;
     private final String name;
@@ -53,25 +53,25 @@ public final class UnknownQuery
         if (catalog.isEmpty())
         {
             builder.append("This vault has no queries defined.")
-                    .append(lineSeparator())
-                    .append("A developer has to build and register some first...")
-                    .append(lineSeparator());
+                .append(lineSeparator())
+                .append("A developer has to build and register some first...")
+                .append(lineSeparator());
         }
         else
         {
             builder.append("Queries available in this vault are:")
-                    .append(lineSeparator())
-                    .append(lineSeparator());
+                .append(lineSeparator())
+                .append(lineSeparator());
             catalog.queries().stream().sorted(comparing(Query::name)).forEach(specification ->
-                    builder.append("- **")
-                            .append(specification.name())
-                            .append("**: ")
-                            .append(specification.description())
-                            .append(lineSeparator()));
+                builder.append("- **")
+                    .append(specification.name())
+                    .append("**: ")
+                    .append(specification.description())
+                    .append(lineSeparator()));
         }
         builder.append(lineSeparator())
-                .append("Use the 'help' query to get more information on a specific query.")
-                .append(lineSeparator());
+            .append("Use the 'help' query to get more information on a specific query.")
+            .append(lineSeparator());
         return resultFactory.error(builder.toString());
     }
 }

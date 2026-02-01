@@ -1,51 +1,51 @@
 package nl.ulso.curator.vault;
 
 import nl.ulso.curator.query.QueryDefinition;
+import nl.ulso.dictionary.Dictionary;
 
 import java.util.*;
 
 import static java.lang.Character.isLetterOrDigit;
 import static java.lang.String.join;
 import static java.lang.System.lineSeparator;
-import static nl.ulso.curator.vault.Dictionary.yamlDictionary;
+import static nl.ulso.dictionary.Dictionary.yamlDictionary;
 
-/**
- * Represents a query in a Markdown document. A query consists of 3 parts: the name, the
- * configuration and the result.
- * <p/>
- * Queries do not exist in any Markdown specification, which is why they're encoded as HTML
- * comments. This also ensures that the query definitions don't show up when rendering the
- * Markdown to HTML; only the result does.
- * <p/>
- * The informal BNF specification for queries is:
- * <pre>
- *     query ::= "&lt;!--query:" &lt;name> (&lt;configuration>)? "-->" &lt;newline>
- *               &lt;output> &lt;newline>
- *               "&lt;!--/query" (" (" &lt;hash> ")")? "-->"
- *     name ::= string of alphabetical characters
- *     configuration ::= YAML map
- *     output ::= arbitrary string
- *     hash ::= hash of the output
- * </pre>
- * This format is processed by this tool; it's why this tool exists in this first place. It picks
- * up the {@code name} and {@code configuration}, interprets it, runs it, and writes the results
- * in {@code output}.
- * <p/>
- * If no name is provided in the content, the default {@value DEFAULT_NAME} is assumed.
- * <p/>
- * The {@code configuration} is a YAML map. It can be omitted if the query needs no
- * configuration.
- * <p/>
- * The {@code hash} is hash computed of the output by this tool, used to check whether the output
- * of a query has changed.
- * <p/>
- * The simplest way to add a new query to a page is to add an empty query block. After saving the
- * page, this tool will pick it up and insert the output, which consists of a list of available
- * queries. Then go from there.
- */
+/// Represents a query in a Markdown document. A query consists of 4 parts: the name, the
+/// configuration, the result (a Markdown string), and a hash computed from the result.
+///
+/// Queries do not exist in any Markdown specification, which is why they're encoded as HTML
+/// comments. This also ensures that the query definitions don't show up when rendering the Markdown
+/// to HTML; only the result does.
+///
+/// The informal BNF specification for queries is:
+///
+/// ```
+/// query         ::= "<!--query:" <name> (<configuration>)? "-->" <newline>
+///                   <output> <newline>
+///                   "<!--/query" (" (" <hash>? ")")? "-->"
+/// name          ::= string of alphabetical characters
+/// configuration ::= YAML map
+/// output        ::= arbitrary string
+/// hash          ::= hash of the output
+/// ```
+///
+/// This format is processed by this tool; it's why this tool exists in this first place. It picks
+/// up the `name` and `configuration`, interprets it, runs it, and writes the result in `output` and
+/// the hash of the result in `hash`.
+///
+/// If no name is provided in the content, the default [#DEFAULT_NAME] is assumed.
+///
+/// The `configuration` is a YAML map. It can be omitted if the query needs no configuration.
+///
+/// The `hash` is hash computed of the output by this tool, used to check whether the output of a
+/// query has changed.
+///
+/// The simplest way to add a new query to a page is to add an empty query block. After saving the
+/// page, this tool will pick it up and insert the output, which consists of a list of available
+/// queries. Then go from there.
 public final class QueryBlock
-        extends FragmentBase
-        implements Fragment, QueryDefinition
+    extends FragmentBase
+    implements Fragment, QueryDefinition
 {
     static final String QUERY_CONFIGURATION_PREFIX = "<!--query";
     private static final String QUERY_CONFIGURATION_POSTFIX = "-->";
@@ -149,8 +149,8 @@ public final class QueryBlock
         QueryParser(List<String> lines, int definitionEnd)
         {
             var query = join(lineSeparator(), lines.subList(0, definitionEnd + 1))
-                    .substring(QUERY_CONFIGURATION_PREFIX.length())
-                    .trim();
+                .substring(QUERY_CONFIGURATION_PREFIX.length())
+                .trim();
             if (!query.isEmpty() && query.charAt(0) == QUERY_NAME_MARKER)
             {
                 var end = 1;
@@ -196,6 +196,9 @@ public final class QueryBlock
             return configuration != null ? configuration : "";
         }
 
-        String outputHash() {return outputHash != null ? outputHash : "";}
+        String outputHash()
+        {
+            return outputHash != null ? outputHash : "";
+        }
     }
 }

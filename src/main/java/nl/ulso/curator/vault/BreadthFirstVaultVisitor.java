@@ -1,9 +1,7 @@
 package nl.ulso.curator.vault;
 
-/**
- * Abstract implementation of the VaultVisitor that implements a breadth-first traversal of a vault.
- * This visitor processes all elements of all documents in all folders in a vault.
- */
+/// Abstract implementation of the VaultVisitor that implements a breadth-first traversal of a vault.
+/// This visitor processes all elements of all documents in all folders in a vault.
 public abstract class BreadthFirstVaultVisitor
         implements VaultVisitor
 {

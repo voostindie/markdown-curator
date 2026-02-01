@@ -6,10 +6,8 @@ import java.util.Objects;
 import static java.lang.String.join;
 import static java.lang.System.lineSeparator;
 
-/**
- * Represents a piece of code in a Markdown document. This is text surrounded with three
- * backticks (```) on separate lines.
- */
+/// Represents a piece of code in a Markdown document. This is text surrounded with three
+/// backticks (```) on separate lines.
 public final class CodeBlock
         extends FragmentBase
         implements Fragment

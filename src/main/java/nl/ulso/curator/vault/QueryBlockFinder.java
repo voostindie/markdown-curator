@@ -2,11 +2,9 @@ package nl.ulso.curator.vault;
 
 import java.util.*;
 
-/**
- * Finds all query blocks in all documents
- *
- * @see Vault#findAllQueryBlocks()
- */
+/// Finds all query blocks in all documents
+///
+/// @see Vault#findAllQueryBlocks()
 final class QueryBlockFinder
         extends BreadthFirstVaultVisitor
 {

@@ -2,7 +2,7 @@ package nl.ulso.curator.query;
 
 import static java.lang.System.lineSeparator;
 
-class ErrorResult
+final class ErrorResult
         implements QueryResult
 {
     private final String errorMessage;

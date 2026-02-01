@@ -1,6 +1,6 @@
 package nl.ulso.curator.query.builtin;
 
-import nl.ulso.curator.Changelog;
+import nl.ulso.curator.changelog.Changelog;
 import nl.ulso.curator.query.*;
 import nl.ulso.curator.vault.*;
 
@@ -8,11 +8,9 @@ import jakarta.inject.Inject;
 import java.util.*;
 
 import static java.lang.System.lineSeparator;
-import static nl.ulso.curator.Change.isPayloadType;
+import static nl.ulso.curator.changelog.Change.isPayloadType;
 
-/**
- * Generates a table of contents from the current document.
- */
+/// Generates a table of contents from the current document.
 public final class TableOfContentsQuery
         implements Query
 {

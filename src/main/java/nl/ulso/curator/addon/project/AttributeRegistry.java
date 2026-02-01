@@ -1,0 +1,36 @@
+package nl.ulso.curator.addon.project;
+
+import nl.ulso.curator.changelog.ChangeProcessor;
+
+import java.util.*;
+
+/// Registry of all custom project attribute values.
+///
+/// The set of available attributes is customizable. 4 are provided by default. See
+/// [AttributeDefinition] for the complete list.
+///
+/// The values of project attributes can be produced by several [ChangeProcessor]s. Each different
+/// provider gives a _weight_ to the values it produces. The registry selects the value with the
+/// largest weight. See [AttributeValue] for more information.
+///
+/// Values are not only made available to other parts of the system through this registry, they are
+/// also persisted in the front matter of the underlying project documents. See
+/// [FrontMatterAttributeProducer].
+///
+/// The registry is fully updated when a [AttributeRegistryUpdate] is published on the changelog.
+/// Change processors that depend on this registry should consume that object to ensure it comes
+/// after.
+public interface AttributeRegistry
+{
+    /// @return All attribute definitions managed by this registry.
+    Collection<AttributeDefinition> attributeDefinitions();
+
+    /// @return All projects known by this registry; these are guaranteed to be the same as the ones
+    /// managed by the [ProjectRepository].
+    Set<Project> projects();
+
+    /// @return the value of the attribute with the
+    Optional<?> attributeValue(Project project, String attributeName);
+
+    Optional<?> attributeValue(Project project, AttributeDefinition definition);
+}

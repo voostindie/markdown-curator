@@ -1,17 +1,17 @@
 package nl.ulso.curator.vault;
 
+import nl.ulso.dictionary.Dictionary;
+
 import java.util.List;
 import java.util.Objects;
 
 import static java.util.Objects.requireNonNull;
 import static nl.ulso.emoji.EmojiStripper.stripEmojisFrom;
 
-/**
- * Represents a Markdown document. A document is broken down in a list of {@link Fragment}s.
- * <p/>
- * Every document has at least 1 fragment, which is the document's {@link FrontMatter} (which
- * might be empty, but always exists).
- */
+/// Represents a Markdown document. A document is broken down in a list of [Fragment]s.
+///
+/// Every document has at least 1 fragment, which is the document's [FrontMatter] (which
+/// might be empty, but always exists).
 public final class Document
         extends FragmentContainer
 {

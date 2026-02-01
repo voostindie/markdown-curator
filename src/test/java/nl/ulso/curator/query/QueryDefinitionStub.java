@@ -1,6 +1,6 @@
 package nl.ulso.curator.query;
 
-import nl.ulso.curator.vault.Dictionary;
+import nl.ulso.dictionary.Dictionary;
 import nl.ulso.curator.vault.Document;
 
 import java.util.HashMap;

@@ -4,16 +4,13 @@ import java.util.*;
 
 import static java.util.stream.Collectors.toSet;
 
-/**
- * Finds all internal links in the WikiLink format.
- * <p/>
- * Yes: internal links that look like normal Markdown links are considered to be external links.
- * <p/P
- * A full Obsidian WikiLink looks like this: [[document#anchor|label]], with the anchor and the
- * label optional.
- */
+/// Finds all internal links in the WikiLink format.
+///
+/// Yes: internal links that look like normal Markdown links are considered to be external links.
+/// <p/P A full Obsidian WikiLink looks like this: `[[document#anchor|label]]`, with the anchor and
+/// the label optional.
 public class InternalLinkFinder
-        extends BreadthFirstVaultVisitor
+    extends BreadthFirstVaultVisitor
 {
     private static final String LINK_START = "[[";
     private static final int LINK_START_LENGTH = LINK_START.length();
@@ -35,16 +32,16 @@ public class InternalLinkFinder
         return internalLinks;
     }
 
-    /**
-     * Extracts all references to internal documents - target names only - from a chunk of Markdown.
-     * @param content Markdown text to extract internal links from.
-     * @return Set of references to internal documents.
-     */
+    /// Extracts all references to internal documents - target names only - from a chunk of
+    /// Markdown.
+    ///
+    /// @param content Markdown text to extract internal links from.
+    /// @return Set of references to internal documents.
     public static Set<String> parseInternalLinkTargetNames(String content)
     {
         return parseInternalLinks(null, content).stream()
-                .map(InternalLink::targetDocument)
-                .collect(toSet());
+            .map(InternalLink::targetDocument)
+            .collect(toSet());
     }
 
     public static List<InternalLink> findInternalLinks(Fragment fragment, String content)
@@ -87,10 +84,10 @@ public class InternalLinkFinder
                 link = link.substring(0, marker);
             }
             result.add(new InternalLink(
-                    fragment,
-                    link,
-                    anchor,
-                    alias
+                fragment,
+                link,
+                anchor,
+                alias
             ));
             index = end + LINK_END_LENGTH;
         }

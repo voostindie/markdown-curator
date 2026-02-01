@@ -3,17 +3,15 @@ package nl.ulso.curator.vault;
 import static nl.ulso.curator.vault.ElementCounter.Scope.ALL;
 import static nl.ulso.curator.vault.ElementCounter.Scope.FOLDERS_AND_DOCUMENTS;
 
-/**
- * Simple visitor that counts all occurrences of the different types.
- * <p/>
- * It supports two search scopes:
- * <ol>
- * <li>{@literal ALL}: the default; it counts all elements, on all levels.</li>
- * <li>{@literal FOLDERS_AND_DOCUMENTS}: counts only folders and documents.</li>
- * </ol>
- */
+/// Simple visitor that counts all occurrences of the different types.
+///
+/// It supports two search scopes:
+/// <ol>
+///   - {@literal ALL}: the default; it counts all elements, on all levels.
+///   - {@literal FOLDERS_AND_DOCUMENTS}: counts only folders and documents.
+/// </ol>
 public final class ElementCounter
-        extends BreadthFirstVaultVisitor
+    extends BreadthFirstVaultVisitor
 {
     public enum Scope
     {
@@ -22,14 +20,14 @@ public final class ElementCounter
     }
 
     public record Statistics(
-            int vaults,
-            int folders,
-            int documents,
-            int frontMatters,
-            int sections,
-            int texts,
-            int queries,
-            int codeBlocks
+        int vaults,
+        int folders,
+        int documents,
+        int frontMatters,
+        int sections,
+        int texts,
+        int queries,
+        int codeBlocks
     ) {}
 
     private final Scope scope;
@@ -52,8 +50,9 @@ public final class ElementCounter
         var counter = new ElementCounter(scope);
         vault.accept(counter);
         return new Statistics(counter.vaults, counter.folders, counter.documents,
-                counter.frontMatters, counter.sections, counter.texts, counter.queries,
-                counter.codeBlocks);
+            counter.frontMatters, counter.sections, counter.texts, counter.queries,
+            counter.codeBlocks
+        );
     }
 
     public static Statistics countAll(Vault vault)

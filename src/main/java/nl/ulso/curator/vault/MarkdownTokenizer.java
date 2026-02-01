@@ -6,33 +6,30 @@ import java.util.*;
 
 import static nl.ulso.curator.vault.CodeBlock.CODE_MARKER;
 import static nl.ulso.curator.vault.FrontMatter.FRONT_MATTER_MARKER;
+import static nl.ulso.curator.vault.MarkdownTokenizer.LineToken.*;
 import static nl.ulso.curator.vault.MarkdownTokenizer.TokenStatus.CONTENT;
 import static nl.ulso.curator.vault.MarkdownTokenizer.TokenStatus.END;
 import static nl.ulso.curator.vault.MarkdownTokenizer.TokenStatus.START;
-import static nl.ulso.curator.vault.MarkdownTokenizer.LineToken.*;
 import static nl.ulso.curator.vault.MarkdownTokenizer.TokenType.*;
 import static nl.ulso.curator.vault.QueryBlock.QUERY_CONFIGURATION_PREFIX;
 import static nl.ulso.curator.vault.QueryBlock.QUERY_OUTPUT_POSTFIX;
 import static nl.ulso.curator.vault.QueryBlock.QUERY_OUTPUT_PREFIX;
 import static nl.ulso.curator.vault.Section.HEADER_PATTERN;
 
-/**
- * Simple tokenizer for Markdown document, Vincent flavored; the document is tokenized line by line.
- * It's not any fancier than that, on purpose.
- * <p/>
- * What's Vincent Flavored Markdown (VFM), you ask? Well, it's basically GitHub Flavored Markdown,
- * with some changes. These are:
- * <ul>
- *   <li>Optional YAML front matter (between "---")</li>
- *   <li>Only ATX (#) headers, without the optional closing sequence of #'s</li>
- *   <li>Headers are always aligned to the left margin</li>
- *   <li>Code is always in code blocks surrounded with backticks</li>
- *   <li>Queries can be defined in HTML comments, for this tool to process. See
- *   {@link QueryBlock}</li>
- * </ul>
- */
+/// Simple tokenizer for Markdown documents, Vincent flavored; the document is tokenized line by
+/// line. It's not any fancier than that, on purpose.
+///
+/// What's Vincent Flavored Markdown (VFM), you ask? Well, it's basically GitHub Flavored Markdown,
+/// with some changes. These are:
+///
+/// - Optional YAML front matter (between "---").
+/// - Only ATX (#) headers, without the optional closing sequence of #'s.
+/// - Headers are always aligned to the left margin.
+/// - Code is always in code blocks surrounded with backticks.
+/// - Queries can be defined in HTML comments, for this tool to process. See [QueryBlock]
+///
 class MarkdownTokenizer
-        implements Iterable<LineToken>
+    implements Iterable<LineToken>
 {
     private final List<String> lines;
 
@@ -114,7 +111,7 @@ class MarkdownTokenizer
     }
 
     static final class HeaderLineToken
-            extends LineToken
+        extends LineToken
     {
         private final int level;
 

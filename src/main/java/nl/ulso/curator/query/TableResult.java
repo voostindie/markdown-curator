@@ -8,26 +8,20 @@ import static java.lang.System.lineSeparator;
 import static java.util.Collections.unmodifiableList;
 import static java.util.regex.Pattern.compile;
 
-public class TableResult
-        implements QueryResult
+final class TableResult
+    implements QueryResult
 {
-    public enum Alignment
-    {
-        LEFT,
-        RIGHT,
-        CENTER
-    }
-
     private static final char NORMAL_HYPHEN = '-';
     private static final char NON_BREAKING_HYPHEN = '‑';
     private static final Predicate<String> DATE_PREDICATE =
-            compile("^\\d{4}-\\d{2}-\\d{2}$").asPredicate();
+        compile("^\\d{4}-\\d{2}-\\d{2}$").asPredicate();
     private final List<String> columns;
-    private final List<Alignment> alignments;
+    private final List<QueryResultFactory.Alignment> alignments;
     private final List<Map<String, String>> rows;
 
     TableResult(
-            List<String> columns, List<Alignment> alignments, List<Map<String, String>> rows)
+        List<String> columns, List<QueryResultFactory.Alignment> alignments,
+        List<Map<String, String>> rows)
     {
         this.columns = unmodifiableList(columns);
         this.alignments = alignments != null ? unmodifiableList(alignments) : null;
@@ -95,7 +89,7 @@ public class TableResult
             {
                 builder.append(" ");
                 var column = applyObsidianFormattingWorkaround(
-                        row.getOrDefault(columns.get(i), ""));
+                    row.getOrDefault(columns.get(i), ""));
                 builder.append(column);
                 builder.append(" ".repeat(Math.max(0, widths[i] - column.length())));
                 builder.append(" |");

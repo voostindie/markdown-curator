@@ -1,14 +1,17 @@
 package nl.ulso.curator;
 
-import nl.ulso.curator.vault.Vault;
+import nl.ulso.curator.changelog.Change;
+import nl.ulso.curator.changelog.Changelog;
+import nl.ulso.curator.changelog.ChangeProcessor;
+import nl.ulso.curator.vault.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.*;
 import java.util.function.Predicate;
 
-import static nl.ulso.curator.Changelog.changelogFor;
-import static nl.ulso.curator.Changelog.emptyChangelog;
+import static nl.ulso.curator.changelog.Changelog.changelogFor;
+import static nl.ulso.curator.changelog.Changelog.emptyChangelog;
 
 /// Base class for [ChangeProcessor] that can handle granular change events.
 ///
@@ -26,6 +29,12 @@ public abstract class ChangeProcessorTemplate
     private static final Logger LOGGER = LoggerFactory.getLogger(ChangeProcessorTemplate.class);
 
     private final Map<Predicate<Change<?>>, ChangeHandler> changeHandlers = new HashMap<>();
+
+    @Override
+    public Set<Class<?>> consumedPayloadTypes()
+    {
+        return Set.of(Vault.class, Document.class, Folder.class);
+    }
 
     @Override
     public final Changelog run(Changelog changelog)

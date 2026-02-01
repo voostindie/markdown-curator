@@ -11,20 +11,17 @@ import static nl.ulso.curator.vault.MarkdownTokenizer.TokenStatus.START;
 import static nl.ulso.curator.vault.MarkdownTokenizer.TokenType.END_OF_DOCUMENT;
 import static nl.ulso.curator.vault.MarkdownTokenizer.TokenType.HEADER;
 
-/**
- * Parses a list of {@link String}s into a {@link Document}. This is <strong>not</strong> a full
- * parser for Markdown, nor is it ever intended to be. Markdown documents are only broken down
- * in high-level parts (or: fragments). The contents of the fragments are still plain text
- * (Markdown).
- * <p/>
- * The parser is a bit complicated because the document is turned into a tree of sections of
- * varying levels. Because the document object model is immutable, a section can only a constructed
- * after all its content has been parsed, recursively.
- * <p/>
- * The parser also tries to protect against accidents. Front matter, code blocks and queries need
- * to be closed with a specific marker. If this marker is missing, the parser treats the block
- * as text. In case of doubt, that's the safest bet.
- */
+/// Parses a list of [String]s into a [Document]. This is **not** a full parser for Markdown, nor is
+/// it ever intended to be. Markdown documents are only broken down in high-level parts (or:
+/// fragments). The contents of the fragments are still plain text (Markdown).
+///
+/// The parser is a bit complicated because the document is turned into a tree of sections of
+/// varying levels. Because the document object model is immutable, a section can only a constructed
+/// after all its content has been parsed, recursively.
+///
+/// The parser also tries to protect against accidents. Front matter, code blocks and queries need
+/// to be closed with a specific marker. If this marker is missing, the parser treats the block as
+/// text. In case of doubt, that's the safest bet.
 final class DocumentParser
 {
     private final String name;
@@ -97,7 +94,7 @@ final class DocumentParser
         var header = headers.pop();
         var previousLevel = headers.isEmpty() ? 0 : headers.peek().level();
         fragments.get(previousLevel).add(
-                new Section(header.level(), header.title(), fragments.get(header.level())));
+            new Section(header.level(), header.title(), fragments.get(header.level())));
         return previousLevel;
     }
 

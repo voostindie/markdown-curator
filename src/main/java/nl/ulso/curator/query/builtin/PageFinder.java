@@ -5,12 +5,10 @@ import nl.ulso.curator.vault.*;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Finds all pages in a folder, optionally recursively.
- *
- * @see ListQuery
- * @see TableQuery
- */
+/// Finds all pages in a folder, optionally recursively.
+///
+/// @see ListQuery
+/// @see TableQuery
 class PageFinder
         extends BreadthFirstVaultVisitor
 {

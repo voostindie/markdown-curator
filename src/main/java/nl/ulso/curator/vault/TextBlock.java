@@ -1,17 +1,16 @@
 package nl.ulso.curator.vault;
 
-import java.util.*;
+import java.util.List;
+import java.util.Objects;
 
 import static java.lang.String.join;
 import static java.lang.System.lineSeparator;
 
-/**
- * Represents a block of text in a Markdown document. This is the default type of content, meaning
- * that anything not specifically handled differently is considered to be text.
- */
+/// Represents a block of text in a Markdown document. This is the default type of content, meaning
+/// that anything not specifically handled differently is considered to be text.
 public final class TextBlock
-        extends FragmentBase
-        implements Fragment
+    extends FragmentBase
+    implements Fragment
 {
     private final String markdown;
 

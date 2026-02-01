@@ -19,18 +19,19 @@ import static java.util.concurrent.Executors.callable;
 import static java.util.concurrent.Executors.newFixedThreadPool;
 import static org.slf4j.LoggerFactory.getLogger;
 
-/**
- * Main application: sets up all curator and runs them; each curator runs in its own thread.
- * <p/>
- * If a single curator cannot be instantiated, its thread is basically dead; it won't work. The
- * other curators (if any) will still work though.
- * <p/>
- * The application writes a PID-file to the temporary directory and deletes it again when the
- * application is stopped. If a PIF-file already exists at startup, the application fails to
- * startup. This is to prevent multiple curators processing the same directories independently.
- * Having the same curator multiple times leads to all kinds of interesting race conditions, so it's
- * worth preventing that.
- */
+/// Main application: sets up all curators and runs them; each curator runs in its own thread.
+///
+/// Curators are discovered through the Java Service Loader mechanism; see [CuratorFactory] for more
+/// information.
+///
+/// If a single curator cannot be instantiated, its thread is basically dead; it won't work. The
+/// other curators (if any) will still work, though.
+///
+/// The application writes a pidfile to the temporary directory and deletes it again when the
+/// application is stopped. If a pidfile already exists at startup, the application fails to
+/// startup. This is to prevent multiple curators processing the same directories independently.
+/// Having the same curator active multiple times leads to all kinds of interesting race conditions,
+/// so it's worth preventing that.
 public class Application
 {
     private static final Logger LOGGER;
@@ -38,7 +39,7 @@ public class Application
     static
     {
         // Make sure we disable SLF4J's useless logging before it initializes itself.
-        // Because the application's main method is in this class, this is how that needs happen.
+        // Because the application's main method is in this class, this is how that needs to happen.
         setProperty(Reporter.SLF4J_INTERNAL_VERBOSITY_KEY, "ERROR");
         LOGGER = getLogger(Application.class);
     }
@@ -102,7 +103,8 @@ public class Application
         }
         if (!vaults.isEmpty())
         {
-            factories = factories.stream().filter(f -> vaults.contains(f.name().toLowerCase()))
+            factories = factories.stream()
+                .filter(f -> vaults.contains(f.name().toLowerCase()))
                 .toList();
             if (factories.isEmpty())
             {

@@ -1,5 +1,6 @@
 package nl.ulso.curator;
 
+import nl.ulso.curator.main.MusicCuratorFactory;
 import org.assertj.core.api.junit.jupiter.SoftAssertionsExtension;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

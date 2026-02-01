@@ -5,9 +5,7 @@ import java.util.List;
 import static java.util.Collections.unmodifiableList;
 import static java.util.Objects.requireNonNull;
 
-/**
- * Container for a list of {@link Fragment}s.
- */
+/// Container for a list of [Fragment]s.
 abstract class FragmentContainer
         extends FragmentBase
 {

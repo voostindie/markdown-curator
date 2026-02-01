@@ -5,9 +5,9 @@ import dagger.Module;
 import dagger.multibindings.IntoSet;
 import dagger.multibindings.Multibinds;
 import jakarta.inject.Named;
-import nl.ulso.curator.query.*;
-import nl.ulso.curator.query.builtin.*;
-import nl.ulso.curator.vault.*;
+import nl.ulso.curator.changelog.ChangeProcessor;
+import nl.ulso.curator.main.MainModule;
+import nl.ulso.curator.query.Query;
 
 import java.nio.file.WatchService;
 import java.util.Locale;
@@ -15,81 +15,47 @@ import java.util.Set;
 
 /// Basic Dagger module for curators. Every new curator module must include this module.
 ///
-/// Curators must do the following things:
+/// A curator module **must** do one thing: provide a `Path`. This is the path on disk to the vault
+/// (repository) with Markdown files.
 ///
-/// - Provide a `Path`. This is the path on disk to the vault (repository) with Markdown files.
-/// - (Optional): provide a [java.util.Locale]. This will be used for translations in normal output.
-/// The default is English. (Instructions and error messages are all in English, hard-coded.)
-/// - (Optional): register custom [ChangeProcessor]s: Create an abstract method for every concrete
+/// Optionally, a curator module *can*:
+///
+/// - Register custom [ChangeProcessor]s: Create an abstract method for every concrete
 /// implementation that binds it to the `ChangeProcessor` interface. Note that every change
 /// processor must be a singleton.
-/// - (Optional): register custom [Query]s. Create an abstract method for every concrete
-/// implementation that binds it to the `Query` interface.
-/// </ol>
-///
-/// Curator modules can use the full power of Dagger to configure themselves however they want.
-@Module
+/// - Register custom [Query]s. Create an abstract method for every concrete implementation that
+/// binds it to the `Query` interface.
+/// - Provide a [WatchService] to detect changes to the vault. The default implementation is
+/// optimized for macOS. Other platforms are not tested.
+/// - Provide a [Locale]. This will be used for translations in output. The default is English.
+/// (Instructions and error messages are all in English, hard-coded.)
+/// - Provide the name of a "watch document". This is a file in the root of the vault that, when
+/// changed, will trigger a re-run of all queries.
+/// - Include other modules and their configurations to extend the functionality of the curator.
+@Module(includes = {MainModule.class})
 public abstract class CuratorModule
 {
-    @Multibinds
-    abstract Set<Query> queries();
+    /// Name of the key to bind the watch document to in the Dagger module, as a [String].
+    public static final String WATCH_DOCUMENT_KEY = "watchdoc";
 
+    /// To add a [ChangeProcessor], configure it so that it [Binds] [IntoSet] of [ChangeProcessor].
     @Multibinds
-    abstract Set<ChangeProcessor> changeProcessors();
+    abstract Set<ChangeProcessor> bindAllAvailableChangeProcessors();
 
+    /// To add a [Query], configure it so that it [Binds] [IntoSet] of [Query].
+    @Multibinds
+    abstract Set<Query> bindAllAvailableQueries();
+
+    /// Bind a custom [WatchService]; the default is optimized for macOS.
     @BindsOptionalOf
     abstract WatchService optionalWatchService();
 
+    /// Bind a custom [Locale]; the default is English.
     @BindsOptionalOf
     abstract Locale optionalLocale();
 
-    @Binds
-    abstract Vault bindVault(FileSystemVault vault);
-
-    @Binds
-    abstract DocumentPathResolver bindDocumentPathResolver(FileSystemVault vault);
-
-    @Binds
-    abstract VaultRefresher bindVaultRefresher(FileSystemVault vault);
-
-    @Binds
-    abstract QueryCatalog bindQueryCatalog(InMemoryQueryCatalog queryCatalog);
-
-    @Binds
-    abstract ChangeProcessorOrchestrator bindDataModelOrchestrator(
-        ChangeProcessorOrchestratorImpl orchestrator);
-
-    @Binds
-    abstract QueryOrchestrator bindQueryOrchestrator(QueryOrchestratorImpl orchestrator);
-
-    @Binds
-    abstract GeneralMessages bindGeneralMessages(ResourceBundledGeneralMessages generalMessages);
-
+    /// Bind a watch document; by default, there is none.
     @BindsOptionalOf
-    @Named("watchdoc")
-    abstract String watchDocumentName();
-
-    @Binds
-    @IntoSet
-    abstract ChangeProcessor bindVaultReloader(VaultReloader vaultReloader);
-
-    @Binds
-    abstract FrontMatterUpdateCollector bindFrontMatterCollector(
-        FrontMatterCollector collector);
-
-    @Binds
-    abstract FrontMatterRewriteResolver bindFrontMatterRewriteResolver(
-        FrontMatterCollector collector);
-
-    @Binds
-    @IntoSet
-    abstract Query bindListQuery(ListQuery listQuery);
-
-    @Binds
-    @IntoSet
-    abstract Query bindTableQuery(TableQuery tableQuery);
-
-    @Binds
-    @IntoSet
-    abstract Query bindTableOfContentsQuery(TableOfContentsQuery tableOfContentsQuery);
+    @Named(WATCH_DOCUMENT_KEY)
+    abstract String optionalWatchDocumentName();
 }

@@ -1,13 +1,13 @@
 package nl.ulso.curator.query.builtin;
 
-import nl.ulso.curator.Change;
-import nl.ulso.curator.Changelog;
+import nl.ulso.curator.changelog.Change;
+import nl.ulso.curator.changelog.Changelog;
 import nl.ulso.curator.query.QueryDefinition;
 import nl.ulso.curator.vault.*;
 
 import java.util.function.Predicate;
 
-import static nl.ulso.curator.Change.isPayloadType;
+import static nl.ulso.curator.changelog.Change.isPayloadType;
 
 abstract class FolderQuery
 {
