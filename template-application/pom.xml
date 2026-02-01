@@ -98,7 +98,7 @@
                             <goal>repackage</goal>
                         </goals>
                         <configuration>
-                            <mainClass>nl.ulso.markdown_curator.Application</mainClass>
+                            <mainClass>nl.ulso.curator.Application</mainClass>
                         </configuration>
                     </execution>
                 </executions>
