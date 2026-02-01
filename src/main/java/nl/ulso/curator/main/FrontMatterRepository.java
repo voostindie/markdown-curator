@@ -2,6 +2,7 @@ package nl.ulso.curator.main;
 
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
+import nl.ulso.curator.FrontMatterCollector;
 import nl.ulso.dictionary.MutableDictionary;
 import nl.ulso.curator.vault.*;
 import nl.ulso.dictionary.Dictionary;
@@ -14,26 +15,23 @@ import java.util.function.Consumer;
 import static java.util.Collections.unmodifiableMap;
 import static nl.ulso.dictionary.Dictionary.mutableDictionary;
 
+/// Repository that keeps track of all custom front matter for documents in the vault; it
+/// combines the [FrontMatterCollector] and [FrontMatterRewriteResolver] interfaces, bridging the
+/// collecting of updates to the writing of updates.
 @Singleton
-final class FrontMatterCollector
-    implements FrontMatterUpdateCollector, FrontMatterRewriteResolver
+final class FrontMatterRepository
+    implements FrontMatterCollector, FrontMatterRewriteResolver
 {
-    private static final Logger LOGGER = LoggerFactory.getLogger(FrontMatterCollector.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(FrontMatterRepository.class);
 
     private final Vault vault;
     private final Map<String, MutableDictionary> documentFrontMatters;
 
     @Inject
-    public FrontMatterCollector(Vault vault)
+    public FrontMatterRepository(Vault vault)
     {
         this.vault = vault;
         documentFrontMatters = new HashMap<>();
-    }
-
-    @Override
-    public Optional<Dictionary> frontMatterFor(Document document)
-    {
-        return Optional.ofNullable(documentFrontMatters.get(document.name()));
     }
 
     @Override
