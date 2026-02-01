@@ -3,9 +3,9 @@ package nl.ulso.curator.addon.project;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 import nl.ulso.curator.ChangeProcessorTemplate;
+import nl.ulso.curator.FrontMatterCollector;
 import nl.ulso.curator.changelog.Change;
 import nl.ulso.curator.changelog.Changelog;
-import nl.ulso.curator.main.*;
 
 import java.util.Collection;
 import java.util.Set;
@@ -27,15 +27,15 @@ public final class FrontMatterPropertyWriter
     extends ChangeProcessorTemplate
 {
     private final AttributeRegistry attributeRegistry;
-    private final FrontMatterUpdateCollector frontMatterUpdateCollector;
+    private final FrontMatterCollector frontMatterCollector;
 
     @Inject
     FrontMatterPropertyWriter(
         AttributeRegistry attributeRegistry,
-        FrontMatterUpdateCollector frontMatterUpdateCollector)
+        FrontMatterCollector frontMatterCollector)
     {
         this.attributeRegistry = attributeRegistry;
-        this.frontMatterUpdateCollector = frontMatterUpdateCollector;
+        this.frontMatterCollector = frontMatterCollector;
         registerChangeHandler(isPayloadType(AttributeValue.class), this::processAttributeValue);
     }
 
@@ -56,7 +56,7 @@ public final class FrontMatterPropertyWriter
         var attributeValue = change.as(AttributeValue.class).value();
         var project = attributeValue.project();
         var definition = attributeValue.definition();
-        frontMatterUpdateCollector.updateFrontMatterFor(project.document(), dictionary ->
+        frontMatterCollector.updateFrontMatterFor(project.document(), dictionary ->
             attributeRegistry.attributeValue(project, definition).ifPresentOrElse(
                 value ->
                     dictionary.setProperty(

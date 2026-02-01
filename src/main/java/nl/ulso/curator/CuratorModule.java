@@ -48,14 +48,14 @@ public abstract class CuratorModule
 
     /// Bind a custom [WatchService]; the default is optimized for macOS.
     @BindsOptionalOf
-    abstract WatchService optionalWatchService();
+    abstract WatchService bindOptionalWatchService();
 
     /// Bind a custom [Locale]; the default is English.
     @BindsOptionalOf
-    abstract Locale optionalLocale();
+    abstract Locale bindOptionalLocale();
 
     /// Bind a watch document; by default, there is none.
     @BindsOptionalOf
     @Named(WATCH_DOCUMENT_KEY)
-    abstract String optionalWatchDocumentName();
+    abstract String bindOptionalWatchDocumentName();
 }

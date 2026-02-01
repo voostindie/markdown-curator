@@ -5,7 +5,7 @@ import nl.ulso.dictionary.Dictionary;
 
 import java.util.List;
 
-public record DocumentUpdate(
+record DocumentUpdate(
     Document document, Dictionary frontMatter, List<QueryOutput> queryOutputs)
 {
 }

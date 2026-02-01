@@ -10,7 +10,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import java.util.List;
 
 @ExtendWith(SoftAssertionsExtension.class)
-class FrontMatterCollectorTest
+class FrontMatterRepositoryTest
 {
     @InjectSoftAssertions
     private SoftAssertions softly;
@@ -23,7 +23,7 @@ class FrontMatterCollectorTest
             Content
             """
         );
-        var collector = new FrontMatterCollector(vault);
+        var collector = new FrontMatterRepository(vault);
         collector.updateFrontMatterFor(document,
             dictionary -> dictionary.setProperty("key", "value")
         );
@@ -46,7 +46,7 @@ class FrontMatterCollectorTest
             Content
             """
         );
-        var collector = new FrontMatterCollector(vault);
+        var collector = new FrontMatterRepository(vault);
         collector.updateFrontMatterFor(document,
             dictionary -> dictionary.setProperty("key", "value")
         );
@@ -70,7 +70,7 @@ class FrontMatterCollectorTest
             Content
             """
         );
-        var collector = new FrontMatterCollector(vault);
+        var collector = new FrontMatterRepository(vault);
         collector.updateFrontMatterFor(document,
             dictionary -> dictionary.setProperty("foo", "baz")
         );
@@ -94,7 +94,7 @@ class FrontMatterCollectorTest
             Content
             """
         );
-        var collector = new FrontMatterCollector(vault);
+        var collector = new FrontMatterRepository(vault);
         collector.updateFrontMatterFor(document,
             dictionary -> dictionary.setProperty("foo", "bar")
         );
@@ -114,7 +114,7 @@ class FrontMatterCollectorTest
             Content
             """
         );
-        var collector = new FrontMatterCollector(vault);
+        var collector = new FrontMatterRepository(vault);
         var rewrites = collector.resolveFrontMatterRewrites();
         softly.assertThat(rewrites).hasSize(1);
         var dictionary = rewrites.get(document);

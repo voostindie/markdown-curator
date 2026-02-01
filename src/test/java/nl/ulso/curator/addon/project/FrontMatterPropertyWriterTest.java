@@ -1,10 +1,9 @@
 package nl.ulso.curator.addon.project;
 
-import nl.ulso.curator.main.FrontMatterUpdateCollector;
+import nl.ulso.curator.FrontMatterCollector;
 import nl.ulso.dictionary.MutableDictionary;
 import nl.ulso.curator.addon.project.ProjectTestData.AttributeRegistryStub;
 import nl.ulso.curator.vault.*;
-import nl.ulso.dictionary.Dictionary;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -23,14 +22,14 @@ class FrontMatterPropertyWriterTest
     private VaultStub vault;
     private AttributeRegistryStub registry;
     private FrontMatterPropertyWriter writer;
-    private FrontMatterUpdateCollectorStub collector;
+    private FrontMatterCollectorStub collector;
 
     @BeforeEach
     void setUp()
     {
         vault = ProjectTestData.createTestVault();
         registry = ProjectTestData.createAttributeRegistry(vault);
-        collector = new FrontMatterUpdateCollectorStub();
+        collector = new FrontMatterCollectorStub();
         writer = new FrontMatterPropertyWriter(registry, collector);
     }
 
@@ -95,16 +94,10 @@ class FrontMatterPropertyWriterTest
             .isNull();
     }
 
-    private static class FrontMatterUpdateCollectorStub
-        implements FrontMatterUpdateCollector
+    private static class FrontMatterCollectorStub
+        implements FrontMatterCollector
     {
         private final Map<String, MutableDictionary> frontMatterUpdates = new HashMap<>();
-
-        @Override
-        public Optional<Dictionary> frontMatterFor(Document document)
-        {
-            return Optional.empty();
-        }
 
         @Override
         public void updateFrontMatterFor(

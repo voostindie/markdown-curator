@@ -4,6 +4,7 @@ import dagger.Binds;
 import dagger.Module;
 import dagger.multibindings.IntoSet;
 import nl.ulso.curator.Curator;
+import nl.ulso.curator.FrontMatterCollector;
 import nl.ulso.curator.changelog.ChangeProcessor;
 import nl.ulso.curator.query.QueryModule;
 import nl.ulso.curator.vault.VaultModule;
@@ -26,10 +27,10 @@ public abstract class MainModule
     abstract ChangeProcessor bindVaultReloader(VaultReloader vaultReloader);
 
     @Binds
-    abstract FrontMatterUpdateCollector bindFrontMatterCollector(
-        FrontMatterCollector collector);
+    abstract FrontMatterCollector bindFrontMatterCollector(
+        FrontMatterRepository repository);
 
     @Binds
     abstract FrontMatterRewriteResolver bindFrontMatterRewriteResolver(
-        FrontMatterCollector collector);
+        FrontMatterRepository repository);
 }
