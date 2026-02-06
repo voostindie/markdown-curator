@@ -78,7 +78,7 @@ class InternalLinkFinderTest
     void targetDocumentNames()
     {
         var content = "[[Link]] to [[Document|Alias]] with an [[Anchor#Header]] and an [[OtherDocument#Header|OtherAlias]]";
-        assertThat(InternalLinkFinder.parseInternalLinkTargetNames(content)).containsExactlyInAnyOrder("Link", "Document", "Anchor", "OtherDocument");
+        assertThat(InternalLinkFinder.extractInternalLinkTargetNamesFrom(content)).containsExactlyInAnyOrder("Link", "Document", "Anchor", "OtherDocument");
     }
 
     private List<InternalLink> allLinks(String content)

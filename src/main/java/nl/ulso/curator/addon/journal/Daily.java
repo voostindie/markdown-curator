@@ -13,7 +13,7 @@ import static java.util.Collections.unmodifiableSet;
 import static java.util.stream.Collectors.toSet;
 import static java.util.stream.IntStream.range;
 import static nl.ulso.curator.addon.journal.Outline.newOutline;
-import static nl.ulso.curator.vault.InternalLinkFinder.findInternalLinks;
+import static nl.ulso.curator.vault.InternalLinkFinder.extractInternalLinksFrom;
 import static nl.ulso.date.LocalDates.parseDateOrNull;
 
 /// Represents a single journal entry: an outline of lines for a certain date that reference other
@@ -206,7 +206,7 @@ public class Daily
         var references = new HashMap<String, BitSet>();
         var size = sectionLines.size();
         range(0, size).forEach(index ->
-            findInternalLinks(section, sectionLines.get(index)).stream()
+            extractInternalLinksFrom(section, sectionLines.get(index)).stream()
                 .map(InternalLink::targetDocument)
                 .collect(toSet())
                 .forEach(documentName ->

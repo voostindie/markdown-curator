@@ -37,14 +37,19 @@ public class InternalLinkFinder
     ///
     /// @param content Markdown text to extract internal links from.
     /// @return Set of references to internal documents.
-    public static Set<String> parseInternalLinkTargetNames(String content)
+    public static Set<String> extractInternalLinkTargetNamesFrom(String content)
     {
         return parseInternalLinks(null, content).stream()
             .map(InternalLink::targetDocument)
             .collect(toSet());
     }
 
-    public static List<InternalLink> findInternalLinks(Fragment fragment, String content)
+    public static List<InternalLink> extractInternalLinksFrom(String content)
+    {
+        return extractInternalLinksFrom(null, content);
+    }
+
+    public static List<InternalLink> extractInternalLinksFrom(Fragment fragment, String content)
     {
         var finder = new InternalLinkFinder();
         finder.extractInternalLinks(fragment, content);
