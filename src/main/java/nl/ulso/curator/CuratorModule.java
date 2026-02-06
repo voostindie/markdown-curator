@@ -5,7 +5,7 @@ import dagger.Module;
 import dagger.multibindings.IntoSet;
 import dagger.multibindings.Multibinds;
 import jakarta.inject.Named;
-import nl.ulso.curator.changelog.ChangeProcessor;
+import nl.ulso.curator.change.ChangeProcessor;
 import nl.ulso.curator.main.MainModule;
 import nl.ulso.curator.query.Query;
 

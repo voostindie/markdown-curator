@@ -1,7 +1,5 @@
-package nl.ulso.curator;
+package nl.ulso.curator.change;
 
-import nl.ulso.curator.changelog.Change;
-import nl.ulso.curator.changelog.Changelog;
 import nl.ulso.curator.vault.*;
 import org.assertj.core.api.junit.jupiter.SoftAssertionsExtension;
 import org.junit.jupiter.api.Test;
@@ -14,7 +12,7 @@ import java.util.Collection;
 import java.util.stream.Stream;
 
 import static java.util.Collections.emptyList;
-import static nl.ulso.curator.changelog.Changelog.changelogFor;
+import static nl.ulso.curator.change.Changelog.changelogFor;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
@@ -23,28 +21,28 @@ class ChangeProcessorTemplateTest
 {
     @ParameterizedTest
     @MethodSource("provideChanges")
-    void runFullRefresh(Change<?> change)
+    void runReset(Change<?> change)
     {
         var processor = new DummyChangeProcessor();
         assertThat(processor.refreshed).isFalse();
-        processor.run(changelogFor(change));
+        processor.apply(changelogFor(change));
         assertThat(processor.refreshed).isTrue();
     }
 
     @Test
-    void processorWithoutFullRefreshAndChangeHandlersDoesNothing()
+    void processorWithoutResetAndChangeHandlersDoesNothing()
     {
         var log = new NoOpChangeProcessor(false)
-            .run(changelogFor(Change.create(null, Vault.class)));
+            .apply(changelogFor(Change.create(null, Vault.class)));
         assertThat(log.isEmpty()).isTrue();
     }
 
     @Test
-    void processorWithFullRefreshButNoImplementationThrows()
+    void processorWithResetButNoImplementationThrows()
     {
         var processor = new NoOpChangeProcessor(true);
         var changelog = changelogFor(Change.create(null, Vault.class));
-        assertThatThrownBy(() -> processor.run(changelog))
+        assertThatThrownBy(() -> processor.apply(changelog))
             .isInstanceOf(IllegalStateException.class);
     }
 
@@ -66,14 +64,14 @@ class ChangeProcessorTemplateTest
         private boolean refreshed = false;
 
         @Override
-        public Collection<Change<?>> fullRefresh()
+        public Collection<Change<?>> reset()
         {
             refreshed = true;
             return emptyList();
         }
 
         @Override
-        protected boolean isFullRefreshRequired(Changelog changelog)
+        protected boolean isResetRequired(Changelog changelog)
         {
             return true;
         }
@@ -82,17 +80,17 @@ class ChangeProcessorTemplateTest
     private static class NoOpChangeProcessor
         extends ChangeProcessorTemplate
     {
-        private final boolean fullRefresh;
+        private final boolean doReset;
 
-        NoOpChangeProcessor(boolean fullRefresh)
+        NoOpChangeProcessor(boolean doReset)
         {
-            this.fullRefresh = fullRefresh;
+            this.doReset = doReset;
         }
 
         @Override
-        protected boolean isFullRefreshRequired(Changelog changelog)
+        protected boolean isResetRequired(Changelog changelog)
         {
-            return fullRefresh;
+            return doReset;
         }
     }
 }

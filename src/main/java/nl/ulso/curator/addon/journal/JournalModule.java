@@ -3,7 +3,7 @@ package nl.ulso.curator.addon.journal;
 import dagger.Binds;
 import dagger.Module;
 import dagger.multibindings.IntoSet;
-import nl.ulso.curator.changelog.ChangeProcessor;
+import nl.ulso.curator.change.ChangeProcessor;
 import nl.ulso.curator.query.Query;
 
 /// Extracts journal information from daily logs.

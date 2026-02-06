@@ -2,7 +2,7 @@ package nl.ulso.curator.addon.journal;
 
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
-import nl.ulso.curator.changelog.Changelog;
+import nl.ulso.curator.change.Changelog;
 import nl.ulso.curator.query.*;
 
 import java.time.LocalDate;
@@ -10,7 +10,7 @@ import java.util.LinkedHashSet;
 import java.util.Map;
 
 import static java.lang.System.lineSeparator;
-import static nl.ulso.curator.changelog.Change.isPayloadType;
+import static nl.ulso.curator.change.Change.isPayloadType;
 
 /// Generates an overview of marked lines for a document, one section per marker
 @Singleton

@@ -1,11 +1,11 @@
-package nl.ulso.curator.changelog;
+package nl.ulso.curator.change;
 
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 
-import static nl.ulso.curator.changelog.Change.Kind.CREATE;
-import static nl.ulso.curator.changelog.Change.Kind.DELETE;
-import static nl.ulso.curator.changelog.Change.Kind.UPDATE;
+import static nl.ulso.curator.change.Change.Kind.CREATE;
+import static nl.ulso.curator.change.Change.Kind.DELETE;
+import static nl.ulso.curator.change.Change.Kind.UPDATE;
 
 /// Represents a change in the [Changelog]; a change has a payload: a type ([Class]) and one or two
 /// values of that type, for inspection.

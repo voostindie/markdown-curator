@@ -1,11 +1,11 @@
-package nl.ulso.curator.changelog;
+package nl.ulso.curator.change;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.stream.Stream;
 
-import static nl.ulso.curator.changelog.Change.Kind.UPDATE;
+import static nl.ulso.curator.change.Change.Kind.UPDATE;
 
 record Update1<T>(T value, Class<T> payloadType)
     implements Change<T>

@@ -1,13 +1,13 @@
-package nl.ulso.curator.changelog;
+package nl.ulso.curator.change;
 
 import org.junit.jupiter.api.Test;
 
-import static nl.ulso.curator.changelog.Change.Kind.CREATE;
-import static nl.ulso.curator.changelog.Change.Kind.DELETE;
-import static nl.ulso.curator.changelog.Change.Kind.UPDATE;
-import static nl.ulso.curator.changelog.Change.create;
-import static nl.ulso.curator.changelog.Change.delete;
-import static nl.ulso.curator.changelog.Change.update;
+import static nl.ulso.curator.change.Change.Kind.CREATE;
+import static nl.ulso.curator.change.Change.Kind.DELETE;
+import static nl.ulso.curator.change.Change.Kind.UPDATE;
+import static nl.ulso.curator.change.Change.create;
+import static nl.ulso.curator.change.Change.delete;
+import static nl.ulso.curator.change.Change.update;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 

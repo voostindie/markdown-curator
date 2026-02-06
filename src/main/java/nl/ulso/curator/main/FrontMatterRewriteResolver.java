@@ -1,7 +1,6 @@
 package nl.ulso.curator.main;
 
-import nl.ulso.curator.FrontMatterCollector;
-import nl.ulso.curator.changelog.ChangeProcessor;
+import nl.ulso.curator.change.ChangeProcessor;
 import nl.ulso.dictionary.Dictionary;
 import nl.ulso.curator.vault.Document;
 

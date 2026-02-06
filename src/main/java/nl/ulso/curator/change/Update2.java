@@ -1,8 +1,8 @@
-package nl.ulso.curator.changelog;
+package nl.ulso.curator.change;
 
 import java.util.stream.Stream;
 
-import static nl.ulso.curator.changelog.Change.Kind.UPDATE;
+import static nl.ulso.curator.change.Change.Kind.UPDATE;
 
 record Update2<T>(T oldValue, T newValue, Class<T> payloadType)
     implements Change<T>

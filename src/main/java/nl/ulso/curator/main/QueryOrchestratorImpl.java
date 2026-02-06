@@ -2,7 +2,7 @@ package nl.ulso.curator.main;
 
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
-import nl.ulso.curator.changelog.Changelog;
+import nl.ulso.curator.change.Changelog;
 import nl.ulso.curator.query.QueryCatalog;
 import nl.ulso.curator.query.QueryResult;
 import nl.ulso.curator.vault.*;
@@ -19,7 +19,7 @@ import static java.util.concurrent.Executors.newVirtualThreadPerTaskExecutor;
 import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.toSet;
 import static nl.ulso.hash.ShortHasher.shortHashOf;
-import static nl.ulso.curator.changelog.Change.isPayloadType;
+import static nl.ulso.curator.change.Change.isPayloadType;
 import static nl.ulso.dictionary.Dictionary.emptyDictionary;
 import static org.slf4j.LoggerFactory.getLogger;
 

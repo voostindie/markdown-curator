@@ -2,16 +2,15 @@ package nl.ulso.curator.addon.project;
 
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
-import nl.ulso.curator.ChangeProcessorTemplate;
-import nl.ulso.curator.FrontMatterCollector;
-import nl.ulso.curator.changelog.Change;
-import nl.ulso.curator.changelog.Changelog;
+import nl.ulso.curator.change.*;
+import nl.ulso.curator.main.*;
 
 import java.util.Collection;
 import java.util.Set;
 
 import static java.util.Collections.emptyList;
-import static nl.ulso.curator.changelog.Change.isPayloadType;
+import static nl.ulso.curator.change.Change.isPayloadType;
+import static nl.ulso.curator.change.ChangeHandler.newChangeHandler;
 
 /// Writes project attribute values to front matter.
 ///
@@ -36,7 +35,17 @@ public final class FrontMatterPropertyWriter
     {
         this.attributeRegistry = attributeRegistry;
         this.frontMatterCollector = frontMatterCollector;
-        registerChangeHandler(isPayloadType(AttributeValue.class), this::processAttributeValue);
+    }
+
+    @Override
+    protected Set<? extends ChangeHandler> createChangeHandlers()
+    {
+        return Set.of(
+            newChangeHandler(
+                isPayloadType(AttributeValue.class),
+                this::processAttributeValue
+            )
+        );
     }
 
     @Override
@@ -46,7 +55,7 @@ public final class FrontMatterPropertyWriter
     }
 
     @Override
-    protected boolean isFullRefreshRequired(Changelog changelog)
+    protected boolean isResetRequired(Changelog changelog)
     {
         return false;
     }

@@ -1,12 +1,12 @@
-package nl.ulso.curator.changelog;
+package nl.ulso.curator.change;
 
 import org.junit.jupiter.api.Test;
 
 import java.util.Set;
 
-import static nl.ulso.curator.changelog.Change.create;
-import static nl.ulso.curator.changelog.Changelog.changelogFor;
-import static nl.ulso.curator.changelog.Changelog.emptyChangelog;
+import static nl.ulso.curator.change.Change.create;
+import static nl.ulso.curator.change.Changelog.changelogFor;
+import static nl.ulso.curator.change.Changelog.emptyChangelog;
 import static org.assertj.core.api.Assertions.assertThat;
 
 class ChangelogTest

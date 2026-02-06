@@ -2,8 +2,8 @@ package nl.ulso.curator.main;
 
 import jakarta.inject.*;
 import nl.ulso.curator.CuratorModule;
-import nl.ulso.curator.changelog.ChangeProcessor;
-import nl.ulso.curator.changelog.Changelog;
+import nl.ulso.curator.change.ChangeProcessor;
+import nl.ulso.curator.change.Changelog;
 import nl.ulso.curator.vault.Document;
 import nl.ulso.curator.vault.Vault;
 import org.slf4j.Logger;
@@ -12,10 +12,10 @@ import org.slf4j.LoggerFactory;
 import java.util.Optional;
 import java.util.Set;
 
-import static nl.ulso.curator.changelog.Change.isUpdate;
-import static nl.ulso.curator.changelog.Change.update;
-import static nl.ulso.curator.changelog.Changelog.changelogFor;
-import static nl.ulso.curator.changelog.Changelog.emptyChangelog;
+import static nl.ulso.curator.change.Change.isUpdate;
+import static nl.ulso.curator.change.Change.update;
+import static nl.ulso.curator.change.Changelog.changelogFor;
+import static nl.ulso.curator.change.Changelog.emptyChangelog;
 
 /// Special change processor that is only enabled if a watch document is configured in the curator
 /// module, under the name [CuratorModule#WATCH_DOCUMENT_KEY].
@@ -70,7 +70,7 @@ final class VaultReloader
     }
 
     @Override
-    public Changelog run(Changelog changelog)
+    public Changelog apply(Changelog changelog)
     {
         if (watchDocumentName != null &&
             changelog.changes().anyMatch(isUpdate().and(change ->

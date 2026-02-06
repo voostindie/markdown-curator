@@ -1,6 +1,6 @@
-package nl.ulso.curator.changelog;
+package nl.ulso.curator.change;
 
-/// Produces a change to the something that happened outside the vault.
+/// Processes a change for something that happened outside the system.
 ///
 /// In the curator, the vault is watching for changes to folders and documents and triggers changes
 /// whenever that happens. To trigger a change from another source - a clock, an external database,

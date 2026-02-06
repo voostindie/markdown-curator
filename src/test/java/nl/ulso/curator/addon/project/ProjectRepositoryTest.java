@@ -1,6 +1,6 @@
 package nl.ulso.curator.addon.project;
 
-import nl.ulso.curator.changelog.Change;
+import nl.ulso.curator.change.Change;
 import nl.ulso.curator.vault.Document;
 import nl.ulso.curator.vault.VaultStub;
 import org.assertj.core.api.SoftAssertions;
@@ -9,10 +9,10 @@ import org.assertj.core.api.junit.jupiter.SoftAssertionsExtension;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.ExtendWith;
 
-import static nl.ulso.curator.changelog.Change.create;
-import static nl.ulso.curator.changelog.Change.delete;
-import static nl.ulso.curator.changelog.Change.update;
-import static nl.ulso.curator.changelog.Changelog.changelogFor;
+import static nl.ulso.curator.change.Change.create;
+import static nl.ulso.curator.change.Change.delete;
+import static nl.ulso.curator.change.Change.update;
+import static nl.ulso.curator.change.Changelog.changelogFor;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @ExtendWith(SoftAssertionsExtension.class)
@@ -34,7 +34,7 @@ class ProjectRepositoryTest
         vault.addDocument("README", "");
         folder.addDocument("Project 1", "");
         subfolder.addDocument("Archived Project", "");
-        repository.fullRefresh();
+        repository.reset();
     }
 
     @AfterEach
@@ -49,7 +49,7 @@ class ProjectRepositoryTest
     {
         var emptyVault = new VaultStub();
         var empyRepository = new ProjectRepositoryImpl(emptyVault, new ProjectSettings("Projects"));
-        empyRepository.fullRefresh();
+        empyRepository.reset();
         assertThat(empyRepository.projectsByName()).isEmpty();
     }
 
@@ -86,7 +86,7 @@ class ProjectRepositoryTest
     void addProjectDocument()
     {
         var document = vault.addDocumentInPath("Projects/Project 2", "");
-        repository.run(changelogFor(create(document, Document.class)));
+        repository.apply(changelogFor(create(document, Document.class)));
         var projects = repository.projectsByName();
         softly.assertThat(projects).hasSize(2);
         softly.assertThat(projects.get("Project 2")).isNotNull();
@@ -96,7 +96,7 @@ class ProjectRepositoryTest
     void removeProjectDocument()
     {
         var document = vault.resolveDocumentInPath("Projects/Project 1");
-        repository.run(changelogFor(delete(document, Document.class)));
+        repository.apply(changelogFor(delete(document, Document.class)));
         var projects = repository.projectsByName();
         softly.assertThat(projects).isEmpty();
     }

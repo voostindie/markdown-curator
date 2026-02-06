@@ -2,7 +2,7 @@ package nl.ulso.curator.vault;
 
 import dagger.Binds;
 import dagger.Module;
-import nl.ulso.curator.changelog.ExternalChangeHandler;
+import nl.ulso.curator.change.ExternalChangeHandler;
 
 @Module
 public abstract class VaultModule
@@ -14,5 +14,5 @@ public abstract class VaultModule
     abstract DocumentPathResolver bindDocumentPathResolver(FileSystemVault vault);
 
     @Binds
-    abstract ExternalChangeHandler bindVaultRefresher(FileSystemVault vault);
+    abstract ExternalChangeHandler bindExternalChangeHandler(FileSystemVault vault);
 }

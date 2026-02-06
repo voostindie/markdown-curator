@@ -2,18 +2,21 @@ package nl.ulso.curator.addon.project;
 
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
-import nl.ulso.curator.ChangeProcessorTemplate;
-import nl.ulso.curator.changelog.Change;
-import nl.ulso.curator.changelog.Changelog;
-import nl.ulso.curator.vault.*;
+import nl.ulso.curator.change.Change;
+import nl.ulso.curator.change.Changelog;
+import nl.ulso.curator.change.ChangeHandler;
+import nl.ulso.curator.change.ChangeProcessorTemplate;
+import nl.ulso.curator.vault.Document;
+import nl.ulso.curator.vault.Vault;
 import nl.ulso.dictionary.Dictionary;
 
 import java.time.LocalDate;
 import java.util.*;
 
-import static nl.ulso.curator.changelog.Change.Kind.DELETE;
-import static nl.ulso.curator.changelog.Change.create;
-import static nl.ulso.curator.changelog.Change.delete;
+import static nl.ulso.curator.change.Change.Kind.DELETE;
+import static nl.ulso.curator.change.Change.create;
+import static nl.ulso.curator.change.Change.delete;
+import static nl.ulso.curator.change.ChangeHandler.newChangeHandler;
 
 /// Produces attribute values for all available attribute definitions from front matter properties.
 ///
@@ -32,7 +35,17 @@ public final class FrontMatterAttributeProducer
     {
         this.attributeDefinitions = attributeDefinitions.values();
         this.vault = vault;
-        registerChangeHandler(_ -> true, this::processProject);
+    }
+
+    @Override
+    protected Set<? extends ChangeHandler> createChangeHandlers()
+    {
+        return Set.of(
+            newChangeHandler(
+                _ -> true,
+                this::processProject
+            )
+        );
     }
 
     @Override
@@ -48,7 +61,7 @@ public final class FrontMatterAttributeProducer
     }
 
     @Override
-    protected boolean isFullRefreshRequired(Changelog changelog)
+    protected boolean isResetRequired(Changelog changelog)
     {
         return false;
     }

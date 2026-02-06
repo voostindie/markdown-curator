@@ -3,8 +3,8 @@ package nl.ulso.curator.main;
 import dagger.Module;
 import dagger.*;
 import nl.ulso.curator.*;
-import nl.ulso.curator.changelog.ChangeProcessor;
-import nl.ulso.curator.changelog.Changelog;
+import nl.ulso.curator.change.ChangeProcessor;
+import nl.ulso.curator.change.Changelog;
 import nl.ulso.curator.query.*;
 import nl.ulso.curator.vault.*;
 import org.assertj.core.api.junit.jupiter.SoftAssertionsExtension;
@@ -18,7 +18,7 @@ import java.util.Map;
 import java.util.Set;
 
 import static java.util.Collections.emptyMap;
-import static nl.ulso.curator.changelog.Changelog.emptyChangelog;
+import static nl.ulso.curator.change.Changelog.emptyChangelog;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @ExtendWith(SoftAssertionsExtension.class)
@@ -77,7 +77,7 @@ class CuratorModuleTest
             implements ChangeProcessor
     {
         @Override
-        public Changelog run(Changelog changelog)
+        public Changelog apply(Changelog changelog)
         {
             return emptyChangelog();
         }

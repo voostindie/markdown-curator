@@ -6,11 +6,11 @@ import org.junit.jupiter.api.Test;
 
 import java.util.Set;
 
-import static nl.ulso.curator.changelog.Change.Kind.CREATE;
-import static nl.ulso.curator.changelog.Change.Kind.DELETE;
-import static nl.ulso.curator.changelog.Change.delete;
-import static nl.ulso.curator.changelog.Change.update;
-import static nl.ulso.curator.changelog.Changelog.changelogFor;
+import static nl.ulso.curator.change.Change.Kind.CREATE;
+import static nl.ulso.curator.change.Change.Kind.DELETE;
+import static nl.ulso.curator.change.Change.delete;
+import static nl.ulso.curator.change.Change.update;
+import static nl.ulso.curator.change.Changelog.changelogFor;
 import static nl.ulso.curator.addon.project.ProjectTestData.ATTRIBUTE_DEFINITIONS;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -44,7 +44,7 @@ class FrontMatterAttributeProducerTest
     void projectDeletionRemovesAllAttributes()
     {
         var project = new Project(vault.resolveDocumentInPath("Projects/Project 1"));
-        var changelog = producer.run(changelogFor(delete(project, Project.class)));
+        var changelog = producer.apply(changelogFor(delete(project, Project.class)));
         var changes = changelog.changesFor(AttributeValue.class)
             .filter(change -> change.kind() == DELETE)
             .map(change -> change.value().definition().frontMatterProperty())
@@ -56,7 +56,7 @@ class FrontMatterAttributeProducerTest
     void projectUpdateAddsAttributes()
     {
         var project = new Project(vault.resolveDocumentInPath("Projects/Project 1"));
-        var changelog = producer.run(changelogFor(update(project, Project.class)));
+        var changelog = producer.apply(changelogFor(update(project, Project.class)));
         var changes = changelog.changesFor(AttributeValue.class)
             .filter(change -> change.kind() == CREATE)
             .map(change -> change.value().definition().frontMatterProperty())

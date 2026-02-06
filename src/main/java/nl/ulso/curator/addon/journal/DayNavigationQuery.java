@@ -2,16 +2,16 @@ package nl.ulso.curator.addon.journal;
 
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
-import nl.ulso.curator.changelog.Changelog;
+import nl.ulso.curator.change.Changelog;
 import nl.ulso.curator.query.*;
 
 import java.util.Optional;
 import java.util.stream.Stream;
 
 import static java.util.stream.Collectors.joining;
-import static nl.ulso.curator.changelog.Change.isCreate;
-import static nl.ulso.curator.changelog.Change.isDelete;
-import static nl.ulso.curator.changelog.Change.isPayloadType;
+import static nl.ulso.curator.change.Change.isCreate;
+import static nl.ulso.curator.change.Change.isDelete;
+import static nl.ulso.curator.change.Change.isPayloadType;
 import static nl.ulso.curator.addon.journal.JournalBuilder.parseDateFrom;
 
 @Singleton

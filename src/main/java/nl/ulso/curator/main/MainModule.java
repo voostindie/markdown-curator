@@ -4,8 +4,7 @@ import dagger.Binds;
 import dagger.Module;
 import dagger.multibindings.IntoSet;
 import nl.ulso.curator.Curator;
-import nl.ulso.curator.FrontMatterCollector;
-import nl.ulso.curator.changelog.ChangeProcessor;
+import nl.ulso.curator.change.ChangeProcessor;
 import nl.ulso.curator.query.QueryModule;
 import nl.ulso.curator.vault.VaultModule;
 
@@ -16,7 +15,7 @@ public abstract class MainModule
     abstract Curator bindCurator(CuratorImpl curator);
 
     @Binds
-    abstract ChangeProcessorOrchestrator bindDataModelOrchestrator(
+    abstract ChangeProcessorOrchestrator bindChangeProcessorOrchestrator(
         ChangeProcessorOrchestratorImpl orchestrator);
 
     @Binds

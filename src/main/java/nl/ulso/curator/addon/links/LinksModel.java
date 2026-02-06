@@ -2,15 +2,17 @@ package nl.ulso.curator.addon.links;
 
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
-import nl.ulso.curator.changelog.Change;
-import nl.ulso.curator.ChangeProcessorTemplate;
+import nl.ulso.curator.change.Change;
+import nl.ulso.curator.change.ChangeHandler;
+import nl.ulso.curator.change.ChangeProcessorTemplate;
 import nl.ulso.curator.vault.*;
 
 import java.util.*;
 
 import static java.util.Collections.emptyList;
-import static nl.ulso.curator.changelog.Change.Kind.DELETE;
-import static nl.ulso.curator.changelog.Change.isPayloadType;
+import static nl.ulso.curator.change.Change.Kind.DELETE;
+import static nl.ulso.curator.change.Change.isPayloadType;
+import static nl.ulso.curator.change.ChangeHandler.newChangeHandler;
 
 @Singleton
 public final class LinksModel
@@ -24,12 +26,19 @@ public final class LinksModel
     {
         this.vault = vault;
         this.documentIndex = new HashMap<>();
-        this.registerChangeHandler(isPayloadType(Document.class), this::processDocumentChange);
-        this.registerChangeHandler(isPayloadType(Folder.class), this::processFolderChange);
     }
 
     @Override
-    public Collection<Change<?>> fullRefresh()
+    protected Set<? extends ChangeHandler> createChangeHandlers()
+    {
+        return Set.of(
+            newChangeHandler(isPayloadType(Document.class), this::processDocumentChange),
+            newChangeHandler(isPayloadType(Folder.class), this::processFolderChange)
+        );
+    }
+
+    @Override
+    public Collection<Change<?>> reset()
     {
         documentIndex.clear();
         indexDocuments(vault);

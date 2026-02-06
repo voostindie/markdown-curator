@@ -1,7 +1,7 @@
 package nl.ulso.curator.addon.journal;
 
-import nl.ulso.curator.changelog.Change;
-import nl.ulso.curator.changelog.Changelog;
+import nl.ulso.curator.change.Change;
+import nl.ulso.curator.change.Changelog;
 import nl.ulso.curator.query.QueryDefinitionStub;
 import nl.ulso.curator.vault.VaultStub;
 import org.junit.jupiter.api.Test;
@@ -13,12 +13,12 @@ import java.util.stream.Stream;
 
 import static java.util.Locale.ENGLISH;
 import static nl.ulso.curator.addon.journal.JournalTest.createTestJournal;
-import static nl.ulso.curator.changelog.Change.Kind.CREATE;
-import static nl.ulso.curator.changelog.Change.Kind.DELETE;
-import static nl.ulso.curator.changelog.Change.Kind.UPDATE;
-import static nl.ulso.curator.changelog.Change.create;
-import static nl.ulso.curator.changelog.Change.delete;
-import static nl.ulso.curator.changelog.Change.update;
+import static nl.ulso.curator.change.Change.Kind.CREATE;
+import static nl.ulso.curator.change.Change.Kind.DELETE;
+import static nl.ulso.curator.change.Change.Kind.UPDATE;
+import static nl.ulso.curator.change.Change.create;
+import static nl.ulso.curator.change.Change.delete;
+import static nl.ulso.curator.change.Change.update;
 import static nl.ulso.curator.query.QueryModuleTest.createMessages;
 import static nl.ulso.curator.query.QueryModuleTest.createQueryResultFactory;
 import static org.assertj.core.api.Assertions.assertThat;

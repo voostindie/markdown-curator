@@ -1,6 +1,6 @@
 package nl.ulso.curator.addon.project;
 
-import nl.ulso.curator.FrontMatterCollector;
+import nl.ulso.curator.main.FrontMatterCollector;
 import nl.ulso.dictionary.MutableDictionary;
 import nl.ulso.curator.addon.project.ProjectTestData.AttributeRegistryStub;
 import nl.ulso.curator.vault.*;
@@ -10,9 +10,9 @@ import org.junit.jupiter.api.Test;
 import java.util.*;
 import java.util.function.Consumer;
 
-import static nl.ulso.curator.changelog.Change.create;
-import static nl.ulso.curator.changelog.Change.delete;
-import static nl.ulso.curator.changelog.Changelog.changelogFor;
+import static nl.ulso.curator.change.Change.create;
+import static nl.ulso.curator.change.Change.delete;
+import static nl.ulso.curator.change.Changelog.changelogFor;
 import static nl.ulso.curator.addon.project.ProjectTestData.ATTRIBUTE_DEFINITIONS;
 import static nl.ulso.dictionary.Dictionary.mutableDictionary;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -66,7 +66,7 @@ class FrontMatterPropertyWriterTest
             ),
             AttributeRegistryUpdate.REGISTRY_CHANGE.iterator().next()
         );
-        writer.run(changelog);
+        writer.apply(changelog);
         assertThat(collector.frontMatterUpdates.get("Project 1").string("status", null))
             .isEqualTo("NEW FRONTMATTER");
     }
@@ -89,7 +89,7 @@ class FrontMatterPropertyWriterTest
         var dictionary = mutableDictionary();
         dictionary.setProperty("status", "NEW FRUNTMATTER");
         collector.frontMatterUpdates.put("Project 3", dictionary);
-        writer.run(changelog);
+        writer.apply(changelog);
         assertThat(collector.frontMatterUpdates.get("Project 3").string("status", null))
             .isNull();
     }

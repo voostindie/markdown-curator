@@ -1,4 +1,4 @@
-package nl.ulso.curator.changelog;
+package nl.ulso.curator.change;
 
 import java.util.Collection;
 import java.util.Set;

@@ -1,6 +1,6 @@
 package nl.ulso.curator.main;
 
-import nl.ulso.curator.changelog.*;
+import nl.ulso.curator.change.*;
 
 /// Orchestrates the execution of all [ChangeProcessor]s in the system in the right order and only
 /// when needed.

@@ -15,10 +15,10 @@ import java.time.temporal.WeekFields;
 import java.util.*;
 import java.util.stream.Stream;
 
-import static nl.ulso.curator.changelog.Change.create;
-import static nl.ulso.curator.changelog.Change.delete;
-import static nl.ulso.curator.changelog.Change.update;
-import static nl.ulso.curator.changelog.Changelog.changelogFor;
+import static nl.ulso.curator.change.Change.create;
+import static nl.ulso.curator.change.Change.delete;
+import static nl.ulso.curator.change.Change.update;
+import static nl.ulso.curator.change.Changelog.changelogFor;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @ExtendWith(SoftAssertionsExtension.class)
@@ -52,7 +52,7 @@ class JournalTest
             - [[foo]]
             """
         );
-        journal.run(changelogFor(create(document, Document.class)));
+        journal.apply(changelogFor(create(document, Document.class)));
         assertThat(journal.timelineFor("foo")).hasSize(4);
     }
 
@@ -67,7 +67,7 @@ class JournalTest
             - [[foo]]
             """
         );
-        journal.run(changelogFor(update(document, Document.class)));
+        journal.apply(changelogFor(update(document, Document.class)));
         assertThat(journal.timelineFor("baz")).hasSize(2);
     }
 
@@ -77,7 +77,7 @@ class JournalTest
         var journal = createTestJournal();
         var vault = (VaultStub) journal.vault();
         var document = vault.resolveDocumentInPath("Journal/2023/2023-01-25");
-        journal.run(changelogFor(delete(document, Document.class)));
+        journal.apply(changelogFor(delete(document, Document.class)));
         assertThat(journal.timelineFor("foo")).hasSize(2);
     }
 
@@ -318,7 +318,7 @@ class JournalTest
                 WeekFields.ISO
             )
             );
-        journal.fullRefresh();
+        journal.reset();
         return journal;
     }
 

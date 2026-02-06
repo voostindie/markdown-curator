@@ -2,9 +2,10 @@ package nl.ulso.curator.addon.journal;
 
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
-import nl.ulso.curator.ChangeProcessorTemplate;
-import nl.ulso.curator.changelog.Change;
-import nl.ulso.curator.changelog.Changelog;
+import nl.ulso.curator.change.Change;
+import nl.ulso.curator.change.Changelog;
+import nl.ulso.curator.change.ChangeHandler;
+import nl.ulso.curator.change.ChangeProcessorTemplate;
 import nl.ulso.curator.vault.*;
 import nl.ulso.dictionary.Dictionary;
 import org.slf4j.Logger;
@@ -21,12 +22,13 @@ import static java.util.Comparator.naturalOrder;
 import static java.util.Comparator.reverseOrder;
 import static java.util.stream.Collectors.toMap;
 import static java.util.stream.Collectors.toUnmodifiableSet;
-import static nl.ulso.curator.changelog.Change.*;
-import static nl.ulso.curator.changelog.Change.Kind.DELETE;
 import static nl.ulso.curator.addon.journal.JournalBuilder.parseDateFrom;
 import static nl.ulso.curator.addon.journal.JournalBuilder.parseWeeklyFrom;
-import static nl.ulso.dictionary.Dictionary.emptyDictionary;
+import static nl.ulso.curator.change.Change.Kind.DELETE;
+import static nl.ulso.curator.change.Change.*;
+import static nl.ulso.curator.change.ChangeHandler.newChangeHandler;
 import static nl.ulso.date.LocalDates.parseDateOrNull;
+import static nl.ulso.dictionary.Dictionary.emptyDictionary;
 import static org.slf4j.LoggerFactory.getLogger;
 
 @Singleton
@@ -49,9 +51,16 @@ public class Journal
         this.dailies = new TreeMap<>();
         this.weeklies = new TreeSet<>();
         this.markers = new HashMap<>();
-        this.registerChangeHandler(isDailyEntry(), this::handleDailyUpdate);
-        this.registerChangeHandler(isWeeklyEntry(), this::handleWeeklyUpdate);
-        this.registerChangeHandler(isMarkerEntry(), this::handleMarkerUpdate);
+    }
+
+    @Override
+    protected Set<? extends ChangeHandler> createChangeHandlers()
+    {
+        return Set.of(
+            newChangeHandler(isDailyEntry(), this::handleDailyUpdate),
+            newChangeHandler(isWeeklyEntry(), this::handleWeeklyUpdate),
+            newChangeHandler(isMarkerEntry(), this::handleMarkerUpdate)
+        );
     }
 
     @Override
@@ -61,9 +70,9 @@ public class Journal
     }
 
     @Override
-    protected boolean isFullRefreshRequired(Changelog changelog)
+    protected boolean isResetRequired(Changelog changelog)
     {
-        return super.isFullRefreshRequired(changelog) ||
+        return super.isResetRequired(changelog) ||
                changelog.changes().anyMatch(isJournalFolder().and(isDelete().or(isCreate())));
     }
 
@@ -127,7 +136,7 @@ public class Journal
     }
 
     @Override
-    public Collection<Change<?>> fullRefresh()
+    public Collection<Change<?>> reset()
     {
         dailies.clear();
         weeklies.clear();

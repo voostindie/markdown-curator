@@ -2,9 +2,10 @@ package nl.ulso.curator.addon.project;
 
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
-import nl.ulso.curator.ChangeProcessorTemplate;
-import nl.ulso.curator.changelog.Change;
-import nl.ulso.curator.changelog.Changelog;
+import nl.ulso.curator.change.Change;
+import nl.ulso.curator.change.Changelog;
+import nl.ulso.curator.change.ChangeHandler;
+import nl.ulso.curator.change.ChangeProcessorTemplate;
 import nl.ulso.curator.vault.*;
 import org.slf4j.Logger;
 
@@ -13,8 +14,9 @@ import java.util.function.Predicate;
 
 import static java.util.Collections.unmodifiableCollection;
 import static java.util.Collections.unmodifiableMap;
-import static nl.ulso.curator.changelog.Change.*;
-import static nl.ulso.curator.changelog.Change.Kind.DELETE;
+import static nl.ulso.curator.change.Change.Kind.DELETE;
+import static nl.ulso.curator.change.Change.*;
+import static nl.ulso.curator.change.ChangeHandler.newChangeHandler;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /// Represents a repository of projects on top of a single folder in the vault, excluding its
@@ -41,7 +43,17 @@ final class ProjectRepositoryImpl
         this.vault = vault;
         this.projectFolderName = settings.projectFolderName();
         this.projects = new HashMap<>();
-        registerChangeHandler(isProjectDocument(), this::handleProjectUpdate);
+    }
+
+    @Override
+    protected Set<? extends ChangeHandler> createChangeHandlers()
+    {
+        return Set.of(
+            newChangeHandler(
+                isProjectDocument(),
+                this::handleProjectUpdate
+            )
+        );
     }
 
     @Override
@@ -51,9 +63,9 @@ final class ProjectRepositoryImpl
     }
 
     @Override
-    protected boolean isFullRefreshRequired(Changelog changelog)
+    protected boolean isResetRequired(Changelog changelog)
     {
-        return super.isFullRefreshRequired(changelog) ||
+        return super.isResetRequired(changelog) ||
                changelog.changes().anyMatch(isProjectFolder().and(isDelete().or(isCreate())));
     }
 
@@ -84,7 +96,7 @@ final class ProjectRepositoryImpl
     }
 
     @Override
-    public Collection<Change<?>> fullRefresh()
+    public Collection<Change<?>> reset()
     {
         projects.clear();
         var changes = createChangeCollection();

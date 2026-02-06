@@ -6,9 +6,9 @@ import org.junit.jupiter.api.Test;
 
 import java.util.Optional;
 
-import static nl.ulso.curator.changelog.Change.update;
-import static nl.ulso.curator.changelog.Changelog.changelogFor;
-import static nl.ulso.curator.changelog.Changelog.emptyChangelog;
+import static nl.ulso.curator.change.Change.update;
+import static nl.ulso.curator.change.Changelog.changelogFor;
+import static nl.ulso.curator.change.Changelog.emptyChangelog;
 import static org.assertj.core.api.Assertions.assertThat;
 
 class VaultReloaderTest
@@ -39,7 +39,7 @@ class VaultReloaderTest
     void doNothingIfNoWatchDocIsProvided()
     {
         var reloader = new VaultReloader(vault, Optional.empty());
-        assertThat(reloader.run(emptyChangelog())).isEqualTo(emptyChangelog());
+        assertThat(reloader.apply(emptyChangelog())).isEqualTo(emptyChangelog());
     }
 
     @Test
@@ -48,7 +48,7 @@ class VaultReloaderTest
         var document = vault.addDocumentInPath("WATCHER", "");
         var reloader = new VaultReloader(vault, Optional.of("WATCHER"));
         var changelog = changelogFor(update(document, Document.class));
-        assertThat(reloader.run(changelog).isEmpty()).isFalse();
+        assertThat(reloader.apply(changelog).isEmpty()).isFalse();
     }
 
     @Test
@@ -57,7 +57,7 @@ class VaultReloaderTest
         var document = vault.addDocumentInPath("WATCHER", "");
         var reloader = new VaultReloader(vault, Optional.of("WATCHER"));
         var inputChangelog = changelogFor(update(document, Document.class));
-        var outputChangelog = reloader.run(inputChangelog);
+        var outputChangelog = reloader.apply(inputChangelog);
         assertThat(outputChangelog.changes()
             .allMatch(change -> change.payloadType() == Vault.class)).isTrue();
     }

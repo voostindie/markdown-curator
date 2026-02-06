@@ -1,6 +1,6 @@
 package nl.ulso.curator.addon.project;
 
-import nl.ulso.curator.changelog.ChangeProcessor;
+import nl.ulso.curator.change.ChangeProcessor;
 
 import java.util.*;
 

@@ -2,7 +2,6 @@ package nl.ulso.curator.main;
 
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
-import nl.ulso.curator.FrontMatterCollector;
 import nl.ulso.dictionary.MutableDictionary;
 import nl.ulso.curator.vault.*;
 import nl.ulso.dictionary.Dictionary;

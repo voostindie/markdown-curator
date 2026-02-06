@@ -2,7 +2,7 @@ package nl.ulso.curator.main;
 
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
-import nl.ulso.curator.changelog.*;
+import nl.ulso.curator.change.*;
 import nl.ulso.curator.vault.*;
 import org.slf4j.Logger;
 
@@ -11,7 +11,7 @@ import java.util.stream.Collectors;
 
 import static java.util.List.copyOf;
 import static java.util.stream.Collectors.toSet;
-import static nl.ulso.curator.changelog.Changelog.changelogFor;
+import static nl.ulso.curator.change.Changelog.changelogFor;
 import static org.slf4j.LoggerFactory.getLogger;
 
 @Singleton
@@ -152,7 +152,7 @@ final class ChangeProcessorOrchestratorImpl
                     );
                     continue;
                 }
-                var newChangelog = processor.run(filteredChangelog);
+                var newChangelog = processor.apply(filteredChangelog);
                 verifyChanges(processor, newChangelog);
                 changelog = changelog.append(newChangelog);
                 if (LOGGER.isDebugEnabled())

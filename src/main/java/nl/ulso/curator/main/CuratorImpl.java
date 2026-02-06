@@ -2,7 +2,7 @@ package nl.ulso.curator.main;
 
 import jakarta.inject.Inject;
 import nl.ulso.curator.Curator;
-import nl.ulso.curator.changelog.*;
+import nl.ulso.curator.change.*;
 import nl.ulso.curator.query.Query;
 import nl.ulso.curator.vault.*;
 import org.slf4j.Logger;
@@ -18,9 +18,9 @@ import static java.nio.file.Files.getLastModifiedTime;
 import static java.nio.file.Files.writeString;
 import static java.util.concurrent.Executors.newScheduledThreadPool;
 import static java.util.concurrent.TimeUnit.SECONDS;
-import static nl.ulso.curator.changelog.Change.Kind.UPDATE;
-import static nl.ulso.curator.changelog.Change.create;
-import static nl.ulso.curator.changelog.Changelog.emptyChangelog;
+import static nl.ulso.curator.change.Change.Kind.UPDATE;
+import static nl.ulso.curator.change.Change.create;
+import static nl.ulso.curator.change.Changelog.emptyChangelog;
 import static nl.ulso.curator.main.DocumentRewriter.rewriteDocument;
 import static org.slf4j.LoggerFactory.getLogger;
 

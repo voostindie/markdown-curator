@@ -4,8 +4,8 @@ import io.methvin.watcher.DirectoryChangeEvent;
 import io.methvin.watcher.DirectoryWatcher;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
-import nl.ulso.curator.changelog.Change;
-import nl.ulso.curator.changelog.ExternalChangeHandler;
+import nl.ulso.curator.change.Change;
+import nl.ulso.curator.change.ExternalChangeHandler;
 import org.slf4j.Logger;
 
 import java.io.IOException;
@@ -23,9 +23,9 @@ import static java.text.Normalizer.normalize;
 import static java.util.Collections.reverse;
 import static java.util.Objects.requireNonNull;
 import static java.util.Optional.empty;
-import static nl.ulso.curator.changelog.Change.create;
-import static nl.ulso.curator.changelog.Change.delete;
-import static nl.ulso.curator.changelog.Change.update;
+import static nl.ulso.curator.change.Change.create;
+import static nl.ulso.curator.change.Change.delete;
+import static nl.ulso.curator.change.Change.update;
 import static nl.ulso.curator.vault.Document.newDocument;
 import static org.slf4j.LoggerFactory.getLogger;
 

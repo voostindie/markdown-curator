@@ -1,7 +1,7 @@
 package nl.ulso.curator.main;
 
-import nl.ulso.curator.changelog.ChangeProcessor;
-import nl.ulso.curator.changelog.Changelog;
+import nl.ulso.curator.change.ChangeProcessor;
+import nl.ulso.curator.change.Changelog;
 import nl.ulso.curator.vault.*;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -9,7 +9,7 @@ import org.junit.jupiter.params.provider.ValueSource;
 
 import java.util.*;
 
-import static nl.ulso.curator.changelog.Changelog.emptyChangelog;
+import static nl.ulso.curator.change.Changelog.emptyChangelog;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
@@ -125,7 +125,7 @@ class ChangeProcessorOrchestratorTest
         }
 
         @Override
-        public Changelog run(Changelog changelog)
+        public Changelog apply(Changelog changelog)
         {
             return emptyChangelog();
         }

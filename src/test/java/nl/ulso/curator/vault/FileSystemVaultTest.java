@@ -1,6 +1,6 @@
 package nl.ulso.curator.vault;
 
-import nl.ulso.curator.changelog.Change;
+import nl.ulso.curator.change.Change;
 import org.assertj.core.api.SoftAssertions;
 import org.assertj.core.api.junit.jupiter.InjectSoftAssertions;
 import org.assertj.core.api.junit.jupiter.SoftAssertionsExtension;
@@ -18,8 +18,8 @@ import java.util.concurrent.TimeUnit;
 
 import static java.text.Normalizer.normalize;
 import static java.util.Collections.synchronizedList;
-import static nl.ulso.curator.changelog.Change.Kind.CREATE;
-import static nl.ulso.curator.changelog.Change.Kind.DELETE;
+import static nl.ulso.curator.change.Change.Kind.CREATE;
+import static nl.ulso.curator.change.Change.Kind.DELETE;
 import static nl.ulso.curator.vault.ElementCounter.countAll;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;

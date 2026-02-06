@@ -1,8 +1,9 @@
-package nl.ulso.curator.changelog;
+package nl.ulso.curator.change;
 
 import jakarta.inject.Singleton;
 
 import java.util.Set;
+import java.util.function.UnaryOperator;
 
 import static java.util.Collections.emptySet;
 
@@ -20,15 +21,16 @@ import static java.util.Collections.emptySet;
 /// The change processors in the system are orchestrated such that all processors run in the correct
 /// order: all producers of a payload type before all consumers of that payload type.
 public interface ChangeProcessor
+    extends UnaryOperator<Changelog>
 {
     /// Process a changelog containing only changes to payload types that this processor consumes
-    /// and returning only changes to payload types that this processor produces.
+    /// and returns only changes to payload types that this processor produces.
     ///
     /// @param changelog changelog to process.
     /// @return changelog with changes.
     /// @see #consumedPayloadTypes()
-    /// @see #producedPayloadTypes()
-    Changelog run(Changelog changelog);
+    /// @see #producedPayloadTypes()@Override
+    Changelog apply(Changelog changelog);
 
     /// Returns the set of payload types that this model can consume from changelogs.
     ///

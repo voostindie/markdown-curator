@@ -2,17 +2,19 @@ package nl.ulso.curator.addon.project;
 
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
-import nl.ulso.curator.ChangeProcessorTemplate;
-import nl.ulso.curator.changelog.Change;
-import nl.ulso.curator.changelog.Changelog;
+import nl.ulso.curator.change.Change;
+import nl.ulso.curator.change.Changelog;
+import nl.ulso.curator.change.ChangeHandler;
+import nl.ulso.curator.change.ChangeProcessorTemplate;
 
 import java.util.*;
 
 import static java.util.HashSet.newHashSet;
-import static nl.ulso.curator.changelog.Change.isCreateOrUpdate;
-import static nl.ulso.curator.changelog.Change.isDelete;
-import static nl.ulso.curator.changelog.Change.isPayloadType;
 import static nl.ulso.curator.addon.project.AttributeRegistryUpdate.REGISTRY_CHANGE;
+import static nl.ulso.curator.change.Change.isCreateOrUpdate;
+import static nl.ulso.curator.change.Change.isDelete;
+import static nl.ulso.curator.change.Change.isPayloadType;
+import static nl.ulso.curator.change.ChangeHandler.newChangeHandler;
 
 @Singleton
 final class AttributeRegistryImpl
@@ -28,17 +30,24 @@ final class AttributeRegistryImpl
     {
         this.attributeDefinitions = attributeDefinitions;
         this.projectAttributes = new HashMap<>();
-        registerChangeHandler(
-            isPayloadType(Project.class).and(isDelete()),
-            this::processProjectDeletion
-        );
-        registerChangeHandler(
-            isPayloadType(AttributeValue.class).and(isCreateOrUpdate()),
-            this::processAttributeValueChange
-        );
-        registerChangeHandler(
-            isPayloadType(AttributeValue.class).and(isDelete()),
-            this::processAttributeValueDeletion
+    }
+
+    @Override
+    protected Set<? extends ChangeHandler> createChangeHandlers()
+    {
+        return Set.of(
+            newChangeHandler(
+                isPayloadType(Project.class).and(isDelete()),
+                this::processProjectDeletion
+            ),
+            newChangeHandler(
+                isPayloadType(AttributeValue.class).and(isCreateOrUpdate()),
+                this::processAttributeValueChange
+            ),
+            newChangeHandler(
+                isPayloadType(AttributeValue.class).and(isDelete()),
+                this::processAttributeValueDeletion
+            )
         );
     }
 
@@ -97,7 +106,7 @@ final class AttributeRegistryImpl
     }
 
     @Override
-    protected boolean isFullRefreshRequired(Changelog changelog)
+    protected boolean isResetRequired(Changelog changelog)
     {
         return false;
     }

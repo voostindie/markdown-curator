@@ -33,7 +33,7 @@ class DeadLinksQueryTest
         vault.addDocumentInPath("foo", "[[zzz]], [[bar]] and [[baz]]");
         vault.addDocumentInPath("bar", "");
         var model = new LinksModel(vault);
-        model.fullRefresh();
+        model.reset();
         var query = new DeadLinksQuery(model, createQueryResultFactory());
         var definition = new QueryDefinitionStub(query, vault.resolveDocumentInPath(documentName));
         var result = query.run(definition);

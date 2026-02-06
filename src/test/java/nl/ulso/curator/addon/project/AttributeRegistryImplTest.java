@@ -10,9 +10,9 @@ import org.junit.jupiter.api.extension.ExtendWith;
 
 import java.util.Set;
 
-import static nl.ulso.curator.changelog.Change.delete;
-import static nl.ulso.curator.changelog.Change.update;
-import static nl.ulso.curator.changelog.Changelog.changelogFor;
+import static nl.ulso.curator.change.Change.delete;
+import static nl.ulso.curator.change.Change.update;
+import static nl.ulso.curator.change.Changelog.changelogFor;
 import static nl.ulso.curator.addon.project.ProjectTestData.ATTRIBUTE_DEFINITIONS;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -57,7 +57,7 @@ class AttributeRegistryImplTest
     void consumesAttributeValues()
     {
         var project = new Project(vault.resolveDocumentInPath("Projects/Project 1"));
-        var changelog = registry.run(changelogFor(update(new AttributeValue(
+        var changelog = registry.apply(changelogFor(update(new AttributeValue(
                 project, ATTRIBUTE_DEFINITIONS.get("status"), "In progress", 0),
             AttributeValue.class
         )));
@@ -84,7 +84,7 @@ class AttributeRegistryImplTest
             new AttributeValue(project, status, null, 100),
             AttributeValue.class
         );
-        var changelog = registry.run(changelogFor(change1, change2, change3));
+        var changelog = registry.apply(changelogFor(change1, change2, change3));
         softly.assertThat(changelog.isEmpty()).isFalse();
         softly.assertThat(registry.attributeValue(project, status))
             .map(o -> (String) o)
@@ -104,7 +104,7 @@ class AttributeRegistryImplTest
             project,
             Project.class
         );
-        var changelog = registry.run(changelogFor(change1, change2));
+        var changelog = registry.apply(changelogFor(change1, change2));
         softly.assertThat(changelog.isEmpty()).isFalse();
         softly.assertThat(registry.attributeValue(project, status)).isEmpty();
         softly.assertThat(registry.projects()).isEmpty();

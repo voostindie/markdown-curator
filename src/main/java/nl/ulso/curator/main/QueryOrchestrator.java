@@ -1,6 +1,6 @@
 package nl.ulso.curator.main;
 
-import nl.ulso.curator.changelog.Changelog;
+import nl.ulso.curator.change.Changelog;
 
 import java.util.Set;
 

@@ -1,7 +1,7 @@
 package nl.ulso.curator.addon.project;
 
 import jakarta.inject.Inject;
-import nl.ulso.curator.changelog.Changelog;
+import nl.ulso.curator.change.Changelog;
 import nl.ulso.curator.query.*;
 import nl.ulso.curator.vault.Document;
 
@@ -15,7 +15,7 @@ import static nl.ulso.curator.addon.project.AttributeDefinition.LAST_MODIFIED;
 import static nl.ulso.curator.addon.project.AttributeDefinition.LEAD;
 import static nl.ulso.curator.addon.project.AttributeDefinition.PRIORITY;
 import static nl.ulso.curator.addon.project.AttributeDefinition.STATUS;
-import static nl.ulso.curator.changelog.Change.isPayloadType;
+import static nl.ulso.curator.change.Change.isPayloadType;
 
 /// Lists all projects lead by a specific party (contact, team, ...document).
 public final class ProjectLeadQuery

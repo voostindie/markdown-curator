@@ -1,11 +1,11 @@
 package nl.ulso.curator.addon.project;
 
-import nl.ulso.curator.changelog.Change;
+import nl.ulso.curator.change.Change;
 
 import java.util.Collection;
 import java.util.List;
 
-import static nl.ulso.curator.changelog.Change.update;
+import static nl.ulso.curator.change.Change.update;
 
 /// Object produced by the [AttributeRegistry] whenever it processed one or more changes.
 ///
