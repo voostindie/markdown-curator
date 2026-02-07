@@ -10,10 +10,14 @@ import static nl.ulso.emoji.EmojiStripper.stripEmojisFrom;
 
 /// Represents a Markdown document. A document is broken down in a list of [Fragment]s.
 ///
-/// Every document has at least 1 fragment, which is the document's [FrontMatter] (which
-/// might be empty, but always exists).
+/// Every document has at least 1 fragment, which is the document's [FrontMatter] (which might be
+/// empty, but always exists).
+///
+/// A [Document] is an immutable representation of a Markdown document on disk. That means that when
+/// changes in the vault are detected, the corresponding [Document]s are replaced with new
+/// instances. Therefore, it is not safe to store [Document]s in long-term program state.
 public final class Document
-        extends FragmentContainer
+    extends FragmentContainer
 {
     private Folder folder;
     private final String name;

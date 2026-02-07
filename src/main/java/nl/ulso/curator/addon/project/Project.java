@@ -4,6 +4,12 @@ import nl.ulso.curator.vault.Document;
 
 import java.util.Objects;
 
+/// Represents a project; a simple wrapper around [Document]s.
+///
+/// **Important**: as it is not safe to store [Document]s in long-term program state, this applies
+/// to [Project]s too.
+///
+/// @see Document
 public record Project(Document document)
 {
     public String name()

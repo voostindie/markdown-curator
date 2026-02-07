@@ -26,10 +26,15 @@ public abstract class MainModule
     abstract ChangeProcessor bindVaultReloader(VaultReloader vaultReloader);
 
     @Binds
+    @IntoSet
+    abstract ChangeProcessor bindFrontMatterRepository(FrontMatterRepository frontMatterRepository);
+
+    @Binds
     abstract FrontMatterCollector bindFrontMatterCollector(
         FrontMatterRepository repository);
 
     @Binds
     abstract FrontMatterRewriteResolver bindFrontMatterRewriteResolver(
         FrontMatterRepository repository);
+
 }

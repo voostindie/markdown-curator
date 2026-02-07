@@ -10,10 +10,12 @@ import org.junit.jupiter.api.extension.ExtendWith;
 
 import java.util.Set;
 
+import static nl.ulso.curator.addon.project.ProjectTestData.ATTRIBUTE_DEFINITIONS;
+import static nl.ulso.curator.addon.project.ProjectTestData.createTestVault;
+import static nl.ulso.curator.change.Change.create;
 import static nl.ulso.curator.change.Change.delete;
 import static nl.ulso.curator.change.Change.update;
 import static nl.ulso.curator.change.Changelog.changelogFor;
-import static nl.ulso.curator.addon.project.ProjectTestData.ATTRIBUTE_DEFINITIONS;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @ExtendWith(SoftAssertionsExtension.class)
@@ -28,7 +30,7 @@ class AttributeRegistryImplTest
     @BeforeEach
     void setUp()
     {
-        vault = ProjectTestData.createTestVault();
+        vault = createTestVault();
         registry = new AttributeRegistryImpl(ATTRIBUTE_DEFINITIONS);
     }
 
@@ -57,12 +59,15 @@ class AttributeRegistryImplTest
     void consumesAttributeValues()
     {
         var project = new Project(vault.resolveDocumentInPath("Projects/Project 1"));
-        var changelog = registry.apply(changelogFor(update(new AttributeValue(
-                project, ATTRIBUTE_DEFINITIONS.get("status"), "In progress", 0),
-            AttributeValue.class
-        )));
+        var changelog = registry.apply(changelogFor(
+            create(project, Project.class),
+            update(
+                new AttributeValue(project, ATTRIBUTE_DEFINITIONS.get("status"), "In progress", 0),
+                AttributeValue.class
+            )
+        ));
         softly.assertThat(changelog.isEmpty()).isFalse();
-        softly.assertThat(registry.attributeValue(project, "status"))
+        softly.assertThat(registry.valueOf(project, "status"))
             .map(o -> (String) o)
             .hasValue("In progress");
     }
@@ -72,6 +77,7 @@ class AttributeRegistryImplTest
     {
         var project = new Project(vault.resolveDocumentInPath("Projects/Project 1"));
         var status = ATTRIBUTE_DEFINITIONS.get("status");
+        var init = create(project, Project.class);
         var change1 = update(
             new AttributeValue(project, status, "High", 100),
             AttributeValue.class
@@ -84,9 +90,9 @@ class AttributeRegistryImplTest
             new AttributeValue(project, status, null, 100),
             AttributeValue.class
         );
-        var changelog = registry.apply(changelogFor(change1, change2, change3));
+        var changelog = registry.apply(changelogFor(init, change1, change2, change3));
         softly.assertThat(changelog.isEmpty()).isFalse();
-        softly.assertThat(registry.attributeValue(project, status))
+        softly.assertThat(registry.valueOf(project, status))
             .map(o -> (String) o)
             .hasValue("Low");
     }
@@ -96,17 +102,15 @@ class AttributeRegistryImplTest
     {
         var project = new Project(vault.resolveDocumentInPath("Projects/Project 1"));
         var status = ATTRIBUTE_DEFINITIONS.get("status");
+        var init = create(project, Project.class);
         var change1 = update(
             new AttributeValue(project, status, "High", 100),
             AttributeValue.class
         );
-        var change2 = delete(
-            project,
-            Project.class
-        );
-        var changelog = registry.apply(changelogFor(change1, change2));
+        var change2 = delete(project, Project.class);
+        var changelog = registry.apply(changelogFor(init, change1, change2));
         softly.assertThat(changelog.isEmpty()).isFalse();
-        softly.assertThat(registry.attributeValue(project, status)).isEmpty();
-        softly.assertThat(registry.projects()).isEmpty();
+        softly.assertThatThrownBy(() -> registry.valueOf(project, status))
+            .isInstanceOf(NullPointerException.class);
     }
 }

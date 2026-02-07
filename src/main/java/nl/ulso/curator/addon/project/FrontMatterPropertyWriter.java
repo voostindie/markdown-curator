@@ -3,7 +3,7 @@ package nl.ulso.curator.addon.project;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 import nl.ulso.curator.change.*;
-import nl.ulso.curator.main.*;
+import nl.ulso.curator.main.FrontMatterCollector;
 
 import java.util.Collection;
 import java.util.Set;
@@ -41,10 +41,7 @@ public final class FrontMatterPropertyWriter
     protected Set<? extends ChangeHandler> createChangeHandlers()
     {
         return Set.of(
-            newChangeHandler(
-                isPayloadType(AttributeValue.class),
-                this::processAttributeValue
-            )
+            newChangeHandler(isPayloadType(AttributeValue.class), this::attributeValueChanged)
         );
     }
 
@@ -60,20 +57,26 @@ public final class FrontMatterPropertyWriter
         return false;
     }
 
-    private Collection<Change<?>> processAttributeValue(Change<?> change)
+    /// When an attribute value has changed - created, updated, or deleted - that doesn't
+    /// necessarily mean anything: it depends on the weight of the attribute value.
+    ///
+    /// The solution is straightforward: we pull the _actual_ value from the [AttributeRegistry] and
+    /// set that in the front matter, or remove it from the front matter if nu such value exists any
+    /// longer. We then trust on the front matter system to ignore meaningless updates.
+    private Collection<Change<?>> attributeValueChanged(Change<?> change)
     {
         var attributeValue = change.as(AttributeValue.class).value();
         var project = attributeValue.project();
         var definition = attributeValue.definition();
         frontMatterCollector.updateFrontMatterFor(project.document(), dictionary ->
-            attributeRegistry.attributeValue(project, definition).ifPresentOrElse(
-                value ->
-                    dictionary.setProperty(
+            attributeRegistry.valueOf(project, definition)
+                .ifPresentOrElse(
+                    value -> dictionary.setProperty(
                         definition.frontMatterProperty(),
                         definition.asFrontMatterValue(value)
                     ),
-                () -> dictionary.removeProperty(definition.frontMatterProperty())
-            )
+                    () -> dictionary.removeProperty(definition.frontMatterProperty())
+                )
         );
         return emptyList();
     }

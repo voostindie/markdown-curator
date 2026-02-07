@@ -17,10 +17,11 @@ import static nl.ulso.curator.addon.project.AttributeDefinition.PRIORITY;
 import static nl.ulso.curator.addon.project.AttributeDefinition.STATUS;
 import static nl.ulso.curator.change.Change.isPayloadType;
 
-/// Lists all active projects, either in a simple list, or in a table.
+/// Lists all active projects, either in a simple list or in a table.
 public final class ProjectListQuery
     implements Query
 {
+    private final ProjectRepository projectRepository;
     private final AttributeRegistry attributeRegistry;
     private final GeneralMessages messages;
     private final QueryResultFactory resultFactory;
@@ -36,10 +37,12 @@ public final class ProjectListQuery
 
     @Inject
     public ProjectListQuery(
+        ProjectRepository projectRepository,
         AttributeRegistry attributeRegistry,
         GeneralMessages messages,
         QueryResultFactory resultFactory)
     {
+        this.projectRepository = projectRepository;
         this.attributeRegistry = attributeRegistry;
         this.messages = messages;
         this.resultFactory = resultFactory;
@@ -78,8 +81,8 @@ public final class ProjectListQuery
         {
             return resultFactory.error("Unsupported format");
         }
-        var projects = attributeRegistry.projects().stream()
-            .sorted(comparingInt(p -> attributeRegistry.attributeValue(p, PRIORITY)
+        var projects = projectRepository.projects().stream()
+            .sorted(comparingInt(p -> attributeRegistry.valueOf(p, PRIORITY)
                 .map(i -> ((Integer) i))
                 .orElse(MAX_VALUE)));
         return switch (format)
@@ -96,24 +99,24 @@ public final class ProjectListQuery
                 ),
                 projects.map((Project project) -> Map.of(
                         messages.projectPriority(),
-                        attributeRegistry.attributeValue(project, PRIORITY)
+                        attributeRegistry.valueOf(project, PRIORITY)
                             .map(i -> (Integer) i)
                             .map(p -> Integer.toString(p))
                             .orElse(messages.projectPriorityUnknown()),
                         messages.projectName(),
                         project.document().link(),
                         messages.projectLead(),
-                        attributeRegistry.attributeValue(project, LEAD)
+                        attributeRegistry.valueOf(project, LEAD)
                             .map(d -> (Document) d)
                             .map(Document::link)
                             .orElse(messages.projectLeadUnknown()),
                         messages.projectLastModified(),
-                        attributeRegistry.attributeValue(project, LAST_MODIFIED)
+                        attributeRegistry.valueOf(project, LAST_MODIFIED)
                             .map(d -> (LocalDate) d)
                             .map(d -> "[[" + d + "]]")
                             .orElse(messages.projectDateUnknown()),
                         messages.projectStatus(),
-                        attributeRegistry.attributeValue(project, STATUS)
+                        attributeRegistry.valueOf(project, STATUS)
                             .map(s -> (String) s)
                             .orElse(messages.projectStatusUnknown())
                     ))

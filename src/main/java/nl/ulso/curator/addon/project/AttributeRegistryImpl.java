@@ -2,15 +2,13 @@ package nl.ulso.curator.addon.project;
 
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
-import nl.ulso.curator.change.Change;
-import nl.ulso.curator.change.Changelog;
-import nl.ulso.curator.change.ChangeHandler;
-import nl.ulso.curator.change.ChangeProcessorTemplate;
+import nl.ulso.curator.change.*;
 
 import java.util.*;
 
 import static java.util.HashSet.newHashSet;
 import static nl.ulso.curator.addon.project.AttributeRegistryUpdate.REGISTRY_CHANGE;
+import static nl.ulso.curator.change.Change.isCreate;
 import static nl.ulso.curator.change.Change.isCreateOrUpdate;
 import static nl.ulso.curator.change.Change.isDelete;
 import static nl.ulso.curator.change.Change.isPayloadType;
@@ -22,7 +20,7 @@ final class AttributeRegistryImpl
     implements AttributeRegistry
 {
     private final Map<String, AttributeDefinition> attributeDefinitions;
-    private final Map<Project, Map<AttributeDefinition, SortedSet<AttributeValue>>>
+    private final Map<String, Map<AttributeDefinition, SortedSet<WeightedValue>>>
         projectAttributes;
 
     @Inject
@@ -37,16 +35,20 @@ final class AttributeRegistryImpl
     {
         return Set.of(
             newChangeHandler(
+                isPayloadType(Project.class).and(isCreate()),
+                this::projectCreated
+            ),
+            newChangeHandler(
                 isPayloadType(Project.class).and(isDelete()),
-                this::processProjectDeletion
+                this::projectDeleted
             ),
             newChangeHandler(
                 isPayloadType(AttributeValue.class).and(isCreateOrUpdate()),
-                this::processAttributeValueChange
+                this::attributeValueCreatedOrUpdated
             ),
             newChangeHandler(
                 isPayloadType(AttributeValue.class).and(isDelete()),
-                this::processAttributeValueDeletion
+                this::attributeValueDeleted
             )
         );
     }
@@ -63,41 +65,49 @@ final class AttributeRegistryImpl
         return Set.of(AttributeRegistryUpdate.class);
     }
 
-    private Collection<Change<?>> processProjectDeletion(Change<?> change)
+    /// Prepares the internal data structures for a new project.
+    ///
+    /// This might be a bit of a waste - late creation only when needed is more efficient - but it
+    /// simplifies the rest of the code.
+    private Collection<Change<?>> projectCreated(Change<?> change)
     {
-        projectAttributes.remove(change.as(Project.class).value());
+        var project = change.as(Project.class).value();
+        var attributeValues = new HashMap<AttributeDefinition, SortedSet<WeightedValue>>(
+            attributeDefinitions.size());
+        attributeDefinitions.forEach(
+            (_, definition) -> attributeValues.put(definition, new TreeSet<>()));
+        projectAttributes.put(project.name(), attributeValues);
         return REGISTRY_CHANGE;
     }
 
-    private Collection<Change<?>> processAttributeValueChange(Change<?> change)
+    private Collection<Change<?>> projectDeleted(Change<?> change)
     {
-        var value = change.as(AttributeValue.class).value();
-        var attribute = projectAttributes.computeIfAbsent(
-            value.project(), _ -> new HashMap<>()
-        );
-        var values = attribute.computeIfAbsent(
-            value.definition(), _ -> new TreeSet<>());
-        values.remove(value);
-        values.add(value);
+        var project = change.as(Project.class).value();
+        projectAttributes.remove(project.name());
         return REGISTRY_CHANGE;
     }
 
-    private Collection<Change<?>> processAttributeValueDeletion(Change<?> change)
+    private Collection<Change<?>> attributeValueCreatedOrUpdated(Change<?> change)
     {
-        var value = change.as(AttributeValue.class).value();
-        var attribute = projectAttributes.get(value.project());
-        if (attribute != null)
-        {
-            var values = attribute.get(value.definition());
-            if (values != null)
-            {
-                values.remove(value);
-            }
-        }
+        var attributeValue = change.as(AttributeValue.class).value();
+        var weightedValue = attributeValue.toWeightedValue();
+        var projectAttributeValues = projectAttributes.get(attributeValue.project().name());
+        var weightedValues = projectAttributeValues.get(attributeValue.definition());
+        weightedValues.remove(weightedValue);
+        weightedValues.add(weightedValue);
         return REGISTRY_CHANGE;
     }
 
-    /// Collect the changes in a set instead of a list, so that at the end of the run there is
+    private Collection<Change<?>> attributeValueDeleted(Change<?> change)
+    {
+        var attributeValue = change.as(AttributeValue.class).value();
+        var projectAttributeValues = projectAttributes.get(attributeValue.project().name());
+        var weightedValues = projectAttributeValues.get(attributeValue.definition());
+        weightedValues.remove(attributeValue.toWeightedValue());
+        return REGISTRY_CHANGE;
+    }
+
+    /// Collect the changes in a set instead of a list so that at the end of the run there is
     /// exactly one change in the changelog.
     @Override
     protected Collection<Change<?>> createChangeCollection()
@@ -112,36 +122,25 @@ final class AttributeRegistryImpl
     }
 
     @Override
-    public Set<Project> projects()
-    {
-        return projectAttributes.keySet();
-    }
-
-    @Override
     public Collection<AttributeDefinition> attributeDefinitions()
     {
         return attributeDefinitions.values();
     }
 
     @Override
-    public Optional<?> attributeValue(Project project, String attributeName)
+    public Optional<?> valueOf(Project project, String attributeName)
     {
-        return attributeValue(project, attributeDefinitions.get(attributeName));
+        return valueOf(project, attributeDefinitions.get(attributeName));
     }
 
     @Override
-    public Optional<?> attributeValue(Project project, AttributeDefinition definition)
+    public Optional<?> valueOf(Project project, AttributeDefinition definition)
     {
-        var attribute = projectAttributes.get(project);
-        if (attribute == null)
+        var weightedValues = projectAttributes.get(project.name()).get(definition);
+        if (weightedValues.isEmpty())
         {
             return Optional.empty();
         }
-        var set = attribute.get(definition);
-        if (set == null || set.isEmpty())
-        {
-            return Optional.empty();
-        }
-        return Optional.ofNullable(set.first().value());
+        return Optional.of(weightedValues.last().value());
     }
 }

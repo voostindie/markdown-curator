@@ -2,10 +2,7 @@ package nl.ulso.curator.addon.project;
 
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
-import nl.ulso.curator.change.Change;
-import nl.ulso.curator.change.Changelog;
-import nl.ulso.curator.change.ChangeHandler;
-import nl.ulso.curator.change.ChangeProcessorTemplate;
+import nl.ulso.curator.change.*;
 import nl.ulso.curator.vault.*;
 import org.slf4j.Logger;
 
@@ -14,7 +11,6 @@ import java.util.function.Predicate;
 
 import static java.util.Collections.unmodifiableCollection;
 import static java.util.Collections.unmodifiableMap;
-import static nl.ulso.curator.change.Change.Kind.DELETE;
 import static nl.ulso.curator.change.Change.*;
 import static nl.ulso.curator.change.ChangeHandler.newChangeHandler;
 import static org.slf4j.LoggerFactory.getLogger;
@@ -26,6 +22,9 @@ import static org.slf4j.LoggerFactory.getLogger;
 /// in the main project folder. As soon as a project is archived, typically by moving it to a
 /// subfolder, the project is no longer considered active and therefore not tracked by this
 /// repository.
+///
+/// For each project that is created, updated, or deleted, this repository publishes a change with
+/// the relevant [Project] as its payload.
 @Singleton
 final class ProjectRepositoryImpl
     extends ChangeProcessorTemplate
@@ -49,10 +48,9 @@ final class ProjectRepositoryImpl
     protected Set<? extends ChangeHandler> createChangeHandlers()
     {
         return Set.of(
-            newChangeHandler(
-                isProjectDocument(),
-                this::handleProjectUpdate
-            )
+            newChangeHandler(isProjectDocument().and(isCreate()), this::createProject),
+            newChangeHandler(isProjectDocument().and(isUpdate()), this::updateProject),
+            newChangeHandler(isProjectDocument().and(isDelete()), this::deleteProject)
         );
     }
 
@@ -72,20 +70,14 @@ final class ProjectRepositoryImpl
     Predicate<Change<?>> isProjectDocument()
     {
         return isPayloadType(Document.class).and(change ->
-            {
-                var document = (Document) change.value();
-                return isProjectFolder(document.folder());
-            }
+            isProjectFolder(change.as(Document.class).value().folder())
         );
     }
 
     private Predicate<Change<?>> isProjectFolder()
     {
         return isPayloadType(Folder.class).and(change ->
-        {
-            var folder = (Folder) change.value();
-            return isProjectFolder(folder);
-        });
+            isProjectFolder(change.as(Folder.class).value()));
     }
 
     private boolean isProjectFolder(Folder folder)
@@ -114,27 +106,27 @@ final class ProjectRepositoryImpl
         return changes;
     }
 
-    private Collection<Change<?>> handleProjectUpdate(Change<?> change)
+    private Collection<Change<?>> createProject(Change<?> change)
     {
-        var document = (Document) change.value();
-        if (change.kind() == DELETE)
-        {
-            var project = projects.remove(document.name());
-            return List.of(delete(project, Project.class));
-        }
-        else
-        {
-            var project = new Project(document);
-            var previous = projects.put(project.name(), project);
-            if (previous == null)
-            {
-                return List.of(create(project, Project.class));
-            }
-            else
-            {
-                return List.of(update(previous, project, Project.class));
-            }
-        }
+        var document = change.as(Document.class).value();
+        var project = new Project(document);
+        projects.put(project.name(), project);
+        return List.of(create(project, Project.class));
+    }
+
+    private Collection<Change<?>> updateProject(Change<?> change)
+    {
+        var document = change.as(Document.class).value();
+        var newProject = new Project(document);
+        var oldProject = projects.put(newProject.name(), newProject);
+        return List.of(update(oldProject, newProject, Project.class));
+    }
+
+    private Collection<Change<?>> deleteProject(Change<?> change)
+    {
+        var document = change.as(Document.class).value();
+        var project = projects.remove(document.name());
+        return List.of(delete(project, Project.class));
     }
 
     @Override

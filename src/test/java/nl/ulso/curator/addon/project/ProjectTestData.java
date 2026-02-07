@@ -66,6 +66,48 @@ public class ProjectTestData
             .withAttribute(project3, "priority", 1);
     }
 
+    static ProjectRepository createProjectRepository(VaultStub vault)
+    {
+        var project1 = vault.resolveDocumentInPath("Projects/Project 1");
+        var project2 = vault.resolveDocumentInPath("Projects/Project 2");
+        var project3 = vault.resolveDocumentInPath("Projects/Project 3");
+        return new ProjectRepositoryStub()
+            .withProject(project1)
+            .withProject(project2)
+            .withProject(project3);
+    }
+
+    static class ProjectRepositoryStub
+        implements ProjectRepository
+    {
+        private final Map<String, Project> projects = new HashMap<>();
+
+        public ProjectRepositoryStub withProject(Document document)
+        {
+            projects.put(document.name(), new Project(document));
+            return this;
+        }
+
+        @Override
+        public Map<String, Project> projectsByName()
+        {
+            return projects;
+        }
+
+        @Override
+        public Collection<Project> projects()
+        {
+            return projects.values();
+        }
+
+        @Override
+        public Optional<Project> projectFor(Document document)
+        {
+            return Optional.ofNullable(projects.get(document.name()));
+        }
+
+    }
+
     static final class AttributeRegistryStub
         implements AttributeRegistry
     {
@@ -79,25 +121,19 @@ public class ProjectTestData
         }
 
         @Override
-        public Set<Project> projects()
-        {
-            return attributes.keySet();
-        }
-
-        @Override
         public Collection<AttributeDefinition> attributeDefinitions()
         {
             return ATTRIBUTE_DEFINITIONS.values();
         }
 
         @Override
-        public Optional<?> attributeValue(Project project, String attributeName)
+        public Optional<?> valueOf(Project project, String attributeName)
         {
-            return attributeValue(project, ATTRIBUTE_DEFINITIONS.get(attributeName));
+            return valueOf(project, ATTRIBUTE_DEFINITIONS.get(attributeName));
         }
 
         @Override
-        public Optional<?> attributeValue(Project project, AttributeDefinition definition)
+        public Optional<?> valueOf(Project project, AttributeDefinition definition)
         {
             return Optional.ofNullable(attributes.get(project).get(definition));
         }

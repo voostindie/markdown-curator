@@ -2,9 +2,10 @@ package nl.ulso.curator.main;
 
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
-import nl.ulso.dictionary.MutableDictionary;
+import nl.ulso.curator.change.*;
 import nl.ulso.curator.vault.*;
 import nl.ulso.dictionary.Dictionary;
+import nl.ulso.dictionary.MutableDictionary;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -12,14 +13,18 @@ import java.util.*;
 import java.util.function.Consumer;
 
 import static java.util.Collections.unmodifiableMap;
+import static nl.ulso.curator.change.Changelog.emptyChangelog;
 import static nl.ulso.dictionary.Dictionary.mutableDictionary;
 
-/// Repository that keeps track of all custom front matter for documents in the vault; it
-/// combines the [FrontMatterCollector] and [FrontMatterRewriteResolver] interfaces, bridging the
-/// collecting of updates to the writing of updates.
+/// Repository that keeps track of all custom front matter for documents in the vault; it combines
+/// the [FrontMatterCollector] and [FrontMatterRewriteResolver] interfaces, bridging the collecting
+/// of updates to the writing of updates.
+///
+/// The repository is also a [ChangeProcessor] to detect document deletions, in which case it cleans
+/// up its state.
 @Singleton
 final class FrontMatterRepository
-    implements FrontMatterCollector, FrontMatterRewriteResolver
+    implements FrontMatterCollector, FrontMatterRewriteResolver, ChangeProcessor
 {
     private static final Logger LOGGER = LoggerFactory.getLogger(FrontMatterRepository.class);
 
@@ -31,6 +36,22 @@ final class FrontMatterRepository
     {
         this.vault = vault;
         documentFrontMatters = new HashMap<>();
+    }
+
+    @Override
+    public Changelog apply(Changelog changelog)
+    {
+        changelog.changes()
+            .filter(change -> change.kind() == Change.Kind.DELETE)
+            .map(change -> change.as(Document.class).value().name())
+            .forEach(documentFrontMatters::remove);
+        return emptyChangelog();
+    }
+
+    @Override
+    public Set<Class<?>> consumedPayloadTypes()
+    {
+        return Set.of(Document.class);
     }
 
     @Override
@@ -117,13 +138,9 @@ final class FrontMatterRepository
                 {
                     return false;
                 }
-                var generatedKeys = original.listOfStrings(PROPERTY_GENERATED_KEYS);
-                if (!updatedPropertyNames.equals(generatedKeys))
-                {
-                    return false;
-                }
             }
-            return true;
+            var generatedKeys = original.listOfStrings(PROPERTY_GENERATED_KEYS);
+            return updatedPropertyNames.equals(generatedKeys);
         }
 
         // If there are updates, then create new front matter, as a copy of the original, with the

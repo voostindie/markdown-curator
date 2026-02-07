@@ -11,13 +11,14 @@ import java.util.function.UnaryOperator;
 /// - Extensible: their values can be resolved in more than one way.
 /// - Persistent: values are stored in the front matter of the underlying project documents.
 ///
-/// The following project properties are available by default, with their values extracted from a
-/// front matter property:
+/// The [ProjectModule] provides the following default attribute definitions:
 ///
-/// - [#LAST_MODIFIED]: the last modification date of the project, a [java.time.LocalDate].
-/// - [#LEAD]: the lead on the project, a [nl.ulso.curator.vault.Document].
-/// - [#PRIORITY]: the priority of the project, an [Integer].
-/// - [#STATUS]: the status of the project, a [String].
+/// - [#LAST_MODIFIED].
+/// - [#LEAD]
+/// - [#PRIORITY].
+/// - [#STATUS].
+///
+/// @see [ProjectModule]
 public interface AttributeDefinition
 {
     String LAST_MODIFIED = "last_modified";
@@ -27,18 +28,10 @@ public interface AttributeDefinition
 
     /// Defines a new attribute definition.
     ///
-    /// The intended use is to call this method from a provider method in a Dagger module:
-    ///
-    /// ```java
-    /// @Provides @Singleton @IntoSet @StringKey("special")
-    /// AttributeDefinition provideSpecialAttributeDefinition()
-    /// {
-    ///     return newAttributeDefinition(String.class, "special");
-    /// }
-    /// ```
+    /// The intended use is to call this method from a provider method in a Dagger module.
     ///
     /// **Important**: an attribute definition alone is meaningless. It also needs models that
-    /// produce attribute values.
+    /// _produce_ attribute values.
     ///
     /// @see ProjectModule
     static AttributeDefinition newAttributeDefinition(

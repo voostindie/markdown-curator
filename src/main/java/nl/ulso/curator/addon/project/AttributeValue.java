@@ -5,18 +5,17 @@ import nl.ulso.curator.change.ChangeProcessor;
 
 import java.util.Objects;
 
-/// Represents a single attribute value of a project. Objects of this type are to be published by
-/// [ChangeProcessor]s as [Change]s. The [AttributeRegistry] tracks these and provides actual
-/// values to other models and queries.
+/// Represents a single attribute value for a project. Objects of this type are to be published by
+/// [ChangeProcessor]s as [Change]s. The [AttributeRegistry] tracks these and provides actual values
+/// to other models and queries.
 ///
 /// An attribute value has a weight. In case there are multiple producers of the same attribute
 /// value, the system uses the value with the highest weight.
 ///
 /// Attribute values are considered the same if they are for the same project and attribute
-/// definition and have the same weight.
+/// definition and have the same weight; the actual value is ignored.
 public record AttributeValue(
     Project project, AttributeDefinition definition, Object value, int weight)
-    implements Comparable<AttributeValue>
 {
     public AttributeValue
     {
@@ -27,13 +26,6 @@ public record AttributeValue(
                 " cannot be used for attribute definition with type " +
                 definition.valueType().getSimpleName());
         }
-    }
-
-    @Override
-    public int compareTo(AttributeValue other)
-    {
-        requireSameProjectAndDefinition(other);
-        return Integer.compare(other.weight, weight); // Higher comes before lower weights!
     }
 
     @Override
@@ -67,5 +59,10 @@ public record AttributeValue(
             throw new IllegalArgumentException(
                 "Cannot compare values of different attributes definitions");
         }
+    }
+
+    WeightedValue toWeightedValue()
+    {
+        return new WeightedValue(value, weight);
     }
 }

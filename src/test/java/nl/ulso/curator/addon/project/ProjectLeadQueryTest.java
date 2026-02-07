@@ -9,6 +9,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 
 import static java.util.Locale.ENGLISH;
 import static nl.ulso.curator.addon.project.ProjectTestData.createAttributeRegistry;
+import static nl.ulso.curator.addon.project.ProjectTestData.createProjectRepository;
 import static nl.ulso.curator.addon.project.ProjectTestData.createTestVault;
 import static nl.ulso.curator.query.QueryModuleTest.createMessages;
 import static nl.ulso.curator.query.QueryModuleTest.createQueryResultFactory;
@@ -25,6 +26,7 @@ class ProjectLeadQueryTest
     {
         vault = createTestVault();
         query = new ProjectLeadQuery(
+            createProjectRepository(vault),
             createAttributeRegistry(vault),
             createMessages(ENGLISH),
             createQueryResultFactory()

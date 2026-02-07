@@ -21,16 +21,19 @@ import static nl.ulso.curator.change.Change.isPayloadType;
 public final class ProjectLeadQuery
     implements Query
 {
+    private final ProjectRepository projectRepository;
     private final AttributeRegistry attributeRegistry;
     private final GeneralMessages messages;
     private final QueryResultFactory resultFactory;
 
     @Inject
     public ProjectLeadQuery(
+        ProjectRepository projectRepository,
         AttributeRegistry attributeRegistry,
         GeneralMessages messages,
         QueryResultFactory resultFactory)
     {
+        this.projectRepository = projectRepository;
         this.attributeRegistry = attributeRegistry;
         this.messages = messages;
         this.resultFactory = resultFactory;
@@ -68,11 +71,11 @@ public final class ProjectLeadQuery
     {
         var lead = definition.configuration()
             .string("lead", definition.document().name());
-        var projects = attributeRegistry.projects().stream()
-            .filter(project -> attributeRegistry.attributeValue(project, LEAD)
+        var projects = projectRepository.projects().stream()
+            .filter(project -> attributeRegistry.valueOf(project, LEAD)
                 .map(d -> ((Document) d).name().contentEquals(lead))
                 .orElse(false))
-            .sorted(comparingInt(p -> attributeRegistry.attributeValue(p, PRIORITY)
+            .sorted(comparingInt(p -> attributeRegistry.valueOf(p, PRIORITY)
                 .map(i -> (Integer) i).orElse(MAX_VALUE)))
             .toList();
         return resultFactory.table(
@@ -84,19 +87,19 @@ public final class ProjectLeadQuery
             projects.stream()
                 .map((Project project) -> Map.of(
                     messages.projectPriority(),
-                    attributeRegistry.attributeValue(project, PRIORITY)
+                    attributeRegistry.valueOf(project, PRIORITY)
                         .map(i -> (Integer) i)
                         .map(p -> Integer.toString(p))
                         .orElse("-"),
                     messages.projectName(),
                     project.document().link(),
                     messages.projectLastModified(),
-                    attributeRegistry.attributeValue(project, LAST_MODIFIED)
+                    attributeRegistry.valueOf(project, LAST_MODIFIED)
                         .map(d -> (LocalDate) d)
                         .map(d -> "[[" + d + "]]")
                         .orElse("-"),
                     messages.projectStatus(),
-                    attributeRegistry.attributeValue(project, STATUS)
+                    attributeRegistry.valueOf(project, STATUS)
                         .map(s -> (String) s)
                         .orElse("-")
                 ))

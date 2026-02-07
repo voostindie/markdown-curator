@@ -52,53 +52,14 @@ class AttributeValueTest
     }
 
     @Test
-    void comparingAttributeValuesForDifferentProjectsThrow()
-    {
-        var project1 = new Project(vault.resolveDocumentInPath("Project 1"));
-        var project2 = new Project(vault.resolveDocumentInPath("Project 2"));
-        var definition = newAttributeDefinition(String.class, "status");
-        var value1 = new AttributeValue(project1, definition, "draft", 0);
-        var value2 = new AttributeValue(project2, definition, "draft", 0);
-        softly.assertThatThrownBy(() -> value1.compareTo(value2))
-            .isInstanceOf(IllegalArgumentException.class);
-        softly.assertThatThrownBy(() -> value1.equals(value2))
-            .isInstanceOf(IllegalArgumentException.class);
-    }
-
-    @Test
-    void comparingAttributeValuesForDifferentDefinitionsThrow()
+    void toWeightedValue()
     {
         var project = new Project(vault.resolveDocumentInPath("Project 1"));
-        var definition1 = newAttributeDefinition(String.class, "status");
-        var definition2 = newAttributeDefinition(Integer.class, "priority");
-        var value1 = new AttributeValue(project, definition1, "draft", 0);
-        var value2 = new AttributeValue(project, definition2, 42, 0);
-        softly.assertThatThrownBy(() -> value1.compareTo(value2))
-            .isInstanceOf(IllegalArgumentException.class);
-        softly.assertThatThrownBy(() -> value1.equals(value2))
-            .isInstanceOf(IllegalArgumentException.class);
+        var definition = newAttributeDefinition(Integer.class, "priority");
+        var value = new AttributeValue(project, definition, 42, 100);
+        var weightedValue = value.toWeightedValue();
+        softly.assertThat(weightedValue.value()).isEqualTo(42);
+        softly.assertThat(weightedValue.weight()).isEqualTo(100);
+        softly.assertThat(weightedValue).isEqualTo(new WeightedValue(42, 100));
     }
-
-    @Test
-    void comparingAttributeValuesWithDifferentWeightsAreNotEqual()
-    {
-        var project = new Project(vault.resolveDocumentInPath("Project 1"));
-        var definition = newAttributeDefinition(String.class, "status");
-        var value1 = new AttributeValue(project, definition, "draft", 0);
-        var value2 = new AttributeValue(project, definition, "draft", 1);
-        softly.assertThat(value1.compareTo(value2)).isNotEqualTo(0);
-        softly.assertThat(value1.equals(value2)).isFalse();
-    }
-
-    @Test
-    void comparingAttributeValuesWithSameWeightsAreEqual()
-    {
-        var project = new Project(vault.resolveDocumentInPath("Project 1"));
-        var definition = newAttributeDefinition(String.class, "status");
-        var value1 = new AttributeValue(project, definition, "draft", 0);
-        var value2 = new AttributeValue(project, definition, "final", 0);
-        softly.assertThat(value1.compareTo(value2)).isEqualTo(0);
-        softly.assertThat(value1.equals(value2)).isTrue();
-    }
-
 }
