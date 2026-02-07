@@ -9,10 +9,10 @@ import nl.ulso.curator.query.builtin.*;
 public abstract class QueryModule
 {
     @Binds
-    abstract QueryCatalog bindQueryCatalog(QueryCatalogImpl queryCatalog);
+    abstract QueryCatalog bindQueryCatalog(DefaultQueryCatalog queryCatalog);
 
     @Binds
-    abstract QueryResultFactory bindQueryResultFactory(QueryResultFactoryImpl queryResultFactory);
+    abstract QueryResultFactory bindQueryResultFactory(DefaultQueryResultFactory queryResultFactory);
 
     @Binds
     abstract GeneralMessages bindGeneralMessages(ResourceBundledGeneralMessages generalMessages);

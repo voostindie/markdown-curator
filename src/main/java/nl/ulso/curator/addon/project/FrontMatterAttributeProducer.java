@@ -21,7 +21,7 @@ import static nl.ulso.curator.change.ChangeHandler.newChangeHandler;
 ///
 /// This processor triggers only on project creation and project updates. There's no need to trigger
 /// on project deletes, as in that case all associated attribute values are deleted by the
-/// [AttributeRegistryImpl].
+/// [DefaultAttributeRegistry].
 @Singleton
 public final class FrontMatterAttributeProducer
     extends ChangeProcessorTemplate

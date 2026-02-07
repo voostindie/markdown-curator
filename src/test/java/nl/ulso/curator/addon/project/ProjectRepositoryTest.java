@@ -22,13 +22,13 @@ class ProjectRepositoryTest
     private SoftAssertions softly;
 
     private VaultStub vault;
-    private ProjectRepositoryImpl repository;
+    private DefaultProjectRepository repository;
 
     @BeforeEach
     void setUp()
     {
         vault = new VaultStub();
-        repository = new ProjectRepositoryImpl(vault, new ProjectSettings("Projects"));
+        repository = new DefaultProjectRepository(vault, new ProjectSettings("Projects"));
         var folder = vault.addFolder("Projects");
         var subfolder = folder.addFolder("Archived");
         vault.addDocument("README", "");
@@ -48,7 +48,7 @@ class ProjectRepositoryTest
     void emptyRepository()
     {
         var emptyVault = new VaultStub();
-        var empyRepository = new ProjectRepositoryImpl(emptyVault, new ProjectSettings("Projects"));
+        var empyRepository = new DefaultProjectRepository(emptyVault, new ProjectSettings("Projects"));
         empyRepository.reset();
         assertThat(empyRepository.projectsByName()).isEmpty();
     }

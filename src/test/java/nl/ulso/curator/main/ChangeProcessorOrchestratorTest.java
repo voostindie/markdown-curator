@@ -23,7 +23,7 @@ class ChangeProcessorOrchestratorTest
         var model3 = new ChangeProcessorStub(3).consuming(Integer.class);
         var model4 = new ChangeProcessorStub(4).consuming(Folder.class).producing(Integer.class);
         var models = createModelSet(model1, model2, model3, model4);
-        var orchestrator = new ChangeProcessorOrchestratorImpl(models);
+        var orchestrator = new DefaultChangeProcessorOrchestrator(models);
         assertThat(orchestrator.changeProcessors()).containsExactly(model2, model4, model1, model3);
     }
 
@@ -34,7 +34,7 @@ class ChangeProcessorOrchestratorTest
         var model2 = new ChangeProcessorStub(2).consuming(Document.class);
         var model3 = new ChangeProcessorStub(3).consuming(Folder.class);
         var models = createModelSet(model1, model2, model3);
-        var orchestrator = new ChangeProcessorOrchestratorImpl(models);
+        var orchestrator = new DefaultChangeProcessorOrchestrator(models);
         assertThat(orchestrator.changeProcessors()).containsExactly(model1, model2, model3);
     }
 
@@ -44,7 +44,7 @@ class ChangeProcessorOrchestratorTest
     {
         var model = new ChangeProcessorStub(1).consuming(Integer.class).producing(payloadType);
         var models = createModelSet(model);
-        assertThatThrownBy(() -> new ChangeProcessorOrchestratorImpl(models))
+        assertThatThrownBy(() -> new DefaultChangeProcessorOrchestrator(models))
             .isInstanceOf(IllegalArgumentException.class)
             .hasMessageContaining("reserved payload type");
 
@@ -56,7 +56,7 @@ class ChangeProcessorOrchestratorTest
         var model1 = new ChangeProcessorStub(1).consuming(Integer.class).producing(String.class);
         var model2 = new ChangeProcessorStub(2).producing(Integer.class).consuming(String.class);
         var models = createModelSet(model1, model2);
-        assertThatThrownBy(() -> new ChangeProcessorOrchestratorImpl(models))
+        assertThatThrownBy(() -> new DefaultChangeProcessorOrchestrator(models))
             .isInstanceOf(IllegalStateException.class)
             .hasMessageContaining("Dependency cycle");
     }
@@ -66,7 +66,7 @@ class ChangeProcessorOrchestratorTest
     {
         var model = new ChangeProcessorStub(1);
         var models = createModelSet(model);
-        assertThatThrownBy(() -> new ChangeProcessorOrchestratorImpl(models))
+        assertThatThrownBy(() -> new DefaultChangeProcessorOrchestrator(models))
             .isInstanceOf(IllegalArgumentException.class)
             .hasMessageContaining("must consume at least one payload type");
     }
@@ -76,7 +76,7 @@ class ChangeProcessorOrchestratorTest
     {
         var model = new ChangeProcessorStub(1).consuming(Integer.class);
         var models = createModelSet(model);
-        assertThatThrownBy(() -> new ChangeProcessorOrchestratorImpl(models))
+        assertThatThrownBy(() -> new DefaultChangeProcessorOrchestrator(models))
             .isInstanceOf(IllegalStateException.class)
             .hasMessageContaining("unsatisfied consumer");
     }

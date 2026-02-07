@@ -7,7 +7,7 @@ import java.util.Map;
 
 import static java.lang.System.lineSeparator;
 
-class QueryResultFactoryImpl
+class DefaultQueryResultFactory
     implements QueryResultFactory
 {
     private static final String COMMENT_START = "<!-- ";
@@ -16,13 +16,13 @@ class QueryResultFactoryImpl
             "WARNING: do not overuse this query; it is slow!";
     private final GeneralMessages messages;
 
-    public QueryResultFactoryImpl()
+    public DefaultQueryResultFactory()
     {
         this(new ResourceBundledGeneralMessages());
     }
 
     @Inject
-    public QueryResultFactoryImpl(GeneralMessages messages)
+    public DefaultQueryResultFactory(GeneralMessages messages)
     {
         this.messages = messages;
     }
@@ -90,7 +90,7 @@ class QueryResultFactoryImpl
     @Override
     public QueryResultFactory withPerformanceWarning()
     {
-        return new QueryResultFactoryImpl()
+        return new DefaultQueryResultFactory()
         {
             @Override
             public QueryResult table(List<String> columns, List<Map<String, String>> rows)
@@ -111,7 +111,7 @@ class QueryResultFactoryImpl
             }
 
             @Override
-            public QueryResultFactoryImpl withPerformanceWarning()
+            public DefaultQueryResultFactory withPerformanceWarning()
             {
                 return this;
             }

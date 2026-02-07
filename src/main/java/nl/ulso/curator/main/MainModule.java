@@ -12,14 +12,14 @@ import nl.ulso.curator.vault.VaultModule;
 public abstract class MainModule
 {
     @Binds
-    abstract Curator bindCurator(CuratorImpl curator);
+    abstract Curator bindCurator(DefaultCurator curator);
 
     @Binds
     abstract ChangeProcessorOrchestrator bindChangeProcessorOrchestrator(
-        ChangeProcessorOrchestratorImpl orchestrator);
+        DefaultChangeProcessorOrchestrator orchestrator);
 
     @Binds
-    abstract QueryOrchestrator bindQueryOrchestrator(QueryOrchestratorImpl orchestrator);
+    abstract QueryOrchestrator bindQueryOrchestrator(DefaultQueryOrchestrator orchestrator);
 
     @Binds
     @IntoSet

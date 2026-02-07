@@ -6,24 +6,24 @@ import java.util.stream.Stream;
 import static java.util.Collections.emptyList;
 import static java.util.List.copyOf;
 
-final class ChangelogImpl
+final class DefaultChangelog
     implements Changelog
 {
-    static final Changelog EMPTY_CHANGELOG = new ChangelogImpl(emptyList());
+    static final Changelog EMPTY_CHANGELOG = new DefaultChangelog(emptyList());
 
     private final List<Change<?>> changes;
 
-    ChangelogImpl(List<Change<?>> changes)
+    DefaultChangelog(List<Change<?>> changes)
     {
         this.changes = copyOf(changes);
     }
 
-    ChangelogImpl(Collection<Change<?>> changes)
+    DefaultChangelog(Collection<Change<?>> changes)
     {
         this.changes = copyOf(changes);
     }
 
-    ChangelogImpl(Change<?>... changes)
+    DefaultChangelog(Change<?>... changes)
     {
         this.changes = List.of(changes);
     }
@@ -37,7 +37,7 @@ final class ChangelogImpl
     @Override
     public Changelog append(Changelog changelog)
     {
-        if (changelog instanceof ChangelogImpl other)
+        if (changelog instanceof DefaultChangelog other)
         {
             if (changes.isEmpty())
             {
@@ -50,7 +50,7 @@ final class ChangelogImpl
             List<Change<?>> merge = new ArrayList<>(this.changes.size() + other.changes.size());
             merge.addAll(this.changes);
             merge.addAll(other.changes);
-            return new ChangelogImpl(merge);
+            return new DefaultChangelog(merge);
         }
         throw new IllegalArgumentException(
             "Cannot merge changelog with unknown type: " + changelog.getClass());

@@ -15,18 +15,18 @@ import static nl.ulso.curator.change.Changelog.changelogFor;
 import static org.slf4j.LoggerFactory.getLogger;
 
 @Singleton
-final class ChangeProcessorOrchestratorImpl
+final class DefaultChangeProcessorOrchestrator
     implements ChangeProcessorOrchestrator
 {
     private static final Set<Class<?>> RESERVED_PAYLOAD_TYPES =
         Set.of(Vault.class, Folder.class, Document.class);
 
-    private static final Logger LOGGER = getLogger(ChangeProcessorOrchestratorImpl.class);
+    private static final Logger LOGGER = getLogger(DefaultChangeProcessorOrchestrator.class);
 
     private final List<ChangeProcessor> changeProcessors;
 
     @Inject
-    ChangeProcessorOrchestratorImpl(Set<ChangeProcessor> changeProcessors)
+    DefaultChangeProcessorOrchestrator(Set<ChangeProcessor> changeProcessors)
     {
         verifyPayloadTypeConsumers(changeProcessors);
         verifyReservedPayloadTypeProducers(changeProcessors);

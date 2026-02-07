@@ -15,7 +15,7 @@ import static nl.ulso.curator.change.Change.isPayloadType;
 import static nl.ulso.curator.change.ChangeHandler.newChangeHandler;
 
 @Singleton
-final class AttributeRegistryImpl
+final class DefaultAttributeRegistry
     extends ChangeProcessorTemplate
     implements AttributeRegistry
 {
@@ -24,7 +24,7 @@ final class AttributeRegistryImpl
         projectAttributes;
 
     @Inject
-    AttributeRegistryImpl(Map<String, AttributeDefinition> attributeDefinitions)
+    DefaultAttributeRegistry(Map<String, AttributeDefinition> attributeDefinitions)
     {
         this.attributeDefinitions = attributeDefinitions;
         this.projectAttributes = new HashMap<>();

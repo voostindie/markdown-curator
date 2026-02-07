@@ -37,7 +37,7 @@ public interface AttributeDefinition
     static AttributeDefinition newAttributeDefinition(
         Class<?> valueType, String frontMatterProperty)
     {
-        return new AttributeDefinitionImpl(valueType, frontMatterProperty);
+        return new DefaultAttributeDefinition(valueType, frontMatterProperty);
     }
 
     /// Defines a new attribute definition with a custom function to convert its values to front
@@ -49,7 +49,7 @@ public interface AttributeDefinition
         String frontMatterProperty,
         UnaryOperator<Object> asFrontMatterFunction)
     {
-        return new AttributeDefinitionImpl(valueType, frontMatterProperty, asFrontMatterFunction);
+        return new DefaultAttributeDefinition(valueType, frontMatterProperty, asFrontMatterFunction);
     }
 
     /// @return the type of the property value.

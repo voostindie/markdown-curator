@@ -4,13 +4,13 @@ import java.util.Collection;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
-final class ChangeHandlerImpl
+final class DefaultChangeHandler
     implements ChangeHandler
 {
     private final Predicate<Change<?>> predicate;
     private final Function<Change<?>, Collection<Change<?>>> function;
 
-    ChangeHandlerImpl(
+    DefaultChangeHandler(
         Predicate<Change<?>> predicate,
         Function<Change<?>, Collection<Change<?>>> function)
     {

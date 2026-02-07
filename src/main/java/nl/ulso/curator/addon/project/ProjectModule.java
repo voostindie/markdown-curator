@@ -85,10 +85,10 @@ public abstract class ProjectModule
     @Binds
     @IntoSet
     abstract ChangeProcessor bindProjectRepositoryProcessor(
-        ProjectRepositoryImpl projectRepository);
+        DefaultProjectRepository projectRepository);
 
     @Binds
-    abstract ProjectRepository bindProjectRepository(ProjectRepositoryImpl projectRepository);
+    abstract ProjectRepository bindProjectRepository(DefaultProjectRepository projectRepository);
 
     @Binds
     @IntoSet
@@ -97,10 +97,10 @@ public abstract class ProjectModule
 
     @Binds
     @IntoSet
-    abstract ChangeProcessor bindAttributeRegistryProcessor(AttributeRegistryImpl registry);
+    abstract ChangeProcessor bindAttributeRegistryProcessor(DefaultAttributeRegistry registry);
 
     @Binds
-    abstract AttributeRegistry bindAttributeRegistry(AttributeRegistryImpl registry);
+    abstract AttributeRegistry bindAttributeRegistry(DefaultAttributeRegistry registry);
 
     @Binds
     @IntoSet

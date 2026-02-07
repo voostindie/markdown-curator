@@ -18,19 +18,19 @@ import static java.util.Collections.emptyList;
 import static java.util.concurrent.Executors.newVirtualThreadPerTaskExecutor;
 import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.toSet;
-import static nl.ulso.hash.ShortHasher.shortHashOf;
 import static nl.ulso.curator.change.Change.isPayloadType;
 import static nl.ulso.dictionary.Dictionary.emptyDictionary;
+import static nl.ulso.hash.ShortHasher.shortHashOf;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /// This orchestrator runs queries, of which there can be many, in parallel. In practice there are
 /// many queries embedded in documents, while the number of documents that need updating is limited
 /// because most queries won't have new output.
 @Singleton
-final class QueryOrchestratorImpl
+final class DefaultQueryOrchestrator
     implements QueryOrchestrator
 {
-    private static final Logger LOGGER = getLogger(QueryOrchestratorImpl.class);
+    private static final Logger LOGGER = getLogger(DefaultQueryOrchestrator.class);
 
     private final Vault vault;
     private final QueryCatalog queryCatalog;
@@ -38,7 +38,7 @@ final class QueryOrchestratorImpl
     private final ExecutorService parallelExecutor;
 
     @Inject
-    QueryOrchestratorImpl(
+    DefaultQueryOrchestrator(
         Vault vault, QueryCatalog queryCatalog,
         FrontMatterRewriteResolver frontMatterRewriteResolver)
     {

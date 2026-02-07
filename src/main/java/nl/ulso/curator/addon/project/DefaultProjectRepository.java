@@ -26,18 +26,18 @@ import static org.slf4j.LoggerFactory.getLogger;
 /// For each project that is created, updated, or deleted, this repository publishes a change with
 /// the relevant [Project] as its payload.
 @Singleton
-final class ProjectRepositoryImpl
+final class DefaultProjectRepository
     extends ChangeProcessorTemplate
     implements ProjectRepository
 {
-    private static final Logger LOGGER = getLogger(ProjectRepositoryImpl.class);
+    private static final Logger LOGGER = getLogger(DefaultProjectRepository.class);
 
     private final Vault vault;
     private final String projectFolderName;
     private final Map<String, Project> projects;
 
     @Inject
-    ProjectRepositoryImpl(Vault vault, ProjectSettings settings)
+    DefaultProjectRepository(Vault vault, ProjectSettings settings)
     {
         this.vault = vault;
         this.projectFolderName = settings.projectFolderName();

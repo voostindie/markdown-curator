@@ -15,7 +15,7 @@ import static nl.ulso.curator.vault.QueryBlockTest.emptyQueryBlock;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @ExtendWith(SoftAssertionsExtension.class)
-class QueryCatalogImplTest
+class DefaultQueryCatalogTest
 {
     @InjectSoftAssertions
     private SoftAssertions softly;
@@ -23,7 +23,7 @@ class QueryCatalogImplTest
     @Test
     void emptyCatalog()
     {
-        var catalog = new QueryCatalogImpl(emptySet(), new QueryResultFactoryImpl());
+        var catalog = new DefaultQueryCatalog(emptySet(), new DefaultQueryResultFactory());
         softly.assertThat(catalog.isEmpty()).isTrue();
         var specification = catalog.query("invalid");
         softly.assertThat(specification.name()).isEqualTo("invalid");
@@ -39,7 +39,7 @@ class QueryCatalogImplTest
         Set<Query> set = new HashSet<>();
         set.add(new DummyQuery("q"));
         set.add(new DummyQuery("q"));
-        var catalog = new QueryCatalogImpl(set, new QueryResultFactoryImpl());
+        var catalog = new DefaultQueryCatalog(set, new DefaultQueryResultFactory());
         assertThat(catalog.queries()).hasSize(2);
     }
 

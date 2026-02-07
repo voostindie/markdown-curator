@@ -13,17 +13,17 @@ public interface Changelog
 {
     static Changelog emptyChangelog()
     {
-        return ChangelogImpl.EMPTY_CHANGELOG;
+        return DefaultChangelog.EMPTY_CHANGELOG;
     }
 
     static Changelog changelogFor(Change<?>... changes)
     {
-        return new ChangelogImpl(changes);
+        return new DefaultChangelog(changes);
     }
 
     static Changelog changelogFor(Collection<Change<?>> changes)
     {
-        return (changes.isEmpty()) ? emptyChangelog() : new ChangelogImpl(changes);
+        return (changes.isEmpty()) ? emptyChangelog() : new DefaultChangelog(changes);
     }
 
     boolean isEmpty();

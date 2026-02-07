@@ -25,7 +25,7 @@ class MusicCuratorModuleTest
     private Curator musicCurator;
     private Vault vault;
     private QueryCatalog queryCatalog;
-    private QueryOrchestratorImpl queryOrchestrator;
+    private DefaultQueryOrchestrator queryOrchestrator;
     private DocumentPathResolver documentPathResolver;
 
     @InjectSoftAssertions
@@ -37,7 +37,7 @@ class MusicCuratorModuleTest
         var component = DaggerMusicCurator.create();
         musicCurator = component.curator();
         queryCatalog = component.queryCatalog();
-        queryOrchestrator = (QueryOrchestratorImpl) component.queryOrchestrator();
+        queryOrchestrator = (DefaultQueryOrchestrator) component.queryOrchestrator();
         vault = component.vault();
         documentPathResolver = component.documentPathResolver();
     }

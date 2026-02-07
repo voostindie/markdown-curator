@@ -11,7 +11,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 class QueryResultTest
 {
-    private final QueryResultFactoryImpl factory = new QueryResultFactoryImpl();
+    private final DefaultQueryResultFactory factory = new DefaultQueryResultFactory();
 
     @Test
     void error()

@@ -1,11 +1,11 @@
 package nl.ulso.curator.query;
 
+import jakarta.inject.Inject;
+import jakarta.inject.Singleton;
 import nl.ulso.curator.query.builtin.HelpQuery;
 import nl.ulso.curator.query.builtin.UnknownQuery;
 import org.slf4j.Logger;
 
-import jakarta.inject.Inject;
-import jakarta.inject.Singleton;
 import java.util.*;
 
 import static java.util.Collections.unmodifiableMap;
@@ -17,16 +17,16 @@ import static org.slf4j.LoggerFactory.getLogger;
 /// single Set. This implementation turns that set into a map for easier reference, logging
 /// duplicates as they are found.
 @Singleton
-final class QueryCatalogImpl
+final class DefaultQueryCatalog
         implements QueryCatalog
 {
-    private static final Logger LOGGER = getLogger(QueryCatalogImpl.class);
+    private static final Logger LOGGER = getLogger(DefaultQueryCatalog.class);
 
     private final Map<String, Query> queries;
-    private final QueryResultFactoryImpl resultFactory;
+    private final DefaultQueryResultFactory resultFactory;
 
     @Inject
-    QueryCatalogImpl(Set<Query> querySet, QueryResultFactoryImpl resultFactory)
+    DefaultQueryCatalog(Set<Query> querySet, DefaultQueryResultFactory resultFactory)
     {
         this.resultFactory = resultFactory;
         Map<String, Query> map = new HashMap<>();

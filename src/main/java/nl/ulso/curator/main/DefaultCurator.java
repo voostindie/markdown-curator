@@ -43,10 +43,10 @@ import static org.slf4j.LoggerFactory.getLogger;
 /// The query run is performed with the changelog that has been built up from processing all
 /// incoming changes. After the queries have finally run and updated documents are written to disk,
 /// the changelog is reset.
-final class CuratorImpl
+final class DefaultCurator
     implements Curator, VaultChangedCallback
 {
-    private static final Logger LOGGER = getLogger(CuratorImpl.class);
+    private static final Logger LOGGER = getLogger(DefaultCurator.class);
     private static final long SCHEDULE_TIMEOUT_IN_SECONDS = 3;
 
     private final String curatorName;
@@ -60,7 +60,7 @@ final class CuratorImpl
     private ScheduledFuture<?> runTask;
 
     @Inject
-    public CuratorImpl(
+    public DefaultCurator(
         Vault vault,
         ChangeProcessorOrchestrator changeProcessorOrchestrator,
         QueryOrchestrator queryOrchestrator, DocumentPathResolver documentPathResolver)

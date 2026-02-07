@@ -17,6 +17,6 @@ public interface ChangeHandler
         Predicate<Change<?>> predicate,
         Function<Change<?>, Collection<Change<?>>> function)
     {
-        return new ChangeHandlerImpl(predicate, function);
+        return new DefaultChangeHandler(predicate, function);
     }
 }

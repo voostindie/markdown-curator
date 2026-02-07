@@ -19,19 +19,19 @@ import static nl.ulso.curator.change.Changelog.changelogFor;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @ExtendWith(SoftAssertionsExtension.class)
-class AttributeRegistryImplTest
+class DefaultAttributeRegistryTest
 {
     @InjectSoftAssertions
     private SoftAssertions softly;
 
     private VaultStub vault;
-    private AttributeRegistryImpl registry;
+    private DefaultAttributeRegistry registry;
 
     @BeforeEach
     void setUp()
     {
         vault = createTestVault();
-        registry = new AttributeRegistryImpl(ATTRIBUTE_DEFINITIONS);
+        registry = new DefaultAttributeRegistry(ATTRIBUTE_DEFINITIONS);
     }
 
     @Test

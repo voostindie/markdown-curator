@@ -6,7 +6,7 @@ package nl.ulso.curator.addon.project;
 /// In a weighted value, it is the _weight_ that matters, not the value itself: when comparing or
 /// ordering weighted values, only the weights are considered.
 ///
-/// @see AttributeRegistryImpl
+/// @see DefaultAttributeRegistry
 record WeightedValue(Object value, int weight)
     implements Comparable<WeightedValue>
 {

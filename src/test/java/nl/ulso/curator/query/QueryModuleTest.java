@@ -8,12 +8,12 @@ public class QueryModuleTest
 {
     public static QueryCatalog createEmptyCatalog()
     {
-        return new QueryCatalogImpl(emptySet(), new QueryResultFactoryImpl());
+        return new DefaultQueryCatalog(emptySet(), new DefaultQueryResultFactory());
     }
 
     public static QueryResultFactory createQueryResultFactory()
     {
-        return new QueryResultFactoryImpl();
+        return new DefaultQueryResultFactory();
     }
 
     public static GeneralMessages createMessages(Locale locale)
