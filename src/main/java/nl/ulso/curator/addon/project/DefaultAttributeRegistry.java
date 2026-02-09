@@ -102,6 +102,12 @@ final class DefaultAttributeRegistry
     {
         var attributeValue = change.as(AttributeValue.class).value();
         var projectAttributeValues = projectAttributes.get(attributeValue.project().name());
+        if (projectAttributeValues == null)
+        {
+            // If the project as a whole was deleted, then all attribute values are already gone
+            // from the registry.
+            return;
+        }
         var weightedValues = projectAttributeValues.get(attributeValue.definition());
         weightedValues.remove(attributeValue.toWeightedValue());
         collector.add(REGISTRY_CHANGE);
