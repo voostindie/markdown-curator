@@ -12,6 +12,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import static nl.ulso.curator.change.Change.create;
 import static nl.ulso.curator.change.Change.delete;
 import static nl.ulso.curator.change.Change.update;
+import static nl.ulso.curator.change.ChangeCollector.newChangeCollector;
 import static nl.ulso.curator.change.Changelog.changelogFor;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -34,7 +35,7 @@ class ProjectRepositoryTest
         vault.addDocument("README", "");
         folder.addDocument("Project 1", "");
         subfolder.addDocument("Archived Project", "");
-        repository.reset();
+        repository.reset(newChangeCollector());
     }
 
     @AfterEach
@@ -49,7 +50,7 @@ class ProjectRepositoryTest
     {
         var emptyVault = new VaultStub();
         var empyRepository = new DefaultProjectRepository(emptyVault, new ProjectSettings("Projects"));
-        empyRepository.reset();
+        empyRepository.reset(newChangeCollector());
         assertThat(empyRepository.projectsByName()).isEmpty();
     }
 

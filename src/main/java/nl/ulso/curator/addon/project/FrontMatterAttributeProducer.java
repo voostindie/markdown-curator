@@ -10,7 +10,8 @@ import nl.ulso.dictionary.Dictionary;
 import java.time.LocalDate;
 import java.util.*;
 
-import static nl.ulso.curator.change.Change.*;
+import static nl.ulso.curator.change.Change.isCreate;
+import static nl.ulso.curator.change.Change.isUpdate;
 import static nl.ulso.curator.change.ChangeHandler.newChangeHandler;
 
 /// Produces attribute values for all available attribute definitions from front matter properties.
@@ -64,65 +65,57 @@ public final class FrontMatterAttributeProducer
         return false;
     }
 
-    private Collection<Change<?>> projectCreated(Change<?> change)
+    private void projectCreated(Change<?> change, ChangeCollector collector)
     {
         var project = change.as(Project.class).value();
         var frontMatter = project.document().frontMatter();
-        var changes = createChangeCollection();
         for (var definition : attributeDefinitions)
         {
             convertProperty(definition, frontMatter).ifPresent(value ->
-                changes.add(create(
-                        new AttributeValue(project, definition, value, WEIGHT),
-                        AttributeValue.class
-                    )
+                collector.create(
+                    new AttributeValue(project, definition, value, WEIGHT),
+                    AttributeValue.class
                 )
             );
         }
-        return changes;
     }
 
-    private Collection<Change<?>> projectUpdated(Change<?> change)
+    private void projectUpdated(Change<?> change, ChangeCollector collector)
     {
         var oldProject = change.as(Project.class).oldValue();
         var oldFrontMatter = oldProject.document().frontMatter();
         var newProject = change.as(Project.class).newValue();
         var newFrontMatter = newProject.document().frontMatter();
-        var changes = createChangeCollection();
         for (var definition : attributeDefinitions)
         {
             var oldValue = convertProperty(definition, oldFrontMatter);
             var newValue = convertProperty(definition, newFrontMatter);
             if (oldValue.isEmpty() && newValue.isPresent())
             {
-                changes.add(create(
-                        new AttributeValue(newProject, definition, newValue.get(), WEIGHT),
-                        AttributeValue.class
-                    )
+                collector.create(
+                    new AttributeValue(newProject, definition, newValue.get(), WEIGHT),
+                    AttributeValue.class
                 );
             }
             else if (oldValue.isPresent() && newValue.isEmpty())
             {
-                changes.add(delete(
-                        new AttributeValue(oldProject, definition, null, WEIGHT),
-                        AttributeValue.class
-                    )
+                collector.delete(
+                    new AttributeValue(oldProject, definition, null, WEIGHT),
+                    AttributeValue.class
                 );
             }
             else if (oldValue.isPresent()) // && newValue.isPresent()
             {
                 if (!oldValue.get().equals(newValue.get()))
                 {
-                    changes.add(update(
-                            new AttributeValue(oldProject, definition, oldValue.get(), WEIGHT),
-                            new AttributeValue(newProject, definition, newValue.get(), WEIGHT),
-                            AttributeValue.class
-                        )
+                    collector.update(
+                        new AttributeValue(oldProject, definition, oldValue.get(), WEIGHT),
+                        new AttributeValue(newProject, definition, newValue.get(), WEIGHT),
+                        AttributeValue.class
                     );
                 }
             }
         }
-        return changes;
     }
 
     private Optional<?> convertProperty(

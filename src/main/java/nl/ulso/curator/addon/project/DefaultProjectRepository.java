@@ -11,7 +11,10 @@ import java.util.function.Predicate;
 
 import static java.util.Collections.unmodifiableCollection;
 import static java.util.Collections.unmodifiableMap;
-import static nl.ulso.curator.change.Change.*;
+import static nl.ulso.curator.change.Change.isCreate;
+import static nl.ulso.curator.change.Change.isDelete;
+import static nl.ulso.curator.change.Change.isPayloadType;
+import static nl.ulso.curator.change.Change.isUpdate;
 import static nl.ulso.curator.change.ChangeHandler.newChangeHandler;
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -88,45 +91,43 @@ final class DefaultProjectRepository
     }
 
     @Override
-    public Collection<Change<?>> reset()
+    public void reset(ChangeCollector collector)
     {
         projects.clear();
-        var changes = createChangeCollection();
         var finder = new ProjectFinder();
         vault.accept(finder);
         finder.projects.forEach(project ->
         {
             projects.put(project.name(), project);
-            changes.add(create(project, Project.class));
+            collector.create(project, Project.class);
         });
         if (LOGGER.isDebugEnabled())
         {
             LOGGER.debug("Built a project repository of {} projects", projects.size());
         }
-        return changes;
     }
 
-    private Collection<Change<?>> createProject(Change<?> change)
+    private void createProject(Change<?> change, ChangeCollector collector)
     {
         var document = change.as(Document.class).value();
         var project = new Project(document);
         projects.put(project.name(), project);
-        return List.of(create(project, Project.class));
+        collector.create(project, Project.class);
     }
 
-    private Collection<Change<?>> updateProject(Change<?> change)
+    private void updateProject(Change<?> change, ChangeCollector collector)
     {
         var document = change.as(Document.class).value();
         var newProject = new Project(document);
         var oldProject = projects.put(newProject.name(), newProject);
-        return List.of(update(oldProject, newProject, Project.class));
+        collector.update(oldProject, newProject, Project.class);
     }
 
-    private Collection<Change<?>> deleteProject(Change<?> change)
+    private void deleteProject(Change<?> change, ChangeCollector collector)
     {
         var document = change.as(Document.class).value();
         var project = projects.remove(document.name());
-        return List.of(delete(project, Project.class));
+        collector.delete(project, Project.class);
     }
 
     @Override

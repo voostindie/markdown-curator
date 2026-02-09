@@ -2,10 +2,7 @@ package nl.ulso.curator.addon.journal;
 
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
-import nl.ulso.curator.change.Change;
-import nl.ulso.curator.change.Changelog;
-import nl.ulso.curator.change.ChangeHandler;
-import nl.ulso.curator.change.ChangeProcessorTemplate;
+import nl.ulso.curator.change.*;
 import nl.ulso.curator.vault.*;
 import nl.ulso.dictionary.Dictionary;
 import org.slf4j.Logger;
@@ -25,7 +22,9 @@ import static java.util.stream.Collectors.toUnmodifiableSet;
 import static nl.ulso.curator.addon.journal.JournalBuilder.parseDateFrom;
 import static nl.ulso.curator.addon.journal.JournalBuilder.parseWeeklyFrom;
 import static nl.ulso.curator.change.Change.Kind.DELETE;
-import static nl.ulso.curator.change.Change.*;
+import static nl.ulso.curator.change.Change.isCreate;
+import static nl.ulso.curator.change.Change.isDelete;
+import static nl.ulso.curator.change.Change.isPayloadType;
 import static nl.ulso.curator.change.ChangeHandler.newChangeHandler;
 import static nl.ulso.date.LocalDates.parseDateOrNull;
 import static nl.ulso.dictionary.Dictionary.emptyDictionary;
@@ -136,23 +135,22 @@ public class Journal
     }
 
     @Override
-    public Collection<Change<?>> reset()
+    public void reset(ChangeCollector collector)
     {
         dailies.clear();
         weeklies.clear();
         markers.clear();
         var builder = new JournalBuilder(settings);
         vault.accept(builder);
-        var changes = createChangeCollection();
         builder.dailies().forEach(daily ->
         {
             dailies.put(daily.date(), daily);
-            changes.add(create(daily, Daily.class));
+            collector.create(daily, Daily.class);
         });
         builder.weeklies().forEach(weekly ->
         {
             weeklies.add(weekly);
-            changes.add(create(weekly, Weekly.class));
+            collector.create(weekly, Weekly.class);
         });
         weeklies.addAll(builder.weeklies());
         vault.folder(settings.journalFolderName())
@@ -162,7 +160,7 @@ public class Journal
                 {
                     var marker = new Marker(document);
                     markers.put(document.name(), marker);
-                    changes.add(create(marker, Marker.class));
+                    collector.create(marker, Marker.class);
                 }));
         if (LOGGER.isDebugEnabled())
         {
@@ -170,10 +168,9 @@ public class Journal
                 dailies.size(), weeklies.size(), markers.size()
             );
         }
-        return changes;
     }
 
-    private Collection<Change<?>> handleDailyUpdate(Change<?> change)
+    private void handleDailyUpdate(Change<?> change, ChangeCollector collector)
     {
         var document = (Document) change.value();
         var date = parseDateOrNull(document.name());
@@ -186,7 +183,7 @@ public class Journal
         {
             var daily = dailies.remove(date);
             LOGGER.debug("Removed daily '{}' from the journal.", date);
-            return List.of(delete(daily, Daily.class));
+            collector.delete(daily, Daily.class);
         }
         else
         {
@@ -197,57 +194,54 @@ public class Journal
             LOGGER.debug("Updated the journal for daily '{}'.", document.name());
             if (previous == null)
             {
-                return List.of(create(daily, Daily.class));
+                collector.create(daily, Daily.class);
             }
             else
             {
-                return List.of(update(previous, daily, Daily.class));
+                collector.update(previous, daily, Daily.class);
             }
         }
     }
 
-    private Collection<Change<?>> handleWeeklyUpdate(Change<?> change)
+    private void handleWeeklyUpdate(Change<?> change, ChangeCollector collector)
     {
         var document = (Document) change.value();
-        var newChange = parseWeeklyFrom(document).map(weekly ->
+        parseWeeklyFrom(document).ifPresent(weekly ->
         {
             if (change.kind() == DELETE)
             {
                 weeklies.remove(weekly);
                 LOGGER.debug("Removed weekly '{}' from the journal.", weekly);
-                return delete(weekly, Weekly.class);
+                collector.delete(weekly, Weekly.class);
             }
             else
             {
                 LOGGER.debug("Updated the journal for weekly '{}'", document.name());
                 if (weeklies.add(weekly))
                 {
-                    return create(weekly, Weekly.class);
+                    collector.create(weekly, Weekly.class);
                 }
                 else
                 {
-                    return update(weekly, Weekly.class);
+                    collector.update(weekly, Weekly.class);
                 }
             }
-        }).orElseThrow(() -> new IllegalStateException(
-            "Cannot parse weekly from document name: " + document.name())
-        );
-        return List.of(newChange);
+        });
     }
 
-    private Collection<Change<?>> handleMarkerUpdate(Change<?> change)
+    private void handleMarkerUpdate(Change<?> change, ChangeCollector collector)
     {
         var document = (Document) change.value();
         if (change.kind() == DELETE)
         {
             var marker = markers.remove(document.name());
-            return List.of(delete(marker, Marker.class));
+            collector.delete(marker, Marker.class);
         }
         else
         {
             var marker = new Marker(document);
             markers.put(document.name(), marker);
-            return List.of(create(marker, Marker.class));
+            collector.create(marker, Marker.class);
         }
     }
 

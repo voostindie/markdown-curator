@@ -69,7 +69,7 @@ final class DefaultAttributeRegistry
     ///
     /// This might be a bit of a waste - late creation only when needed is more efficient - but it
     /// simplifies the rest of the code.
-    private Collection<Change<?>> projectCreated(Change<?> change)
+    private void projectCreated(Change<?> change, ChangeCollector collector)
     {
         var project = change.as(Project.class).value();
         var attributeValues = new HashMap<AttributeDefinition, SortedSet<WeightedValue>>(
@@ -77,17 +77,17 @@ final class DefaultAttributeRegistry
         attributeDefinitions.forEach(
             (_, definition) -> attributeValues.put(definition, new TreeSet<>()));
         projectAttributes.put(project.name(), attributeValues);
-        return REGISTRY_CHANGE;
+        collector.add(REGISTRY_CHANGE);
     }
 
-    private Collection<Change<?>> projectDeleted(Change<?> change)
+    private void projectDeleted(Change<?> change, ChangeCollector collector)
     {
         var project = change.as(Project.class).value();
         projectAttributes.remove(project.name());
-        return REGISTRY_CHANGE;
+        collector.add(REGISTRY_CHANGE);
     }
 
-    private Collection<Change<?>> attributeValueCreatedOrUpdated(Change<?> change)
+    private void attributeValueCreatedOrUpdated(Change<?> change, ChangeCollector collector)
     {
         var attributeValue = change.as(AttributeValue.class).value();
         var weightedValue = attributeValue.toWeightedValue();
@@ -95,16 +95,16 @@ final class DefaultAttributeRegistry
         var weightedValues = projectAttributeValues.get(attributeValue.definition());
         weightedValues.remove(weightedValue);
         weightedValues.add(weightedValue);
-        return REGISTRY_CHANGE;
+        collector.add(REGISTRY_CHANGE);
     }
 
-    private Collection<Change<?>> attributeValueDeleted(Change<?> change)
+    private void attributeValueDeleted(Change<?> change, ChangeCollector collector)
     {
         var attributeValue = change.as(AttributeValue.class).value();
         var projectAttributeValues = projectAttributes.get(attributeValue.project().name());
         var weightedValues = projectAttributeValues.get(attributeValue.definition());
         weightedValues.remove(attributeValue.toWeightedValue());
-        return REGISTRY_CHANGE;
+        collector.add(REGISTRY_CHANGE);
     }
 
     /// Collect the changes in a set instead of a list so that at the end of the run there is

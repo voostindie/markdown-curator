@@ -2,9 +2,7 @@ package nl.ulso.curator.addon.links;
 
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
-import nl.ulso.curator.change.Change;
-import nl.ulso.curator.change.ChangeHandler;
-import nl.ulso.curator.change.ChangeProcessorTemplate;
+import nl.ulso.curator.change.*;
 import nl.ulso.curator.vault.*;
 
 import java.util.*;
@@ -38,14 +36,13 @@ public final class LinksModel
     }
 
     @Override
-    public Collection<Change<?>> reset()
+    public void reset(ChangeCollector collector)
     {
         documentIndex.clear();
         indexDocuments(vault);
-        return emptyList();
     }
 
-    private Collection<Change<?>> processDocumentChange(Change<?> change)
+    private void processDocumentChange(Change<?> change, ChangeCollector collector)
     {
         var document = (Document) change.value();
         if (change.kind() == DELETE)
@@ -56,10 +53,9 @@ public final class LinksModel
         {
             indexDocuments(document);
         }
-        return emptyList();
     }
 
-    private Collection<Change<?>> processFolderChange(Change<?> change)
+    private void processFolderChange(Change<?> change, ChangeCollector collector)
     {
         var folder = (Folder) change.value();
         if (change.kind() == DELETE)
@@ -75,7 +71,6 @@ public final class LinksModel
         {
             indexDocuments(folder);
         }
-        return emptyList();
     }
 
     List<String> deadLinksFor(String documentName)

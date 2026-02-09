@@ -7,19 +7,26 @@ import org.slf4j.LoggerFactory;
 import java.util.*;
 
 import static java.util.Collections.emptySet;
-import static nl.ulso.curator.change.Changelog.changelogFor;
-import static nl.ulso.curator.change.Changelog.emptyChangelog;
 
 /// Base class for [ChangeProcessor]s that processes [Changelog]s through [ChangeHandler]s.
 ///
-/// Subclasses either process the changes in a changelog, or do a reset of their internal data
-/// structures. A reset is executed whenever [#isResetRequired(Changelog)] returns `true`.
+/// Subclasses can do an optional full reset of their internal state followed by fine-grained change
+/// processing for each applicable change in the changelog.
 ///
-/// To perform actual change processing, subclasses need to register one or more [ChangeHandler]s
-/// by overriding the [#createChangeHandlers()] method.
+/// A reset is executed whenever [#isResetRequired(Changelog)] returns `true`.
 ///
-/// Note that the same change can be accepted by multiple [ChangeHandler]s, and that the order in
-/// which handlers are executed is not guaranteed.
+/// To perform fine-grained  change processing, subclasses need to register one or more
+/// [ChangeHandler]s by overriding the [#createChangeHandlers()] method.
+///
+/// When performing a full reset or running a [ChangeHandler], new changes can be produced to the
+/// changelog through the [ChangeCollector].
+///
+/// Note:
+///
+/// - A reset, if applicable, always comes before fine-grained change processing, independent of the
+/// order of the changes available in the changelog.
+/// - The same change can be accepted by multiple [ChangeHandler]s
+/// - The order in which handlers are executed is not guaranteed.
 public abstract class ChangeProcessorTemplate
     implements ChangeProcessor
 {
@@ -43,6 +50,14 @@ public abstract class ChangeProcessorTemplate
         return emptySet();
     }
 
+    /// Creates the collection to capture the changes of the various change handlers in. The default
+    /// implementation creates an [ArrayList]. Maybe a subclass wants to collect unique changes
+    /// only. In such a case: override this method to return a set.
+    protected Collection<Change<?>> createChangeCollection()
+    {
+        return new ArrayList<>();
+    }
+
     @Override
     public Set<Class<?>> consumedPayloadTypes()
     {
@@ -52,23 +67,23 @@ public abstract class ChangeProcessorTemplate
     @Override
     public final Changelog apply(Changelog changelog)
     {
+        var changeCollector = new DefaultChangeCollector(createChangeCollection());
         if (isResetRequired(changelog))
         {
             LOGGER.debug(
                 "Performing a reset on change processor: {}.",
                 this.getClass().getSimpleName()
             );
-            return changelogFor(reset());
+            reset(changeCollector);
         }
         if (!changeHandlers.isEmpty())
         {
             LOGGER.debug("Processing the changelog on change processor: {}.",
                 this.getClass().getSimpleName()
             );
-            return changelogFor(process(changelog));
+            process(changelog, changeCollector);
         }
-        LOGGER.debug("Nothing to do for change processor: {}.", this.getClass().getSimpleName());
-        return emptyChangelog();
+        return changeCollector.changelog();
     }
 
     /// Determines whether a reset is required from this changelog.
@@ -80,39 +95,23 @@ public abstract class ChangeProcessorTemplate
     }
 
     /// Performs a reset.
-    protected Collection<Change<?>> reset()
+    protected void reset(ChangeCollector collector)
     {
         throw new IllegalStateException(
             "A reset is triggered, but not supported by this change processor: " +
             getClass().getSimpleName());
     }
 
-    /// Processes the changelog.
+    /// Processes the changes in the changelog one by one, in order.
     ///
-    /// Every change in the changelog is matched to each of the predicates in the map of change
-    /// handlers. When the predicate evaluates to `true`, the associated change handler is
-    /// executed.
-    private Collection<Change<?>> process(Changelog changelog)
+    /// Every change in the changelog is tested against each of the change handlers. When tested
+    /// positively, the change handler is requested to handle (accept) the change.
+    private void process(Changelog changelog, ChangeCollector collector)
     {
-        var changes = createChangeCollection();
-        changelog.changes().forEach(change -> {
-                for (ChangeHandler handler : changeHandlers)
-                {
-                    if (handler.test(change))
-                    {
-                        changes.addAll(handler.apply(change));
-                    }
-                }
-            }
+        changelog.changes().forEach(change ->
+            changeHandlers.stream()
+                .filter(handler -> handler.test(change))
+                .forEach(handler -> handler.accept(change, collector))
         );
-        return changes;
-    }
-
-    /// Creates the collection to capture the changes of the various change handlers in. The default
-    /// implementation creates an [ArrayList]. Maybe a subclass wants to collect unique changes
-    /// only. In such a case: override this method to return a set.
-    protected Collection<Change<?>> createChangeCollection()
-    {
-        return new ArrayList<>();
     }
 }

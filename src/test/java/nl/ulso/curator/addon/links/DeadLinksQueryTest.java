@@ -1,6 +1,6 @@
 package nl.ulso.curator.addon.links;
 
-import nl.ulso.curator.query.*;
+import nl.ulso.curator.query.QueryDefinitionStub;
 import nl.ulso.curator.vault.VaultStub;
 import org.assertj.core.api.junit.jupiter.SoftAssertionsExtension;
 import org.junit.jupiter.api.Test;
@@ -11,6 +11,7 @@ import org.junit.jupiter.params.provider.MethodSource;
 
 import java.util.stream.Stream;
 
+import static nl.ulso.curator.change.ChangeCollector.newChangeCollector;
 import static nl.ulso.curator.query.QueryModuleTest.createQueryResultFactory;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -33,7 +34,7 @@ class DeadLinksQueryTest
         vault.addDocumentInPath("foo", "[[zzz]], [[bar]] and [[baz]]");
         vault.addDocumentInPath("bar", "");
         var model = new LinksModel(vault);
-        model.reset();
+        model.reset(newChangeCollector());
         var query = new DeadLinksQuery(model, createQueryResultFactory());
         var definition = new QueryDefinitionStub(query, vault.resolveDocumentInPath(documentName));
         var result = query.run(definition);

@@ -8,10 +8,8 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
-import java.util.Collection;
 import java.util.stream.Stream;
 
-import static java.util.Collections.emptyList;
 import static nl.ulso.curator.change.Changelog.changelogFor;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -64,10 +62,9 @@ class ChangeProcessorTemplateTest
         private boolean refreshed = false;
 
         @Override
-        public Collection<Change<?>> reset()
+        public void reset(ChangeCollector collector)
         {
             refreshed = true;
-            return emptyList();
         }
 
         @Override

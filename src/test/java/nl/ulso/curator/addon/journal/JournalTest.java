@@ -18,6 +18,7 @@ import java.util.stream.Stream;
 import static nl.ulso.curator.change.Change.create;
 import static nl.ulso.curator.change.Change.delete;
 import static nl.ulso.curator.change.Change.update;
+import static nl.ulso.curator.change.ChangeCollector.newChangeCollector;
 import static nl.ulso.curator.change.Changelog.changelogFor;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -318,7 +319,7 @@ class JournalTest
                 WeekFields.ISO
             )
             );
-        journal.reset();
+        journal.reset(newChangeCollector());
         return journal;
     }
 

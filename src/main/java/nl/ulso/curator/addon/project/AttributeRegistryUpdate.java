@@ -2,9 +2,6 @@ package nl.ulso.curator.addon.project;
 
 import nl.ulso.curator.change.Change;
 
-import java.util.Collection;
-import java.util.List;
-
 import static nl.ulso.curator.change.Change.update;
 
 /// Object produced by the [AttributeRegistry] whenever it processed one or more changes.
@@ -12,12 +9,6 @@ import static nl.ulso.curator.change.Change.update;
 /// The registry always produces either zero or one [AttributeRegistryUpdate] objects.
 public record AttributeRegistryUpdate()
 {
-    static final Collection<Change<?>> REGISTRY_CHANGE =
-        List.of(update(new AttributeRegistryUpdate(), AttributeRegistryUpdate.class));
-
-    @Override
-    public String toString()
-    {
-        return "AttributeRegistry";
-    }
+    static final Change<AttributeRegistryUpdate> REGISTRY_CHANGE =
+        update(new AttributeRegistryUpdate(), AttributeRegistryUpdate.class);
 }

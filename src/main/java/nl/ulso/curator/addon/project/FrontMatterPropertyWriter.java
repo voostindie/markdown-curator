@@ -5,10 +5,8 @@ import jakarta.inject.Singleton;
 import nl.ulso.curator.change.*;
 import nl.ulso.curator.main.FrontMatterCollector;
 
-import java.util.Collection;
 import java.util.Set;
 
-import static java.util.Collections.emptyList;
 import static nl.ulso.curator.change.Change.isPayloadType;
 import static nl.ulso.curator.change.ChangeHandler.newChangeHandler;
 
@@ -63,7 +61,7 @@ public final class FrontMatterPropertyWriter
     /// The solution is straightforward: we pull the _actual_ value from the [AttributeRegistry] and
     /// set that in the front matter, or remove it from the front matter if nu such value exists any
     /// longer. We then trust on the front matter system to ignore meaningless updates.
-    private Collection<Change<?>> attributeValueChanged(Change<?> change)
+    private void attributeValueChanged(Change<?> change, ChangeCollector collector)
     {
         var attributeValue = change.as(AttributeValue.class).value();
         var project = attributeValue.project();
@@ -78,6 +76,5 @@ public final class FrontMatterPropertyWriter
                     () -> dictionary.removeProperty(definition.frontMatterProperty())
                 )
         );
-        return emptyList();
     }
 }

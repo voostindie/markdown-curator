@@ -1,21 +1,20 @@
 package nl.ulso.curator.change;
 
-import java.util.Collection;
-import java.util.function.Function;
+import java.util.function.BiConsumer;
 import java.util.function.Predicate;
 
 final class DefaultChangeHandler
     implements ChangeHandler
 {
     private final Predicate<Change<?>> predicate;
-    private final Function<Change<?>, Collection<Change<?>>> function;
+    private final BiConsumer<Change<?>, ChangeCollector> consumer;
 
     DefaultChangeHandler(
         Predicate<Change<?>> predicate,
-        Function<Change<?>, Collection<Change<?>>> function)
+        BiConsumer<Change<?>, ChangeCollector> consumer)
     {
         this.predicate = predicate;
-        this.function = function;
+        this.consumer = consumer;
     }
 
     @Override
@@ -25,8 +24,8 @@ final class DefaultChangeHandler
     }
 
     @Override
-    public Collection<Change<?>> apply(Change<?> change)
+    public void accept(Change<?> change, ChangeCollector collector)
     {
-        return function.apply(change);
+        consumer.accept(change, collector);
     }
 }
