@@ -90,7 +90,6 @@ final class DefaultAttributeRegistry
     private void attributeValueCreatedOrUpdated(Change<?> change, ChangeCollector collector)
     {
         var attributeValue = change.as(AttributeValue.class).value();
-        var weightedValue = attributeValue.toWeightedValue();
         var projectAttributeValues = projectAttributes.get(attributeValue.project().name());
         if (projectAttributeValues == null)
         {
@@ -99,6 +98,7 @@ final class DefaultAttributeRegistry
             return;
         }
         var weightedValues = projectAttributeValues.get(attributeValue.definition());
+        var weightedValue = attributeValue.toWeightedValue();
         weightedValues.remove(weightedValue);
         weightedValues.add(weightedValue);
         collector.add(REGISTRY_CHANGE);
