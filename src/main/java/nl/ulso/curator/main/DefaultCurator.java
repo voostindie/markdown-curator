@@ -182,7 +182,7 @@ final class DefaultCurator
     private void writeDocument(DocumentUpdate documentUpdate)
     {
         var document = documentUpdate.document();
-        LOGGER.info("Rewriting document: {}", documentUpdate.document());
+        LOGGER.info("Rewriting document: '{}'.", documentUpdate.document());
         var newDocumentContent = rewriteDocument(documentUpdate);
         try
         {
