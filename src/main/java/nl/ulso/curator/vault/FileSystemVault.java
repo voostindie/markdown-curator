@@ -24,8 +24,8 @@ import static java.util.Collections.reverse;
 import static java.util.Objects.requireNonNull;
 import static java.util.Optional.empty;
 import static nl.ulso.curator.change.Change.create;
-import static nl.ulso.curator.change.Change.delete;
-import static nl.ulso.curator.change.Change.update;
+import static nl.ulso.curator.vault.DirectoryChangeEventHandler.DIRECTORY_CHANGE_EVENT_HANDLERS;
+import static nl.ulso.curator.vault.DirectoryChangeEventHandler.FileSystemItemType;
 import static nl.ulso.curator.vault.Document.newDocument;
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -137,88 +137,25 @@ final class FileSystemVault
         var eventAbsolutePath = event.path();
         LOGGER.trace("Change detected: {}", eventAbsolutePath);
         var parent = resolveParentFolder(eventAbsolutePath);
-        if (parent != null)
+        if (parent == null)
         {
-            var change = switch (event.eventType())
-            {
-                case CREATE -> processFileCreationEvent(event, parent);
-                case DELETE -> processFileDeletionEvent(event, parent);
-                case MODIFY -> processFileModificationEvent(event, parent);
-                default -> null;
-            };
-            if (change != null)
-            {
-                callback.vaultChanged(change);
-            }
+            LOGGER.trace(
+                "Ignoring event for path '{}', parent folder not found.",
+                eventAbsolutePath
+            );
+            return;
         }
-    }
-
-    private Change<?> processFileCreationEvent(
-        DirectoryChangeEvent event, FileSystemFolder parent)
-    {
-        var eventAbsolutePath = event.path();
-        if (event.isDirectory() && !isHidden(eventAbsolutePath))
+        var item = event.isDirectory() ? FileSystemItemType.DIRECTORY : FileSystemItemType.FILE;
+        var eventHandler = DIRECTORY_CHANGE_EVENT_HANDLERS.get(item).get(event.eventType());
+        if (eventHandler == null)
         {
-            var folder = parent.addFolder(folderName(eventAbsolutePath));
-            LOGGER.debug("Detected new folder '{}'.", folder);
-            try
-            {
-                walkFileTree(eventAbsolutePath, new VaultBuilder(folder, eventAbsolutePath));
-                return create(folder, Folder.class);
-            }
-            catch (IOException e)
-            {
-                LOGGER.warn("Error while processing file tree.", e);
-            }
+            LOGGER.trace(
+                "Ignoring event with unsupported type '{}' for path '{}'",
+                event.eventType(), eventAbsolutePath
+            );
+            return;
         }
-        else if (isDocument(eventAbsolutePath))
-        {
-            var document = newDocumentFromAbsolutePath(eventAbsolutePath);
-            LOGGER.debug("Detected new document '{}'.", document);
-            parent.addDocument(document);
-            return create(document, Document.class);
-        }
-        return null;
-    }
-
-    private Change<?> processFileModificationEvent(
-        DirectoryChangeEvent event, FileSystemFolder parent)
-    {
-        var eventAbsolutePath = event.path();
-        if (isDocument(eventAbsolutePath))
-        {
-            var newDocument = newDocumentFromAbsolutePath(eventAbsolutePath);
-            LOGGER.debug("Detected changes to document '{}'.", newDocument);
-            var oldDocument = parent.addDocument(newDocument);
-            return update(oldDocument, newDocument, Document.class);
-        }
-        return null;
-    }
-
-    private Change<?> processFileDeletionEvent(
-        DirectoryChangeEvent event, FileSystemFolder parent)
-    {
-        var eventAbsolutePath = event.path();
-        if (isDocument(eventAbsolutePath))
-        {
-            var name = documentName(eventAbsolutePath);
-            return parent.document(name).map(document ->
-            {
-                LOGGER.debug("Deleted document '{}'.", name);
-                parent.removeDocument(name);
-                return delete(document, Document.class);
-            }).orElse(null);
-        }
-        else
-        {
-            var name = folderName(eventAbsolutePath);
-            return parent.folder(name).map(folder ->
-            {
-                LOGGER.debug("Deleted folder '{}'.", name);
-                parent.removeFolder(name);
-                return delete(folder, Folder.class);
-            }).orElse(null);
-        }
+        eventHandler.handle(event, parent, callback);
     }
 
     private FileSystemFolder resolveParentFolder(Path eventAbsolutePath)
@@ -248,22 +185,23 @@ final class FileSystemVault
         return (FileSystemFolder) folder;
     }
 
-    private boolean isHidden(Path directory)
+    static boolean isHidden(Path directory)
     {
         return directory.getFileName().toString().startsWith(".");
     }
 
-    private boolean isDocument(Path file)
+    static boolean isDocument(Path file)
     {
         return file.getFileName().toString().endsWith(".md");
     }
 
-    private Document newDocumentFromAbsolutePath(Path absolutePath)
+    static Document newDocumentFromAbsolutePath(Path absolutePath)
     {
         try
         {
-            var lastModified = getLastModifiedTime(absolutePath).toMillis();
-            return newDocument(documentName(absolutePath), lastModified,
+            return newDocument(
+                documentName(absolutePath),
+                getLastModifiedTime(absolutePath).toMillis(),
                 readAllLines(absolutePath)
             );
         }
@@ -273,12 +211,16 @@ final class FileSystemVault
         }
     }
 
-    private String folderName(Path absolutePath)
+    /// Returns the folder name for the given absolute path; the path is expected to represent a
+    /// directory.
+    static String folderName(Path absolutePath)
     {
         return normalize(absolutePath.getFileName().toString(), NFC);
     }
 
-    private String documentName(Path absolutePath)
+    /// Returns the document name for the given absolute path; the path is expected to represent a
+    /// file.
+    static String documentName(Path absolutePath)
     {
         var fileName = absolutePath.getFileName().toString();
         var extensionIndex = fileName.lastIndexOf('.');
@@ -306,16 +248,24 @@ final class FileSystemVault
         return path;
     }
 
-    private class VaultBuilder
+    static class VaultBuilder
         extends SimpleFileVisitor<Path>
     {
         private final Path root;
         private FileSystemFolder currentFolder;
+        private final VaultChangedCallback vaultChangedCallback;
 
-        private VaultBuilder(FileSystemFolder targetFolder, Path absolutePath)
+        VaultBuilder(
+            FileSystemFolder targetFolder, Path absolutePath, VaultChangedCallback callback)
         {
             root = absolutePath;
             currentFolder = targetFolder;
+            vaultChangedCallback = callback;
+        }
+
+        private VaultBuilder(FileSystemFolder targetFolder, Path absolutePath)
+        {
+            this(targetFolder, absolutePath, _ -> {});
         }
 
         @Override
@@ -330,6 +280,7 @@ final class FileSystemVault
             if (!root.equals(directory))
             {
                 currentFolder = currentFolder.addFolder(folderName(directory));
+                vaultChangedCallback.vaultChanged(create(currentFolder, Folder.class));
             }
             return super.preVisitDirectory(directory, attributes);
         }
@@ -340,7 +291,9 @@ final class FileSystemVault
         {
             if (isDocument(file))
             {
-                currentFolder.addDocument(newDocumentFromAbsolutePath(file));
+                var document = newDocumentFromAbsolutePath(file);
+                currentFolder.addDocument(document);
+                vaultChangedCallback.vaultChanged(create(document, Document.class));
             }
             return super.visitFile(file, attributes);
         }

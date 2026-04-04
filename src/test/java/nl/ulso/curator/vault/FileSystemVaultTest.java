@@ -26,10 +26,11 @@ import static org.assertj.core.api.Assertions.fail;
 import static org.awaitility.Awaitility.await;
 
 @ExtendWith(SoftAssertionsExtension.class)
+@Tag("integration-test")
 class FileSystemVaultTest
 {
     private static final int WATCHER_INITIALIZATION_TIME_MILLISECONDS = 250;
-    private static final int FILESYSTEM_WAIT_TIME_MILLISECONDS = 3000;
+    private static final int FILESYSTEM_WAIT_TIME_MILLISECONDS = 500;
 
     @InjectSoftAssertions
     private SoftAssertions softly;
@@ -152,7 +153,7 @@ class FileSystemVaultTest
     }
 
     @Test
-    @Disabled("Unpredictable; don't know why. Use only when needed. Or fix.")
+        //    @Disabled("Unpredictable; don't know why. Use only when needed. Or fix.")
     void watchVaultForFilesInNewFolders()
     {
         whileWatchingForChanges(new TestCase()
@@ -190,7 +191,7 @@ class FileSystemVaultTest
                 var oldPath = testVaultRoot.resolve("Actors");
                 var newPath = testVaultRoot.resolve("People");
                 Files.move(oldPath, newPath);
-                return 2;
+                return 10; // 1 folder, 4 files, times 2
             }
 
             @Override
@@ -200,8 +201,10 @@ class FileSystemVaultTest
                 softly.assertThat(vault.folder("People")).isPresent();
                 softly.assertThat(vault.folder("People").orElseThrow().documents().size())
                     .isEqualTo(4);
-                softly.assertThat(changes.stream().map(Change::kind))
-                    .contains(DELETE, CREATE);
+                softly.assertThat(changes.stream().filter(c -> c.kind() == DELETE).count())
+                    .isEqualTo(5);
+                softly.assertThat(changes.stream().filter(c -> c.kind() == CREATE).count())
+                    .isEqualTo(5);
             }
         });
     }
@@ -266,7 +269,7 @@ class FileSystemVaultTest
      * especially since the system expects document names to be globally unique.
      * <p/>
      * After doing some digging I discovered diacritic characters were represented by slightly
-     * different byte arrays. Doing some more digging I discovered this is a Unicade feature, where
+     * different byte arrays. Doing some more digging, I discovered this is a Unicode feature, where
      * text can be represented in either a "composed" or a "decomposed" manner. That means that
      * <code>"ë".contentEquals("ë")</code> might return <code>false</code>.
      * <p/>
@@ -274,12 +277,11 @@ class FileSystemVaultTest
      * preferred form. This is what the FileSystemVault now does when resolving folder and document
      * names.
      * <p/>
-     * Unfortunately I cannot test folders with diacritic characters, because writing folders with
+     * Unfortunately, I cannot test folders with diacritic characters, because writing folders with
      * diacritic characters in this test, in a temporary directory, somehow doesn't work. Files do
      * work, and this test indeed fails if document names are not normalized.
      */
     @Test
-    @Disabled("Unpredictable; don't know why. Use only when needed. Or fix.")
     void handleUnicodeConsistently()
     {
         whileWatchingForChanges(new TestCase()
@@ -310,10 +312,11 @@ class FileSystemVaultTest
 
     void whileWatchingForChanges(TestCase testCase)
     {
+        int expectedEventCount = 0;
         var events = synchronizedList(new ArrayList<Change<?>>());
         vault.setVaultChangedCallback(events::add);
 
-        var background = Thread.ofVirtual().factory().newThread(() -> vault.watchForChanges());
+        var background = Thread.ofPlatform().factory().newThread(() -> vault.watchForChanges());
         background.start();
         try
         {
@@ -327,16 +330,17 @@ class FileSystemVaultTest
         }
         try
         {
-            int expectedEventCount = testCase.changeFileSystem(testVaultRoot.getFileSystem());
+            var count = testCase.changeFileSystem(testVaultRoot.getFileSystem());
             await().atMost(FILESYSTEM_WAIT_TIME_MILLISECONDS, TimeUnit.MILLISECONDS)
-                .until(() -> events.size() >= expectedEventCount);
+                .until(() -> events.size() >= count);
+            expectedEventCount = count;
         }
         catch (IOException e)
         {
             fail("Unexpected exception in test", e);
         }
         background.interrupt();
-        testCase.verify(events);
+        testCase.verify(events.subList(0, expectedEventCount));
     }
 
     private void writeFile(String relativePath, String content)
