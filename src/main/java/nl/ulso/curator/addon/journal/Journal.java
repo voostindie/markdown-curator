@@ -370,12 +370,19 @@ public class Journal
 
     public Stream<Daily> dailiesForWeek(Weekly weekly)
     {
+        var firstDayOfWeek = firstDayOf(weekly);
+        var lastDayOfWeek = firstDayOfWeek.plusDays(7);
+        return firstDayOfWeek.datesUntil(lastDayOfWeek)
+            .map(dailies::get)
+            .filter(Objects::nonNull);
+    }
+
+    public LocalDate firstDayOf(Weekly weekly)
+    {
         var weekFields = settings.weekFields();
-        var firstDayOfWeek = LocalDate.now().with(weekFields.weekBasedYear(), weekly.year())
+        return LocalDate.now().with(weekFields.weekBasedYear(), weekly.year())
             .with(weekFields.weekOfWeekBasedYear(), weekly.week())
             .with(weekFields.dayOfWeek(), weekFields.getFirstDayOfWeek().getValue());
-        return firstDayOfWeek.datesUntil(firstDayOfWeek.plusDays(7)).map(dailies::get)
-            .filter(Objects::nonNull);
     }
 
     public int dayOfWeekNumberFor(LocalDate date)

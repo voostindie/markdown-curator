@@ -4,6 +4,7 @@ import jakarta.inject.Inject;
 import nl.ulso.curator.query.QueryDefinition;
 import nl.ulso.curator.query.QueryResultFactory;
 
+import java.time.LocalDate;
 import java.util.Map;
 import java.util.stream.Stream;
 
@@ -34,6 +35,25 @@ public class WeeklyQuery
         return Map.of(
             "folder", "Folder of notes to report on; defaults to '" + defaultFolder() + "'"
         );
+    }
+
+    @Override
+    protected LocalDate resolveStartDate(QueryDefinition definition)
+    {
+        return JournalBuilder.parseWeeklyFrom(definition.document())
+            .map(w -> journal().firstDayOf(w))
+            .orElse(null);
+    }
+
+    @Override
+    protected LocalDate resolveEndDate(QueryDefinition definition)
+    {
+        var startDate = resolveStartDate(definition);
+        if (startDate == null)
+        {
+            return null;
+        }
+        return startDate.plusDays(7);
     }
 
     @Override

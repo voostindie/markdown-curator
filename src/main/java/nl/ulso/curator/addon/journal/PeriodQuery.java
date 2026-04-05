@@ -57,7 +57,7 @@ public class PeriodQuery
         var end = resolveEndDate(definition);
         if (start == null || end == null)
         {
-            return false;
+            return true;
         }
         return changelog.changes().anyMatch(isPayloadType(Daily.class)
             .and(change ->

@@ -8,6 +8,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
+import java.time.LocalDate;
 import java.time.temporal.WeekFields;
 import java.util.stream.Stream;
 
@@ -45,6 +46,28 @@ class WeeklyQueryTest
         var query = createQuery();
         assertThat(query.supportedConfiguration()).containsOnlyKeys(
             "folder");
+    }
+
+    @Test
+    void startDate()
+    {
+        var document =
+            ((VaultStub) journal.vault()).resolveDocumentInPath("Journal/2023/2023 Week 04");
+        var query = createQuery();
+        var definition = new QueryDefinitionStub(query, document);
+        var startDate = query.resolveStartDate(definition);
+        assertThat(startDate).isEqualTo(LocalDate.of(2023, 1, 23));
+    }
+
+    @Test
+    void endDate()
+    {
+        var document =
+            ((VaultStub) journal.vault()).resolveDocumentInPath("Journal/2023/2023 Week 04");
+        var query = createQuery();
+        var definition = new QueryDefinitionStub(query, document);
+        var endDate = query.resolveEndDate(definition);
+        assertThat(endDate).isEqualTo(LocalDate.of(2023, 1, 30));
     }
 
     @ParameterizedTest
