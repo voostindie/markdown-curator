@@ -146,6 +146,11 @@ final class FileSystemVault
             return;
         }
         var item = event.isDirectory() ? FileSystemItemType.DIRECTORY : FileSystemItemType.FILE;
+        if (item == FileSystemItemType.FILE && !isDocument(eventAbsolutePath))
+        {
+            LOGGER.trace("Ignoring event for file '{}', not a document", eventAbsolutePath);
+            return;
+        }
         var eventHandler = DIRECTORY_CHANGE_EVENT_HANDLERS.get(item).get(event.eventType());
         if (eventHandler == null)
         {
