@@ -98,10 +98,25 @@ public class Daily
         return date;
     }
 
+    /// Generates a list of all lines that refer to the given document
+    public List<String> linesFor(String documentName)
+    {
+        var indexes = documentReferences.get(documentName);
+        var sectionLines = sectionLines(section);
+        var result = new ArrayList<String>(indexes.size());
+        for (int selectedIndex = indexes.nextSetBit(0); selectedIndex >= 0;
+             selectedIndex = indexes.nextSetBit(selectedIndex + 1))
+        {
+            result.add(sectionLines.get(selectedIndex));
+        }
+        return result;
+    }
+
     /// Generates a summary for the given document for this day.
     ///
     /// The summary contains all the lines that refer to the document, as well as the context of
-    /// those lines: all lines up to the top-most line and all lines under the line, hierarchically.
+    /// those lines: all lines up to the top-most line and all lines under the line,
+    /// hierarchically.
     ///
     /// @param documentName Name of the document to create a summary for.
     /// @return The summary for the given document.

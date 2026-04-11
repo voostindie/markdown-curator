@@ -363,7 +363,7 @@ public class Journal
         return Optional.empty();
     }
 
-    private Stream<Daily> dailiesFor(String documentName)
+    public Stream<Daily> dailiesFor(String documentName)
     {
         return dailies.values().stream().filter(entry -> entry.refersTo(documentName));
     }
