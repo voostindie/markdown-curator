@@ -58,8 +58,9 @@ final class DefaultChangeProcessorOrchestrator
     /// by the core system.
     private void verifyReservedPayloadTypeProducers(Set<ChangeProcessor> changeProcessors)
     {
+        var specialProcessors = Set.of(VaultInitializer.class, VaultReloader.class);
         var processorsToVerify = changeProcessors.stream()
-            .filter(processor -> !processor.getClass().equals(VaultReloader.class))
+            .filter(processor -> !specialProcessors.contains(processor.getClass()))
             .collect(toSet());
         if (producesAnyOf(processorsToVerify, RESERVED_PAYLOAD_TYPES))
         {
@@ -105,6 +106,15 @@ final class DefaultChangeProcessorOrchestrator
                 throw new IllegalStateException("Dependency cycle or unsatisfied consumer.");
             }
             var processor = queue.pollFirst();
+            if (processor.getClass().equals(VaultReloader.class))
+            {
+                // The VaultReloader is a special case: it consumes Document events and produces
+                // Vault events. That implies a cycle, because the VaultInitializer does the
+                // opposite. Only in this case that's okay. We want to reloader always as the
+                // first processor in the list.
+                result.addFirst(processor);
+                continue;
+            }
             if (!availablePayloadTypes.containsAll(processor.consumedPayloadTypes()))
             {
                 queue.addLast(processor);

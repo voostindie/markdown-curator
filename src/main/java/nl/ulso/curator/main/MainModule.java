@@ -23,6 +23,10 @@ public abstract class MainModule
 
     @Binds
     @IntoSet
+    abstract ChangeProcessor bindVaultInitializer(VaultInitializer vaultInitializer);
+
+    @Binds
+    @IntoSet
     abstract ChangeProcessor bindVaultReloader(VaultReloader vaultReloader);
 
     @Binds
