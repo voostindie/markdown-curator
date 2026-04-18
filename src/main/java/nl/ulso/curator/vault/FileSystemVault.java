@@ -6,6 +6,8 @@ import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 import nl.ulso.curator.change.Change;
 import nl.ulso.curator.change.ExternalChangeHandler;
+import nl.ulso.curator.statistics.MeasurementCollector;
+import nl.ulso.curator.statistics.MeasurementTracker;
 import org.slf4j.Logger;
 
 import java.io.IOException;
@@ -37,7 +39,7 @@ import static org.slf4j.LoggerFactory.getLogger;
 @Singleton
 final class FileSystemVault
     extends FileSystemFolder
-    implements Vault, DocumentPathResolver, ExternalChangeHandler
+    implements Vault, DocumentPathResolver, ExternalChangeHandler, MeasurementTracker
 {
     private static final Logger LOGGER = getLogger(FileSystemVault.class);
 
@@ -130,6 +132,14 @@ final class FileSystemVault
     {
         LOGGER.info("Watching '{}' for changes.", absolutePath);
         watcher.watch();
+    }
+
+    @Override
+    public void collectMeasurements(MeasurementCollector collector)
+    {
+        var statistics = ElementCounter.countFoldersAndDocuments(this);
+        collector.total(Folder.class, statistics.folders());
+        collector.total(Document.class, statistics.documents());
     }
 
     private void processFileSystemEvent(DirectoryChangeEvent event)

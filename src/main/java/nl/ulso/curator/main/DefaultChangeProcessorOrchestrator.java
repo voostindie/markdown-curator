@@ -3,8 +3,10 @@ package nl.ulso.curator.main;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 import nl.ulso.curator.change.*;
+import nl.ulso.curator.statistics.Statistics;
 import nl.ulso.curator.vault.*;
 import org.slf4j.Logger;
+import org.slf4j.event.Level;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -24,13 +26,15 @@ final class DefaultChangeProcessorOrchestrator
     private static final Logger LOGGER = getLogger(DefaultChangeProcessorOrchestrator.class);
 
     private final List<ChangeProcessor> changeProcessors;
+    private final Statistics statistics;
 
     @Inject
-    DefaultChangeProcessorOrchestrator(Set<ChangeProcessor> changeProcessors)
+    DefaultChangeProcessorOrchestrator(Set<ChangeProcessor> changeProcessors, Statistics statistics)
     {
         verifyPayloadTypeConsumers(changeProcessors);
         verifyReservedPayloadTypeProducers(changeProcessors);
         this.changeProcessors = orderChangeProcessors(changeProcessors);
+        this.statistics = statistics;
     }
 
     private void verifyPayloadTypeConsumers(Set<ChangeProcessor> processors)
@@ -171,9 +175,10 @@ final class DefaultChangeProcessorOrchestrator
         }
         if (LOGGER.isDebugEnabled())
         {
-            LOGGER.debug("Change processor execution resulted in {} changes.",
+            LOGGER.debug("Change processor execution resulted in {} changes and new totals: ",
                 changelog.changes().count()
             );
+            statistics.logTo(LOGGER, Level.DEBUG);
         }
         return changelog;
     }

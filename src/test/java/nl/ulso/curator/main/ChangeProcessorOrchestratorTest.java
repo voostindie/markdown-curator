@@ -2,11 +2,15 @@ package nl.ulso.curator.main;
 
 import nl.ulso.curator.change.ChangeProcessor;
 import nl.ulso.curator.change.Changelog;
+import nl.ulso.curator.statistics.Statistics;
 import nl.ulso.curator.vault.*;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
+import org.slf4j.Logger;
+import org.slf4j.event.Level;
 
+import java.io.PrintWriter;
 import java.util.*;
 
 import static nl.ulso.curator.change.Changelog.emptyChangelog;
@@ -23,7 +27,7 @@ class ChangeProcessorOrchestratorTest
         var model3 = new ChangeProcessorStub(3).consuming(Integer.class);
         var model4 = new ChangeProcessorStub(4).consuming(Folder.class).producing(Integer.class);
         var models = createModelSet(model1, model2, model3, model4);
-        var orchestrator = new DefaultChangeProcessorOrchestrator(models);
+        var orchestrator = new DefaultChangeProcessorOrchestrator(models, new NullStatistics());
         assertThat(orchestrator.changeProcessors()).containsExactly(model2, model4, model1, model3);
     }
 
@@ -34,7 +38,7 @@ class ChangeProcessorOrchestratorTest
         var model2 = new ChangeProcessorStub(2).consuming(Document.class);
         var model3 = new ChangeProcessorStub(3).consuming(Folder.class);
         var models = createModelSet(model1, model2, model3);
-        var orchestrator = new DefaultChangeProcessorOrchestrator(models);
+        var orchestrator = new DefaultChangeProcessorOrchestrator(models, new NullStatistics());
         assertThat(orchestrator.changeProcessors()).containsExactly(model1, model2, model3);
     }
 
@@ -44,7 +48,7 @@ class ChangeProcessorOrchestratorTest
     {
         var model = new ChangeProcessorStub(1).consuming(Integer.class).producing(payloadType);
         var models = createModelSet(model);
-        assertThatThrownBy(() -> new DefaultChangeProcessorOrchestrator(models))
+        assertThatThrownBy(() -> new DefaultChangeProcessorOrchestrator(models, new NullStatistics()))
             .isInstanceOf(IllegalArgumentException.class)
             .hasMessageContaining("reserved payload type");
 
@@ -56,7 +60,7 @@ class ChangeProcessorOrchestratorTest
         var model1 = new ChangeProcessorStub(1).consuming(Integer.class).producing(String.class);
         var model2 = new ChangeProcessorStub(2).producing(Integer.class).consuming(String.class);
         var models = createModelSet(model1, model2);
-        assertThatThrownBy(() -> new DefaultChangeProcessorOrchestrator(models))
+        assertThatThrownBy(() -> new DefaultChangeProcessorOrchestrator(models, new NullStatistics()))
             .isInstanceOf(IllegalStateException.class)
             .hasMessageContaining("Dependency cycle");
     }
@@ -66,7 +70,7 @@ class ChangeProcessorOrchestratorTest
     {
         var model = new ChangeProcessorStub(1);
         var models = createModelSet(model);
-        assertThatThrownBy(() -> new DefaultChangeProcessorOrchestrator(models))
+        assertThatThrownBy(() -> new DefaultChangeProcessorOrchestrator(models, new NullStatistics()))
             .isInstanceOf(IllegalArgumentException.class)
             .hasMessageContaining("must consume at least one payload type");
     }
@@ -76,7 +80,7 @@ class ChangeProcessorOrchestratorTest
     {
         var model = new ChangeProcessorStub(1).consuming(Integer.class);
         var models = createModelSet(model);
-        assertThatThrownBy(() -> new DefaultChangeProcessorOrchestrator(models))
+        assertThatThrownBy(() -> new DefaultChangeProcessorOrchestrator(models, new NullStatistics()))
             .isInstanceOf(IllegalStateException.class)
             .hasMessageContaining("unsatisfied consumer");
     }
@@ -140,6 +144,21 @@ class ChangeProcessorOrchestratorTest
         public Set<Class<?>> producedPayloadTypes()
         {
             return processedPayloadTypes;
+        }
+    }
+
+    private static final class NullStatistics implements Statistics
+    {
+        @Override
+        public void logTo(Logger logger, Level level)
+        {
+            // Do nothing.
+        }
+
+        @Override
+        public void logTo(PrintWriter writer)
+        {
+            // Do nothing.
         }
     }
 }
