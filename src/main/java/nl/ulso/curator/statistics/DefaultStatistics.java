@@ -58,7 +58,7 @@ final class DefaultStatistics
     }
 
     /// Wraps a [LoggingEventBuilder] and writes [String]s to it. The only method implemented is
-    /// [println], because that's the only method called by
+    /// [#println(String)], because that's the only method called by
     /// [DefaultStatistics#writeStatistics(Map, PrintWriter)].
     private static class LoggerWriter
         extends PrintWriter
