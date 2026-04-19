@@ -9,8 +9,6 @@ import org.slf4j.Logger;
 import org.slf4j.MDC;
 
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 
@@ -18,7 +16,6 @@ import static java.nio.file.Files.getLastModifiedTime;
 import static java.nio.file.Files.writeString;
 import static java.util.concurrent.Executors.newScheduledThreadPool;
 import static java.util.concurrent.TimeUnit.SECONDS;
-import static nl.ulso.curator.change.Change.Kind.UPDATE;
 import static nl.ulso.curator.change.Change.create;
 import static nl.ulso.curator.change.Changelog.emptyChangelog;
 import static nl.ulso.curator.main.DocumentRewriter.rewriteDocument;
@@ -54,7 +51,6 @@ final class DefaultCurator
     private final ChangeProcessorOrchestrator changeProcessorOrchestrator;
     private final QueryOrchestrator queryOrchestrator;
     private final DocumentPathResolver documentPathResolver;
-    private final Map<String, Long> writtenDocuments;
     private final ScheduledExecutorService delayedExecutor;
     private Changelog backlog;
     private ScheduledFuture<?> runTask;
@@ -70,7 +66,6 @@ final class DefaultCurator
         this.changeProcessorOrchestrator = changeProcessorOrchestrator;
         this.queryOrchestrator = queryOrchestrator;
         this.documentPathResolver = documentPathResolver;
-        this.writtenDocuments = new HashMap<>();
         this.delayedExecutor = newScheduledThreadPool(1);
         this.backlog = emptyChangelog();
         this.runTask = null;
@@ -98,47 +93,12 @@ final class DefaultCurator
     @Override
     public synchronized void vaultChanged(Change<?> change)
     {
-        if (checkSelfTriggeredUpdate(change))
-        {
-            return;
-        }
         LOGGER.info("{} detected for {} '{}'.",
             change.kind(), change.payloadType().getSimpleName(), change.value()
         );
         cancelQueryWriteRunIfPresent();
         backlog = backlog.append(changeProcessorOrchestrator.runFor(change));
         scheduleQueryWriteRun();
-    }
-
-    /// A change is self-triggered if it was the result of the curator writing a file to disk. To
-    /// cancel out those changes - no query will produce different output, guaranteed - the curator
-    /// keeps track of the files it writes and then compares them with the changes it detects. If
-    /// they match, the change was self-triggered.
-    ///
-    /// @param change Change that triggered the curator.
-    /// @return `true` if the change was self-triggered, `false` otherwise.
-    private boolean checkSelfTriggeredUpdate(Change<?> change)
-    {
-        if (!(change.payloadType().equals(Document.class) && change.kind() == UPDATE))
-        {
-            return false;
-        }
-        var document = change.as(Document.class).value();
-        var documentName = document.name();
-        var timestamp = writtenDocuments.get(documentName);
-        if (timestamp == null)
-        {
-            return false;
-        }
-        writtenDocuments.remove(documentName);
-        if (document.lastModified() != timestamp)
-        {
-            return false;
-        }
-        LOGGER.debug("Ignoring change on document '{}' because this curator caused it.",
-            documentName
-        );
-        return true;
     }
 
     /// If there is an incoming change, there's no need to write changes to disk from the previous
@@ -193,7 +153,6 @@ final class DefaultCurator
                 return;
             }
             writeString(path, newDocumentContent);
-            writtenDocuments.put(document.name(), getLastModifiedTime(path).toMillis());
         }
         catch (IOException e)
         {
