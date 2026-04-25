@@ -78,6 +78,11 @@ public class FolderStub
         return folder.document(documentName).orElseThrow();
     }
 
+    @Override
+    public boolean isRoot()
+    {
+        return parent == null;
+    }
 
     @Override
     public Folder parent()

@@ -52,6 +52,11 @@ public class FileSystemFolder
         return Objects.hash(name, parent);
     }
 
+    public boolean isRoot()
+    {
+        return parent == null;
+    }
+
     @Override
     public FileSystemFolder parent()
     {

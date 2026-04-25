@@ -7,10 +7,11 @@ import org.assertj.core.api.junit.jupiter.SoftAssertionsExtension;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.ValueSource;
+import org.junit.jupiter.params.provider.*;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Stream;
 
 import static java.util.Collections.emptyList;
 import static nl.ulso.curator.vault.Document.newDocument;
@@ -273,5 +274,55 @@ class DocumentTest
     private List<String> document(String text)
     {
         return text.lines().toList();
+    }
+
+    @ParameterizedTest
+    @MethodSource("documentPaths")
+    void isInPath(Document document, String pathFromRoot, boolean expectedResult)
+    {
+        var parts = pathFromRoot.split("/");
+        assertThat(document.isInPath(parts)).isEqualTo(expectedResult);
+    }
+
+    static Stream<Arguments> documentPaths()
+    {
+        var vault = new VaultStub();
+        return Stream.of(
+            Arguments.of(
+                vault.addDocumentInPath("Subfolder/Document", ""),
+                "Subfolder",
+                true
+            ),
+            Arguments.of(
+                vault.addDocumentInPath("Subfolder/Subsubfolder/Document", ""),
+                "Subfolder",
+                true
+            ),
+            Arguments.of(
+                vault.addDocumentInPath("Subfolder/Document", ""),
+                "Other",
+                false
+            ),
+            Arguments.of(
+                vault.addDocumentInPath("A/B/C/D/E/F/Document", ""),
+                "A/B/C",
+                true
+            ),
+            Arguments.of(
+                vault.addDocumentInPath("A/B/C/D/E/F/Document", ""),
+                "A/C",
+                false
+            ),
+            Arguments.of(
+                vault.addDocumentInPath("A/B/C/D/E/F/Document", ""),
+                "A/B/B/C",
+                false
+            ),
+            Arguments.of(
+                vault.addDocumentInPath("B/C/D/E/F/Document", ""),
+                "A/B/C",
+                false
+            )
+        );
     }
 }

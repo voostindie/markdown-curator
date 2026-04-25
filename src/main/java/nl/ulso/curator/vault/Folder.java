@@ -7,6 +7,8 @@ import java.util.Optional;
 public interface Folder
     extends Visitable
 {
+    boolean isRoot();
+
     Folder parent();
 
     String name();

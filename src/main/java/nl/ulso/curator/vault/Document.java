@@ -2,8 +2,7 @@ package nl.ulso.curator.vault;
 
 import nl.ulso.dictionary.Dictionary;
 
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 import static java.util.Objects.requireNonNull;
 import static nl.ulso.emoji.EmojiStripper.stripEmojisFrom;
@@ -133,5 +132,49 @@ public final class Document
     public String link()
     {
         return "[[" + name + "]]";
+    }
+
+    /// Check if the document is in the provided path, or in a subfolder of it.
+    public boolean isInPath(String... pathFromRoot)
+    {
+        requireNonNull(pathFromRoot);
+        var pathParts = new ArrayList<>(Arrays.asList(pathFromRoot));
+        if (pathParts.isEmpty())
+        {
+            throw new IllegalArgumentException("pathFromRoot may not be empty");
+        }
+        var firstPart = pathParts.removeLast();
+        var folder = this.folder;
+        var found = false;
+        while (!folder.isRoot())
+        {
+            if (folder.name().contentEquals(firstPart))
+            {
+                found = true;
+            }
+            folder = folder.parent();
+            if (found)
+            {
+                break;
+            }
+        }
+        if (!found)
+        {
+            return false;
+        }
+        while (!pathParts.isEmpty())
+        {
+            if (folder.isRoot())
+            {
+                return false;
+            }
+            var part = pathParts.removeLast();
+            if (!folder.name().contentEquals(part))
+            {
+                return false;
+            }
+            folder = folder.parent();
+        }
+        return folder.isRoot();
     }
 }
