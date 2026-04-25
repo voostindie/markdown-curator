@@ -1,6 +1,7 @@
 package nl.ulso.curator.change;
 
-import nl.ulso.curator.vault.*;
+import nl.ulso.curator.vault.Document;
+import nl.ulso.curator.vault.Vault;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -61,7 +62,7 @@ public abstract class ChangeProcessorTemplate
     @Override
     public Set<Class<?>> consumedPayloadTypes()
     {
-        return Set.of(Vault.class, Document.class, Folder.class);
+        return Set.of(Vault.class, Document.class);
     }
 
     @Override
