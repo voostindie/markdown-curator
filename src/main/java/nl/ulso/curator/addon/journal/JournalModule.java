@@ -5,6 +5,7 @@ import dagger.Module;
 import dagger.multibindings.IntoSet;
 import nl.ulso.curator.change.ChangeProcessor;
 import nl.ulso.curator.query.Query;
+import nl.ulso.curator.statistics.MeasurementTracker;
 
 /// Extracts journal information from daily logs.
 ///
@@ -25,7 +26,39 @@ public abstract class JournalModule
 {
     @Binds
     @IntoSet
-    abstract ChangeProcessor bindDataModel(Journal journal);
+    abstract ChangeProcessor bindDailyProcessor(DefaultDailyRepository dailyRepository);
+
+    @Binds
+    abstract DailyRepository bindDailyRepository(DefaultDailyRepository dailyRepository);
+
+    @Binds
+    @IntoSet
+    abstract MeasurementTracker bindDailyMeasurements(DefaultDailyRepository dailyRepository);
+
+    @Binds
+    @IntoSet
+    abstract ChangeProcessor bindWeeklyProcessor(DefaultWeeklyRepository weeklyRepository);
+
+    @Binds
+    abstract WeeklyRepository bindWeeklyRepository(DefaultWeeklyRepository weeklyRepository);
+
+    @Binds
+    @IntoSet
+    abstract MeasurementTracker bindWeeklyMeasurements(DefaultWeeklyRepository weeklyRepository);
+
+    @Binds
+    @IntoSet
+    abstract ChangeProcessor bindMarkerProcessor(DefaultMarkerRepository markerRepository);
+
+    @Binds
+    abstract MarkerRepository bindMarkerRepository(DefaultMarkerRepository markerRepository);
+
+    @Binds
+    @IntoSet
+    abstract MeasurementTracker bindMarkerMeasurements(DefaultMarkerRepository markerRepository);
+
+    @Binds
+    abstract Journal bindJournal(DefaultJournal journal);
 
     @Binds
     @IntoSet

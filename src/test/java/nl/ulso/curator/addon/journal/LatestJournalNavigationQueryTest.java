@@ -55,7 +55,7 @@ class LatestJournalNavigationQueryTest
     @Test
     void latestInTestJournal()
     {
-        var journal = createTestJournal();
+        var journal = createTestJournal(new VaultStub());
         var query = new LatestJournalNavigationQuery(journal, createQueryResultFactory(),
             createMessages(ENGLISH)
         );
@@ -66,7 +66,7 @@ class LatestJournalNavigationQueryTest
     @Test
     void latestInTestJournalPrefixAndPostfix()
     {
-        var journal = createTestJournal();
+        var journal = createTestJournal(new VaultStub());
         var query = new LatestJournalNavigationQuery(journal, createQueryResultFactory(),
             createMessages(ENGLISH)
         );
@@ -79,9 +79,11 @@ class LatestJournalNavigationQueryTest
     @Test
     void latestInEmptyJournal()
     {
-        var vault = new VaultStub();
-        var journal = new Journal(vault,
-            new JournalSettings("Journal", "Markers", "Activities", "Projects")
+        var settings = new JournalSettings("Journal", "Markers", "Activities", "Projects");
+        var journal = new DefaultJournal(
+            new DefaultDailyRepository(settings),
+            new DefaultWeeklyRepository(settings),
+            new DefaultMarkerRepository(settings)
         );
         var query = new LatestJournalNavigationQuery(journal, createQueryResultFactory(),
             createMessages(ENGLISH)
@@ -94,11 +96,12 @@ class LatestJournalNavigationQueryTest
     @MethodSource("dailyStream")
     void impactIfLatestHasChanged(String dailyName, Change.Kind kind, boolean expectedImpact)
     {
-        var journal = createTestJournal();
+        var vault = new VaultStub();
+        var journal = createTestJournal(vault);
         var query = new LatestJournalNavigationQuery(journal, createQueryResultFactory(),
             createMessages(ENGLISH)
         );
-        var daily = journal.toDaily(journal.vault().findDocument(dailyName).orElseThrow())
+        var daily = journal.toDaily(vault.findDocument(dailyName).orElseThrow())
             .orElseThrow();
         var change = switch (kind)
         {

@@ -11,17 +11,20 @@ import org.junit.jupiter.params.provider.MethodSource;
 import java.time.temporal.WeekFields;
 import java.util.stream.Stream;
 
+import static nl.ulso.curator.addon.journal.JournalTest.createTestJournal;
 import static nl.ulso.curator.query.QueryModuleTest.createQueryResultFactory;
 import static org.assertj.core.api.Assertions.assertThat;
 
 class PeriodQueryTest
 {
+    private VaultStub vault;
     private Journal journal;
 
     @BeforeEach
     void setUp()
     {
-        journal = JournalTest.createTestJournal();
+        vault = new VaultStub();
+        journal = createTestJournal(vault);
     }
 
     @Test
@@ -36,8 +39,7 @@ class PeriodQueryTest
     {
         var query = createQuery();
         assertThat(query.description()).isEqualTo(
-            "Generates an overview of notes touched in a certain period, " +
-            "extracted from the journal");
+            "Generates an overview of notes referenced by daily notes in a certain period");
     }
 
     @Test
@@ -52,8 +54,7 @@ class PeriodQueryTest
     @MethodSource("periods")
     void testPeriod(String startDate, String endDate, String expectedResult)
     {
-        var document =
-            ((VaultStub) journal.vault()).resolveDocumentInPath("Journal/2023/2023 Week 04");
+        var document = vault.resolveDocumentInPath("Journal/2023/2023 Week 04");
         var query = createQuery();
         var definition = new QueryDefinitionStub(query, document)
             .withConfiguration("folder", "Projects")
@@ -84,7 +85,7 @@ class PeriodQueryTest
 
     private PeriodQuery createQuery()
     {
-        return new PeriodQuery(journal,
+        return new PeriodQuery(journal, vault,
             new JournalSettings("Journal", "Markers", "Activities", "Projects", WeekFields.ISO),
             createQueryResultFactory()
         );

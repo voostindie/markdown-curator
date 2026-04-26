@@ -1,12 +1,11 @@
 package nl.ulso.curator.main;
 
-import dagger.Module;
 import dagger.*;
+import dagger.Module;
 import dagger.multibindings.IntoSet;
 import nl.ulso.curator.CuratorModule;
 import nl.ulso.curator.addon.journal.JournalModule;
 import nl.ulso.curator.addon.journal.JournalSettings;
-import nl.ulso.curator.addon.links.LinksModule;
 import nl.ulso.curator.query.Query;
 
 import java.nio.file.*;
@@ -20,7 +19,7 @@ import static java.util.Locale.ENGLISH;
  * on top of this file system. This ensures that the real file system stays intact. The vault on
  * disk is there to make it easy to maintain and use: just fire up Obsidian on top of it.
  */
-@Module(includes = {CuratorModule.class, JournalModule.class, LinksModule.class})
+@Module(includes = {CuratorModule.class, JournalModule.class})
 abstract class MusicCuratorModule
         extends InMemoryCuratorModule
 {

@@ -13,7 +13,7 @@ import static nl.ulso.curator.change.Changelog.changelogFor;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @ExtendWith(SoftAssertionsExtension.class)
-class VaultInitializerTest
+public class VaultInitializerTest
 {
     @InjectSoftAssertions
     private SoftAssertions softly;

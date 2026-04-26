@@ -43,8 +43,8 @@ class TimelineQueryTest
     @MethodSource("documentSummaries")
     void timelines(String documentName, int limit, String expectedSummary)
     {
-        var journal = createTestJournal();
-        var vault = (VaultStub) journal.vault();
+        var vault = new VaultStub();
+        var journal = createTestJournal(vault);
         var query = new TimelineQuery(journal, createQueryResultFactory());
         var definition = new QueryDefinitionStub(query, vault.addDocument("query", ""))
             .withConfiguration("document", documentName)

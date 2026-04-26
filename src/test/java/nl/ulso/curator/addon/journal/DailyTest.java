@@ -9,12 +9,9 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
-import java.time.LocalDate;
-import java.util.Set;
 import java.util.stream.Stream;
 
-import static nl.ulso.curator.addon.journal.Daily.parseDailiesFrom;
-import static nl.ulso.curator.addon.journal.JournalBuilder.parseDateFrom;
+import static nl.ulso.curator.addon.journal.Daily.parseDateFrom;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @ExtendWith(SoftAssertionsExtension.class)
@@ -26,8 +23,8 @@ class DailyTest
         var vault = new VaultStub();
         var document = vault.addDocument("2023-01-27", "## Activities");
         var section = (Section) document.fragments().get(1);
-        var entry = parseDailiesFrom(section);
-        assertThat(entry).map(Daily::date).map(LocalDate::toString).hasValue("2023-01-27");
+        var daily = Daily.parseDailyFrom(section);
+        assertThat(daily.date().toString()).isEqualTo("2023-01-27");
     }
 
     @Test
@@ -56,8 +53,8 @@ class DailyTest
             """
         );
         var section = (Section) document.fragments().get(1);
-        var daily = parseDailiesFrom(section);
-        assertThat(daily).map(e -> e.refersTo(documentName)).hasValue(hasReference);
+        var daily = Daily.parseDailyFrom(section);
+        assertThat(daily.refersTo(documentName)).isEqualTo(hasReference);
     }
 
     public static Stream<Arguments> provideDocumentNames()
@@ -91,8 +88,8 @@ class DailyTest
             """
         );
         var section = (Section) document.fragments().get(1);
-        var daily = parseDailiesFrom(section);
-        assertThat(daily).map(e -> e.summaryFor("X")).hasValue("""
+        var daily = Daily.parseDailyFrom(section);
+        assertThat(daily.summaryFor("X")).isEqualTo("""
             - Top item
                 - Reference to [[X]]
                     - And a child for [[X]]
@@ -115,8 +112,37 @@ class DailyTest
             """
         );
         var section = (Section) document.fragments().get(1);
-        var daily = parseDailiesFrom(section);
-        assertThat(daily).map(Daily::referencedDocuments).contains(
-            Set.of("X", "Y", "Z", "foo", "bar", "baz"));
+        var daily = Daily.parseDailyFrom(section);
+        assertThat(daily.referencedDocuments()).containsExactlyInAnyOrder(
+            "X", "Y", "Z", "foo", "bar", "baz");
     }
+
+    @Test
+    void lines()
+    {
+        var vault = new VaultStub();
+        var document = vault.addDocument("2023-01-27", """
+            ## Activities
+            
+            - Top item
+                - Reference to [[X]]
+                    - And a child for [[X]]
+                - Reference to [[Y]]
+                    - And a child for Y
+                    - Which will not show up in the summary
+                - Reference to [[Z]]
+                    - And another reference to [[X]]
+                    - And another reference to [[Y]]
+            """
+        );
+        var section = (Section) document.fragments().get(1);
+        var daily = Daily.parseDailyFrom(section);
+        assertThat(daily.linesFor("X")).containsExactly(
+            "    - Reference to [[X]]",
+            "        - And a child for [[X]]",
+            "        - And another reference to [[X]]"
+        );
+
+    }
+
 }

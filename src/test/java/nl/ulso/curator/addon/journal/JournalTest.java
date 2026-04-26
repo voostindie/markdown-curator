@@ -1,6 +1,5 @@
 package nl.ulso.curator.addon.journal;
 
-import nl.ulso.curator.vault.Document;
 import nl.ulso.curator.vault.VaultStub;
 import org.assertj.core.api.junit.jupiter.SoftAssertionsExtension;
 import org.assertj.core.util.Strings;
@@ -15,11 +14,7 @@ import java.time.temporal.WeekFields;
 import java.util.*;
 import java.util.stream.Stream;
 
-import static nl.ulso.curator.change.Change.create;
-import static nl.ulso.curator.change.Change.delete;
-import static nl.ulso.curator.change.Change.update;
-import static nl.ulso.curator.change.ChangeCollector.newChangeCollector;
-import static nl.ulso.curator.change.Changelog.changelogFor;
+import static nl.ulso.curator.main.VaultTestSupport.initializeVault;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @ExtendWith(SoftAssertionsExtension.class)
@@ -29,7 +24,7 @@ class JournalTest
     @MethodSource("timelineEntries")
     void timeline(String documentName, Map<LocalDate, String> expected)
     {
-        var journal = createTestJournal();
+        var journal = createTestJournal(new VaultStub());
         assertThat(journal.timelineFor(documentName)).containsExactlyInAnyOrderEntriesOf(expected);
     }
 
@@ -38,48 +33,8 @@ class JournalTest
     void mostRecent(String documentName, Map<LocalDate, String> expected)
     {
         var expectedDate = expected.keySet().stream().max(Comparator.naturalOrder());
-        var journal = createTestJournal();
+        var journal = createTestJournal(new VaultStub());
         assertThat(journal.mostRecentMentionOf(documentName)).isEqualTo(expectedDate);
-    }
-
-    @Test
-    void addDocument()
-    {
-        var journal = createTestJournal();
-        var vault = (VaultStub) journal.vault();
-        var document = vault.addDocumentInPath("Journal/2023/2023-01-28", """
-            ## Log
-            
-            - [[foo]]
-            """
-        );
-        journal.apply(changelogFor(create(document, Document.class)));
-        assertThat(journal.timelineFor("foo")).hasSize(4);
-    }
-
-    @Test
-    void changeDocument()
-    {
-        var journal = createTestJournal();
-        var vault = (VaultStub) journal.vault();
-        var document = vault.addDocumentInPath("Journal/2023/2023-01-25", """
-            ## Log
-            
-            - [[foo]]
-            """
-        );
-        journal.apply(changelogFor(update(document, Document.class)));
-        assertThat(journal.timelineFor("baz")).hasSize(2);
-    }
-
-    @Test
-    void removeDocument()
-    {
-        var journal = createTestJournal();
-        var vault = (VaultStub) journal.vault();
-        var document = vault.resolveDocumentInPath("Journal/2023/2023-01-25");
-        journal.apply(changelogFor(delete(document, Document.class)));
-        assertThat(journal.timelineFor("foo")).hasSize(2);
     }
 
     public static Stream<Arguments> timelineEntries()
@@ -127,8 +82,8 @@ class JournalTest
     @Test
     void referencedDocuments()
     {
-        var journal = createTestJournal();
-        var entries = journal.entriesUntilIncluding(
+        var journal = createTestJournal(new VaultStub());
+        var entries = journal.dailiesInPeriod(
             LocalDate.of(2023, 1, 25),
             LocalDate.of(2023, 1, 27)
         ).toList();
@@ -139,19 +94,18 @@ class JournalTest
     @Test
     void emptyJournalIsIncluded()
     {
-        var journal = createTestJournal();
-        var entries = journal.entriesUntilIncluding(
+        var journal = createTestJournal(new VaultStub());
+        var entries = journal.dailiesInPeriod(
             LocalDate.of(2023, 12, 25),
             LocalDate.of(2023, 12, 25)
         ).toList();
         assertThat(entries).hasSize(1);
-        assertThat(journal.dailyAfter(LocalDate.of(2013, 1, 27))).isPresent();
     }
 
     @Test
     void documentSections()
     {
-        var journal = createTestJournal();
+        var journal = createTestJournal(new VaultStub());
         var markedLines = journal.markedLinesFor("foo", Set.of("❗️", "❓"));
         var importantLines =
             Strings.join(markedLines.get("❗️").stream().map(MarkedLine::line).toList())
@@ -166,7 +120,7 @@ class JournalTest
     @Test
     void documentSectionsForOneDay()
     {
-        var journal = createTestJournal();
+        var journal = createTestJournal(new VaultStub());
         var markedLines = journal.markedLinesFor("foo", Set.of("❗️"), LocalDate.of(2023, 1, 25));
         var lines = Strings.join(markedLines.get("❗️").stream().map(MarkedLine::line).toList())
             .with("\n");
@@ -176,7 +130,7 @@ class JournalTest
     @Test
     void documentSectionsForOneDayNoDaily()
     {
-        var journal = createTestJournal();
+        var journal = createTestJournal(new VaultStub());
         var markedLines = journal.markedLinesFor("foo", Set.of("❗️"), LocalDate.of(2025, 1, 12));
         assertThat(markedLines).isEmpty();
     }
@@ -184,7 +138,7 @@ class JournalTest
     @Test
     void documentSectionsForOneDayNoEntries()
     {
-        var journal = createTestJournal();
+        var journal = createTestJournal(new VaultStub());
         var markedLines = journal.markedLinesFor("bar", Set.of("❗️"), LocalDate.of(2023, 1, 25));
         assertThat(markedLines).isEmpty();
     }
@@ -192,7 +146,7 @@ class JournalTest
     @Test
     void latestJournalEntry()
     {
-        var journal = createTestJournal();
+        var journal = createTestJournal(new VaultStub());
         var latest = journal.latest();
         assertThat(latest.get().date()).isEqualTo(LocalDate.of(2024, 8, 12));
     }
@@ -200,9 +154,11 @@ class JournalTest
     @Test
     void latestJournalEntryInEmptyJournal()
     {
-        var vault = new VaultStub();
-        var journal = new Journal(vault,
-            new JournalSettings("Journal", "Markers", "Activities", "Projects")
+        var settings = new JournalSettings("Journal", "Markers", "Activities", "Projects");
+        var journal = new DefaultJournal(
+            new DefaultDailyRepository(settings),
+            new DefaultWeeklyRepository(settings),
+            new DefaultMarkerRepository(settings)
         );
         var latest = journal.latest();
         assertThat(latest).isEmpty();
@@ -211,7 +167,7 @@ class JournalTest
     @Test
     void markers()
     {
-        var journal = createTestJournal();
+        var journal = createTestJournal(new VaultStub());
         var markers = journal.markers();
         assertThat(markers.keySet()).containsExactly("❌", "🪵");
     }
@@ -219,7 +175,7 @@ class JournalTest
     @Test
     void validMarkerDocument()
     {
-        var journal = createTestJournal();
+        var journal = createTestJournal(new VaultStub());
         var markers = journal.markers();
         var marker = markers.values().stream().findFirst().get();
         assertThat(journal.isMarkerDocument(marker.document())).isTrue();
@@ -228,14 +184,14 @@ class JournalTest
     @Test
     void invalidMarkerDocument()
     {
-        var journal = createTestJournal();
-        var project = journal.vault().folder("Projects").get().document("foo").get();
+        var vault = new VaultStub();
+        var journal = createTestJournal(vault);
+        var project = vault.folder("Projects").get().document("foo").get();
         assertThat(journal.isMarkerDocument(project)).isFalse();
     }
 
-    static Journal createTestJournal()
+    static Journal createTestJournal(VaultStub vault)
     {
-        var vault = new VaultStub();
         vault.addDocumentInPath("Projects/foo", "Project 'foo'");
         vault.addDocumentInPath("Projects/bar", "Project 'bar'");
         vault.addDocumentInPath("Projects/baz", "Project 'baz'");
@@ -314,13 +270,24 @@ class JournalTest
             <!--/query-->
             """
         );
-        var journal =
-            new Journal(vault, new JournalSettings("Journal", "Markers", "Log", "Projects",
-                WeekFields.ISO
-            )
-            );
-        journal.reset(newChangeCollector());
-        return journal;
+        var settings = new JournalSettings(
+            "Journal",
+            "Markers",
+            "Log",
+            "Projects",
+            WeekFields.ISO
+        );
+        var changelog = initializeVault(vault);
+        var dailyRepository = new DefaultDailyRepository(settings);
+        dailyRepository.apply(changelog);
+        var weeklyRepository = new DefaultWeeklyRepository(settings);
+        weeklyRepository.apply(changelog);
+        var markerRepository = new DefaultMarkerRepository(settings);
+        markerRepository.apply(changelog);
+        return new DefaultJournal(
+            dailyRepository,
+            weeklyRepository,
+            markerRepository
+        );
     }
-
 }

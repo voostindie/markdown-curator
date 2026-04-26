@@ -2,6 +2,7 @@ package nl.ulso.curator.addon.journal;
 
 import nl.ulso.curator.addon.journal.Outline.LineValues;
 import nl.ulso.curator.vault.*;
+import nl.ulso.date.LocalDates;
 
 import java.time.LocalDate;
 import java.util.*;
@@ -24,7 +25,7 @@ import static nl.ulso.date.LocalDates.parseDateOrNull;
 /// summaries for a document quickly.
 ///
 /// The name of a daily in the vault MUST be formatted like "yyyy-MM-dd".
-public class Daily
+public final class Daily
     implements Comparable<Daily>
 {
     private final LocalDate date;
@@ -32,7 +33,7 @@ public class Daily
     private final List<LineValues> lineValues;
     private final Map<String, BitSet> documentReferences;
 
-    private Daily(LocalDate date, Section section)
+    Daily(LocalDate date, Section section)
     {
         this.date = date;
         this.section = section;
@@ -41,29 +42,26 @@ public class Daily
         this.lineValues = newOutline(sectionLines).toLineValues();
     }
 
+    static Optional<LocalDate> parseDateFrom(Document document)
+    {
+        return Optional.ofNullable(LocalDates.parseDateOrNull(document.name()));
+    }
+
+    static Daily parseDailyFrom(Section section)
+    {
+        var date = parseDateOrNull(section.document().name());
+        if (date == null)
+        {
+            throw new IllegalArgumentException("Cannot parse date from document name");
+        }
+        return new Daily(date, section);
+    }
+
     private List<String> sectionLines(Section section)
     {
         var collector = new LinesCollector();
         section.accept(collector);
         return collector.lines;
-    }
-
-    public static Optional<Daily> parseDailiesFrom(Section section)
-    {
-        return parseDailiesFrom(section, null);
-    }
-
-    public static Optional<Daily> parseDailiesFrom(Section section, LocalDate date)
-    {
-        if (date == null)
-        {
-            date = parseDateOrNull(section.document().name());
-            if (date == null)
-            {
-                return Optional.empty();
-            }
-        }
-        return Optional.of(new Daily(date, section));
     }
 
     @Override

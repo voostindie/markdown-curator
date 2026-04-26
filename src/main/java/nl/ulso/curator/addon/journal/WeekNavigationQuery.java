@@ -10,10 +10,10 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static java.lang.System.lineSeparator;
+import static nl.ulso.curator.addon.journal.Weekly.parseWeeklyFrom;
 import static nl.ulso.curator.change.Change.isCreate;
 import static nl.ulso.curator.change.Change.isDelete;
 import static nl.ulso.curator.change.Change.isPayloadType;
-import static nl.ulso.curator.addon.journal.JournalBuilder.parseWeeklyFrom;
 
 @Singleton
 public class WeekNavigationQuery

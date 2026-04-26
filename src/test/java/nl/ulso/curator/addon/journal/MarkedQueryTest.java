@@ -1,6 +1,7 @@
 package nl.ulso.curator.addon.journal;
 
-import nl.ulso.curator.query.*;
+import nl.ulso.curator.query.QueryDefinition;
+import nl.ulso.curator.query.QueryDefinitionStub;
 import nl.ulso.curator.vault.VaultStub;
 import org.assertj.core.api.junit.jupiter.SoftAssertionsExtension;
 import org.junit.jupiter.api.BeforeEach;
@@ -9,19 +10,22 @@ import org.junit.jupiter.api.extension.ExtendWith;
 
 import java.util.List;
 
+import static nl.ulso.curator.addon.journal.JournalTest.createTestJournal;
 import static nl.ulso.curator.query.QueryModuleTest.createQueryResultFactory;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @ExtendWith(SoftAssertionsExtension.class)
 class MarkedQueryTest
 {
+    private VaultStub vault;
     private Journal journal;
     private MarkedQuery query;
 
     @BeforeEach
     void setUp()
     {
-        journal = JournalTest.createTestJournal();
+        vault = new VaultStub();
+        journal = createTestJournal(vault);
         query = createQuery();
     }
 
@@ -47,8 +51,7 @@ class MarkedQueryTest
     @Test
     void basicMarkers()
     {
-        var document =
-            ((VaultStub) journal.vault()).resolveDocumentInPath("Projects/foo");
+        var document = vault.resolveDocumentInPath("Projects/foo");
         var definition = new QueryDefinitionStub(query, document)
             .withConfiguration("markers", List.of("❗️", "❓"));
         var result = query.run(definition);
@@ -68,7 +71,7 @@ class MarkedQueryTest
     @Test
     void nestedMarkers()
     {
-        var document = ((VaultStub) journal.vault()).resolveDocumentInPath("Projects/bar");
+        var document = vault.resolveDocumentInPath("Projects/bar");
         var definition = new QueryDefinitionStub(query, document)
             .withConfiguration("markers", "❗️");
         var result = query.run(definition);
@@ -83,7 +86,7 @@ class MarkedQueryTest
     @Test
     void customTitleMarker()
     {
-        var document = ((VaultStub) journal.vault()).resolveDocumentInPath("Projects/bar");
+        var document = vault.resolveDocumentInPath("Projects/bar");
         var definition = new QueryDefinitionStub(query, document)
             .withConfiguration("markers", "❌");
         var result = query.run(definition);
@@ -98,7 +101,7 @@ class MarkedQueryTest
     @Test
     void groupByDateMarker()
     {
-        var document = ((VaultStub) journal.vault()).resolveDocumentInPath("Projects/Project 42");
+        var document = vault.resolveDocumentInPath("Projects/Project 42");
         var definition = (QueryDefinition) document.fragments().get(1);
         var result = query.run(definition);
         assertThat(result.toMarkdown()).isEqualTo("""

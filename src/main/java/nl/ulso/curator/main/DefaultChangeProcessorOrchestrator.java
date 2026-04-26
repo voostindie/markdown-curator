@@ -161,7 +161,7 @@ final class DefaultChangeProcessorOrchestrator
                 var filteredChangelog = changelog.changelogFor(processor.consumedPayloadTypes());
                 if (filteredChangelog.isEmpty())
                 {
-                    LOGGER.debug("No relevant changes for processor '{}' available. Skipping.",
+                    LOGGER.trace("No relevant changes for processor '{}' available. Skipping.",
                         processor.getClass().getSimpleName()
                     );
                     continue;
@@ -169,12 +169,9 @@ final class DefaultChangeProcessorOrchestrator
                 var newChangelog = processor.apply(filteredChangelog);
                 verifyChanges(processor, newChangelog);
                 changelog = changelog.append(newChangelog);
-                if (LOGGER.isDebugEnabled())
-                {
-                    LOGGER.debug("Executed change processor '{}'.",
-                        processor.getClass().getSimpleName()
-                    );
-                }
+                LOGGER.trace("Executed change processor '{}'.",
+                    processor.getClass().getSimpleName()
+                );
             }
             catch (RuntimeException e)
             {
@@ -185,7 +182,7 @@ final class DefaultChangeProcessorOrchestrator
         }
         if (LOGGER.isDebugEnabled())
         {
-            LOGGER.debug("Change processor execution resulted in {} changes and new totals: ",
+            LOGGER.debug("Change processor execution resulted in {} change(s) and new totals: ",
                 changelog.changes().count()
             );
             statistics.logTo(LOGGER, Level.DEBUG);

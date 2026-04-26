@@ -12,17 +12,20 @@ import java.time.LocalDate;
 import java.time.temporal.WeekFields;
 import java.util.stream.Stream;
 
+import static nl.ulso.curator.addon.journal.JournalTest.createTestJournal;
 import static nl.ulso.curator.query.QueryModuleTest.createQueryResultFactory;
 import static org.assertj.core.api.Assertions.assertThat;
 
 class WeeklyQueryTest
 {
+    private VaultStub vault;
     private Journal journal;
 
     @BeforeEach
     void setUp()
     {
-        journal = JournalTest.createTestJournal();
+        vault = new VaultStub();
+        journal = createTestJournal(vault);
     }
 
     @Test
@@ -51,8 +54,7 @@ class WeeklyQueryTest
     @Test
     void startDate()
     {
-        var document =
-            ((VaultStub) journal.vault()).resolveDocumentInPath("Journal/2023/2023 Week 04");
+        var document = vault.resolveDocumentInPath("Journal/2023/2023 Week 04");
         var query = createQuery();
         var definition = new QueryDefinitionStub(query, document);
         var startDate = query.resolveStartDate(definition);
@@ -62,8 +64,7 @@ class WeeklyQueryTest
     @Test
     void endDate()
     {
-        var document =
-            ((VaultStub) journal.vault()).resolveDocumentInPath("Journal/2023/2023 Week 04");
+        var document = vault.resolveDocumentInPath("Journal/2023/2023 Week 04");
         var query = createQuery();
         var definition = new QueryDefinitionStub(query, document);
         var endDate = query.resolveEndDate(definition);
@@ -74,8 +75,7 @@ class WeeklyQueryTest
     @MethodSource("weeks")
     void testWeek(String documentInPath, String expectedResult)
     {
-        var document =
-            ((VaultStub) journal.vault()).resolveDocumentInPath(documentInPath);
+        var document = vault.resolveDocumentInPath(documentInPath);
         var query = createQuery();
         var definition = new QueryDefinitionStub(query, document)
             .withConfiguration("folder", "Projects");
@@ -99,7 +99,7 @@ class WeeklyQueryTest
 
     private WeeklyQuery createQuery()
     {
-        return new WeeklyQuery(journal,
+        return new WeeklyQuery(journal, vault,
             new JournalSettings("Journal", "Markers", "Activities", "Projects", WeekFields.ISO),
             createQueryResultFactory()
         );

@@ -20,7 +20,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrowsExactly;
 
 @ExtendWith(SoftAssertionsExtension.class)
-class DocumentBasedEntityRepositoryTest
+class SetBasedEntityRepositoryTest
 {
     @InjectSoftAssertions
     private SoftAssertions softly;
@@ -28,14 +28,14 @@ class DocumentBasedEntityRepositoryTest
     @Test
     void emptyRepository()
     {
-        var repository = new DummyRepository();
-        assertThat(repository.map()).isEmpty();
+        var repository = new SetBasedDummyRepository();
+        assertThat(repository.set()).isEmpty();
     }
 
     @Test
     void consumedPayloadTypes()
     {
-        var repository = new DummyRepository();
+        var repository = new SetBasedDummyRepository();
         assertThat(repository.consumedPayloadTypes()).containsExactlyInAnyOrder(
             Document.class,
             Vault.class
@@ -45,43 +45,36 @@ class DocumentBasedEntityRepositoryTest
     @Test
     void producedPayloadTypes()
     {
-        var repository = new DummyRepository();
+        var repository = new SetBasedDummyRepository();
         assertThat(repository.producedPayloadTypes()).containsExactly(Dummy.class);
     }
 
     @Test
-    void navigableMap()
+    void navigableSet()
     {
-        var repository = new DummyRepository();
-        assertThrowsExactly(ClassCastException.class, repository::navigableMap);
+        var repository = new SetBasedDummyRepository();
+        assertThrowsExactly(ClassCastException.class, repository::navigableSet);
     }
 
     @Test
-    void sortedMap()
+    void sortedSet()
     {
-        var repository = new DummyRepository();
-        assertThrowsExactly(ClassCastException.class, repository::sortedMap);
-    }
-
-    @Test
-    void sequencedMap()
-    {
-        var repository = new DummyRepository();
-        assertThrowsExactly(ClassCastException.class, repository::sequencedMap);
+        var repository = new SetBasedDummyRepository();
+        assertThrowsExactly(ClassCastException.class, repository::sortedSet);
     }
 
     @Test
     void reset()
     {
-        var repository = new DummyRepository(new Dummy("Initial"));
-        repository.reset(null);
-        assertThat(repository.map()).isEmpty();
+        var repository = new SetBasedDummyRepository(new Dummy("Initial"));
+        repository.reset();
+        assertThat(repository.set()).isEmpty();
     }
 
     @Test
     void measure()
     {
-        var repository = new DummyRepository(new Dummy("Initial"));
+        var repository = new SetBasedDummyRepository(new Dummy("Initial"));
         var collector = new MeasurementCollectorStub();
         repository.collectMeasurements(collector);
         assertThat(collector.totalFor("change", "dummy")).isEqualTo(1);
@@ -91,13 +84,13 @@ class DocumentBasedEntityRepositoryTest
     @MethodSource("changes")
     void documentChanges(Dummy initialState, Change<?> inputChange, Change<?> expectedChange)
     {
-        var repository = new DummyRepository(initialState);
-        var size = repository.entities().size();
+        var repository = new SetBasedDummyRepository(initialState);
+        var size = repository.set().size();
         var changelog = repository.apply(Changelog.changelogFor(inputChange));
         if (expectedChange == null)
         {
             softly.assertThat(changelog.isEmpty()).isTrue();
-            softly.assertThat(repository.entities().size()).isEqualTo(size);
+            softly.assertThat(repository.set().size()).isEqualTo(size);
         }
         else
         {
@@ -108,14 +101,14 @@ class DocumentBasedEntityRepositoryTest
                 case UPDATE -> size;
                 case DELETE -> size - 1;
             };
-            softly.assertThat(repository.entities().size()).isEqualTo(expectedSize);
+            softly.assertThat(repository.set().size()).isEqualTo(expectedSize);
             var expectedPresent = switch (expectedChange.kind())
             {
                 case CREATE, UPDATE -> true;
                 case DELETE -> false;
             };
-            var isPresent =
-                repository.findByKey(expectedChange.as(Dummy.class).value().name()).isPresent();
+            var expectedDummy = new Dummy(expectedChange.as(Dummy.class).value().name());
+            var isPresent = repository.set().contains(expectedDummy);
             softly.assertThat(isPresent).isEqualTo(expectedPresent);
         }
     }

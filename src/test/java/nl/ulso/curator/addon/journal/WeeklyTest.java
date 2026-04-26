@@ -1,5 +1,6 @@
 package nl.ulso.curator.addon.journal;
 
+import nl.ulso.curator.vault.VaultStub;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -10,7 +11,10 @@ class WeeklyTest
     void toStringMatchesPattern()
     {
         var weekly = new Weekly(2023, 8);
-        assertThat(weekly.toString()).matches(Weekly.DOCUMENT_NAME_PATTERN);
+        var vault = new VaultStub();
+        vault.addDocument(weekly.toString(), "");
+        var document = vault.findDocument(weekly.toString()).orElseThrow();
+        assertThat(Weekly.isWeekly(document));
     }
 
     @Test

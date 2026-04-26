@@ -68,35 +68,36 @@ public abstract class ChangeProcessorTemplate
     @Override
     public final Changelog apply(Changelog changelog)
     {
-        var changeCollector = new DefaultChangeCollector(createChangeCollection());
         if (isResetRequired(changelog))
         {
             LOGGER.debug(
                 "Performing a reset on change processor: {}.",
                 this.getClass().getSimpleName()
             );
-            reset(changeCollector);
+            reset();
         }
+        var collector = new DefaultChangeCollector(createChangeCollection());
         if (!changeHandlers.isEmpty())
         {
             LOGGER.debug("Processing the changelog on change processor: {}.",
                 this.getClass().getSimpleName()
             );
-            process(changelog, changeCollector);
+            process(changelog, collector);
         }
-        return changeCollector.changelog();
+        return collector.changelog();
     }
 
     /// Determines whether a reset is required from this changelog.
     ///
-    /// The default implementation checks for the existence of a change to the [Vault].
+    /// The default implementation checks for the existence of an UPDATE to the [Vault].
     protected boolean isResetRequired(Changelog changelog)
     {
-        return changelog.changesFor(Vault.class).findAny().isPresent();
+        return changelog.changesFor(Vault.class).
+            anyMatch(change -> change.kind() == Change.Kind.UPDATE);
     }
 
     /// Performs a reset.
-    protected void reset(ChangeCollector collector)
+    protected void reset()
     {
         throw new IllegalStateException(
             "A reset is triggered, but not supported by this change processor: " +

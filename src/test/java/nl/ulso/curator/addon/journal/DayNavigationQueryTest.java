@@ -1,7 +1,8 @@
 package nl.ulso.curator.addon.journal;
 
 import nl.ulso.curator.change.Change;
-import nl.ulso.curator.query.*;
+import nl.ulso.curator.query.QueryDefinitionStub;
+import nl.ulso.curator.vault.VaultStub;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -11,6 +12,8 @@ import java.util.Locale;
 import java.util.stream.Stream;
 
 import static java.util.Locale.ENGLISH;
+import static nl.ulso.curator.addon.journal.JournalTest.createTestJournal;
+import static nl.ulso.curator.addon.journal.Weekly.parseWeeklyFrom;
 import static nl.ulso.curator.change.Change.Kind.CREATE;
 import static nl.ulso.curator.change.Change.Kind.DELETE;
 import static nl.ulso.curator.change.Change.Kind.UPDATE;
@@ -18,7 +21,6 @@ import static nl.ulso.curator.change.Change.create;
 import static nl.ulso.curator.change.Change.delete;
 import static nl.ulso.curator.change.Change.update;
 import static nl.ulso.curator.change.Changelog.changelogFor;
-import static nl.ulso.curator.addon.journal.JournalBuilder.parseWeeklyFrom;
 import static nl.ulso.curator.query.QueryModuleTest.createMessages;
 import static nl.ulso.curator.query.QueryModuleTest.createQueryResultFactory;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -56,12 +58,13 @@ class DayNavigationQueryTest
     @MethodSource("navigatorStream")
     void dailyNavigators(String daily, Locale locale, String markdownOutput)
     {
-        var journal = JournalTest.createTestJournal();
+        var vault = new VaultStub();
+        var journal = createTestJournal(vault);
         var query = new DayNavigationQuery(journal, createQueryResultFactory(),
             createMessages(locale)
         );
         var result = query.run(new QueryDefinitionStub(query,
-            journal.vault().folder("Journal").orElseThrow().folder("2023").orElseThrow()
+            vault.folder("Journal").orElseThrow().folder("2023").orElseThrow()
                 .document(daily).orElseThrow()
         ));
         assertThat(result.toMarkdown()).isEqualTo(markdownOutput);
@@ -92,12 +95,13 @@ class DayNavigationQueryTest
     @Test
     void invalidDocument()
     {
-        var journal = JournalTest.createTestJournal();
+        var vault = new VaultStub();
+        var journal = createTestJournal(vault);
         var query = new DayNavigationQuery(journal, createQueryResultFactory(),
             createMessages(ENGLISH)
         );
         var result = query.run(new QueryDefinitionStub(query,
-            journal.vault().folder("Journal").orElseThrow().folder("2023").orElseThrow()
+            vault.folder("Journal").orElseThrow().folder("2023").orElseThrow()
                 .document("2023 Week 04").orElseThrow()
         ));
         assertThat(result.toMarkdown().trim())
@@ -113,14 +117,15 @@ class DayNavigationQueryTest
     void impactByChangelogWithDailyUpdates(
         String currentDailyName, Change.Kind kind, String changedDailyName, boolean expectedImpact)
     {
-        var journal = JournalTest.createTestJournal();
+        var vault = new VaultStub();
+        var journal = createTestJournal(vault);
         var query = new DayNavigationQuery(journal, createQueryResultFactory(),
             createMessages(ENGLISH)
         );
         var definition = new QueryDefinitionStub(
-            query, journal.vault().findDocument(currentDailyName).orElseThrow());
+            query, vault.findDocument(currentDailyName).orElseThrow());
         var changedDaily = journal.toDaily(
-                journal.vault().findDocument(changedDailyName).orElseThrow())
+                vault.findDocument(changedDailyName).orElseThrow())
             .orElseThrow();
         var change = switch (kind)
         {
@@ -154,14 +159,15 @@ class DayNavigationQueryTest
     void impactByChangelogWithWeeklyUpdates(
         String currentDailyName, Change.Kind kind, String changedWeeklyName, boolean expectedImpact)
     {
-        var journal = JournalTest.createTestJournal();
+        var vault = new VaultStub();
+        var journal = createTestJournal(vault);
         var query = new DayNavigationQuery(journal, createQueryResultFactory(),
             createMessages(ENGLISH)
         );
         var definition = new QueryDefinitionStub(
-            query, journal.vault().findDocument(currentDailyName).orElseThrow());
+            query, vault.findDocument(currentDailyName).orElseThrow());
         var changedWeekly = parseWeeklyFrom(
-                journal.vault().findDocument(changedWeeklyName).orElseThrow())
+                vault.findDocument(changedWeeklyName).orElseThrow())
             .orElseThrow();
         var change = switch (kind)
         {

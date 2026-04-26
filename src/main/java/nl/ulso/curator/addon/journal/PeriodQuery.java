@@ -16,13 +16,15 @@ public class PeriodQuery
     implements Query
 {
     private final Journal journal;
+    private final Vault vault;
     private final String defaultFolder;
     private final QueryResultFactory resultFactory;
 
     @Inject
-    PeriodQuery(Journal journal, JournalSettings settings, QueryResultFactory resultFactory)
+    PeriodQuery(Journal journal, Vault vault, JournalSettings settings, QueryResultFactory resultFactory)
     {
         this.journal = journal;
+        this.vault = vault;
         this.defaultFolder = settings.projectFolderName();
         this.resultFactory = resultFactory;
     }
@@ -36,8 +38,7 @@ public class PeriodQuery
     @Override
     public String description()
     {
-        return "Generates an overview of notes touched in a certain period, " +
-               "extracted from the journal";
+        return "Generates an overview of notes referenced by daily notes in a certain period";
     }
 
     @Override
@@ -77,7 +78,7 @@ public class PeriodQuery
         var documentNames = journal.referencedDocumentsIn(entries);
         var folder = definition.configuration().string("folder", defaultFolder);
         var finder = new DocumentFinder(documentNames, folder);
-        journal.vault().accept(finder);
+        vault.accept(finder);
         return resultFactory.unorderedList(
             finder.selectedDocuments.stream()
                 .sorted(comparing(Document::sortableTitle))
@@ -98,7 +99,7 @@ public class PeriodQuery
         {
             return Stream.empty();
         }
-        return journal.entriesUntilIncluding(start, end);
+        return journal.dailiesInPeriod(start, end);
     }
 
     protected LocalDate resolveStartDate(QueryDefinition definition)

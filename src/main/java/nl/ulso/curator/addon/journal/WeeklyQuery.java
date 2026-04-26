@@ -3,18 +3,21 @@ package nl.ulso.curator.addon.journal;
 import jakarta.inject.Inject;
 import nl.ulso.curator.query.QueryDefinition;
 import nl.ulso.curator.query.QueryResultFactory;
+import nl.ulso.curator.vault.Vault;
 
 import java.time.LocalDate;
 import java.util.Map;
 import java.util.stream.Stream;
 
+import static nl.ulso.curator.addon.journal.Weekly.parseWeeklyFrom;
+
 public class WeeklyQuery
     extends PeriodQuery
 {
     @Inject
-    WeeklyQuery(Journal journal, JournalSettings settings, QueryResultFactory resultFactory)
+    WeeklyQuery(Journal journal, Vault vault, JournalSettings settings, QueryResultFactory resultFactory)
     {
-        super(journal, settings, resultFactory);
+        super(journal, vault, settings, resultFactory);
     }
 
     @Override
@@ -40,7 +43,7 @@ public class WeeklyQuery
     @Override
     protected LocalDate resolveStartDate(QueryDefinition definition)
     {
-        return JournalBuilder.parseWeeklyFrom(definition.document())
+        return parseWeeklyFrom(definition.document())
             .map(w -> journal().firstDayOf(w))
             .orElse(null);
     }
@@ -59,7 +62,7 @@ public class WeeklyQuery
     @Override
     protected Stream<Daily> resolveDailies(QueryDefinition definition)
     {
-        var weekly = JournalBuilder.parseWeeklyFrom(definition.document());
+        var weekly = parseWeeklyFrom(definition.document());
         return weekly.map(w -> journal().dailiesForWeek(w)).orElse(Stream.empty());
     }
 }

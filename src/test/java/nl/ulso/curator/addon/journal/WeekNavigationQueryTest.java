@@ -2,6 +2,7 @@ package nl.ulso.curator.addon.journal;
 
 import nl.ulso.curator.change.Change;
 import nl.ulso.curator.query.QueryDefinitionStub;
+import nl.ulso.curator.vault.VaultStub;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -10,7 +11,8 @@ import org.junit.jupiter.params.provider.MethodSource;
 import java.util.stream.Stream;
 
 import static java.util.Locale.ENGLISH;
-import static nl.ulso.curator.addon.journal.JournalBuilder.parseWeeklyFrom;
+import static nl.ulso.curator.addon.journal.JournalTest.createTestJournal;
+import static nl.ulso.curator.addon.journal.Weekly.parseWeeklyFrom;
 import static nl.ulso.curator.change.Change.Kind.CREATE;
 import static nl.ulso.curator.change.Change.Kind.DELETE;
 import static nl.ulso.curator.change.Change.Kind.UPDATE;
@@ -54,12 +56,13 @@ class WeekNavigationQueryTest
     @Test
     void weeklyNavigator()
     {
-        var journal = JournalTest.createTestJournal();
+        var vault = new VaultStub();
+        var journal = createTestJournal(vault);
         var query = new WeekNavigationQuery(journal, createQueryResultFactory(),
             createMessages(ENGLISH)
         );
         var result = query.run(new QueryDefinitionStub(query,
-            journal.vault().folder("Journal").orElseThrow().folder("2023").orElseThrow()
+            vault.folder("Journal").orElseThrow().folder("2023").orElseThrow()
                 .document("2023 Week 04").orElseThrow()
         ));
         assertThat(result.toMarkdown().trim())
@@ -73,12 +76,13 @@ class WeekNavigationQueryTest
     @Test
     void invalidDocument()
     {
-        var journal = JournalTest.createTestJournal();
+        var vault = new VaultStub();
+        var journal = createTestJournal(vault);
         var query = new WeekNavigationQuery(journal, createQueryResultFactory(),
             createMessages(ENGLISH)
         );
         var result = query.run(new QueryDefinitionStub(query,
-            journal.vault().folder("Journal").orElseThrow().folder("2023").orElseThrow()
+            vault.folder("Journal").orElseThrow().folder("2023").orElseThrow()
                 .document("2023-01-25").orElseThrow()
         ));
         assertThat(result.toMarkdown().trim())
@@ -94,14 +98,15 @@ class WeekNavigationQueryTest
     void impactByChangelogWithDailyUpdates(
         String currentWeeklyName, Change.Kind kind, String changedDailyName, boolean expectedImpact)
     {
-        var journal = JournalTest.createTestJournal();
+        var vault = new VaultStub();
+        var journal = createTestJournal(vault);
         var query = new WeekNavigationQuery(journal, createQueryResultFactory(),
             createMessages(ENGLISH)
         );
         var definition = new QueryDefinitionStub(
-            query, journal.vault().findDocument(currentWeeklyName).orElseThrow());
+            query, vault.findDocument(currentWeeklyName).orElseThrow());
         var changedDaily = journal.toDaily(
-                journal.vault().findDocument(changedDailyName).orElseThrow())
+                vault.findDocument(changedDailyName).orElseThrow())
             .orElseThrow();
         var change = switch (kind)
         {
@@ -132,14 +137,15 @@ class WeekNavigationQueryTest
         String currentWeeklyName, Change.Kind kind, String changedWeeklyName,
         boolean expectedImpact)
     {
-        var journal = JournalTest.createTestJournal();
+        var vault = new VaultStub();
+        var journal = createTestJournal(vault);
         var query = new WeekNavigationQuery(journal, createQueryResultFactory(),
             createMessages(ENGLISH)
         );
         var definition = new QueryDefinitionStub(
-            query, journal.vault().findDocument(currentWeeklyName).orElseThrow());
+            query, vault.findDocument(currentWeeklyName).orElseThrow());
         var changedWeekly = parseWeeklyFrom(
-            journal.vault().findDocument(changedWeeklyName).orElseThrow())
+            vault.findDocument(changedWeeklyName).orElseThrow())
             .orElseThrow();
         var change = switch (kind)
         {

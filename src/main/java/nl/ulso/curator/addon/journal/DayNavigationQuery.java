@@ -9,10 +9,10 @@ import java.util.Optional;
 import java.util.stream.Stream;
 
 import static java.util.stream.Collectors.joining;
+import static nl.ulso.curator.addon.journal.Daily.parseDateFrom;
 import static nl.ulso.curator.change.Change.isCreate;
 import static nl.ulso.curator.change.Change.isDelete;
 import static nl.ulso.curator.change.Change.isPayloadType;
-import static nl.ulso.curator.addon.journal.JournalBuilder.parseDateFrom;
 
 @Singleton
 public class DayNavigationQuery
@@ -40,10 +40,11 @@ public class DayNavigationQuery
     @Override
     public boolean isImpactedBy(Changelog changelog, QueryDefinition definition)
     {
-        return isImpactByDaily(changelog, definition) || isImpactByWeekly(changelog, definition);
+        return isImpactedByDaily(changelog, definition) ||
+               isImpactedByWeekly(changelog, definition);
     }
 
-    private boolean isImpactByDaily(Changelog changelog, QueryDefinition definition)
+    private boolean isImpactedByDaily(Changelog changelog, QueryDefinition definition)
     {
         return parseDateFrom(definition.document())
             .map(documentDate ->
@@ -51,19 +52,21 @@ public class DayNavigationQuery
                     .and(isCreate().or(isDelete()))
                     .and(change ->
                         {
-                            var daily = change.as(Daily.class).value().date();
-                            var dailyBefore = journal.dailyBefore(daily).orElse(null);
-                            var dailyAfter = journal.dailyAfter(daily).orElse(null);
-                            return documentDate.equals(daily)
-                                   || documentDate.equals(dailyBefore)
-                                   || documentDate.equals(dailyAfter);
+                            var daily = change.as(Daily.class).value();
+                            var dateBefore =
+                                journal.dailyBefore(daily).map(Daily::date).orElse(null);
+                            var dateAfter =
+                                journal.dailyAfter(daily).map(Daily::date).orElse(null);
+                            return documentDate.equals(daily.date())
+                                   || documentDate.equals(dateBefore)
+                                   || documentDate.equals(dateAfter);
                         }
                     ))
             )
             .orElse(false);
     }
 
-    private boolean isImpactByWeekly(Changelog changelog, QueryDefinition definition)
+    private boolean isImpactedByWeekly(Changelog changelog, QueryDefinition definition)
     {
         return parseDateFrom(definition.document())
             .map(documentDate ->
@@ -82,18 +85,19 @@ public class DayNavigationQuery
     public QueryResult run(QueryDefinition definition)
     {
         var document = definition.document();
-        return parseDateFrom(document).map(date ->
+        return journal.toDaily(document).map(daily ->
         {
             var title = Stream.of(
-                    toLink(journal.dailyBefore(date), messages.journalPrevious()),
-                    toLink(journal.dailyAfter(date), messages.journalNext()),
-                    toLink(journal.weeklyFor(date), messages.journalUp()),
-                    Optional.of(messages.journalDay(date))
+                    toLink(journal.dailyBefore(daily).map(Daily::date), messages.journalPrevious()),
+                    toLink(journal.dailyAfter(daily).map(Daily::date), messages.journalNext()),
+                    toLink(journal.weeklyFor(daily.date()), messages.journalUp()),
+                    Optional.of(messages.journalDay(daily.date()))
                 )
                 .filter(Optional::isPresent)
                 .map(Optional::get)
                 .collect(joining(" "));
             return resultFactory.string("# " + title);
+
         }).orElseGet(() ->
             resultFactory.error("Document is not a daily journal!")
         );

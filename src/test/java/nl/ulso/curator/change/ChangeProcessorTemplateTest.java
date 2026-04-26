@@ -62,7 +62,7 @@ class ChangeProcessorTemplateTest
         private boolean refreshed = false;
 
         @Override
-        public void reset(ChangeCollector collector)
+        public void reset()
         {
             refreshed = true;
         }
