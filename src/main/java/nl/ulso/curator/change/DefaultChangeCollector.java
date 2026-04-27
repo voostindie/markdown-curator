@@ -1,11 +1,17 @@
 package nl.ulso.curator.change;
 
+import java.util.ArrayList;
 import java.util.Collection;
 
 final class DefaultChangeCollector
     implements ChangeCollector
 {
     private final Collection<Change<?>> collection;
+
+    DefaultChangeCollector()
+    {
+        this.collection = new ArrayList<>();
+    }
 
     DefaultChangeCollector(Collection<Change<?>> collection)
     {
