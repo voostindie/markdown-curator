@@ -124,8 +124,6 @@ This library/application does **not** fully parse Markdown. It only does so on a
 
 A text block is "anything *not* of the above". The content of a text block itself is not parsed. Whether text is in bold or italic, holds a list or a table, uses CriticMarkup or some other format: the internal parser is oblivious to it; it's all just text. When you build your own queries, it's up to you to extract content out of the various blocks, as you see fit. 
 
-I have some ideas to extend this further to make query construction easier, but I'm not planning on introducing a full Markdown parser.
-
 ## Creating your own application
 
 Creating your own application means that you'll need to:
@@ -178,12 +176,13 @@ Rebooting your application should result in the availability of the new query.
 
 ### Create your own custom change processors
 
-Once you've implemented a couple of queries, you might run into one or two issues:
+Once you've implemented a couple of queries, you might run into a couple of issues:
 
-1. **Duplication**. Extracting specific values from documents might be complex, and the same values might be needed across queries.
-2. **Heavy processing**. Running many queries across large data sets on every change, no matter how small, can be CPU intensive.
+1. **Duplication**. When extracting specific values from documents, these same values might be needed across queries.
+2. **Complexity**. Extracting values from documents might be complex, and might lead to queries that are hard to use.
+4. **Heavy processing**. Running many queries across large data sets on every change, no matter how small, can be CPU intensive.
 
-To solve these issues, you can create your own change processors that can transform incoming changes to the vault into other things like custom data models, which you can then build your queries upon.
+This is where the concept of the `ChangeProcessor` comes in. The system actually runs in two phases. One is to run queries and generate output. This is the *second* phase. The first phase is to act on incoming changes and build custom data models from these changes. These data models can then be used by the queries.
 
 To do so, implement the `ChangeProcessor` interface and register it in your curator module:
 
@@ -191,13 +190,13 @@ To do so, implement the `ChangeProcessor` interface and register it in your cura
 @Binds @IntoSet abstract ChangeProcessor bindMyOwnCustomProcessor(MyOwnCustomChangeProcessor processor);
 ```
 
-Whenever a change is detected, the curator executes your processors to handle the incoming change, optionally producing new changes for your own domain objects. After all processors have been executed it runs the queries. 
-
-> The curator *always* runs all queries. It's not (yet) smart enough to detect that a query's output will not change based on the changes processed. That would be a cool feature to add to the system, but it would also be solving a problem that I currently do not have; see the FAQ.
+Whenever a change is detected, the curator executes your processors to handle the incoming change, optionally producing new changes for your own domain objects. After all processors have been executed it runs the queries (after a slight delay). 
 
 **IMPORTANT**: make sure your change processor are registered as `@Singleton`s!
 
-By extending the `ChangeProcessorTemplate` class you get the choice between full and incremental change processing, and an easy way to split the logic of the various processing in separate methods.
+By extending the `ChangeProcessorTemplate` class you get a headstart into change processing, and an easy way to split the logic of the various processing in separate methods.
+
+If your change processor transforms objects of one type (e.g. `Document`s) into another (e.g. `Project`s) and also stores them in a repository for use in queries, then extend either the `MapBasedEntityRepository` or the `SetBasedEntityRepository`. These do all the heavy lifting, leaving just the minor details to you.
 
 As an example of a custom change processor, see the built-in `Journal` or `ProjectRepository`.
 
@@ -232,31 +231,13 @@ Through the configuration you can extract any front matter field from the indivi
 
 This query generates a table of contents for the current document. You can tweak the table by configuring the minimum and maximum header levels to include.
 
-### Links module queries
-
-By including the `LinksModule` to your Curator module, the queries in this section become available.
-
-```java
-@Module(includes = {CuratorModule.class, LinksModule.class})
-abstract class MyCuratorModule
-{
-    // Your code here
-}
-```
-
-In large vaults this module takes up quite a bit of memory because it keeps an index of all references between documents, including to non-existent ones. 
-
-#### `deadlinks`
-
-This query lists all dead links in a document. In other words: all links that refer to documents that do not exist within the vault.
-
 ### Journal module queries
 
 The Journal module supports [Logseq](https://logseq.com)-like daily outlines and has a number of queries to slice and dice information from these outlines.
 
 I like the way Logseq puts emphasis on the daily log as the place to write notes. What I do not like about Logseq, however:
 
-- Everything is an outline. I prefer the freedom full Markdown gives me. When I write an article, for example, I use sections and paragraphs, without bullets.
+- Everything is an outline. I prefer the freedom full Markdown gives me. When I write an article, for example, I use sections and paragraphs, without bullets. Like this README.
 - It's all dynamic, and therefore the functionality only works in Logseq itself. I like to be able to use any text editor.
 - All documents are stored in the same folder. I prefer using a couple of folders to categorize documents: "Projects", "Contacts", "Articles", and so on.
 
@@ -351,7 +332,7 @@ title: ❗️ Important!
 (Here it's useful to explain what the marker is used for.)
 ```
 
-...then the section title in all query outputs would include the text "Important !".
+...then the section title in all query outputs would include the text "Important!".
 
 If you want to group the entries for a marker by date in the output, then add the front matter variable `group-by-date` with a value of `true`.
 
@@ -361,7 +342,7 @@ Creating marker documents has more advantages than just being able to influence 
 - They can define aliases in their front matter, natively supported by Obsidian.
 - They prevent dead links in your vault.
 - They allow you to explain what a marker is supposed to be used for, for future reference.
-- ...they could even have their own timeline!
+- ...they could even have their own timeline, or embed other queries!
 
 #### `period`
 
@@ -437,6 +418,14 @@ This query generates a list of all active projects. In its simplest form, in `li
 #### `projectlead`
 
 This query is a specialization of the `projectlist` query: it selects only those projects with a specific project lead. The selected lead defaults to the document the query is used in. In other words: stick this query in the document that represents one of your co-workers, and you'll instantly get an overview of projects they're in the lead for; no further configuration needed. 
+
+## Reminders
+
+- The system is fully event-driven. Every incoming change — a folder is created, a document is updated, and so on — is an event. When building change processors, take the mindset of changing any internal state one change at a time. Always. (At application startup the curator generates an event per document and folder in the vault.)
+- Subscribing to `Folder` events is hardly ever needed. When a `Folder` is created or deleted, this also triggers events for every folder and document inside it.
+- Always define a Java interface with the API that queries need — read-only access only — and then implement this interface in a change processor. This acts as a clean separation of the two phases in the system.
+- When implementing a change processor, consider also implementing the `MeasurementTracker` interface. All base classes already do this; all you need to do is register your implementation in the corresponding Dagger module. 
+- Remember to implement the `isImpactedBy` method in your queries to inspect the changelog.
 
 ## FAQ
 
