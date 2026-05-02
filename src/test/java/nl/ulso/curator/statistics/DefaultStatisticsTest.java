@@ -18,14 +18,15 @@ class DefaultStatisticsTest
         var writer = new StringWriter();
         statistics.logTo(new PrintWriter(writer, true));
         assertThat(writer.toString()).isEqualTo("""
-            lang:
-              string: 50
-            module1:
-              entity1: 10
-              entity2: 20
-            module2:
-              entity3: 30
-              entity4: 40
+            totals:
+              lang:
+                string: 50
+              module1:
+                entity1: 10
+                entity2: 20
+              module2:
+                entity3: 30
+                entity4: 40
             """);
     }
 

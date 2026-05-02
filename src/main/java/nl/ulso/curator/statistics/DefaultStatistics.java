@@ -43,16 +43,17 @@ final class DefaultStatistics
     {
         var modules = new ArrayList<>(measurements.keySet());
         Collections.sort(modules);
+        writer.println("totals:");
         modules.forEach(module ->
         {
-            writer.println(String.format("%s:", module));
+            writer.println(String.format("  %s:", module));
             var totals = measurements.get(module);
             var entities = new ArrayList<>(totals.keySet());
             Collections.sort(entities);
             entities.forEach(entity ->
             {
                 var total = totals.get(entity);
-                writer.println(String.format("  %s: %d", entity, total));
+                writer.println(String.format("    %s: %d", entity, total));
             });
         });
     }

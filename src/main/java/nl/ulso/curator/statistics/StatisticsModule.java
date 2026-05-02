@@ -4,6 +4,7 @@ import dagger.Binds;
 import dagger.Module;
 import dagger.multibindings.IntoSet;
 import dagger.multibindings.Multibinds;
+import nl.ulso.curator.query.Query;
 
 import java.util.Set;
 
@@ -20,4 +21,8 @@ public abstract class StatisticsModule
 
     @Binds
     abstract Statistics bindStatistics(DefaultStatistics statistics);
+
+    @Binds
+    @IntoSet
+    abstract Query bindQuery(StatisticsQuery query);
 }
