@@ -9,6 +9,8 @@ import org.slf4j.Logger;
 import org.slf4j.MDC;
 
 import java.io.IOException;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 
@@ -52,6 +54,7 @@ final class DefaultCurator
     private final QueryOrchestrator queryOrchestrator;
     private final DocumentPathResolver documentPathResolver;
     private final ScheduledExecutorService delayedExecutor;
+    private final Set<String> expectedDocumentUpdates;
     private Changelog backlog;
     private ScheduledFuture<?> runTask;
 
@@ -67,6 +70,7 @@ final class DefaultCurator
         this.queryOrchestrator = queryOrchestrator;
         this.documentPathResolver = documentPathResolver;
         this.delayedExecutor = newScheduledThreadPool(1);
+        this.expectedDocumentUpdates = new HashSet<>();
         this.backlog = emptyChangelog();
         this.runTask = null;
     }
@@ -96,9 +100,29 @@ final class DefaultCurator
         LOGGER.info("{} detected for {} '{}'.",
             change.kind(), change.payloadType().getSimpleName(), change.value()
         );
+        var runImmediately = change.payloadType().equals(Vault.class);
         cancelQueryWriteRunIfPresent();
         backlog = backlog.append(changeProcessorOrchestrator.runFor(change));
-        scheduleQueryWriteRun();
+        if (change.payloadType().equals(Document.class) && change.kind() == Change.Kind.UPDATE)
+        {
+            // If we just processed the last expected document update, trigger immediate processing.
+            if (expectedDocumentUpdates.remove(change.as(Document.class).value().name()) &&
+                expectedDocumentUpdates.isEmpty())
+            {
+                runImmediately = true;
+            }
+        }
+        if (runImmediately)
+        {
+            LOGGER.info(
+                "Immediately performing query processing and document writing to process all " +
+                "expected document updates.");
+            performQueryWriteRun();
+        }
+        else
+        {
+            scheduleQueryWriteRun();
+        }
     }
 
     /// If there is an incoming change, there's no need to write changes to disk from the previous
@@ -109,6 +133,7 @@ final class DefaultCurator
         {
             LOGGER.debug("Cancelling currently scheduled task.");
             runTask.cancel(false);
+            runTask = null;
         }
     }
 
@@ -122,7 +147,8 @@ final class DefaultCurator
         );
         runTask = delayedExecutor.schedule(
             this::performQueryWriteRun,
-            SCHEDULE_TIMEOUT_IN_SECONDS, SECONDS
+            SCHEDULE_TIMEOUT_IN_SECONDS,
+            SECONDS
         );
     }
 
@@ -137,12 +163,12 @@ final class DefaultCurator
         LOGGER.info("-".repeat(80));
     }
 
-    /// Executing queries has resulted in a set of [DocumentUpdate]s. These must be written to
-    /// disk. The writes are registered to detect self-triggered changes later on.
+    /// Executing queries has resulted in a set of [DocumentUpdate]s. These must be written to disk.
+    /// The writes are registered to detect self-triggered changes later on.
     private void writeDocument(DocumentUpdate documentUpdate)
     {
         var document = documentUpdate.document();
-        LOGGER.info("Rewriting document: '{}'.", documentUpdate.document());
+        LOGGER.info("Rewriting document: '{}'.", document);
         var newDocumentContent = rewriteDocument(documentUpdate);
         try
         {
@@ -153,6 +179,7 @@ final class DefaultCurator
                 return;
             }
             writeString(path, newDocumentContent);
+            expectedDocumentUpdates.add(document.name());
         }
         catch (IOException e)
         {
