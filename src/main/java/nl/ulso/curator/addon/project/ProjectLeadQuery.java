@@ -11,10 +11,10 @@ import java.util.Map;
 
 import static java.lang.Integer.MAX_VALUE;
 import static java.util.Comparator.comparingInt;
-import static nl.ulso.curator.addon.project.AttributeDefinition.LAST_MODIFIED;
-import static nl.ulso.curator.addon.project.AttributeDefinition.LEAD;
-import static nl.ulso.curator.addon.project.AttributeDefinition.PRIORITY;
-import static nl.ulso.curator.addon.project.AttributeDefinition.STATUS;
+import static nl.ulso.curator.addon.project.ProjectAttributeDefinition.LAST_MODIFIED;
+import static nl.ulso.curator.addon.project.ProjectAttributeDefinition.LEAD;
+import static nl.ulso.curator.addon.project.ProjectAttributeDefinition.PRIORITY;
+import static nl.ulso.curator.addon.project.ProjectAttributeDefinition.STATUS;
 import static nl.ulso.curator.change.Change.isPayloadType;
 
 /// Lists all projects lead by a specific party (contact, team, ...document).
@@ -22,19 +22,19 @@ public final class ProjectLeadQuery
     implements Query
 {
     private final ProjectRepository projectRepository;
-    private final AttributeRegistry attributeRegistry;
+    private final ProjectAttributeRepository projectAttributeRepository;
     private final GeneralMessages messages;
     private final QueryResultFactory resultFactory;
 
     @Inject
     public ProjectLeadQuery(
         ProjectRepository projectRepository,
-        AttributeRegistry attributeRegistry,
+        ProjectAttributeRepository projectAttributeRepository,
         GeneralMessages messages,
         QueryResultFactory resultFactory)
     {
         this.projectRepository = projectRepository;
-        this.attributeRegistry = attributeRegistry;
+        this.projectAttributeRepository = projectAttributeRepository;
         this.messages = messages;
         this.resultFactory = resultFactory;
     }
@@ -63,7 +63,7 @@ public final class ProjectLeadQuery
     public boolean isImpactedBy(Changelog changelog, QueryDefinition definition)
     {
         return changelog.changes()
-            .anyMatch(isPayloadType(AttributeRegistryUpdate.class));
+            .anyMatch(isPayloadType(ProjectAttributeRepositoryUpdate.class));
     }
 
     @Override
@@ -72,10 +72,10 @@ public final class ProjectLeadQuery
         var lead = definition.configuration()
             .string("lead", definition.document().name());
         var projects = projectRepository.projects().stream()
-            .filter(project -> attributeRegistry.valueOf(project, LEAD)
+            .filter(project -> projectAttributeRepository.valueOf(project, LEAD)
                 .map(d -> ((Document) d).name().contentEquals(lead))
                 .orElse(false))
-            .sorted(comparingInt(p -> attributeRegistry.valueOf(p, PRIORITY)
+            .sorted(comparingInt(p -> projectAttributeRepository.valueOf(p, PRIORITY)
                 .map(i -> (Integer) i).orElse(MAX_VALUE)))
             .toList();
         return resultFactory.table(
@@ -87,19 +87,19 @@ public final class ProjectLeadQuery
             projects.stream()
                 .map((Project project) -> Map.of(
                     messages.projectPriority(),
-                    attributeRegistry.valueOf(project, PRIORITY)
+                    projectAttributeRepository.valueOf(project, PRIORITY)
                         .map(i -> (Integer) i)
                         .map(p -> Integer.toString(p))
                         .orElse("-"),
                     messages.projectName(),
                     project.document().link(),
                     messages.projectLastModified(),
-                    attributeRegistry.valueOf(project, LAST_MODIFIED)
+                    projectAttributeRepository.valueOf(project, LAST_MODIFIED)
                         .map(d -> (LocalDate) d)
                         .map(d -> "[[" + d + "]]")
                         .orElse("-"),
                     messages.projectStatus(),
-                    attributeRegistry.valueOf(project, STATUS)
+                    projectAttributeRepository.valueOf(project, STATUS)
                         .map(s -> (String) s)
                         .orElse("-")
                 ))

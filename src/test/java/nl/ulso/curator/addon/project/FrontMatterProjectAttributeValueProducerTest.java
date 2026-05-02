@@ -20,16 +20,16 @@ import static nl.ulso.curator.change.Change.update;
 import static nl.ulso.curator.change.Changelog.changelogFor;
 import static org.assertj.core.api.Assertions.assertThat;
 
-class FrontMatterAttributeProducerTest
+class FrontMatterProjectAttributeValueProducerTest
 {
     private VaultStub vault;
-    private FrontMatterAttributeProducer producer;
+    private FrontMatterProjectAttributeValueProducer producer;
 
     @BeforeEach
     void setUp()
     {
         vault = ProjectTestData.createTestVault();
-        producer = new FrontMatterAttributeProducer(ATTRIBUTE_DEFINITIONS, vault);
+        producer = new FrontMatterProjectAttributeValueProducer(ATTRIBUTE_DEFINITIONS, vault);
     }
 
     @Test
@@ -43,7 +43,7 @@ class FrontMatterAttributeProducerTest
     void producedPayloadTypes()
     {
         assertThat(producer.producedPayloadTypes())
-            .containsAll(Set.of(AttributeValue.class));
+            .containsAll(Set.of(ProjectAttributeValue.class));
     }
 
     @ParameterizedTest
@@ -58,7 +58,7 @@ class FrontMatterAttributeProducerTest
         var init = create(newProject, Project.class);
         var changelog =
             producer.apply(changelogFor(init, update(oldProject, newProject, Project.class)));
-        var changes = changelog.changesFor(AttributeValue.class)
+        var changes = changelog.changesFor(ProjectAttributeValue.class)
             .filter(change -> change.kind() == testKind)
             .map(change -> change.value().definition().frontMatterProperty())
             .toList();

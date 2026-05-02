@@ -12,7 +12,7 @@ import nl.ulso.curator.vault.Document;
 import java.time.LocalDate;
 import java.util.Map;
 
-import static nl.ulso.curator.addon.project.AttributeDefinition.*;
+import static nl.ulso.curator.addon.project.ProjectAttributeDefinition.*;
 
 /// Provides a pluggable project model based on a set of documents in a subfolder of the vault.
 /// Project data can be extended with metadata from several sources.
@@ -32,12 +32,12 @@ import static nl.ulso.curator.addon.project.AttributeDefinition.*;
 /// documents. (In the default case, where attributes are resolved from these same documents,
 /// nothing happens.)
 ///
-/// To add an attribute, [Provides] a [Singleton] [AttributeDefinition] [IntoMap] with a unique
-/// [StringKey].
+/// To add an attribute, [Provides] a [Singleton] [ProjectAttributeDefinition] [IntoMap] with a
+/// unique [StringKey].
 ///
 /// To resolve attribute values from a different source, implement a [ChangeProcessor] that produces
-/// [AttributeValue]s with a specific weight. See [FrontMatterAttributeProducer] for an example (the
-/// default).
+/// [ProjectAttributeValue]s with a specific weight. See [FrontMatterProjectAttributeValueProducer]
+/// for an example (the default).
 ///
 /// This module has one unsatisfied dependency: [ProjectSettings]. It must be provided by the
 /// application that imports this module.
@@ -45,13 +45,13 @@ import static nl.ulso.curator.addon.project.AttributeDefinition.*;
 public abstract class ProjectModule
 {
     @Multibinds
-    abstract Map<String, AttributeDefinition> bindAttributeDefinitions();
+    abstract Map<String, ProjectAttributeDefinition> bindAttributeDefinitions();
 
     @Provides
     @Singleton
     @IntoMap
     @StringKey(LAST_MODIFIED)
-    static AttributeDefinition provideLastModifiedAttribute()
+    static ProjectAttributeDefinition provideLastModifiedAttribute()
     {
         return newAttributeDefinition(LocalDate.class, LAST_MODIFIED, Object::toString);
     }
@@ -60,7 +60,7 @@ public abstract class ProjectModule
     @Singleton
     @IntoMap
     @StringKey(LEAD)
-    static AttributeDefinition provideLeadAttribute()
+    static ProjectAttributeDefinition provideLeadAttribute()
     {
         return newAttributeDefinition(Document.class, LEAD, d -> ((Document) d).link());
     }
@@ -69,7 +69,7 @@ public abstract class ProjectModule
     @Singleton
     @IntoMap
     @StringKey(PRIORITY)
-    static AttributeDefinition providePriorityAttribute()
+    static ProjectAttributeDefinition providePriorityAttribute()
     {
         return newAttributeDefinition(Integer.class, PRIORITY);
     }
@@ -78,7 +78,7 @@ public abstract class ProjectModule
     @Singleton
     @IntoMap
     @StringKey(STATUS)
-    static AttributeDefinition provideStatusAttribute()
+    static ProjectAttributeDefinition provideStatusAttribute()
     {
         return newAttributeDefinition(String.class, STATUS);
     }
@@ -98,14 +98,16 @@ public abstract class ProjectModule
     @Binds
     @IntoSet
     abstract ChangeProcessor bindFrontMatterAttributeProducer(
-        FrontMatterAttributeProducer producer);
+        FrontMatterProjectAttributeValueProducer producer);
 
     @Binds
     @IntoSet
-    abstract ChangeProcessor bindAttributeRegistryProcessor(DefaultAttributeRegistry registry);
+    abstract ChangeProcessor bindAttributeRegistryProcessor(
+        DefaultProjectAttributeRepository repository);
 
     @Binds
-    abstract AttributeRegistry bindAttributeRegistry(DefaultAttributeRegistry registry);
+    abstract ProjectAttributeRepository bindAttributeRegistry(
+        DefaultProjectAttributeRepository repository);
 
     @Binds
     @IntoSet

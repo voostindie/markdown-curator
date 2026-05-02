@@ -22,19 +22,19 @@ import static nl.ulso.curator.change.ChangeHandler.newChangeHandler;
 ///
 /// This processor triggers only on project creation and project updates. There's no need to trigger
 /// on project deletes, as in that case all associated attribute values are deleted by the
-/// [DefaultAttributeRegistry].
+/// [DefaultProjectAttributeRepository].
 @Singleton
-public final class FrontMatterAttributeProducer
+public final class FrontMatterProjectAttributeValueProducer
     extends ChangeProcessorTemplate
 {
     private static final int WEIGHT = 0;
-    private final Collection<AttributeDefinition> attributeDefinitions;
+    private final Collection<ProjectAttributeDefinition> projectAttributeDefinitions;
     private final Vault vault;
 
     @Inject
-    FrontMatterAttributeProducer(Map<String, AttributeDefinition> attributeDefinitions, Vault vault)
+    FrontMatterProjectAttributeValueProducer(Map<String, ProjectAttributeDefinition> attributeDefinitions, Vault vault)
     {
-        this.attributeDefinitions = attributeDefinitions.values();
+        this.projectAttributeDefinitions = attributeDefinitions.values();
         this.vault = vault;
     }
 
@@ -56,7 +56,7 @@ public final class FrontMatterAttributeProducer
     @Override
     public Set<Class<?>> producedPayloadTypes()
     {
-        return Set.of(AttributeValue.class);
+        return Set.of(ProjectAttributeValue.class);
     }
 
     @Override
@@ -69,12 +69,12 @@ public final class FrontMatterAttributeProducer
     {
         var project = change.as(Project.class).value();
         var frontMatter = project.document().frontMatter();
-        for (var definition : attributeDefinitions)
+        for (var definition : projectAttributeDefinitions)
         {
             convertProperty(definition, frontMatter).ifPresent(value ->
                 collector.create(
-                    new AttributeValue(project, definition, value, WEIGHT),
-                    AttributeValue.class
+                    new ProjectAttributeValue(project, definition, value, WEIGHT),
+                    ProjectAttributeValue.class
                 )
             );
         }
@@ -86,22 +86,22 @@ public final class FrontMatterAttributeProducer
         var oldFrontMatter = oldProject.document().frontMatter();
         var newProject = change.as(Project.class).newValue();
         var newFrontMatter = newProject.document().frontMatter();
-        for (var definition : attributeDefinitions)
+        for (var definition : projectAttributeDefinitions)
         {
             var oldValue = convertProperty(definition, oldFrontMatter);
             var newValue = convertProperty(definition, newFrontMatter);
             if (oldValue.isEmpty() && newValue.isPresent())
             {
                 collector.create(
-                    new AttributeValue(newProject, definition, newValue.get(), WEIGHT),
-                    AttributeValue.class
+                    new ProjectAttributeValue(newProject, definition, newValue.get(), WEIGHT),
+                    ProjectAttributeValue.class
                 );
             }
             else if (oldValue.isPresent() && newValue.isEmpty())
             {
                 collector.delete(
-                    new AttributeValue(oldProject, definition, null, WEIGHT),
-                    AttributeValue.class
+                    new ProjectAttributeValue(oldProject, definition, null, WEIGHT),
+                    ProjectAttributeValue.class
                 );
             }
             else if (oldValue.isPresent()) // && newValue.isPresent()
@@ -109,9 +109,9 @@ public final class FrontMatterAttributeProducer
                 if (!oldValue.get().equals(newValue.get()))
                 {
                     collector.update(
-                        new AttributeValue(oldProject, definition, oldValue.get(), WEIGHT),
-                        new AttributeValue(newProject, definition, newValue.get(), WEIGHT),
-                        AttributeValue.class
+                        new ProjectAttributeValue(oldProject, definition, oldValue.get(), WEIGHT),
+                        new ProjectAttributeValue(newProject, definition, newValue.get(), WEIGHT),
+                        ProjectAttributeValue.class
                     );
                 }
             }
@@ -119,7 +119,7 @@ public final class FrontMatterAttributeProducer
     }
 
     private Optional<?> convertProperty(
-        AttributeDefinition definition, Dictionary frontMatter)
+        ProjectAttributeDefinition definition, Dictionary frontMatter)
     {
         var frontMatterProperty = definition.frontMatterProperty();
         var valueType = definition.valueType();

@@ -7,12 +7,12 @@ import org.assertj.core.api.junit.jupiter.SoftAssertionsExtension;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.ExtendWith;
 
-import static nl.ulso.curator.addon.project.AttributeDefinition.newAttributeDefinition;
+import static nl.ulso.curator.addon.project.ProjectAttributeDefinition.newAttributeDefinition;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 @ExtendWith(SoftAssertionsExtension.class)
-class AttributeValueTest
+class ProjectAttributeValueTest
 {
     @InjectSoftAssertions
     private SoftAssertions softly;
@@ -38,7 +38,7 @@ class AttributeValueTest
     {
         var project = new Project(vault.resolveDocumentInPath("Project 1"));
         var definition = newAttributeDefinition(String.class, "status");
-        var value = new AttributeValue(project, definition, "draft", 0);
+        var value = new ProjectAttributeValue(project, definition, "draft", 0);
         assertThat(value.value()).isEqualTo("draft");
     }
 
@@ -47,7 +47,7 @@ class AttributeValueTest
     {
         var project = new Project(vault.resolveDocumentInPath("Project 1"));
         var definition = newAttributeDefinition(String.class, "status");
-        assertThatThrownBy(() -> new AttributeValue(project, definition, 42, 0))
+        assertThatThrownBy(() -> new ProjectAttributeValue(project, definition, 42, 0))
             .isInstanceOf(IllegalArgumentException.class);
     }
 
@@ -56,7 +56,7 @@ class AttributeValueTest
     {
         var project = new Project(vault.resolveDocumentInPath("Project 1"));
         var definition = newAttributeDefinition(Integer.class, "priority");
-        var value = new AttributeValue(project, definition, 42, 100);
+        var value = new ProjectAttributeValue(project, definition, 42, 100);
         var weightedValue = value.toWeightedValue();
         softly.assertThat(weightedValue.value()).isEqualTo(42);
         softly.assertThat(weightedValue.weight()).isEqualTo(100);

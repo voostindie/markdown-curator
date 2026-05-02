@@ -19,19 +19,19 @@ import static nl.ulso.curator.change.Changelog.changelogFor;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @ExtendWith(SoftAssertionsExtension.class)
-class DefaultAttributeRegistryTest
+class DefaultProjectAttributeRepositoryTest
 {
     @InjectSoftAssertions
     private SoftAssertions softly;
 
     private VaultStub vault;
-    private DefaultAttributeRegistry registry;
+    private DefaultProjectAttributeRepository registry;
 
     @BeforeEach
     void setUp()
     {
         vault = createTestVault();
-        registry = new DefaultAttributeRegistry(ATTRIBUTE_DEFINITIONS);
+        registry = new DefaultProjectAttributeRepository(ATTRIBUTE_DEFINITIONS);
     }
 
     @Test
@@ -45,14 +45,14 @@ class DefaultAttributeRegistryTest
     void consumedPayloadTypes()
     {
         assertThat(registry.consumedPayloadTypes())
-            .containsAll(Set.of(Project.class, AttributeValue.class));
+            .containsAll(Set.of(Project.class, ProjectAttributeValue.class));
     }
 
     @Test
     void producedPayloadTypes()
     {
         assertThat(registry.producedPayloadTypes()).containsAll(
-            Set.of(AttributeRegistryUpdate.class));
+            Set.of(ProjectAttributeRepositoryUpdate.class));
     }
 
     @Test
@@ -62,8 +62,8 @@ class DefaultAttributeRegistryTest
         var changelog = registry.apply(changelogFor(
             create(project, Project.class),
             update(
-                new AttributeValue(project, ATTRIBUTE_DEFINITIONS.get("status"), "In progress", 0),
-                AttributeValue.class
+                new ProjectAttributeValue(project, ATTRIBUTE_DEFINITIONS.get("status"), "In progress", 0),
+                ProjectAttributeValue.class
             )
         ));
         softly.assertThat(changelog.isEmpty()).isFalse();
@@ -79,16 +79,16 @@ class DefaultAttributeRegistryTest
         var status = ATTRIBUTE_DEFINITIONS.get("status");
         var init = create(project, Project.class);
         var change1 = update(
-            new AttributeValue(project, status, "High", 100),
-            AttributeValue.class
+            new ProjectAttributeValue(project, status, "High", 100),
+            ProjectAttributeValue.class
         );
         var change2 = update(
-            new AttributeValue(project, status, "Low", 0),
-            AttributeValue.class
+            new ProjectAttributeValue(project, status, "Low", 0),
+            ProjectAttributeValue.class
         );
         var change3 = delete(
-            new AttributeValue(project, status, null, 100),
-            AttributeValue.class
+            new ProjectAttributeValue(project, status, null, 100),
+            ProjectAttributeValue.class
         );
         var changelog = registry.apply(changelogFor(init, change1, change2, change3));
         softly.assertThat(changelog.isEmpty()).isFalse();
@@ -104,8 +104,8 @@ class DefaultAttributeRegistryTest
         var status = ATTRIBUTE_DEFINITIONS.get("status");
         var init = create(project, Project.class);
         var change1 = update(
-            new AttributeValue(project, status, "High", 100),
-            AttributeValue.class
+            new ProjectAttributeValue(project, status, "High", 100),
+            ProjectAttributeValue.class
         );
         var change2 = delete(project, Project.class);
         var changelog = registry.apply(changelogFor(init, change1, change2));

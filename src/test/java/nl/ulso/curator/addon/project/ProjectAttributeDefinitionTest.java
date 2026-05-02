@@ -10,7 +10,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 @ExtendWith(SoftAssertionsExtension.class)
-class AttributeDefinitionTest
+class ProjectAttributeDefinitionTest
 {
     @InjectSoftAssertions
     private SoftAssertions softly;
@@ -18,7 +18,7 @@ class AttributeDefinitionTest
     @Test
     void newAttributeDefinition()
     {
-        var definition = AttributeDefinition.newAttributeDefinition(String.class, "name");
+        var definition = ProjectAttributeDefinition.newAttributeDefinition(String.class, "name");
         softly.assertThat(definition.valueType()).isEqualTo(String.class);
         softly.assertThat(definition.frontMatterProperty()).isEqualTo("name");
     }
@@ -26,7 +26,7 @@ class AttributeDefinitionTest
     @Test
     void newAttributeDefinitionWithCustomFrontMatterFunction()
     {
-        var definition = AttributeDefinition.newAttributeDefinition(String.class, "name",
+        var definition = ProjectAttributeDefinition.newAttributeDefinition(String.class, "name",
             s -> ((String) s).toUpperCase()
         );
         assertThat(definition.asFrontMatterValue("bar")).isEqualTo("BAR");
@@ -35,7 +35,7 @@ class AttributeDefinitionTest
     @Test
     void invalidFrontMatterPropertyValueThrows()
     {
-        var definition = AttributeDefinition.newAttributeDefinition(String.class, "name",
+        var definition = ProjectAttributeDefinition.newAttributeDefinition(String.class, "name",
             s -> ((String) s).toUpperCase()
         );
         assertThatThrownBy(() -> definition.asFrontMatterValue(42))

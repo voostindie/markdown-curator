@@ -19,7 +19,7 @@ import java.util.function.UnaryOperator;
 /// - [#STATUS].
 ///
 /// @see [ProjectModule]
-public interface AttributeDefinition
+public interface ProjectAttributeDefinition
 {
     String LAST_MODIFIED = "last_modified";
     String LEAD = "lead";
@@ -34,22 +34,22 @@ public interface AttributeDefinition
     /// _produce_ attribute values.
     ///
     /// @see ProjectModule
-    static AttributeDefinition newAttributeDefinition(
+    static ProjectAttributeDefinition newAttributeDefinition(
         Class<?> valueType, String frontMatterProperty)
     {
-        return new DefaultAttributeDefinition(valueType, frontMatterProperty);
+        return new DefaultProjectAttributeDefinition(valueType, frontMatterProperty);
     }
 
     /// Defines a new attribute definition with a custom function to convert its values to front
     /// matter property values.
     ///
     /// @see #newAttributeDefinition(Class, String)
-    static AttributeDefinition newAttributeDefinition(
+    static ProjectAttributeDefinition newAttributeDefinition(
         Class<?> valueType,
         String frontMatterProperty,
         UnaryOperator<Object> asFrontMatterFunction)
     {
-        return new DefaultAttributeDefinition(valueType, frontMatterProperty, asFrontMatterFunction);
+        return new DefaultProjectAttributeDefinition(valueType, frontMatterProperty, asFrontMatterFunction);
     }
 
     /// @return the type of the property value.

@@ -1,6 +1,6 @@
 package nl.ulso.curator.addon.project;
 
-import nl.ulso.curator.addon.project.ProjectTestData.AttributeRegistryStub;
+import nl.ulso.curator.addon.project.ProjectTestData.ProjectAttributeRepositoryStub;
 import nl.ulso.curator.main.FrontMatterCollector;
 import nl.ulso.curator.vault.Document;
 import nl.ulso.curator.vault.VaultStub;
@@ -21,7 +21,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 class FrontMatterPropertyWriterTest
 {
     private VaultStub vault;
-    private AttributeRegistryStub registry;
+    private ProjectAttributeRepositoryStub registry;
     private FrontMatterPropertyWriter writer;
     private FrontMatterCollectorStub collector;
 
@@ -38,7 +38,7 @@ class FrontMatterPropertyWriterTest
     void consumedPayloadTypes()
     {
         assertThat(writer.consumedPayloadTypes())
-            .containsAll(Set.of(AttributeRegistryUpdate.class));
+            .containsAll(Set.of(ProjectAttributeRepositoryUpdate.class));
     }
 
     @Test
@@ -57,15 +57,15 @@ class FrontMatterPropertyWriterTest
         );
         var changelog = changelogFor(
             create(
-                new AttributeValue(
+                new ProjectAttributeValue(
                     new Project(vault.resolveDocumentInPath("Projects/Project 1")),
                     ATTRIBUTE_DEFINITIONS.get("status"),
                     "NEW FRONTMATTER",
                     0
                 ),
-                AttributeValue.class
+                ProjectAttributeValue.class
             ),
-            AttributeRegistryUpdate.REGISTRY_CHANGE
+            ProjectAttributeRepositoryUpdate.REPOSITORY_UPDATE
         );
         writer.apply(changelog);
         assertThat(collector.frontMatterUpdates.get("Project 1").string("status", null))
@@ -77,15 +77,15 @@ class FrontMatterPropertyWriterTest
     {
         var changelog = changelogFor(
             delete(
-                new AttributeValue(
+                new ProjectAttributeValue(
                     new Project(vault.resolveDocumentInPath("Projects/Project 3")),
                     ATTRIBUTE_DEFINITIONS.get("status"),
                     null,
                     0
                 ),
-                AttributeValue.class
+                ProjectAttributeValue.class
             ),
-            AttributeRegistryUpdate.REGISTRY_CHANGE
+            ProjectAttributeRepositoryUpdate.REPOSITORY_UPDATE
         );
         var dictionary = mutableDictionary();
         dictionary.setProperty("status", "NEW FRUNTMATTER");

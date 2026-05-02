@@ -7,7 +7,7 @@ import nl.ulso.curator.change.*;
 import java.util.*;
 
 import static java.util.HashSet.newHashSet;
-import static nl.ulso.curator.addon.project.AttributeRegistryUpdate.REGISTRY_CHANGE;
+import static nl.ulso.curator.addon.project.ProjectAttributeRepositoryUpdate.REPOSITORY_UPDATE;
 import static nl.ulso.curator.change.Change.isCreate;
 import static nl.ulso.curator.change.Change.isCreateOrUpdate;
 import static nl.ulso.curator.change.Change.isDelete;
@@ -15,16 +15,16 @@ import static nl.ulso.curator.change.Change.isPayloadType;
 import static nl.ulso.curator.change.ChangeHandler.newChangeHandler;
 
 @Singleton
-final class DefaultAttributeRegistry
+final class DefaultProjectAttributeRepository
     extends ChangeProcessorTemplate
-    implements AttributeRegistry
+    implements ProjectAttributeRepository
 {
-    private final Map<String, AttributeDefinition> attributeDefinitions;
-    private final Map<String, Map<AttributeDefinition, SortedSet<WeightedValue>>>
+    private final Map<String, ProjectAttributeDefinition> attributeDefinitions;
+    private final Map<String, Map<ProjectAttributeDefinition, SortedSet<WeightedValue>>>
         projectAttributes;
 
     @Inject
-    DefaultAttributeRegistry(Map<String, AttributeDefinition> attributeDefinitions)
+    DefaultProjectAttributeRepository(Map<String, ProjectAttributeDefinition> attributeDefinitions)
     {
         this.attributeDefinitions = attributeDefinitions;
         this.projectAttributes = new HashMap<>();
@@ -43,11 +43,11 @@ final class DefaultAttributeRegistry
                 this::projectDeleted
             ),
             newChangeHandler(
-                isPayloadType(AttributeValue.class).and(isCreateOrUpdate()),
+                isPayloadType(ProjectAttributeValue.class).and(isCreateOrUpdate()),
                 this::attributeValueCreatedOrUpdated
             ),
             newChangeHandler(
-                isPayloadType(AttributeValue.class).and(isDelete()),
+                isPayloadType(ProjectAttributeValue.class).and(isDelete()),
                 this::attributeValueDeleted
             )
         );
@@ -56,13 +56,13 @@ final class DefaultAttributeRegistry
     @Override
     public Set<Class<?>> consumedPayloadTypes()
     {
-        return Set.of(Project.class, AttributeValue.class);
+        return Set.of(Project.class, ProjectAttributeValue.class);
     }
 
     @Override
     public Set<Class<?>> producedPayloadTypes()
     {
-        return Set.of(AttributeRegistryUpdate.class);
+        return Set.of(ProjectAttributeRepositoryUpdate.class);
     }
 
     /// Prepares the internal data structures for a new project.
@@ -72,51 +72,47 @@ final class DefaultAttributeRegistry
     private void projectCreated(Change<?> change, ChangeCollector collector)
     {
         var project = change.as(Project.class).value();
-        var attributeValues = new HashMap<AttributeDefinition, SortedSet<WeightedValue>>(
+        var attributeValues = new HashMap<ProjectAttributeDefinition, SortedSet<WeightedValue>>(
             attributeDefinitions.size());
         attributeDefinitions.forEach(
             (_, definition) -> attributeValues.put(definition, new TreeSet<>()));
         projectAttributes.put(project.name(), attributeValues);
-        collector.add(REGISTRY_CHANGE);
+        collector.add(REPOSITORY_UPDATE);
     }
 
     private void projectDeleted(Change<?> change, ChangeCollector collector)
     {
         var project = change.as(Project.class).value();
         projectAttributes.remove(project.name());
-        collector.add(REGISTRY_CHANGE);
+        collector.add(REPOSITORY_UPDATE);
     }
 
     private void attributeValueCreatedOrUpdated(Change<?> change, ChangeCollector collector)
     {
-        var attributeValue = change.as(AttributeValue.class).value();
+        var attributeValue = change.as(ProjectAttributeValue.class).value();
         var projectAttributeValues = projectAttributes.get(attributeValue.project().name());
         if (projectAttributeValues == null)
         {
-            // If the project as a whole was deleted, then all attribute values are already gone
-            // from the registry.
             return;
         }
         var weightedValues = projectAttributeValues.get(attributeValue.definition());
         var weightedValue = attributeValue.toWeightedValue();
         weightedValues.remove(weightedValue);
         weightedValues.add(weightedValue);
-        collector.add(REGISTRY_CHANGE);
+        collector.add(REPOSITORY_UPDATE);
     }
 
     private void attributeValueDeleted(Change<?> change, ChangeCollector collector)
     {
-        var attributeValue = change.as(AttributeValue.class).value();
+        var attributeValue = change.as(ProjectAttributeValue.class).value();
         var projectAttributeValues = projectAttributes.get(attributeValue.project().name());
         if (projectAttributeValues == null)
         {
-            // If the project as a whole was deleted, then all attribute values are already gone
-            // from the registry.
             return;
         }
         var weightedValues = projectAttributeValues.get(attributeValue.definition());
         weightedValues.remove(attributeValue.toWeightedValue());
-        collector.add(REGISTRY_CHANGE);
+        collector.add(REPOSITORY_UPDATE);
     }
 
     /// Collect the changes in a set instead of a list so that at the end of the run there is
@@ -134,7 +130,7 @@ final class DefaultAttributeRegistry
     }
 
     @Override
-    public Collection<AttributeDefinition> attributeDefinitions()
+    public Collection<ProjectAttributeDefinition> attributeDefinitions()
     {
         return attributeDefinitions.values();
     }
@@ -146,7 +142,7 @@ final class DefaultAttributeRegistry
     }
 
     @Override
-    public Optional<?> valueOf(Project project, AttributeDefinition definition)
+    public Optional<?> valueOf(Project project, ProjectAttributeDefinition definition)
     {
         var weightedValues = projectAttributes.get(project.name()).get(definition);
         if (weightedValues.isEmpty())

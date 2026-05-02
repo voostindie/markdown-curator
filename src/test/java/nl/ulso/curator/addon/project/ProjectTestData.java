@@ -6,7 +6,7 @@ import nl.ulso.curator.vault.VaultStub;
 import java.time.LocalDate;
 import java.util.*;
 
-import static nl.ulso.curator.addon.project.AttributeDefinition.*;
+import static nl.ulso.curator.addon.project.ProjectAttributeDefinition.*;
 import static nl.ulso.date.LocalDates.parseDateOrNull;
 
 public class ProjectTestData
@@ -42,21 +42,21 @@ public class ProjectTestData
         return vault;
     }
 
-    static final Map<String, AttributeDefinition> ATTRIBUTE_DEFINITIONS = Map.of(
+    static final Map<String, ProjectAttributeDefinition> ATTRIBUTE_DEFINITIONS = Map.of(
         STATUS, newAttributeDefinition(String.class, STATUS),
         LEAD, newAttributeDefinition(Document.class, LEAD, d -> ((Document) d).link()),
         LAST_MODIFIED, newAttributeDefinition(LocalDate.class, LAST_MODIFIED, Object::toString),
         PRIORITY, newAttributeDefinition(Integer.class, PRIORITY)
     );
 
-    static AttributeRegistryStub createAttributeRegistry(VaultStub vault)
+    static ProjectAttributeRepositoryStub createAttributeRegistry(VaultStub vault)
     {
         var vincent = vault.resolveDocumentInPath("Contacts/Vincent");
         var marieke = vault.resolveDocumentInPath("Contacts/Marieke");
         var project1 = vault.resolveDocumentInPath("Projects/Project 1");
         var project2 = vault.resolveDocumentInPath("Projects/Project 2");
         var project3 = vault.resolveDocumentInPath("Projects/Project 3");
-        return new AttributeRegistryStub()
+        return new ProjectAttributeRepositoryStub()
             .withAttribute(project1, "lead", vincent)
             .withAttribute(project1, "status", "🟢")
             .withAttribute(project1, "last_modified", parseDateOrNull("2025-05-03"))
@@ -108,12 +108,12 @@ public class ProjectTestData
 
     }
 
-    static final class AttributeRegistryStub
-        implements AttributeRegistry
+    static final class ProjectAttributeRepositoryStub
+        implements ProjectAttributeRepository
     {
-        private final Map<Project, Map<AttributeDefinition, Object>> attributes = new HashMap<>();
+        private final Map<Project, Map<ProjectAttributeDefinition, Object>> attributes = new HashMap<>();
 
-        AttributeRegistryStub withAttribute(Document document, String attributeName, Object value)
+        ProjectAttributeRepositoryStub withAttribute(Document document, String attributeName, Object value)
         {
             attributes.computeIfAbsent(new Project(document), _ -> new HashMap<>())
                 .put(ATTRIBUTE_DEFINITIONS.get(attributeName), value);
@@ -121,7 +121,7 @@ public class ProjectTestData
         }
 
         @Override
-        public Collection<AttributeDefinition> attributeDefinitions()
+        public Collection<ProjectAttributeDefinition> attributeDefinitions()
         {
             return ATTRIBUTE_DEFINITIONS.values();
         }
@@ -133,7 +133,7 @@ public class ProjectTestData
         }
 
         @Override
-        public Optional<?> valueOf(Project project, AttributeDefinition definition)
+        public Optional<?> valueOf(Project project, ProjectAttributeDefinition definition)
         {
             return Optional.ofNullable(attributes.get(project).get(definition));
         }

@@ -3,8 +3,8 @@ package nl.ulso.curator.addon.project;
 import dagger.*;
 import dagger.Module;
 import jakarta.inject.Singleton;
-import nl.ulso.curator.CuratorModule;
 import nl.ulso.curator.CuratorFactory;
+import nl.ulso.curator.CuratorModule;
 import org.assertj.core.api.SoftAssertions;
 import org.assertj.core.api.junit.jupiter.InjectSoftAssertions;
 import org.assertj.core.api.junit.jupiter.SoftAssertionsExtension;
@@ -52,11 +52,11 @@ class ProjectModuleTest
             return "Stub";
         }
 
-        FrontMatterAttributeProducer frontMatterAttributeProducer();
+        FrontMatterProjectAttributeValueProducer frontMatterAttributeProducer();
 
-        Map<String, AttributeDefinition> attributeDefinitions();
+        Map<String, ProjectAttributeDefinition> attributeDefinitions();
 
-        AttributeRegistry attributeRegistry();
+        ProjectAttributeRepository attributeRegistry();
     }
 
     @Module(includes = {

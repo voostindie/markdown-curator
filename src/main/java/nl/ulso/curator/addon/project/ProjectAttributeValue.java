@@ -6,7 +6,7 @@ import nl.ulso.curator.change.ChangeProcessor;
 import java.util.Objects;
 
 /// Represents a single attribute value for a project. Objects of this type are to be published by
-/// [ChangeProcessor]s as [Change]s. The [AttributeRegistry] tracks these and provides actual values
+/// [ChangeProcessor]s as [Change]s. The [ProjectAttributeRepository] tracks these and provides actual values
 /// to other models and queries.
 ///
 /// An attribute value has a weight. In case there are multiple producers of the same attribute
@@ -14,10 +14,10 @@ import java.util.Objects;
 ///
 /// Attribute values are considered the same if they are for the same project and attribute
 /// definition and have the same weight; the actual value is ignored.
-public record AttributeValue(
-    Project project, AttributeDefinition definition, Object value, int weight)
+public record ProjectAttributeValue(
+    Project project, ProjectAttributeDefinition definition, Object value, int weight)
 {
-    public AttributeValue
+    public ProjectAttributeValue
     {
         if (value != null && !definition.valueType().isInstance(value))
         {
@@ -35,7 +35,7 @@ public record AttributeValue(
         {
             return false;
         }
-        AttributeValue other = (AttributeValue) object;
+        ProjectAttributeValue other = (ProjectAttributeValue) object;
         requireSameProjectAndDefinition(other);
         return this.weight == other.weight;
     }
@@ -46,7 +46,7 @@ public record AttributeValue(
         return Objects.hash(project, definition, weight);
     }
 
-    private void requireSameProjectAndDefinition(AttributeValue other)
+    private void requireSameProjectAndDefinition(ProjectAttributeValue other)
     {
         if (!project.equals(other.project))
         {

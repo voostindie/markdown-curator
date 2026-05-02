@@ -5,14 +5,14 @@ import java.util.function.UnaryOperator;
 import static java.util.Objects.requireNonNull;
 import static java.util.function.UnaryOperator.identity;
 
-final class DefaultAttributeDefinition
-    implements AttributeDefinition
+final class DefaultProjectAttributeDefinition
+    implements ProjectAttributeDefinition
 {
     private final Class<?> valueType;
     private final String frontMatterProperty;
     private final UnaryOperator<Object> asFrontMatterFunction;
 
-    DefaultAttributeDefinition(
+    DefaultProjectAttributeDefinition(
         Class<?> valueType, String frontMatterProperty,
         UnaryOperator<Object> asFrontMatterFunction)
     {
@@ -21,7 +21,7 @@ final class DefaultAttributeDefinition
         this.asFrontMatterFunction = asFrontMatterFunction;
     }
 
-    DefaultAttributeDefinition(Class<?> valueType, String frontMatterProperty)
+    DefaultProjectAttributeDefinition(Class<?> valueType, String frontMatterProperty)
     {
         this(valueType, frontMatterProperty, identity());
     }

@@ -11,10 +11,10 @@ import java.util.Map;
 
 import static java.lang.Integer.MAX_VALUE;
 import static java.util.Comparator.comparingInt;
-import static nl.ulso.curator.addon.project.AttributeDefinition.LAST_MODIFIED;
-import static nl.ulso.curator.addon.project.AttributeDefinition.LEAD;
-import static nl.ulso.curator.addon.project.AttributeDefinition.PRIORITY;
-import static nl.ulso.curator.addon.project.AttributeDefinition.STATUS;
+import static nl.ulso.curator.addon.project.ProjectAttributeDefinition.LAST_MODIFIED;
+import static nl.ulso.curator.addon.project.ProjectAttributeDefinition.LEAD;
+import static nl.ulso.curator.addon.project.ProjectAttributeDefinition.PRIORITY;
+import static nl.ulso.curator.addon.project.ProjectAttributeDefinition.STATUS;
 import static nl.ulso.curator.change.Change.isPayloadType;
 
 /// Lists all active projects, either in a simple list or in a table.
@@ -22,7 +22,7 @@ public final class ProjectListQuery
     implements Query
 {
     private final ProjectRepository projectRepository;
-    private final AttributeRegistry attributeRegistry;
+    private final ProjectAttributeRepository projectAttributeRepository;
     private final GeneralMessages messages;
     private final QueryResultFactory resultFactory;
 
@@ -38,12 +38,12 @@ public final class ProjectListQuery
     @Inject
     public ProjectListQuery(
         ProjectRepository projectRepository,
-        AttributeRegistry attributeRegistry,
+        ProjectAttributeRepository projectAttributeRepository,
         GeneralMessages messages,
         QueryResultFactory resultFactory)
     {
         this.projectRepository = projectRepository;
-        this.attributeRegistry = attributeRegistry;
+        this.projectAttributeRepository = projectAttributeRepository;
         this.messages = messages;
         this.resultFactory = resultFactory;
     }
@@ -70,7 +70,7 @@ public final class ProjectListQuery
     public boolean isImpactedBy(Changelog changelog, QueryDefinition definition)
     {
         return changelog.changes()
-            .anyMatch(isPayloadType(AttributeRegistryUpdate.class));
+            .anyMatch(isPayloadType(ProjectAttributeRepositoryUpdate.class));
     }
 
     @Override
@@ -82,7 +82,7 @@ public final class ProjectListQuery
             return resultFactory.error("Unsupported format");
         }
         var projects = projectRepository.projects().stream()
-            .sorted(comparingInt(p -> attributeRegistry.valueOf(p, PRIORITY)
+            .sorted(comparingInt(p -> projectAttributeRepository.valueOf(p, PRIORITY)
                 .map(i -> ((Integer) i))
                 .orElse(MAX_VALUE)));
         return switch (format)
@@ -99,24 +99,24 @@ public final class ProjectListQuery
                 ),
                 projects.map((Project project) -> Map.of(
                         messages.projectPriority(),
-                        attributeRegistry.valueOf(project, PRIORITY)
+                        projectAttributeRepository.valueOf(project, PRIORITY)
                             .map(i -> (Integer) i)
                             .map(p -> Integer.toString(p))
                             .orElse(messages.projectPriorityUnknown()),
                         messages.projectName(),
                         project.document().link(),
                         messages.projectLead(),
-                        attributeRegistry.valueOf(project, LEAD)
+                        projectAttributeRepository.valueOf(project, LEAD)
                             .map(d -> (Document) d)
                             .map(Document::link)
                             .orElse(messages.projectLeadUnknown()),
                         messages.projectLastModified(),
-                        attributeRegistry.valueOf(project, LAST_MODIFIED)
+                        projectAttributeRepository.valueOf(project, LAST_MODIFIED)
                             .map(d -> (LocalDate) d)
                             .map(d -> "[[" + d + "]]")
                             .orElse(messages.projectDateUnknown()),
                         messages.projectStatus(),
-                        attributeRegistry.valueOf(project, STATUS)
+                        projectAttributeRepository.valueOf(project, STATUS)
                             .map(s -> (String) s)
                             .orElse(messages.projectStatusUnknown())
                     ))
