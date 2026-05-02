@@ -6,6 +6,7 @@ import dagger.multibindings.*;
 import jakarta.inject.Singleton;
 import nl.ulso.curator.change.ChangeProcessor;
 import nl.ulso.curator.query.Query;
+import nl.ulso.curator.statistics.MeasurementTracker;
 import nl.ulso.curator.vault.Document;
 
 import java.time.LocalDate;
@@ -22,10 +23,10 @@ import static nl.ulso.curator.addon.project.AttributeDefinition.*;
 /// are resolved. By default, the following attributes are provided, all resolved from the front
 /// matter in the project documents themselves:
 ///
-/// - [#LAST_MODIFIED]: the last modification date of the project, a [java.time.LocalDate].
-/// - [#LEAD]: the lead on the project, a [nl.ulso.curator.vault.Document].
-/// - [#PRIORITY]: the priority of the project, an [Integer].
-/// - [#STATUS]: the status of the project, a [String].
+/// - [LAST_MODIFIED]: the last modification date of the project, a [java.time.LocalDate].
+/// - [LEAD]: the lead on the project, a [nl.ulso.curator.vault.Document].
+/// - [PRIORITY]: the priority of the project, an [Integer].
+/// - [STATUS]: the status of the project, a [String].
 ///
 /// Project attributes, when resolved, are written back to the front matter of the project
 /// documents. (In the default case, where attributes are resolved from these same documents,
@@ -84,11 +85,15 @@ public abstract class ProjectModule
 
     @Binds
     @IntoSet
-    abstract ChangeProcessor bindProjectRepositoryProcessor(
+    abstract ChangeProcessor bindProjectProcessor(
         DefaultProjectRepository projectRepository);
 
     @Binds
     abstract ProjectRepository bindProjectRepository(DefaultProjectRepository projectRepository);
+
+    @Binds
+    @IntoSet
+    abstract MeasurementTracker bindProjectMeasurements(DefaultProjectRepository projectRepository);
 
     @Binds
     @IntoSet
