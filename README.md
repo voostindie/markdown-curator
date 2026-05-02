@@ -423,6 +423,7 @@ This query is a specialization of the `projectlist` query: it selects only those
 
 - The system is fully event-driven. Every incoming change — a folder is created, a document is updated, and so on — is an event. When building change processors, take the mindset of changing any internal state one change at a time. Always. (At application startup the curator generates an event per document and folder in the vault.)
 - Subscribing to `Folder` events is hardly ever needed. When a `Folder` is created or deleted, this also triggers events for every folder and document inside it.
+- A rename to a `Document` or `Folder` always results into a creation and deletion event, and never in an update event.
 - Always define a Java interface with the API that queries need — read-only access only — and then implement this interface in a change processor. This acts as a clean separation of the two phases in the system.
 - When implementing a change processor, consider also implementing the `MeasurementTracker` interface. All base classes already do this; all you need to do is register your implementation in the corresponding Dagger module. 
 - Remember to implement the `isImpactedBy` method in your queries to inspect the changelog.
