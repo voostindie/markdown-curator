@@ -11,4 +11,10 @@ public record AttributeRegistryUpdate()
 {
     static final Change<AttributeRegistryUpdate> REGISTRY_CHANGE =
         update(new AttributeRegistryUpdate(), AttributeRegistryUpdate.class);
+
+    @Override
+    public String toString()
+    {
+        return ".";
+    }
 }

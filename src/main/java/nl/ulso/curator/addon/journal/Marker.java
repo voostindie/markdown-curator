@@ -1,7 +1,7 @@
 package nl.ulso.curator.addon.journal;
 
-import nl.ulso.dictionary.Dictionary;
 import nl.ulso.curator.vault.Document;
+import nl.ulso.dictionary.Dictionary;
 
 public record Marker(Document document)
 {
@@ -13,5 +13,11 @@ public record Marker(Document document)
     public Dictionary settings()
     {
         return document.frontMatter();
+    }
+
+    @Override
+    public String toString()
+    {
+        return name();
     }
 }

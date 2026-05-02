@@ -65,4 +65,10 @@ public record AttributeValue(
     {
         return new WeightedValue(value, weight);
     }
+
+    @Override
+    public String toString()
+    {
+        return project().name() + ", " + definition.frontMatterProperty() + ": " + value + ", weight: " + weight;
+    }
 }

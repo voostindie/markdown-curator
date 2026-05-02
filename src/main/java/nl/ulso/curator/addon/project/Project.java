@@ -33,4 +33,10 @@ public record Project(Document document)
     {
         return Objects.hashCode(document.name());
     }
+
+    @Override
+    public String toString()
+    {
+        return name();
+    }
 }

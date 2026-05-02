@@ -80,6 +80,12 @@ public final class Daily
     }
 
     @Override
+    public String toString()
+    {
+        return date.toString();
+    }
+
+    @Override
     public int hashCode()
     {
         return Objects.hash(date);
