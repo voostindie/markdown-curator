@@ -22,7 +22,7 @@ final class FileDeletedEventHandler
         var name = documentName(eventAbsolutePath);
         parent.document(name).ifPresent(document ->
         {
-            LOGGER.debug("Deleted document '{}'.", name);
+            LOGGER.trace("Deleted document '{}'.", name);
             parent.removeDocument(name);
             callback.vaultChanged(delete(document, Document.class));
         });

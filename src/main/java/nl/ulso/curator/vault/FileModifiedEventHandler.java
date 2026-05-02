@@ -20,7 +20,7 @@ final class FileModifiedEventHandler
     {
         var eventAbsolutePath = event.path();
         var newDocument = newDocumentFromAbsolutePath(eventAbsolutePath);
-        LOGGER.debug("Detected changes to document '{}'.", newDocument);
+        LOGGER.trace("Detected changes to document '{}'.", newDocument);
         var oldDocument = parent.addDocument(newDocument);
         callback.vaultChanged(update(oldDocument, newDocument, Document.class));
     }

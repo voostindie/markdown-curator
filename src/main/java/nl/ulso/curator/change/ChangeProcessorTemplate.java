@@ -40,7 +40,7 @@ public abstract class ChangeProcessorTemplate
         this.changeHandlers = Set.copyOf(createChangeHandlers());
         if (this.changeHandlers.isEmpty())
         {
-            LOGGER.debug("No change handlers configured for change processor: {}.",
+            LOGGER.warn("No change handlers configured for change processor: {}.",
                 this.getClass().getSimpleName()
             );
         }
@@ -79,9 +79,6 @@ public abstract class ChangeProcessorTemplate
         var collector = new DefaultChangeCollector(createChangeCollection());
         if (!changeHandlers.isEmpty())
         {
-            LOGGER.debug("Processing the changelog on change processor: {}.",
-                this.getClass().getSimpleName()
-            );
             process(changelog, collector);
         }
         return collector.changelog();

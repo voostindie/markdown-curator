@@ -46,7 +46,7 @@ final class VaultReloader
         {
             if (this.watchDocumentName != null)
             {
-                LOGGER.debug("Watch document configured: {}.", watchDocumentName);
+                LOGGER.debug("Watch document configured: '{}'.", this.watchDocumentName);
             }
             else
             {

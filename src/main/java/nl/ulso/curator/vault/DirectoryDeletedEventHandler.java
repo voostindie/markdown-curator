@@ -29,7 +29,7 @@ final class DirectoryDeletedEventHandler
         var name = folderName(eventAbsolutePath);
         parent.folder(name).ifPresent(folder ->
         {
-            LOGGER.debug("Deleted folder '{}'.", name);
+            LOGGER.trace("Deleted folder '{}'.", name);
             parent.removeFolder(name);
             var deleter = new RecursiveFolderDeleter(callback);
             folder.accept(deleter);

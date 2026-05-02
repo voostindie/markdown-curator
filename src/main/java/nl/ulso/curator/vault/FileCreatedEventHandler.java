@@ -20,7 +20,7 @@ final class FileCreatedEventHandler
     {
         var eventAbsolutePath = event.path();
         var document = newDocumentFromAbsolutePath(eventAbsolutePath);
-        LOGGER.debug("Detected new document '{}'.", document);
+        LOGGER.trace("Detected new document '{}'.", document);
         parent.addDocument(document);
         callback.vaultChanged(create(document, Document.class));
     }

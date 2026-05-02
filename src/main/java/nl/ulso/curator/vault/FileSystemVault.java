@@ -81,7 +81,7 @@ final class FileSystemVault
         if (LOGGER.isInfoEnabled())
         {
             var statistics = ElementCounter.countFoldersAndDocuments(this);
-            LOGGER.info("Read vault {} into memory with {} folders and {} documents", name(),
+            LOGGER.info("Read vault {} into memory with {} folders and {} documents.", name(),
                 statistics.folders(), statistics.documents()
             );
         }

@@ -1,11 +1,15 @@
 package nl.ulso.curator.change;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.util.ArrayList;
 import java.util.Collection;
 
 final class DefaultChangeCollector
     implements ChangeCollector
 {
+    private final Logger LOGGER = LoggerFactory.getLogger(DefaultChangeCollector.class);
     private final Collection<Change<?>> collection;
 
     DefaultChangeCollector()
@@ -21,6 +25,9 @@ final class DefaultChangeCollector
     @Override
     public <T> void add(Change<T> change)
     {
+        LOGGER.trace("Collecting {} on {}: '{}'.",
+            change.kind(), change.payloadType().getSimpleName(), change.value()
+        );
         collection.add(change);
     }
 

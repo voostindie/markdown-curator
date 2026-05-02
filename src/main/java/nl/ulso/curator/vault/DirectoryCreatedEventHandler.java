@@ -31,7 +31,7 @@ final class DirectoryCreatedEventHandler
             return;
         }
         var folder = parent.addFolder(folderName(eventAbsolutePath));
-        LOGGER.debug("Detected new folder '{}'.", folder);
+        LOGGER.trace("Detected new folder '{}'.", folder);
         callback.vaultChanged(create(folder, Folder.class));
         try
         {

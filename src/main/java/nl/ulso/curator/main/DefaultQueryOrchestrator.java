@@ -115,7 +115,7 @@ final class DefaultQueryOrchestrator
             {
                 if (impactedDocuments.contains(queryBlock.document()))
                 {
-                    LOGGER.debug("Impact on document '{}' already determined. Skipping validation.",
+                    LOGGER.trace("Impact on document '{}' already determined. Skipping validation.",
                         queryBlock.document()
                     );
                     return;
@@ -123,7 +123,7 @@ final class DefaultQueryOrchestrator
                 var hash = queryBlock.outputHash();
                 if (hash == null || hash.isEmpty())
                 {
-                    LOGGER.debug(
+                    LOGGER.trace(
                         "Document '{}' has a query block without output hash. " +
                         "Adding.",
                         queryBlock.document()
@@ -134,7 +134,7 @@ final class DefaultQueryOrchestrator
                 var query = queryCatalog.query(queryBlock.queryName());
                 if (query.isImpactedBy(changelog, queryBlock))
                 {
-                    LOGGER.debug(
+                    LOGGER.trace(
                         "Document '{}' has a query that might be impacted by the changelog. " +
                         "Adding.",
                         queryBlock.document()
