@@ -2,8 +2,8 @@ package nl.ulso.curator.change;
 
 import java.util.Set;
 
-/// Base class for change processors that process entities of a specific type and that do not
-/// keep any internal state.
+/// Base class for change processors that process entities of a specific type and that do not keep
+/// any internal state.
 public abstract class EntityProcessor<E>
     implements ChangeProcessor
 {
@@ -34,7 +34,7 @@ public abstract class EntityProcessor<E>
                         break;
                 }
             });
-        return Changelog.emptyChangelog();
+        return collector.changelog();
     }
 
     protected abstract Class<E> entityClass();
