@@ -9,6 +9,7 @@ import org.slf4j.Logger;
 import java.util.*;
 
 import static java.util.Collections.unmodifiableMap;
+import static java.util.stream.Collectors.joining;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /// Simple [QueryCatalog] implementation that keeps the catalog in memory.
@@ -18,7 +19,7 @@ import static org.slf4j.LoggerFactory.getLogger;
 /// duplicates as they are found.
 @Singleton
 final class DefaultQueryCatalog
-        implements QueryCatalog
+    implements QueryCatalog
 {
     private static final Logger LOGGER = getLogger(DefaultQueryCatalog.class);
 
@@ -41,13 +42,20 @@ final class DefaultQueryCatalog
             else if (LOGGER.isWarnEnabled())
             {
                 LOGGER.warn("Duplicate query name: '{}'. Application behavior is unspecified!",
-                        query.name());
+                    query.name()
+                );
             }
         }
         queries = unmodifiableMap(map);
         if (LOGGER.isDebugEnabled())
         {
-            LOGGER.debug("Initialized query catalog with {} queries", queries.size());
+            LOGGER.debug("{} queries are available in the catalog: {}.",
+                queries.size(),
+                queries.keySet().stream()
+                    .sorted()
+                    .map(query -> "'" + query + "'")
+                    .collect(joining(", "))
+            );
         }
     }
 
