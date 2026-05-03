@@ -138,8 +138,7 @@ final class DefaultChangeProcessorOrchestrator
         if (LOGGER.isDebugEnabled())
         {
             LOGGER.debug("{} change processors will be refreshed in this order: {}", result.size(),
-                result.stream().map(processor -> processor.getClass().getSimpleName())
-                    .collect(Collectors.joining(", "))
+                result.stream().map(Object::toString).collect(Collectors.joining(", "))
             );
         }
         return copyOf(result);
@@ -169,23 +168,19 @@ final class DefaultChangeProcessorOrchestrator
                 if (filteredChangelog.isEmpty())
                 {
                     LOGGER.debug("Skipping change processor {}. No relevant changes available.",
-                        processor.getClass().getSimpleName()
+                        processor
                     );
                     continue;
                 }
-                LOGGER.debug("Running change processor {}.",
-                    processor.getClass().getSimpleName()
-                );
+                LOGGER.debug("Running change processor {}.", processor);
                 var newChangelog = processor.apply(filteredChangelog);
                 verifyChanges(processor, newChangelog);
                 changelog = changelog.append(newChangelog);
-                LOGGER.trace("Executed change processor {}.",
-                    processor.getClass().getSimpleName()
-                );
+                LOGGER.trace("Executed change processor {}.", processor);
             }
             catch (RuntimeException e)
             {
-                LOGGER.error("Caught runtime exception while executing change processor '{}'.",
+                LOGGER.error("Caught runtime exception while executing change processor {}.",
                     processor.getClass().getSimpleName(), e
                 );
             }
@@ -208,9 +203,9 @@ final class DefaultChangeProcessorOrchestrator
             if (LOGGER.isDebugEnabled())
             {
                 LOGGER.debug(
-                    "Change processor '{}' produced changes of a type that it doesn't claim to " +
+                    "Change processor {} produced changes of a type that it doesn't claim to " +
                     "produce. Produced types: {}. Allowed types: {}.",
-                    processor.getClass().getSimpleName(),
+                    processor,
                     newChangelog.changes()
                         .map(Change::payloadType)
                         .map(Class::getSimpleName)

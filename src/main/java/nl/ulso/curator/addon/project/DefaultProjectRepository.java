@@ -78,4 +78,10 @@ final class DefaultProjectRepository
     {
         return Optional.ofNullable(map().get(document.name()));
     }
+
+    @Override
+    public String toString()
+    {
+        return ProjectRepository.class.getSimpleName();
+    }
 }

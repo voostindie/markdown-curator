@@ -176,4 +176,10 @@ public final class FrontMatterProjectAttributeValueProducer
         var result = frontMatter.integer(frontMatterProperty, 0);
         return Optional.of(result);
     }
+
+    @Override
+    public String toString()
+    {
+        return FrontMatterProjectAttributeValueProducer.class.getSimpleName();
+    }
 }

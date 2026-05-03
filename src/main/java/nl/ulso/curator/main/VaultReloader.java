@@ -81,4 +81,10 @@ final class VaultReloader
         }
         return emptyChangelog();
     }
+
+    @Override
+    public String toString()
+    {
+        return VaultReloader.class.getSimpleName();
+    }
 }

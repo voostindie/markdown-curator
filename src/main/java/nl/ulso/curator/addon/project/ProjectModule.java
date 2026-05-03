@@ -111,7 +111,8 @@ public abstract class ProjectModule
 
     @Binds
     @IntoSet
-    abstract ChangeProcessor bindFrontMatterPropertyWriter(FrontMatterPropertyWriter producer);
+    abstract ChangeProcessor bindFrontMatterPropertyWriter(
+        ProjectAttributeValueFrontMatterWriter producer);
 
     @Binds
     @IntoSet

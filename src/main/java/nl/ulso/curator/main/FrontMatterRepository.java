@@ -91,6 +91,12 @@ final class FrontMatterRepository
         return unmodifiableMap(finder.newFrontMatters);
     }
 
+    @Override
+    public String toString()
+    {
+        return FrontMatterRepository.class.getSimpleName();
+    }
+
     private class FrontMatterRewriteFinder
         extends BreadthFirstVaultVisitor
     {

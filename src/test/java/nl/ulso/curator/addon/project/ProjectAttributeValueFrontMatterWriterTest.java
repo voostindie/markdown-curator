@@ -18,11 +18,11 @@ import static nl.ulso.curator.change.Changelog.changelogFor;
 import static nl.ulso.dictionary.Dictionary.mutableDictionary;
 import static org.assertj.core.api.Assertions.assertThat;
 
-class FrontMatterPropertyWriterTest
+class ProjectAttributeValueFrontMatterWriterTest
 {
     private VaultStub vault;
     private ProjectAttributeRepositoryStub registry;
-    private FrontMatterPropertyWriter writer;
+    private ProjectAttributeValueFrontMatterWriter writer;
     private FrontMatterCollectorStub collector;
 
     @BeforeEach
@@ -31,7 +31,7 @@ class FrontMatterPropertyWriterTest
         vault = ProjectTestData.createTestVault();
         registry = ProjectTestData.createAttributeRegistry(vault);
         collector = new FrontMatterCollectorStub();
-        writer = new FrontMatterPropertyWriter(registry, collector);
+        writer = new ProjectAttributeValueFrontMatterWriter(registry, collector);
     }
 
     @Test

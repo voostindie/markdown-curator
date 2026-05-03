@@ -151,4 +151,10 @@ final class DefaultProjectAttributeRepository
         }
         return Optional.of(weightedValues.last().value());
     }
+
+    @Override
+    public String toString()
+    {
+        return ProjectAttributeRepository.class.getSimpleName();
+    }
 }

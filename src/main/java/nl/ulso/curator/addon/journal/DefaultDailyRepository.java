@@ -143,6 +143,12 @@ final class DefaultDailyRepository
         return dailiesFor(documentName).map(Daily::date).max(naturalOrder());
     }
 
+    @Override
+    public String toString()
+    {
+        return DailyRepository.class.getSimpleName();
+    }
+
     private class ActivitiesSectionFinder
         extends BreadthFirstVaultVisitor
     {

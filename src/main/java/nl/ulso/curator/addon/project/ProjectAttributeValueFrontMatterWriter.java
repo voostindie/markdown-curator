@@ -20,14 +20,14 @@ import static nl.ulso.curator.change.ChangeHandler.newChangeHandler;
 /// the final and correct value for the attribute. For example, the update might have been
 /// irrelevant because there is another value with a higher weight that did not change.
 @Singleton
-public final class FrontMatterPropertyWriter
+public final class ProjectAttributeValueFrontMatterWriter
     extends ChangeProcessorTemplate
 {
     private final ProjectAttributeRepository projectAttributeRepository;
     private final FrontMatterCollector frontMatterCollector;
 
     @Inject
-    FrontMatterPropertyWriter(
+    ProjectAttributeValueFrontMatterWriter(
         ProjectAttributeRepository projectAttributeRepository,
         FrontMatterCollector frontMatterCollector)
     {
@@ -76,5 +76,11 @@ public final class FrontMatterPropertyWriter
                     () -> dictionary.removeProperty(definition.frontMatterProperty())
                 )
         );
+    }
+
+    @Override
+    public String toString()
+    {
+        return ProjectAttributeValueFrontMatterWriter.class.getSimpleName();
     }
 }

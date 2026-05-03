@@ -74,4 +74,10 @@ final class DefaultMarkerRepository
     {
         return isEntity(document);
     }
+
+    @Override
+    public String toString()
+    {
+        return MarkerRepository.class.getSimpleName();
+    }
 }

@@ -101,4 +101,10 @@ final class DefaultWeeklyRepository
     {
         return date.get(weekFields.dayOfWeek());
     }
+
+    @Override
+    public String toString()
+    {
+        return WeeklyRepository.class.getSimpleName();
+    }
 }
