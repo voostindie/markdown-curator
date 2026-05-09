@@ -3,6 +3,8 @@ package nl.ulso.curator.statistics;
 import java.util.HashMap;
 import java.util.Map;
 
+import static java.lang.Character.isUpperCase;
+import static java.lang.Character.toLowerCase;
 import static java.util.Collections.emptyMap;
 import static java.util.Objects.requireNonNull;
 
@@ -21,8 +23,29 @@ final class DefaultMeasurementCollector
     {
         var packageName = entityClass.getPackageName();
         var module = packageName.substring(packageName.lastIndexOf('.') + 1);
-        var entity = entityClass.getSimpleName().toLowerCase();
+        var entity = toSnakeCase(entityClass.getSimpleName());
         return total(module, entity, count);
+    }
+
+    private String toSnakeCase(String simpleClassName)
+    {
+        StringBuilder result = new StringBuilder();
+        for (char c : simpleClassName.toCharArray())
+        {
+            if (isUpperCase(c))
+            {
+                if (!result.isEmpty())
+                {
+                    result.append("_");
+                }
+                result.append(toLowerCase(c));
+            }
+            else
+            {
+                result.append(c);
+            }
+        }
+        return result.toString();
     }
 
     @Override

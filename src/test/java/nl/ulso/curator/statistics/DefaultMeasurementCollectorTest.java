@@ -38,4 +38,16 @@ class DefaultMeasurementCollectorTest
         softly.assertThat(collector.totalFor("module2", "entity2")).isEqualTo(15);
         softly.assertThat(collector.totalFor("module2", "entity4")).isEqualTo(25);
     }
+
+    @Test
+    void testEntityClassToSnakeCase()
+    {
+        var collector = new DefaultMeasurementCollector();
+        collector.total(EntityToConvertToSnakeCase.class, 10);
+        assertThat(collector.totalFor("statistics", "entity_to_convert_to_snake_case"))
+            .isEqualTo(10);
+    }
+
+    private record EntityToConvertToSnakeCase() {}
+
 }

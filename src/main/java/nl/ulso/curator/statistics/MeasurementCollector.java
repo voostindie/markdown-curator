@@ -8,7 +8,7 @@ package nl.ulso.curator.statistics;
 public interface MeasurementCollector
 {
     /// Sets the total for a specific entity class. The name of the entity is the simple name of the
-    /// class in lower case, and the name of the module is the last part of the package name of the
+    /// class in snake case, and the name of the module is the last part of the package name of the
     /// class.
     MeasurementCollector total(Class<?> entityClass, long count);
 
