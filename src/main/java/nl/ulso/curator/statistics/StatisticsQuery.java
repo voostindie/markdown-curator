@@ -12,7 +12,8 @@ import java.util.Map;
 import static java.util.Collections.emptyMap;
 
 @Singleton
-public class StatisticsQuery implements Query
+final class StatisticsQuery
+    implements Query
 {
     private final Statistics statistics;
     private final QueryResultFactory queryResultFactory;
