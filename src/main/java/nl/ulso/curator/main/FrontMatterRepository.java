@@ -25,7 +25,7 @@ import static nl.ulso.dictionary.Dictionary.mutableDictionary;
 /// The repository is also a [ChangeProcessor] to detect vault changes and document deletions, in
 /// which case it cleans up its state.
 ///
-/// The internal map is kept as small as possible. Dictionaries are created only on request, and
+/// The internal map is kept as small as possible. Dictionaries are created only on request and
 /// immediately removed when they're empty.
 @Singleton
 final class FrontMatterRepository
@@ -50,13 +50,10 @@ final class FrontMatterRepository
         {
             documentFrontMatters.clear();
         }
-        else
-        {
-            changelog.changes()
-                .filter(change -> change.kind() == Change.Kind.DELETE)
-                .map(change -> change.as(Document.class).value().name())
-                .forEach(documentFrontMatters::remove);
-        }
+        changelog.changesFor(Document.class)
+            .filter(change -> change.kind() == Change.Kind.DELETE)
+            .map(change -> change.as(Document.class).value().name())
+            .forEach(documentFrontMatters::remove);
         return emptyChangelog();
     }
 
@@ -92,7 +89,7 @@ final class FrontMatterRepository
     }
 
     @Override
-    public String toString()
+    public String name()
     {
         return FrontMatterRepository.class.getSimpleName();
     }

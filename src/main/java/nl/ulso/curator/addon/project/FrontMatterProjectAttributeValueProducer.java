@@ -2,7 +2,8 @@ package nl.ulso.curator.addon.project;
 
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
-import nl.ulso.curator.change.*;
+import nl.ulso.curator.change.ChangeCollector;
+import nl.ulso.curator.change.EntityProcessor;
 import nl.ulso.curator.vault.Document;
 import nl.ulso.curator.vault.Vault;
 import nl.ulso.dictionary.Dictionary;
@@ -10,47 +11,31 @@ import nl.ulso.dictionary.Dictionary;
 import java.time.LocalDate;
 import java.util.*;
 
-import static nl.ulso.curator.change.Change.isCreate;
-import static nl.ulso.curator.change.Change.isUpdate;
-import static nl.ulso.curator.change.ChangeHandler.newChangeHandler;
-
 /// Produces attribute values for all available attribute definitions from front matter properties.
 ///
 /// Is the default, built-in mechanism for resolving attribute values. All values set by this
 /// producer have a weight of 0 and are expected to be overruled by other attribute producers that
 /// use larger weights.
-///
-/// This processor triggers only on project creation and project updates. There's no need to trigger
-/// on project deletes, as in that case all associated attribute values are deleted by the
-/// [DefaultProjectAttributeRepository].
 @Singleton
 public final class FrontMatterProjectAttributeValueProducer
-    extends ChangeProcessorTemplate
+    extends EntityProcessor<Project>
 {
     private static final int WEIGHT = 0;
     private final Collection<ProjectAttributeDefinition> projectAttributeDefinitions;
     private final Vault vault;
 
     @Inject
-    FrontMatterProjectAttributeValueProducer(Map<String, ProjectAttributeDefinition> attributeDefinitions, Vault vault)
+    FrontMatterProjectAttributeValueProducer(
+        Map<String, ProjectAttributeDefinition> attributeDefinitions, Vault vault)
     {
         this.projectAttributeDefinitions = attributeDefinitions.values();
         this.vault = vault;
     }
 
     @Override
-    protected Set<? extends ChangeHandler> createChangeHandlers()
+    protected Class<Project> entityClass()
     {
-        return Set.of(
-            newChangeHandler(isCreate(), this::projectCreated),
-            newChangeHandler(isUpdate(), this::projectUpdated)
-        );
-    }
-
-    @Override
-    public Set<Class<?>> consumedPayloadTypes()
-    {
-        return Set.of(Project.class);
+        return Project.class;
     }
 
     @Override
@@ -59,32 +44,29 @@ public final class FrontMatterProjectAttributeValueProducer
         return Set.of(ProjectAttributeValue.class);
     }
 
+    /// Creates a project attribute value for each supported front matter property in the project
+    /// document.
     @Override
-    protected boolean isResetRequired(Changelog changelog)
+    protected void entityCreated(Project newProject, ChangeCollector collector)
     {
-        return false;
-    }
-
-    private void projectCreated(Change<?> change, ChangeCollector collector)
-    {
-        var project = change.as(Project.class).value();
-        var frontMatter = project.document().frontMatter();
+        var frontMatter = newProject.document().frontMatter();
         for (var definition : projectAttributeDefinitions)
         {
             convertProperty(definition, frontMatter).ifPresent(value ->
                 collector.create(
-                    new ProjectAttributeValue(project, definition, value, WEIGHT),
+                    new ProjectAttributeValue(newProject, definition, value, WEIGHT),
                     ProjectAttributeValue.class
                 )
             );
         }
     }
 
-    private void projectUpdated(Change<?> change, ChangeCollector collector)
+    /// Compares the supported front matter properties in the old and new project documents and
+    /// creates, updates, or deletes project attribute values accordingly.
+    @Override
+    protected void entityUpdate(Project oldProject, Project newProject, ChangeCollector collector)
     {
-        var oldProject = change.as(Project.class).oldValue();
         var oldFrontMatter = oldProject.document().frontMatter();
-        var newProject = change.as(Project.class).newValue();
         var newFrontMatter = newProject.document().frontMatter();
         for (var definition : projectAttributeDefinitions)
         {
@@ -115,6 +97,23 @@ public final class FrontMatterProjectAttributeValueProducer
                     );
                 }
             }
+        }
+    }
+
+    /// Deletes all supported project attribute values from front matter properties associated with
+    /// the given project.
+    @Override
+    protected void entityDeleted(Project oldProject, ChangeCollector collector)
+    {
+        var frontMatter = oldProject.document().frontMatter();
+        for (var definition : projectAttributeDefinitions)
+        {
+            convertProperty(definition, frontMatter).ifPresent(value ->
+                collector.delete(
+                    new ProjectAttributeValue(oldProject, definition, value, WEIGHT),
+                    ProjectAttributeValue.class
+                )
+            );
         }
     }
 
@@ -178,7 +177,7 @@ public final class FrontMatterProjectAttributeValueProducer
     }
 
     @Override
-    public String toString()
+    public String name()
     {
         return FrontMatterProjectAttributeValueProducer.class.getSimpleName();
     }

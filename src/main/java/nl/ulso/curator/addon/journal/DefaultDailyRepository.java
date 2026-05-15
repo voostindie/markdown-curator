@@ -9,7 +9,6 @@ import java.time.LocalDate;
 import java.util.*;
 import java.util.stream.Stream;
 
-import static java.util.Comparator.naturalOrder;
 import static java.util.Comparator.reverseOrder;
 import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.toUnmodifiableSet;
@@ -140,11 +139,20 @@ final class DefaultDailyRepository
     @Override
     public Optional<LocalDate> mostRecentMentionOf(String documentName)
     {
-        return dailiesFor(documentName).map(Daily::date).max(naturalOrder());
+        var daily = latest();
+        while (daily.isPresent())
+        {
+            if (daily.get().refersTo(documentName))
+            {
+                return daily.map(Daily::date);
+            }
+            daily = dailyBefore(daily.get());
+        }
+        return Optional.empty();
     }
 
     @Override
-    public String toString()
+    public String name()
     {
         return DailyRepository.class.getSimpleName();
     }

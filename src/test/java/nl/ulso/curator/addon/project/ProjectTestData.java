@@ -103,9 +103,14 @@ public class ProjectTestData
         @Override
         public Optional<Project> projectFor(Document document)
         {
-            return Optional.ofNullable(projects.get(document.name()));
+            return projectNamed(document.name());
         }
 
+        @Override
+        public Optional<Project> projectNamed(String name)
+        {
+            return Optional.ofNullable(projects.get(name));
+        }
     }
 
     static final class ProjectAttributeRepositoryStub

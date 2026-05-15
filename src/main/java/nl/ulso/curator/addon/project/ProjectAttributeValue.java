@@ -69,6 +69,6 @@ public record ProjectAttributeValue(
     @Override
     public String toString()
     {
-        return project().name() + ", " + definition.frontMatterProperty() + ": " + value + ", weight: " + weight;
+        return project().name() + "', " + definition.frontMatterProperty() + ": '" + value + "', weight: '" + weight;
     }
 }

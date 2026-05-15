@@ -76,7 +76,7 @@ final class DefaultMarkerRepository
     }
 
     @Override
-    public String toString()
+    public String name()
     {
         return MarkerRepository.class.getSimpleName();
     }

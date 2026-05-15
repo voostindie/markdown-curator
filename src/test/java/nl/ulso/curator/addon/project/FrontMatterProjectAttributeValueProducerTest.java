@@ -16,6 +16,7 @@ import static nl.ulso.curator.change.Change.Kind.CREATE;
 import static nl.ulso.curator.change.Change.Kind.DELETE;
 import static nl.ulso.curator.change.Change.Kind.UPDATE;
 import static nl.ulso.curator.change.Change.create;
+import static nl.ulso.curator.change.Change.delete;
 import static nl.ulso.curator.change.Change.update;
 import static nl.ulso.curator.change.Changelog.changelogFor;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -103,5 +104,15 @@ class FrontMatterProjectAttributeValueProducerTest
                 "last_modified"
             )
         );
+    }
+
+    @Test
+    void projectDeletionAlsoDeletesAttributes()
+    {
+        var project = new Project(vault.resolveDocumentInPath("Projects/Project 1"));
+        var changelog = producer.apply(changelogFor(delete(project, Project.class)));
+        var changes = changelog.changesFor(ProjectAttributeValue.class).toList();
+        assertThat(changes).hasSize(3);
+
     }
 }

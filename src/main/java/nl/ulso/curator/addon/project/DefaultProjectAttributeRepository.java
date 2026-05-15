@@ -3,22 +3,36 @@ package nl.ulso.curator.addon.project;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 import nl.ulso.curator.change.*;
+import nl.ulso.curator.statistics.MeasurementCollector;
+import nl.ulso.curator.statistics.MeasurementTracker;
+import nl.ulso.curator.vault.Vault;
+import org.slf4j.Logger;
 
 import java.util.*;
 
+import static java.util.Collections.emptyMap;
+import static java.util.Collections.emptySortedSet;
 import static java.util.HashSet.newHashSet;
+import static java.util.Objects.requireNonNull;
 import static nl.ulso.curator.addon.project.ProjectAttributeRepositoryUpdate.REPOSITORY_UPDATE;
 import static nl.ulso.curator.change.Change.isCreate;
-import static nl.ulso.curator.change.Change.isCreateOrUpdate;
 import static nl.ulso.curator.change.Change.isDelete;
 import static nl.ulso.curator.change.Change.isPayloadType;
+import static nl.ulso.curator.change.Change.isUpdate;
 import static nl.ulso.curator.change.ChangeHandler.newChangeHandler;
+import static org.slf4j.LoggerFactory.getLogger;
 
+/// [ChangeProcessor] that collects all [ProjectAttributeValue] events — those can come from
+/// anywhere — and that stores them in an internal map; There can be multiple attribute values for a
+/// single attribute definition, with different weights; the repository tracks them all in a sorted
+/// set.
 @Singleton
 final class DefaultProjectAttributeRepository
     extends ChangeProcessorTemplate
-    implements ProjectAttributeRepository
+    implements ProjectAttributeRepository, MeasurementTracker
 {
+    private static final Logger LOGGER = getLogger(DefaultProjectAttributeRepository.class);
+
     private final Map<String, ProjectAttributeDefinition> attributeDefinitions;
     private final Map<String, Map<ProjectAttributeDefinition, SortedSet<WeightedValue>>>
         projectAttributes;
@@ -31,20 +45,20 @@ final class DefaultProjectAttributeRepository
     }
 
     @Override
-    protected Set<? extends ChangeHandler> createChangeHandlers()
+    protected List<? extends ChangeHandler> createChangeHandlers()
     {
-        return Set.of(
-            newChangeHandler(
-                isPayloadType(Project.class).and(isCreate()),
-                this::projectCreated
-            ),
+        return List.of(
             newChangeHandler(
                 isPayloadType(Project.class).and(isDelete()),
                 this::projectDeleted
             ),
             newChangeHandler(
-                isPayloadType(ProjectAttributeValue.class).and(isCreateOrUpdate()),
-                this::attributeValueCreatedOrUpdated
+                isPayloadType(ProjectAttributeValue.class).and(isCreate()),
+                this::attributeValueCreated
+            ),
+            newChangeHandler(
+                isPayloadType(ProjectAttributeValue.class).and(isUpdate()),
+                this::attributeValueUpdated
             ),
             newChangeHandler(
                 isPayloadType(ProjectAttributeValue.class).and(isDelete()),
@@ -56,7 +70,7 @@ final class DefaultProjectAttributeRepository
     @Override
     public Set<Class<?>> consumedPayloadTypes()
     {
-        return Set.of(Project.class, ProjectAttributeValue.class);
+        return Set.of(Vault.class, Project.class, ProjectAttributeValue.class);
     }
 
     @Override
@@ -65,54 +79,108 @@ final class DefaultProjectAttributeRepository
         return Set.of(ProjectAttributeRepositoryUpdate.class);
     }
 
-    /// Prepares the internal data structures for a new project.
-    ///
-    /// This might be a bit of a waste - late creation only when needed is more efficient - but it
-    /// simplifies the rest of the code.
-    private void projectCreated(Change<?> change, ChangeCollector collector)
+    @Override
+    protected void reset()
     {
-        var project = change.as(Project.class).value();
-        var attributeValues = new HashMap<ProjectAttributeDefinition, SortedSet<WeightedValue>>(
-            attributeDefinitions.size());
-        attributeDefinitions.forEach(
-            (_, definition) -> attributeValues.put(definition, new TreeSet<>()));
-        projectAttributes.put(project.name(), attributeValues);
-        collector.add(REPOSITORY_UPDATE);
+        projectAttributes.clear();
     }
 
     private void projectDeleted(Change<?> change, ChangeCollector collector)
     {
-        var project = change.as(Project.class).value();
+        var project = change.as(Project.class).oldValue();
         projectAttributes.remove(project.name());
+    }
+
+    private void attributeValueCreated(Change<?> change, ChangeCollector collector)
+    {
+        var newProjectAttributeValue = change.as(ProjectAttributeValue.class).value();
+        var newWeightedValue = newProjectAttributeValue.toWeightedValue();
+        var weightedValues = resolveWeightedValues(newProjectAttributeValue);
+        if (weightedValues.contains(newWeightedValue))
+        {
+            LOGGER.warn(
+                "Unexpected existing weighted value for attribute '{}' with weight '{}' on " +
+                "project '{}' found.",
+                newProjectAttributeValue.definition().frontMatterProperty(),
+                newWeightedValue.weight(),
+                newProjectAttributeValue.project().name()
+            );
+            weightedValues.remove(newWeightedValue);
+        }
+        weightedValues.add(newWeightedValue);
         collector.add(REPOSITORY_UPDATE);
     }
 
-    private void attributeValueCreatedOrUpdated(Change<?> change, ChangeCollector collector)
+    private void attributeValueUpdated(Change<?> change, ChangeCollector collector)
     {
-        var attributeValue = change.as(ProjectAttributeValue.class).value();
-        var projectAttributeValues = projectAttributes.get(attributeValue.project().name());
-        if (projectAttributeValues == null)
+        var projectAttributeValue = change.as(ProjectAttributeValue.class).value();
+        var newWeightedValue = projectAttributeValue.toWeightedValue();
+        var weightedValues = resolveWeightedValues(projectAttributeValue);
+        var oldWeightedValue = weightedValues.stream()
+            .filter(value -> value.weight() == newWeightedValue.weight())
+            .findFirst()
+            .orElse(null);
+        if (oldWeightedValue == null)
         {
-            return;
+            LOGGER.warn(
+                "Expected existing weighted value for attribute '{}' with weight '{}' on project " +
+                "'{}' not found.",
+                projectAttributeValue.definition().frontMatterProperty(),
+                newWeightedValue.weight(),
+                projectAttributeValue.project().name()
+            );
         }
-        var weightedValues = projectAttributeValues.get(attributeValue.definition());
-        var weightedValue = attributeValue.toWeightedValue();
-        weightedValues.remove(weightedValue);
-        weightedValues.add(weightedValue);
+        else
+        {
+            if (oldWeightedValue.value().equals(newWeightedValue.value()))
+            {
+                LOGGER.warn(
+                    "Detected meaningless value update for attribute '{}' with weight '{}' on " +
+                    "project '{}'.",
+                    projectAttributeValue.definition().frontMatterProperty(),
+                    newWeightedValue.weight(),
+                    projectAttributeValue.project().name()
+                );
+            }
+            weightedValues.remove(oldWeightedValue);
+        }
+        weightedValues.add(newWeightedValue);
         collector.add(REPOSITORY_UPDATE);
     }
 
     private void attributeValueDeleted(Change<?> change, ChangeCollector collector)
     {
-        var attributeValue = change.as(ProjectAttributeValue.class).value();
-        var projectAttributeValues = projectAttributes.get(attributeValue.project().name());
-        if (projectAttributeValues == null)
+        var oldProjectAttributeValue = change.as(ProjectAttributeValue.class).value();
+        var oldWeightedValue = oldProjectAttributeValue.toWeightedValue();
+        var weightedValues = projectAttributes
+            .getOrDefault(oldProjectAttributeValue.project().name(), emptyMap())
+            .getOrDefault(oldProjectAttributeValue.definition(), emptySortedSet());
+        if (!weightedValues.contains(oldWeightedValue))
         {
+            LOGGER.warn(
+                "Detected deletion of a non-existent value for attribute '{}' with weight '{}' on" +
+                " project '{}'.",
+                oldProjectAttributeValue.definition().frontMatterProperty(),
+                oldWeightedValue.weight(),
+                oldProjectAttributeValue.project().name()
+            );
             return;
         }
-        var weightedValues = projectAttributeValues.get(attributeValue.definition());
-        weightedValues.remove(attributeValue.toWeightedValue());
+        weightedValues.remove(oldWeightedValue);
         collector.add(REPOSITORY_UPDATE);
+    }
+
+    private SortedSet<WeightedValue> resolveWeightedValues(
+        ProjectAttributeValue projectAttributeValue
+    )
+    {
+        return projectAttributes.computeIfAbsent(
+            projectAttributeValue.project().name(),
+            _ -> new HashMap<>(attributeDefinitions.size())
+        ).computeIfAbsent(
+            projectAttributeValue.definition(),
+            _ -> new TreeSet<>()
+        );
     }
 
     /// Collect the changes in a set instead of a list so that at the end of the run there is
@@ -124,12 +192,6 @@ final class DefaultProjectAttributeRepository
     }
 
     @Override
-    protected boolean isResetRequired(Changelog changelog)
-    {
-        return false;
-    }
-
-    @Override
     public Collection<ProjectAttributeDefinition> attributeDefinitions()
     {
         return attributeDefinitions.values();
@@ -138,13 +200,15 @@ final class DefaultProjectAttributeRepository
     @Override
     public Optional<?> valueOf(Project project, String attributeName)
     {
-        return valueOf(project, attributeDefinitions.get(attributeName));
+        return valueOf(project, requireNonNull(attributeDefinitions.get(attributeName)));
     }
 
     @Override
     public Optional<?> valueOf(Project project, ProjectAttributeDefinition definition)
     {
-        var weightedValues = projectAttributes.get(project.name()).get(definition);
+        var weightedValues = projectAttributes
+            .getOrDefault(project.name(), emptyMap())
+            .getOrDefault(definition, emptySortedSet());
         if (weightedValues.isEmpty())
         {
             return Optional.empty();
@@ -153,8 +217,20 @@ final class DefaultProjectAttributeRepository
     }
 
     @Override
-    public String toString()
+    public String name()
     {
         return ProjectAttributeRepository.class.getSimpleName();
+    }
+
+    @Override
+    public void collectMeasurements(MeasurementCollector collector)
+    {
+        collector.total(ProjectAttributeDefinition.class, attributeDefinitions.size());
+        collector.total(ProjectAttributeValue.class, projectAttributes.size());
+        collector.total(WeightedValue.class, projectAttributes.values().stream()
+            .flatMap(map -> map.values().stream())
+            .mapToLong(Collection::size)
+            .sum()
+        );
     }
 }

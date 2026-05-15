@@ -11,4 +11,6 @@ public interface ProjectRepository
     Collection<Project> projects();
 
     Optional<Project> projectFor(Document document);
+
+    Optional<Project> projectNamed(String name);
 }

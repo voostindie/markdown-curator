@@ -138,7 +138,7 @@ final class DefaultChangeProcessorOrchestrator
         if (LOGGER.isDebugEnabled())
         {
             LOGGER.debug("{} change processors will be refreshed in this order: {}", result.size(),
-                result.stream().map(Object::toString).collect(Collectors.joining(", "))
+                result.stream().map(ChangeProcessor::name).collect(Collectors.joining(", "))
             );
         }
         return copyOf(result);
@@ -168,15 +168,15 @@ final class DefaultChangeProcessorOrchestrator
                 if (filteredChangelog.isEmpty())
                 {
                     LOGGER.debug("Skipping change processor {}. No relevant changes available.",
-                        processor
+                        processor.name()
                     );
                     continue;
                 }
-                LOGGER.debug("Running change processor {}.", processor);
+                LOGGER.debug("Running change processor {}.", processor.name());
                 var newChangelog = processor.apply(filteredChangelog);
                 verifyChanges(processor, newChangelog);
                 changelog = changelog.append(newChangelog);
-                LOGGER.trace("Executed change processor {}.", processor);
+                LOGGER.trace("Executed change processor {}.", processor.name());
             }
             catch (RuntimeException e)
             {
@@ -185,7 +185,7 @@ final class DefaultChangeProcessorOrchestrator
                 );
             }
         }
-        LOGGER.debug("Change processor execution resulted in {} change(s).",
+        LOGGER.debug("Executing all change processors resulted in {} change(s).",
             changelog.changes().count()
         );
         var level = changelog.changesFor(Vault.class).findAny().

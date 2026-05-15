@@ -1,5 +1,7 @@
 package nl.ulso.curator.addon.project;
 
+import nl.ulso.curator.statistics.MeasurementCollectorStub;
+import nl.ulso.curator.vault.Vault;
 import nl.ulso.curator.vault.VaultStub;
 import org.assertj.core.api.SoftAssertions;
 import org.assertj.core.api.junit.jupiter.InjectSoftAssertions;
@@ -7,8 +9,6 @@ import org.assertj.core.api.junit.jupiter.SoftAssertionsExtension;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-
-import java.util.Set;
 
 import static nl.ulso.curator.addon.project.ProjectTestData.ATTRIBUTE_DEFINITIONS;
 import static nl.ulso.curator.addon.project.ProjectTestData.createTestVault;
@@ -25,51 +25,57 @@ class DefaultProjectAttributeRepositoryTest
     private SoftAssertions softly;
 
     private VaultStub vault;
-    private DefaultProjectAttributeRepository registry;
+    private DefaultProjectAttributeRepository repository;
 
     @BeforeEach
     void setUp()
     {
         vault = createTestVault();
-        registry = new DefaultProjectAttributeRepository(ATTRIBUTE_DEFINITIONS);
+        repository = new DefaultProjectAttributeRepository(ATTRIBUTE_DEFINITIONS);
     }
 
     @Test
-    void newRegistry()
+    void newRepository()
     {
-        assertThat(registry.attributeDefinitions()).hasSameElementsAs(
+        assertThat(repository.attributeDefinitions()).hasSameElementsAs(
             ATTRIBUTE_DEFINITIONS.values());
     }
 
     @Test
     void consumedPayloadTypes()
     {
-        assertThat(registry.consumedPayloadTypes())
-            .containsAll(Set.of(Project.class, ProjectAttributeValue.class));
+        assertThat(repository.consumedPayloadTypes())
+            .containsExactlyInAnyOrder(Vault.class, Project.class, ProjectAttributeValue.class);
     }
 
     @Test
     void producedPayloadTypes()
     {
-        assertThat(registry.producedPayloadTypes()).containsAll(
-            Set.of(ProjectAttributeRepositoryUpdate.class));
+        assertThat(repository.producedPayloadTypes()).containsExactly(
+            ProjectAttributeRepositoryUpdate.class);
     }
 
     @Test
     void consumesAttributeValues()
     {
         var project = new Project(vault.resolveDocumentInPath("Projects/Project 1"));
-        var changelog = registry.apply(changelogFor(
+        var changelog = repository.apply(changelogFor(
             create(project, Project.class),
             update(
-                new ProjectAttributeValue(project, ATTRIBUTE_DEFINITIONS.get("status"), "In progress", 0),
+                new ProjectAttributeValue(project, ATTRIBUTE_DEFINITIONS.get("status"),
+                    "In progress", 0
+                ),
                 ProjectAttributeValue.class
             )
         ));
         softly.assertThat(changelog.isEmpty()).isFalse();
-        softly.assertThat(registry.valueOf(project, "status"))
+        softly.assertThat(repository.valueOf(project, "status"))
             .map(o -> (String) o)
             .hasValue("In progress");
+        var measurements = new MeasurementCollectorStub();
+        repository.collectMeasurements(measurements);
+        softly.assertThat(measurements.totalFor("project", "weighted_value")).isEqualTo(1);
+        softly.assertThat(measurements.totalFor("project", "project_attribute_value")).isEqualTo(1);
     }
 
     @Test
@@ -90,9 +96,9 @@ class DefaultProjectAttributeRepositoryTest
             new ProjectAttributeValue(project, status, null, 100),
             ProjectAttributeValue.class
         );
-        var changelog = registry.apply(changelogFor(init, change1, change2, change3));
+        var changelog = repository.apply(changelogFor(init, change1, change2, change3));
         softly.assertThat(changelog.isEmpty()).isFalse();
-        softly.assertThat(registry.valueOf(project, status))
+        softly.assertThat(repository.valueOf(project, status))
             .map(o -> (String) o)
             .hasValue("Low");
     }
@@ -108,9 +114,8 @@ class DefaultProjectAttributeRepositoryTest
             ProjectAttributeValue.class
         );
         var change2 = delete(project, Project.class);
-        var changelog = registry.apply(changelogFor(init, change1, change2));
+        var changelog = repository.apply(changelogFor(init, change1, change2));
         softly.assertThat(changelog.isEmpty()).isFalse();
-        softly.assertThatThrownBy(() -> registry.valueOf(project, status))
-            .isInstanceOf(NullPointerException.class);
+        softly.assertThat(repository.valueOf(project, status)).isNotPresent();
     }
 }

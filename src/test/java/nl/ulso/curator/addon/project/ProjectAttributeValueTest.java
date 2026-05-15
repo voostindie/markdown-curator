@@ -62,4 +62,40 @@ class ProjectAttributeValueTest
         softly.assertThat(weightedValue.weight()).isEqualTo(100);
         softly.assertThat(weightedValue).isEqualTo(new WeightedValue(42, 100));
     }
+
+    @Test
+    void equalsOnlyForSameProject()
+    {
+        var project1 = new Project(vault.resolveDocumentInPath("Project 1"));
+        var priority = newAttributeDefinition(Integer.class, "priority");
+        var value1 = new ProjectAttributeValue(project1, priority, 42, 100);
+        var project2 = new Project(vault.resolveDocumentInPath("Project 2"));
+        var value2 = new ProjectAttributeValue(project2, priority, 42, 100);
+        assertThatThrownBy(
+            () -> value1.equals(value2)
+        ).isInstanceOf(IllegalArgumentException.class);
+    }
+
+    @Test
+    void equalsOnlyForSameDefinition()
+    {
+        var project = new Project(vault.resolveDocumentInPath("Project 1"));
+        var priority = newAttributeDefinition(Integer.class, "priority");
+        var status = newAttributeDefinition(String.class, "status");
+        var value1 = new ProjectAttributeValue(project, priority, 42, 100);
+        var value2 = new ProjectAttributeValue(project, status, "In progress", 100);
+        assertThatThrownBy(
+            () -> value1.equals(value2)
+        ).isInstanceOf(IllegalArgumentException.class);
+    }
+
+    @Test
+    void stringRepresentation()
+    {
+        var project = new Project(vault.resolveDocumentInPath("Project 1"));
+        var priority = newAttributeDefinition(Integer.class, "priority");
+        var value = new ProjectAttributeValue(project, priority, 42, 100);
+        assertThat(value.toString()).isEqualTo("Project 1', priority: '42', weight: '100");
+    }
+
 }

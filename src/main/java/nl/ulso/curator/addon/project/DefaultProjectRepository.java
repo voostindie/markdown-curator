@@ -76,11 +76,17 @@ final class DefaultProjectRepository
     @Override
     public Optional<Project> projectFor(Document document)
     {
-        return Optional.ofNullable(map().get(document.name()));
+        return projectNamed(document.name());
     }
 
     @Override
-    public String toString()
+    public Optional<Project> projectNamed(String name)
+    {
+        return Optional.ofNullable(map().get(name));
+    }
+
+    @Override
+    public String name()
     {
         return ProjectRepository.class.getSimpleName();
     }

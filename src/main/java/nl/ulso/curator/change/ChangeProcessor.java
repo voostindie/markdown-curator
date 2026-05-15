@@ -49,4 +49,11 @@ public interface ChangeProcessor
     {
         return emptySet();
     }
+
+    // The name of this change processor, for logging. It defaults to the simple name of the
+    // implementation class.
+    default String name()
+    {
+        return this.getClass().getSimpleName();
+    }
 }

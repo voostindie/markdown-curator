@@ -46,9 +46,9 @@ public abstract class MapBasedEntityRepository<S, K, T>
     }
 
     @Override
-    protected final Set<? extends ChangeHandler> createChangeHandlers()
+    protected final List<? extends ChangeHandler> createChangeHandlers()
     {
-        return Set.of(
+        return List.of(
             newChangeHandler(isCreate().and(entityPredicate()), this::createEntity),
             newChangeHandler(isDelete().and(entityPredicate()), this::deleteEntity),
             newChangeHandler(isUpdate().and(entityPredicate()), this::updateEntity)

@@ -103,7 +103,7 @@ final class DefaultWeeklyRepository
     }
 
     @Override
-    public String toString()
+    public String name()
     {
         return WeeklyRepository.class.getSimpleName();
     }

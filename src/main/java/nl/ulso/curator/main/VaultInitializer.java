@@ -52,12 +52,6 @@ final class VaultInitializer
         return Changelog.changelogFor(finder.changes);
     }
 
-    @Override
-    public String toString()
-    {
-        return VaultInitializer.class.getSimpleName();
-    }
-
     private static final class FolderAndDocumentChangeFinder
         extends BreadthFirstVaultVisitor
     {

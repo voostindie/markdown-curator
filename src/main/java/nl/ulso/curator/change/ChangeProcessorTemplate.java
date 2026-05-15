@@ -7,7 +7,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.*;
 
-import static java.util.Collections.emptySet;
+import static java.util.Collections.emptyList;
 
 /// Base class for [ChangeProcessor]s that processes [Changelog]s through [ChangeHandler]s.
 ///
@@ -16,7 +16,7 @@ import static java.util.Collections.emptySet;
 ///
 /// A reset is executed whenever [#isResetRequired(Changelog)] returns `true`.
 ///
-/// To perform fine-grained  change processing, subclasses need to register one or more
+/// To perform fine-grained change processing, subclasses need to register one or more
 /// [ChangeHandler]s by overriding the [#createChangeHandlers()] method.
 ///
 /// When performing a full reset or running a [ChangeHandler], new changes can be produced to the
@@ -27,26 +27,26 @@ import static java.util.Collections.emptySet;
 /// - A reset, if applicable, always comes before fine-grained change processing, independent of the
 /// order of the changes available in the changelog.
 /// - The same change can be accepted by multiple [ChangeHandler]s
-/// - The order in which handlers are executed is not guaranteed.
+/// - The order in which handlers are executed is guaranteed.
 public abstract class ChangeProcessorTemplate
     implements ChangeProcessor
 {
     private static final Logger LOGGER = LoggerFactory.getLogger(ChangeProcessorTemplate.class);
 
-    private final Set<ChangeHandler> changeHandlers;
+    private final List<ChangeHandler> changeHandlers;
 
     protected ChangeProcessorTemplate()
     {
-        this.changeHandlers = Set.copyOf(createChangeHandlers());
+        this.changeHandlers = List.copyOf(createChangeHandlers());
         if (this.changeHandlers.isEmpty())
         {
             LOGGER.warn("No change handlers configured for change processor: {}.", this);
         }
     }
 
-    protected Set<? extends ChangeHandler> createChangeHandlers()
+    protected List<? extends ChangeHandler> createChangeHandlers()
     {
-        return emptySet();
+        return emptyList();
     }
 
     /// Creates the collection to capture the changes of the various change handlers in. The default
@@ -68,7 +68,7 @@ public abstract class ChangeProcessorTemplate
     {
         if (isResetRequired(changelog))
         {
-            LOGGER.debug("Performing a reset on change processor: {}.", this);
+            LOGGER.debug("Performing a reset on change processor: {}.", this.name());
             reset();
         }
         var collector = new DefaultChangeCollector(createChangeCollection());

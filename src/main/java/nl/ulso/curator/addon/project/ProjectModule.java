@@ -101,12 +101,17 @@ public abstract class ProjectModule
         FrontMatterProjectAttributeValueProducer producer);
 
     @Binds
-    @IntoSet
-    abstract ChangeProcessor bindAttributeRegistryProcessor(
+    abstract ProjectAttributeRepository bindProjectAttributeRepository(
         DefaultProjectAttributeRepository repository);
 
     @Binds
-    abstract ProjectAttributeRepository bindAttributeRegistry(
+    @IntoSet
+    abstract ChangeProcessor bindProjectAttributeProcessor(
+        DefaultProjectAttributeRepository repository);
+
+    @Binds
+    @IntoSet
+    abstract MeasurementTracker bindProjectAttributeTracker(
         DefaultProjectAttributeRepository repository);
 
     @Binds
