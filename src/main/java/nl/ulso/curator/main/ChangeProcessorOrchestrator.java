@@ -22,7 +22,7 @@ import nl.ulso.curator.change.*;
 /// can consume. If there are none, the processor is not executed at all. When a processor produces
 /// payload types other than it advocates, that is considered a programming error and will throw an
 /// [IllegalStateException].
-interface ChangeProcessorOrchestrator
+public interface ChangeProcessorOrchestrator
 {
     /// Runs all change processors in the system in the right order and only when needed based on
     /// the provided [Change].

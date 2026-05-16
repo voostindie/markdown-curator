@@ -9,6 +9,8 @@ import org.slf4j.LoggerFactory;
 
 import java.util.*;
 
+import static nl.ulso.curator.change.Changelog.changelogFor;
+
 /// Special change processor that triggers on [Vault] events and then generates a CREATE change for
 /// every folder and document in the vault.
 ///
@@ -49,7 +51,7 @@ final class VaultInitializer
         var finder = new FolderAndDocumentChangeFinder();
         vault.accept(finder);
         LOGGER.info("Initialized the vault with {} changes.", finder.changes.size());
-        return Changelog.changelogFor(finder.changes);
+        return changelogFor(finder.changes);
     }
 
     private static final class FolderAndDocumentChangeFinder
