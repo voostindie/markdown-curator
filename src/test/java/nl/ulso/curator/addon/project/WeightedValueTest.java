@@ -1,5 +1,6 @@
 package nl.ulso.curator.addon.project;
 
+import nl.jqno.equalsverifier.EqualsVerifier;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -36,5 +37,13 @@ class WeightedValueTest
         var value1 = new WeightedValue(24, 100);
         var value2 = new WeightedValue(42, 0);
         assertThat(value1).isGreaterThan(value2);
+    }
+
+    @Test
+    void testEqualsUsesWeightOnly()
+    {
+        EqualsVerifier.forClass(WeightedValue.class)
+            .withIgnoredFields("value")
+            .verify();
     }
 }
