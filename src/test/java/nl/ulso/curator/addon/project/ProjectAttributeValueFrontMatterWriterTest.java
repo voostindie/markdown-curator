@@ -1,6 +1,5 @@
 package nl.ulso.curator.addon.project;
 
-import nl.ulso.curator.addon.project.ProjectTestData.ProjectAttributeRepositoryStub;
 import nl.ulso.curator.main.FrontMatterCollector;
 import nl.ulso.curator.vault.Document;
 import nl.ulso.curator.vault.VaultStub;

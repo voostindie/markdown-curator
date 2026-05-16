@@ -4,7 +4,7 @@ import nl.ulso.curator.vault.Document;
 import nl.ulso.curator.vault.VaultStub;
 
 import java.time.LocalDate;
-import java.util.*;
+import java.util.Map;
 
 import static nl.ulso.curator.addon.project.ProjectAttributeDefinition.*;
 import static nl.ulso.date.LocalDates.parseDateOrNull;
@@ -42,7 +42,7 @@ public class ProjectTestData
         return vault;
     }
 
-    static final Map<String, ProjectAttributeDefinition> ATTRIBUTE_DEFINITIONS = Map.of(
+    public static final Map<String, ProjectAttributeDefinition> ATTRIBUTE_DEFINITIONS = Map.of(
         STATUS, newAttributeDefinition(String.class, STATUS),
         LEAD, newAttributeDefinition(Document.class, LEAD, d -> ((Document) d).link()),
         LAST_MODIFIED, newAttributeDefinition(LocalDate.class, LAST_MODIFIED, Object::toString),
@@ -77,70 +77,4 @@ public class ProjectTestData
             .withProject(project3);
     }
 
-    static class ProjectRepositoryStub
-        implements ProjectRepository
-    {
-        private final Map<String, Project> projects = new HashMap<>();
-
-        public ProjectRepositoryStub withProject(Document document)
-        {
-            projects.put(document.name(), new Project(document));
-            return this;
-        }
-
-        @Override
-        public Map<String, Project> projectsByName()
-        {
-            return projects;
-        }
-
-        @Override
-        public Collection<Project> projects()
-        {
-            return projects.values();
-        }
-
-        @Override
-        public Optional<Project> projectFor(Document document)
-        {
-            return projectNamed(document.name());
-        }
-
-        @Override
-        public Optional<Project> projectNamed(String name)
-        {
-            return Optional.ofNullable(projects.get(name));
-        }
-    }
-
-    static final class ProjectAttributeRepositoryStub
-        implements ProjectAttributeRepository
-    {
-        private final Map<Project, Map<ProjectAttributeDefinition, Object>> attributes = new HashMap<>();
-
-        ProjectAttributeRepositoryStub withAttribute(Document document, String attributeName, Object value)
-        {
-            attributes.computeIfAbsent(new Project(document), _ -> new HashMap<>())
-                .put(ATTRIBUTE_DEFINITIONS.get(attributeName), value);
-            return this;
-        }
-
-        @Override
-        public Collection<ProjectAttributeDefinition> attributeDefinitions()
-        {
-            return ATTRIBUTE_DEFINITIONS.values();
-        }
-
-        @Override
-        public Optional<?> valueOf(Project project, String attributeName)
-        {
-            return valueOf(project, ATTRIBUTE_DEFINITIONS.get(attributeName));
-        }
-
-        @Override
-        public Optional<?> valueOf(Project project, ProjectAttributeDefinition definition)
-        {
-            return Optional.ofNullable(attributes.get(project).get(definition));
-        }
-    }
 }

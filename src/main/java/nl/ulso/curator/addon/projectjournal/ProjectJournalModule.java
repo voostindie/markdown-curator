@@ -11,8 +11,8 @@ import nl.ulso.curator.statistics.MeasurementTracker;
 /// Combines the Project and Journal modules by offering additional functionality to extract project
 /// attributes from the journal.
 ///
-/// This module overrides the default resolvers for the project lead, status, and last modification
-/// date by providing implementations with greater weights.
+/// This module adds resolvers for the project lead, status, and last modification that have
+/// greater weights than the resolvers in the Project module that use front matter.
 ///
 /// An earlier, rudimentary implementation of this module pulled attribute values for all supported
 /// attribute definitions from the journal. That was efficient but hard to maintain. This
