@@ -31,7 +31,7 @@ THE OUTPUT WILL GO HERE
 <!--/query-->
 ```
 
-Put this snippet (without the code block) in a document in a directory tracked by this tool, save it and watch `THE OUTPUT WILL GO HERE` be magically replaced with a sorted list of links to documents in the `Articles` subdirectory. Add a new article there, delete one, or update an existing one, and watch the list get updated instantly. 
+Put this snippet (without the code block) in a document in a directory tracked by this tool, save it, and watch `THE OUTPUT WILL GO HERE` be magically replaced with a sorted list of links to documents in the `Articles` subdirectory. Add a new article there, delete one, or update an existing one, and watch the list get updated instantly. 
 
 > Or, I should say: after 3 seconds. This is the built-in delay for processing files after changes are detected. This delay is needed for Obsidian, which automatically saves files every few seconds when you're typing in them. If in the space of the 3-second delay another change is detected, the scheduled processing run is aborted, and a new one is scheduled to run, again in 3 seconds. This little trick ensures the processing doesn't happen unnecessarily often.  
 
@@ -389,9 +389,7 @@ Apart from being a normal document, a project has a number of additional propert
 - **Last modification date**: a date representing when the project was last worked on. Property name: `last_modified`.
 - **Lead**: a reference to some other document, typically representing a person. Property name: `lead`.
 
-By default, these properties are read from and written to front matter in the project document, using the properties mentioned above, but their source can be overruled by providing custom plugins to resolve these values from wherever you want. 
-
-(Stay tuned for a couple of those to be introduced soon, or have a look at the `vmc` application, which already has a couple. For example, there's a plugin that pulls the last modification date from the journal, and there's another that resolves the priority from the order of the projects in OmniFocus.)
+By default, these properties are read from and written to front matter in the project document, using the properties mentioned above, but their source can be overruled by providing custom plugins to resolve these values from wherever you want. See below.
 
 To enable the module in your Curator, you have to include it:
 
@@ -418,6 +416,91 @@ This query generates a list of all active projects. In its simplest form, in `li
 #### `projectlead`
 
 This query is a specialization of the `projectlist` query: it selects only those projects with a specific project lead. The selected lead defaults to the document the query is used in. In other words: stick this query in the document that represents one of your co-workers, and you'll instantly get an overview of projects they're in the lead for; no further configuration needed. 
+
+### Project Journal module
+
+The Project Journal module does not provide any queries of its own. Instead, it provides a number of plugins to resolve the last modification date, the project status, and the project lead from the journal instead of front matter properties. This basically means you can write updates to projects in daily log entries. For example:
+
+```
+- Important updates [[Project]].
+	- I finally [[Status|Finished]] the project!
+```
+
+This updates the last modification date and the status of project `Project` to `Finished` automatically, provided that this text is the most recent update to the project in the journal, that `Status` is a marker, and `Finished` a valid project status. Read on for details on how to make that happen.
+
+The module ensures that properties are always in line with the journal, no matter how the journal is modified. 
+
+To use this module, you have to include it:
+```java
+@Module(includes = {CuratorModule.class, ProjectJournalModule.class})
+abstract class MyCuratorModule
+{
+    // Your code here
+}
+```
+
+The module includes the `ProjectModule` as well as the `JournalModule`, which means you have to provide the settings for both modules, as described above.
+
+#### Last modification date
+
+The simplest plugin in this module is the one that updates the `last_modified` property: it takes the date from the most recent daily that refers to a project. Link to the project in the journal, and that's it. This requires no further configuration.
+
+#### Status
+
+To update the `status` property from the journal, you need a special marker first. See the general description on markers in the Journal module for a generic explanation of markers.
+
+To tag a marker as a project status marker, add a property `project-statuses` to it, that contains a list of all valid statuses. For example, I have a marker `⭕️` that looks like this:
+
+```
+---
+aliases: 
+  - "⭕️ Status:"
+title: ⭕️ Status Log
+group-by-date: true
+project-statuses: 
+  - 🟢
+  - 🟠
+  - 🔴
+  - ✅
+  - 🗑️
+---
+```
+
+(The `title` and `group-by-date` properties are not necessary for this module, they're there as configuration for the generic marker behavior.)
+
+Now, whenever a marker is used for a project including an alias as defined in the `project-statuses` property, that becomes the project status. I like to do that like so:
+
+```
+- [[Project]]
+	[[⭕️]] Generic status update; no status change, but it will show in the status log.
+	[[⭕|✅]] Party time! This project is done!
+```
+
+If a single journal entry contains multiple status updates, the system picks the last one. It works under the assumption that the log is chronologically ordered.
+
+#### Lead
+
+Like the `status` property, the `lead` property requires a special marker before it can be resolved from the journal. This is a marker with the property `project-leads` that lists all the aliases to trigger on.
+
+For example, this is how the marker `💁🏼` is configured in my own vaults:
+
+```
+project-leads:
+  - ☝🏻
+```
+
+Now, when I write something like this:
+
+```
+- [[Project]]
+	[[💁|☝🏻]] [[Mike]] is leading this project.
+```
+
+Then `Mike` is set as the project lead, provided that `Mike` links to an existing document in the vault.
+
+A line in the journal with the project lead marker may contain multiple document links. The system will use the first one that links to an existing document. 
+
+If a single journal entry has multiple project lead markers for the same project, the system picks the last one.
 
 ## Reminders
 
