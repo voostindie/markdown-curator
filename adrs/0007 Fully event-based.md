@@ -25,3 +25,5 @@ The Vault event was retrofitted:
 
 - A special VaultInitializer picks up the Vault event triggered by the curator and produces a CREATE change for every folder and document in the vault. That way, every processor can "incrementally" process all documents in the vault on startup.
 - Whenever a Vault event comes in, change processors can clean up their internal data structures, and should do nothing else. The VaultInitializer will have already pushed new changes to the changelog that each processor will have to process again, as if the system was booting up.
+
+The biggest consequence of this decision happens on application startup: after reading the vault into memory, it creates an event for every folder and document, and these events in turn trigger the creation of new events. My largest vault at this time of writing with about 4600 notes and 45 folders generates a little over 6900 events at startup. These are all kept in memory for a short duration, during the initial processing. In other words: more compute, more memory. The time spent is still negligible in practice, however, and the additional memory gets released over time.
