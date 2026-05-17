@@ -40,7 +40,7 @@ public abstract class ChangeProcessorTemplate
         this.changeHandlers = List.copyOf(createChangeHandlers());
         if (this.changeHandlers.isEmpty())
         {
-            LOGGER.warn("No change handlers configured for change processor: {}.", this);
+            LOGGER.warn("No change handlers configured for change processor: {}.", this.name());
         }
     }
 

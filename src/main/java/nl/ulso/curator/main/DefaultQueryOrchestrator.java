@@ -135,9 +135,10 @@ final class DefaultQueryOrchestrator
                 if (query.isImpactedBy(changelog, queryBlock))
                 {
                     LOGGER.trace(
-                        "Document '{}' has a query that might be impacted by the changelog. " +
+                        "Document '{}' has a query that might be impacted by the changelog: '{}'. " +
                         "Adding.",
-                        queryBlock.document()
+                        queryBlock.document(),
+                        queryBlock.queryName()
                     );
                     impactedDocuments.add(queryBlock.document());
                 }
