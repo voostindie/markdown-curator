@@ -49,7 +49,7 @@ After the curator has kicked in, you'll see an overview of all queries available
 
 By default, this tool provides just a couple of built-in generic queries. See the section on those below for more details. These are useful queries, but to make this tool really shine, you will want to create your own queries.
 
-This tool also provided optional queries, in separate modules. By plugging in these modules into your application and providing some necessary configuration, you instantly gain additional queries to use.
+This tool also provides optional queries, in separate modules. By plugging in these modules into your application and providing some necessary configuration, you instantly gain additional queries to use.
 
 To use this system, you have to code your own Java application, define this tool as a dependency, and implement your own curator, custom change processors, and custom queries. See further on for an example.
 
@@ -422,7 +422,7 @@ This query is a specialization of the `projectlist` query: it selects only those
 The Project Journal module does not provide any queries of its own. Instead, it provides a number of plugins to resolve the last modification date, the project status, and the project lead from the journal instead of front matter properties. This basically means you can write updates to projects in daily log entries. For example:
 
 ```
-- Important updates [[Project]].
+- Important update to [[Project]].
 	- I finally [[Status|Finished]] the project!
 ```
 
