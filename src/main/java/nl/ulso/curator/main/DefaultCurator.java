@@ -101,12 +101,13 @@ final class DefaultCurator
         );
         cancelQueryWriteRunIfPresent();
         changeQueue.addLast(optimizeChangeQueue(change));
-        if (shouldRunImmediatelyFor(change))
+        if (canRunImmediatelyFor(change))
         {
             LOGGER.info(
                 "Immediately performing query processing and document writing to process all " +
                 "expected document updates.");
             processChangeQueue();
+            expectedDocumentUpdates.clear();
         }
         else
         {
@@ -147,7 +148,7 @@ final class DefaultCurator
     /// then there's no reason to wait. If the incoming change is expected as the result of a file
     /// written by the curator, then there's no reason to wait to either.
     /// In all cases the curator should wait for a bit.
-    private boolean shouldRunImmediatelyFor(Change<?> change)
+    private boolean canRunImmediatelyFor(Change<?> change)
     {
         if (change.payloadType().equals(Vault.class))
         {
