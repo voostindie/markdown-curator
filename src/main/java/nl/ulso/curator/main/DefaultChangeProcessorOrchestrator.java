@@ -155,13 +155,11 @@ final class DefaultChangeProcessorOrchestrator
 
     public Changelog runFor(List<Change<?>> changes)
     {
-        if (LOGGER.isDebugEnabled())
-        {
-            LOGGER.debug(
-                "Executing {} change processors on {} change(s).",
-                changeProcessors.size(),
-                changes.size());
-        }
+        LOGGER.info(
+            "Executing {} change processors on {} change(s).",
+            changeProcessors.size(),
+            changes.size()
+        );
         var changelog = changelogFor(changes);
         for (ChangeProcessor processor : changeProcessors)
         {
