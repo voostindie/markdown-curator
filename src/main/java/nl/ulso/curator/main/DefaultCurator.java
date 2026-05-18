@@ -2,15 +2,15 @@ package nl.ulso.curator.main;
 
 import jakarta.inject.Inject;
 import nl.ulso.curator.Curator;
-import nl.ulso.curator.change.*;
+import nl.ulso.curator.change.Change;
+import nl.ulso.curator.change.ChangeProcessor;
 import nl.ulso.curator.query.Query;
 import nl.ulso.curator.vault.*;
 import org.slf4j.Logger;
 import org.slf4j.MDC;
 
 import java.io.IOException;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 
@@ -19,7 +19,6 @@ import static java.nio.file.Files.writeString;
 import static java.util.concurrent.Executors.newScheduledThreadPool;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static nl.ulso.curator.change.Change.create;
-import static nl.ulso.curator.change.Changelog.emptyChangelog;
 import static nl.ulso.curator.main.DocumentRewriter.rewriteDocument;
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -55,7 +54,7 @@ final class DefaultCurator
     private final DocumentPathResolver documentPathResolver;
     private final ScheduledExecutorService delayedExecutor;
     private final Set<String> expectedDocumentUpdates;
-    private Changelog backlog;
+    private final List<Change<?>> changeQueue;
     private ScheduledFuture<?> runTask;
 
     @Inject
@@ -71,7 +70,7 @@ final class DefaultCurator
         this.documentPathResolver = documentPathResolver;
         this.delayedExecutor = newScheduledThreadPool(1);
         this.expectedDocumentUpdates = new HashSet<>();
-        this.backlog = emptyChangelog();
+        this.changeQueue = new ArrayList<>();
         this.runTask = null;
     }
 
@@ -81,7 +80,7 @@ final class DefaultCurator
         LOGGER.info("Running this curator once.");
         vaultChanged(create(vault, Vault.class));
         cancelQueryWriteRunIfPresent();
-        performQueryWriteRun();
+        processChangeQueue();
     }
 
     @Override
@@ -93,36 +92,73 @@ final class DefaultCurator
     }
 
     /// This method is synchronized to ensure it doesn't run concurrently with
-    /// [#performQueryWriteRun].
+    /// [#processChangeQueue].
     @Override
     public synchronized void vaultChanged(Change<?> change)
     {
         LOGGER.info("{} detected for {} '{}'.",
             change.kind(), change.payloadType().getSimpleName(), change.value()
         );
-        var runImmediately = change.payloadType().equals(Vault.class);
         cancelQueryWriteRunIfPresent();
-        backlog = backlog.append(changeProcessorOrchestrator.runFor(change));
-        if (change.payloadType().equals(Document.class) && change.kind() == Change.Kind.UPDATE)
-        {
-            // If we just processed the last expected document update, trigger immediate processing.
-            if (expectedDocumentUpdates.remove(change.as(Document.class).value().name()) &&
-                expectedDocumentUpdates.isEmpty())
-            {
-                runImmediately = true;
-            }
-        }
-        if (runImmediately)
+        changeQueue.addLast(optimizeChangeQueue(change));
+        if (shouldRunImmediatelyFor(change))
         {
             LOGGER.info(
                 "Immediately performing query processing and document writing to process all " +
                 "expected document updates.");
-            performQueryWriteRun();
+            processChangeQueue();
         }
         else
         {
-            scheduleQueryWriteRun();
+            scheduleChangeQueueProcessing();
         }
+    }
+
+    /// If the last item in the queue points to the same [Document] as the new change coming in, and
+    /// they are both updates, then we can fold them into a single update. This is especially useful
+    /// for Obsidian, which updates documents frequently.
+    private Change<?> optimizeChangeQueue(Change<?> newChange)
+    {
+        if (!changeQueue.isEmpty()
+            && newChange.payloadType().equals(Document.class)
+            && newChange.kind() == Change.Kind.UPDATE)
+        {
+            var lastChange = changeQueue.getLast();
+            if (lastChange.payloadType().equals(Document.class)
+                && lastChange.kind() == Change.Kind.UPDATE
+                && lastChange.as(Document.class).value().name().
+                    equals(newChange.as(Document.class).value().name()))
+            {
+                LOGGER.debug(
+                    "Two consecutive updates to the same document detected. Folding them into a " +
+                    "single update.");
+                changeQueue.remove(lastChange);
+                return Change.update(
+                    lastChange.as(Document.class).oldValue(),
+                    newChange.as(Document.class).newValue(),
+                    Document.class
+                );
+            }
+        }
+        return newChange;
+    }
+
+    /// If the incoming change is a [Vault] change, that means the application is starting up, and
+    /// then there's no reason to wait. If the incoming change is expected as the result of a file
+    /// written by the curator, then there's no reason to wait to either.
+    /// In all cases the curator should wait for a bit.
+    private boolean shouldRunImmediatelyFor(Change<?> change)
+    {
+        if (change.payloadType().equals(Vault.class))
+        {
+            return true;
+        }
+        if (change.payloadType().equals(Document.class) && change.kind() == Change.Kind.UPDATE)
+        {
+            return expectedDocumentUpdates.remove(change.as(Document.class).value().name()) &&
+                   expectedDocumentUpdates.isEmpty();
+        }
+        return false;
     }
 
     /// If there is an incoming change, there's no need to write changes to disk from the previous
@@ -140,13 +176,13 @@ final class DefaultCurator
     /// A change was detected, which means the queries need to be executed, and changes written to
     /// disk. That work is scheduled for a few seconds from now. If new changes come in in the
     /// meantime, the task will be cancelled and replaced by a new one.
-    private void scheduleQueryWriteRun()
+    private void scheduleChangeQueueProcessing()
     {
         LOGGER.debug("Scheduling query processing and document writing task to run in {} seconds.",
             SCHEDULE_TIMEOUT_IN_SECONDS
         );
         runTask = delayedExecutor.schedule(
-            this::performQueryWriteRun,
+            this::processChangeQueue,
             SCHEDULE_TIMEOUT_IN_SECONDS,
             SECONDS
         );
@@ -154,12 +190,13 @@ final class DefaultCurator
 
     /// This method is synchronized to ensure it doesn't run concurrently with
     /// [#vaultChanged(Change)].
-    private synchronized void performQueryWriteRun()
+    private synchronized void processChangeQueue()
     {
         MDC.put("curator", curatorName);
         LOGGER.info("-".repeat(80));
-        queryOrchestrator.runFor(backlog).forEach(this::writeDocument);
-        backlog = emptyChangelog();
+        var changelog = changeProcessorOrchestrator.runFor(changeQueue);
+        queryOrchestrator.runFor(changelog).forEach(this::writeDocument);
+        changeQueue.clear();
         LOGGER.info("-".repeat(80));
     }
 

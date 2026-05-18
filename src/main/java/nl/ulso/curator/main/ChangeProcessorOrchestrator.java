@@ -2,6 +2,8 @@ package nl.ulso.curator.main;
 
 import nl.ulso.curator.change.*;
 
+import java.util.List;
+
 /// Orchestrates the execution of all [ChangeProcessor]s in the system in the right order and only
 /// when needed.
 ///
@@ -29,5 +31,5 @@ public interface ChangeProcessorOrchestrator
     ///
     /// @return the full changelog of all changes that was built up by and applied to the change
     /// processors.
-    Changelog runFor(Change<?> change);
+    Changelog runFor(List<Change<?>> changes);
 }

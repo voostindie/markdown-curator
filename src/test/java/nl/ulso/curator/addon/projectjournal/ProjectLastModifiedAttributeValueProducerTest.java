@@ -30,7 +30,7 @@ class ProjectLastModifiedAttributeValueProducerTest
         testContext = DaggerProjectJournalTestContext.create();
         createTestDocuments();
         testContext.changeProcessorOrchestrator()
-            .runFor(create(testContext.vaultStub(), Vault.class));
+            .runFor(List.of(create(testContext.vaultStub(), Vault.class)));
     }
 
     @Test
@@ -221,7 +221,7 @@ class ProjectLastModifiedAttributeValueProducerTest
 
     void testChanges(List<Change<?>> changes, String projectName, LocalDate expectedDate)
     {
-        changes.forEach(change -> testContext.changeProcessorOrchestrator().runFor(change));
+        testContext.changeProcessorOrchestrator().runFor(changes);
         var project = testContext.projectRepository().projectNamed(projectName).orElseThrow();
         var optionalDate = testContext.projectAttributeRepository()
             .valueOf(project, "last_modified");
