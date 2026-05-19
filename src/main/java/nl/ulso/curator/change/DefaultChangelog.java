@@ -35,6 +35,12 @@ final class DefaultChangelog
     }
 
     @Override
+    public int size()
+    {
+        return changes.size();
+    }
+
+    @Override
     public Changelog append(Changelog changelog)
     {
         if (changelog instanceof DefaultChangelog other)

@@ -28,6 +28,8 @@ public interface Changelog
 
     boolean isEmpty();
 
+    int size();
+
     Changelog append(Changelog changelog);
 
     Stream<Change<?>> changes();

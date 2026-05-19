@@ -155,11 +155,6 @@ final class DefaultChangeProcessorOrchestrator
 
     public Changelog runFor(List<Change<?>> changes)
     {
-        LOGGER.info(
-            "Executing {} change processors on {} change(s).",
-            changeProcessors.size(),
-            changes.size()
-        );
         var changelog = changelogFor(changes);
         for (ChangeProcessor processor : changeProcessors)
         {
@@ -186,13 +181,16 @@ final class DefaultChangeProcessorOrchestrator
                 );
             }
         }
-        LOGGER.debug("Executing all change processors resulted in {} change(s).",
-            changelog.changes().count()
+        LOGGER.info(
+            "Executed {} change processors on {} change(s).",
+            changeProcessors.size(),
+            changes.size()
         );
         var level = changelog.changesFor(Vault.class).findAny().
             map(_ -> Level.INFO)
             .orElse(Level.TRACE);
         statistics.logTo(LOGGER, level);
+        LOGGER.info("Produced changelog with {} change(s).", changelog.size());
         return changelog;
     }
 

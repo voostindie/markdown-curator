@@ -104,8 +104,7 @@ final class DefaultCurator
         if (canRunImmediatelyFor(change))
         {
             LOGGER.info(
-                "Immediately performing query processing and document writing to process all " +
-                "expected document updates.");
+                "Immediately processing all expected document updates.");
             processChangeQueue();
             expectedDocumentUpdates.clear();
         }
