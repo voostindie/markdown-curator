@@ -9,6 +9,7 @@ import nl.ulso.curator.change.ExternalChangeHandler;
 import nl.ulso.curator.statistics.MeasurementCollector;
 import nl.ulso.curator.statistics.MeasurementTracker;
 import org.slf4j.Logger;
+import org.slf4j.MDC;
 
 import java.io.IOException;
 import java.nio.file.*;
@@ -17,6 +18,7 @@ import java.util.*;
 
 import static io.methvin.watcher.hashing.FileHasher.DEFAULT_FILE_HASHER;
 import static io.methvin.watcher.hashing.FileHasher.LAST_MODIFIED_TIME;
+import static java.lang.Runtime.getRuntime;
 import static java.nio.file.Files.getLastModifiedTime;
 import static java.nio.file.Files.readAllLines;
 import static java.nio.file.Files.walkFileTree;
@@ -30,6 +32,7 @@ import static nl.ulso.curator.vault.DirectoryChangeEventHandler.DIRECTORY_CHANGE
 import static nl.ulso.curator.vault.DirectoryChangeEventHandler.FileSystemItemType;
 import static nl.ulso.curator.vault.Document.newDocument;
 import static org.slf4j.LoggerFactory.getLogger;
+import static org.slf4j.MDC.getCopyOfContextMap;
 
 /// [Vault] implementation on top of the (default) filesystem.
 ///
@@ -130,6 +133,22 @@ final class FileSystemVault
     @Override
     public void watchForChanges()
     {
+        var contextMap = getCopyOfContextMap();
+        getRuntime().addShutdownHook(
+            new Thread(() ->
+            {
+                MDC.setContextMap(contextMap);
+                LOGGER.debug("Shutting down directory watcher on '{}'.", absolutePath);
+                try
+                {
+                    watcher.close();
+                }
+                catch (IOException e)
+                {
+                    LOGGER.debug("Failed to close directory watcher: {}.", e.getMessage());
+                }
+            })
+        );
         LOGGER.info("Watching '{}' for changes.", absolutePath);
         watcher.watch();
     }
