@@ -431,6 +431,7 @@ This updates the last modification date and the status of project `Project` to `
 The module ensures that properties are always in line with the journal, no matter how the journal is modified. 
 
 To use this module, you have to include it:
+
 ```java
 @Module(includes = {CuratorModule.class, ProjectJournalModule.class})
 abstract class MyCuratorModule
@@ -501,6 +502,41 @@ Then `Mike` is set as the project lead, provided that `Mike` links to an existin
 A line in the journal with the project lead marker may contain multiple document links. The system will use the first one that links to an existing document. 
 
 If a single journal entry has multiple project lead markers for the same project, the system picks the last one.
+
+### OmniFocus module
+
+The OmniFocus module adds:
+
+- Two project attributes, `omnifocus` and `priority`. The first is a link to the project in OmniFocus, the second its priority in OmniFocus.
+- A query to list the differences between the project in the vault and the project in OmniFocus.
+
+If you use OmniFocus and you store projects that match the projects in the vault in a folder, then you can use this module to keep your projects in sync.
+
+To use this module, you have to include it and configure it:
+
+```java
+import nl.ulso.curator.addon.omnifocus.OmniFocusSettings;
+
+@Module(includes = {CuratorModule.class, OmniFocusModule.class})
+abstract class MyCuratorModule
+{
+	@Provides
+	static OmniFocusSettings omniFocusSettings()
+	{
+		return new OmniFocusSettings(
+				"Work" // The OmniFocus folder that has the projects to sync
+		);
+	}
+
+	// Your code here
+}
+```
+
+This is all that's needed to get the module to work. Suddenly the `projects` query will sort the projects in the same order as OmniFocus does, and each project will have an `omnifocus` property in its front matter that links to the same project in  OmniFocus.
+
+#### `omnifocus`
+
+The `omnifocus` query has no configuration. Stick it in a document and watch a report appear in it, comparing your vault with OmniFocus. It lists all projects in the one and not in the other, and vice versa.
 
 ## Reminders
 
