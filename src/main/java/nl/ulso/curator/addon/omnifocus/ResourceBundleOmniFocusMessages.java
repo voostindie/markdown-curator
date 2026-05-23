@@ -3,18 +3,18 @@ package nl.ulso.curator.addon.omnifocus;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 
-import java.util.Locale;
-import java.util.ResourceBundle;
+import java.util.*;
 
 @Singleton
 final class ResourceBundleOmniFocusMessages
-        implements OmniFocusMessages
+    implements OmniFocusMessages
 {
     private final ResourceBundle bundle;
 
     @Inject
-    ResourceBundleOmniFocusMessages(Locale locale)
+    ResourceBundleOmniFocusMessages(Optional<Locale> optionalLocale)
     {
+        var locale = optionalLocale.orElse(Locale.ENGLISH);
         this.bundle = ResourceBundle.getBundle("OmniFocus", locale);
     }
 

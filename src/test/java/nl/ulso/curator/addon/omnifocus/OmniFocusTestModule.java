@@ -64,11 +64,8 @@ abstract class OmniFocusTestModule
     @IntoSet
     abstract Query bindOmniFocusQuery(OmniFocusQuery omniFocusQuery);
 
-    @Provides
-    static Locale provideLocale()
-    {
-        return Locale.ENGLISH;
-    }
+    @BindsOptionalOf
+    abstract Locale bindOptionalLocale();
 
     @Provides
     static ProjectSettings provideProjectSettings()
