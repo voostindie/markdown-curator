@@ -1,6 +1,7 @@
 package nl.ulso.curator.main;
 
 import nl.ulso.curator.Curator;
+import nl.ulso.curator.RunMode;
 import nl.ulso.curator.query.*;
 import nl.ulso.curator.vault.*;
 import org.assertj.core.api.SoftAssertions;
@@ -172,7 +173,7 @@ class MusicCuratorModuleTest
     {
         var original = vault.document("queries-blank").orElseThrow();
         var expected = vault.document("queries-expected").orElseThrow();
-        musicCurator.runOnce();
+        musicCurator.run(RunMode.ONCE);
         var expectedContent = Files.readString(documentPathResolver.resolveAbsolutePath(expected));
         var updatedContent = Files.readString(documentPathResolver.resolveAbsolutePath(original));
         assertThat(updatedContent).isEqualTo(expectedContent);

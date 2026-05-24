@@ -165,13 +165,7 @@ public class Application
                 {
                     try
                     {
-                        switch (RunMode.get())
-                        {
-                            case DAEMON -> curator.run();
-                            case ONCE -> curator.runOnce();
-                            default -> throw new IllegalArgumentException(
-                                "Unsupported run mode: " + RunMode.get());
-                        }
+                        curator.run(RunMode.get());
                     }
                     catch (Exception e)
                     {

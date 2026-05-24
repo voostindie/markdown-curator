@@ -11,7 +11,7 @@ public enum RunMode
     ONCE,
     DAEMON;
 
-    private static RunMode RUN_MODE;
+    private static RunMode RUN_MODE = ONCE;
 
     static void set(RunMode runMode)
     {
