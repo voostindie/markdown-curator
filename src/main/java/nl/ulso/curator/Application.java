@@ -5,16 +5,11 @@ import org.slf4j.MDC;
 import org.slf4j.helpers.Reporter;
 
 import java.io.IOException;
-import java.nio.file.Path;
 import java.util.*;
 import java.util.ServiceLoader.Provider;
 
-import static java.lang.System.getProperty;
-import static java.lang.System.lineSeparator;
 import static java.lang.System.setProperty;
 import static java.lang.Thread.currentThread;
-import static java.nio.file.Files.writeString;
-import static java.nio.file.StandardOpenOption.CREATE_NEW;
 import static java.util.concurrent.Executors.callable;
 import static java.util.concurrent.Executors.newFixedThreadPool;
 import static nl.ulso.curator.RunMode.DAEMON;
@@ -28,12 +23,6 @@ import static org.slf4j.LoggerFactory.getLogger;
 ///
 /// If a single curator cannot be instantiated, its thread is basically dead; it won't work. The
 /// other curators (if any) will still work, though.
-///
-/// The application writes a pidfile to the temporary directory and deletes it again when the
-/// application is stopped. If a pidfile already exists at startup, the application fails to
-/// startup. This is to prevent multiple curators processing the same directories independently.
-/// Having the same curator active multiple times leads to all kinds of interesting race conditions,
-/// so it's worth preventing that.
 public class Application
 {
     private static final Logger LOGGER;
@@ -46,22 +35,19 @@ public class Application
         LOGGER = getLogger(Application.class);
     }
 
-    private static final Path
-        DEFAULT_PID = Path.of(getProperty("java.io.tmpdir"), "markdown-curator.pid");
+    private static final String UNKNOWN_VERSION = "<UNKNOWN>";
 
-    static final String UNKNOWN_VERSION = "<UNKNOWN>";
+    private final PidManager pidManager;
 
-    private final Path pid;
-
-    Application(Path pid)
+    Application(PidManager pidManager)
     {
-        this.pid = pid;
+        this.pidManager = pidManager;
     }
 
     static void main(String[] args)
     {
         RunMode.set(DAEMON);
-        var vaults = new HashSet<String>();
+        var curators = new HashSet<String>();
         for (String arg : args)
         {
             if (arg.contentEquals("--once") || arg.contentEquals("-1"))
@@ -70,21 +56,17 @@ public class Application
             }
             else
             {
-                vaults.add(arg.toLowerCase());
+                curators.add(arg.toLowerCase());
             }
         }
-        new Application(DEFAULT_PID).run(vaults);
+        new Application(new DefaultPidManager()).run(curators);
     }
 
-    void run(HashSet<String> vaults)
+    void run(Set<String> selectedCuratorNames)
     {
-        if (!ensureNewPidFile())
-        {
-            LOGGER.error("Couldn't write PID. Another Markdown Curator is running. Exiting.");
-            return;
-        }
-        var factories =
-            ServiceLoader.load(CuratorFactory.class).stream().map(Provider::get).toList();
+        var factories = ServiceLoader.load(CuratorFactory.class).stream()
+            .map(Provider::get)
+            .toList();
         if (factories.isEmpty())
         {
             LOGGER.error("No curators are available in the system. Nothing to do!");
@@ -96,34 +78,25 @@ public class Application
             LOGGER.info("Press Ctrl+C to stop");
             LOGGER.info("-".repeat(76));
         }
-        if (!vaults.isEmpty())
+        if (!selectedCuratorNames.isEmpty())
         {
             factories = factories.stream()
-                .filter(f -> vaults.contains(f.name().toLowerCase()))
+                .filter(f -> selectedCuratorNames.contains(f.name().toLowerCase()))
                 .toList();
             if (factories.isEmpty())
             {
                 LOGGER.error("No curators are available in the system. Nothing to do! Filter: {}",
-                    vaults
+                    selectedCuratorNames
                 );
                 return;
             }
         }
+        if (pidManager.anyPidExists(factories))
+        {
+            LOGGER.error("Another Markdown Curator is running for the same vault(s). Exiting.");
+            return;
+        }
         runCuratorsInSeparateThreads(factories);
-    }
-
-    boolean ensureNewPidFile()
-    {
-        try
-        {
-            writeString(pid, ProcessHandle.current().pid() + lineSeparator(), CREATE_NEW);
-        }
-        catch (IOException _)
-        {
-            return false;
-        }
-        pid.toFile().deleteOnExit();
-        return true;
     }
 
     String resolveVersion()
@@ -151,6 +124,13 @@ public class Application
                 var name = factory.name();
                 currentThread().setName(name);
                 MDC.put("curator", name);
+                if (!pidManager.createPidFor(factory))
+                {
+                    LOGGER.error("Failed to create PID for curator '{}'. It will not be run.",
+                        name
+                    );
+                    return;
+                }
                 LOGGER.debug("Instantiating curator: {}", name);
                 Curator curator = null;
                 try
