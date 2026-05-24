@@ -86,7 +86,7 @@ class ProjectStatusMarkerTest
     @Test
     void testToString()
     {
-        assertThat(statusMarker.toString()).isEqualTo("Status");
+        assertThat(statusMarker).hasToString("Status");
     }
 
     @Test

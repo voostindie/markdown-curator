@@ -9,7 +9,7 @@ import java.util.Collection;
 final class DefaultChangeCollector
     implements ChangeCollector
 {
-    private final Logger LOGGER = LoggerFactory.getLogger(DefaultChangeCollector.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(DefaultChangeCollector.class);
     private final Collection<Change<?>> collection;
 
     DefaultChangeCollector()

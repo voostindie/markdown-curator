@@ -18,12 +18,12 @@ import static nl.ulso.curator.addon.project.ProjectAttributeDefinition.STATUS;
 import static nl.ulso.curator.change.Change.isPayloadType;
 
 /// Lists all active projects, either in a simple list or in a table.
-public final class ProjectListQuery
+final class ProjectListQuery
     implements Query
 {
     private final ProjectRepository projectRepository;
     private final ProjectAttributeRepository projectAttributeRepository;
-    private final GeneralMessages messages;
+    private final ProjectMessages messages;
     private final QueryResultFactory resultFactory;
 
     private enum Format
@@ -36,10 +36,10 @@ public final class ProjectListQuery
         Map.of("list", Format.LIST, "table", Format.TABLE);
 
     @Inject
-    public ProjectListQuery(
+    ProjectListQuery(
         ProjectRepository projectRepository,
         ProjectAttributeRepository projectAttributeRepository,
-        GeneralMessages messages,
+        ProjectMessages messages,
         QueryResultFactory resultFactory)
     {
         this.projectRepository = projectRepository;

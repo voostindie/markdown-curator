@@ -78,7 +78,7 @@ final class DefaultCurator
     @Override
     public void run(RunMode runMode)
     {
-        switch (RunMode.get())
+        switch (runMode)
         {
             case DAEMON ->
             {
@@ -200,11 +200,11 @@ final class DefaultCurator
     private synchronized void processChangeQueue()
     {
         MDC.put("curator", curatorName);
-        LOGGER.info("-".repeat(80));
+        logSeparatorLine();
         var changelog = changeProcessorOrchestrator.runFor(changeQueue);
         queryOrchestrator.runFor(changelog).forEach(this::writeDocument);
         changeQueue.clear();
-        LOGGER.info("-".repeat(80));
+        logSeparatorLine();
     }
 
     /// Executing queries has resulted in a set of [DocumentUpdate]s. These must be written to disk.
@@ -229,6 +229,14 @@ final class DefaultCurator
         {
             LOGGER.warn("Couldn't write document '{}' to disk.", document);
             LOGGER.error(e.getMessage(), e);
+        }
+    }
+
+    private void logSeparatorLine()
+    {
+        if (LOGGER.isInfoEnabled())
+        {
+            LOGGER.info("-".repeat(80));
         }
     }
 }

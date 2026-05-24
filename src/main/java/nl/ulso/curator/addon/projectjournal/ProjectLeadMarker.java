@@ -40,7 +40,7 @@ final class ProjectLeadMarker
             .filter(link -> !link.targetDocument().contentEquals(name()))
             .map(link -> vault.findDocument(link.targetDocument()))
             .flatMap(Optional::stream)
-            .map(document -> (Object) document)
+            .map(Object.class::cast)
             .findFirst();
     }
 }

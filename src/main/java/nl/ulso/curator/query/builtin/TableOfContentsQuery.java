@@ -1,10 +1,10 @@
 package nl.ulso.curator.query.builtin;
 
+import jakarta.inject.Inject;
 import nl.ulso.curator.change.Changelog;
 import nl.ulso.curator.query.*;
 import nl.ulso.curator.vault.*;
 
-import jakarta.inject.Inject;
 import java.util.*;
 
 import static java.lang.System.lineSeparator;
@@ -59,7 +59,7 @@ public final class TableOfContentsQuery
             tocBuilder.sections.forEach(section ->
                     {
                         var indentLevel = (section.level() - tocBuilder.minimumLevel) * 4;
-                        builder.append(" ".repeat(indentLevel))
+                        builder.repeat(" ", indentLevel)
                                 .append("- ")
                                 .append(section.title())
                                 .append(lineSeparator());

@@ -7,12 +7,14 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
+import java.util.Locale;
+import java.util.Optional;
+
 import static java.util.Locale.ENGLISH;
 import static nl.ulso.curator.addon.project.ProjectTestData.createAttributeRegistry;
 import static nl.ulso.curator.addon.project.ProjectTestData.createProjectRepository;
 import static nl.ulso.curator.addon.project.ProjectTestData.createTestVault;
-import static nl.ulso.curator.query.QueryModuleTest.createMessages;
-import static nl.ulso.curator.query.QueryModuleTest.createQueryResultFactory;
+import static nl.ulso.curator.query.QueryTestModule.createQueryResultFactory;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @ExtendWith(SoftAssertionsExtension.class)
@@ -70,5 +72,10 @@ class ProjectListQueryTest
             - [[Project 1]]
             - [[Project 2]]
             """);
+    }
+
+    private ProjectMessages createMessages(Locale locale)
+    {
+        return new ResourceBundleProjectMessages(Optional.of(locale));
     }
 }

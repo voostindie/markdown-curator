@@ -15,12 +15,11 @@ import static nl.ulso.curator.change.Change.isDelete;
 import static nl.ulso.curator.change.Change.isPayloadType;
 
 @Singleton
-public class DayNavigationQuery
+final class DayNavigationQuery
     extends NavigationQueryTemplate
 {
     @Inject
-    protected DayNavigationQuery(
-        Journal journal, QueryResultFactory resultFactory, GeneralMessages messages)
+    DayNavigationQuery(Journal journal, QueryResultFactory resultFactory, JournalMessages messages)
     {
         super(journal, resultFactory, messages);
     }

@@ -44,6 +44,9 @@ import static nl.ulso.curator.addon.project.ProjectAttributeDefinition.*;
 @Module
 public abstract class ProjectModule
 {
+    @Binds
+    abstract ProjectMessages bindProjectMessages(ResourceBundleProjectMessages messages);
+
     @Multibinds
     abstract Map<String, ProjectAttributeDefinition> bindAttributeDefinitions();
 

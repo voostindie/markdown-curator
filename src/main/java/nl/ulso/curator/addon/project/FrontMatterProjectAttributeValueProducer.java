@@ -86,16 +86,14 @@ public final class FrontMatterProjectAttributeValueProducer
                     ProjectAttributeValue.class
                 );
             }
-            else if (oldValue.isPresent()) // && newValue.isPresent()
+            else if (oldValue.isPresent() && // newValue.isPresent() &&
+                     !oldValue.get().equals(newValue.get()))
             {
-                if (!oldValue.get().equals(newValue.get()))
-                {
-                    collector.update(
-                        new ProjectAttributeValue(oldProject, definition, oldValue.get(), WEIGHT),
-                        new ProjectAttributeValue(newProject, definition, newValue.get(), WEIGHT),
-                        ProjectAttributeValue.class
-                    );
-                }
+                collector.update(
+                    new ProjectAttributeValue(oldProject, definition, oldValue.get(), WEIGHT),
+                    new ProjectAttributeValue(newProject, definition, newValue.get(), WEIGHT),
+                    ProjectAttributeValue.class
+                );
             }
         }
     }

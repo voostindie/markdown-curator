@@ -288,7 +288,7 @@ abstract class ProjectJournalAttributeValueProducer
             {
                 LOGGER.trace(
                     "Attribute value for project '{}' is unchanged. No update needed",
-                    project.name()
+                    project
                 );
                 return;
             }

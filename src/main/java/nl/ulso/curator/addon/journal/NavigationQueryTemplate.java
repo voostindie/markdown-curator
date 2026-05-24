@@ -1,6 +1,7 @@
 package nl.ulso.curator.addon.journal;
 
-import nl.ulso.curator.query.*;
+import nl.ulso.curator.query.Query;
+import nl.ulso.curator.query.QueryResultFactory;
 
 import java.util.Map;
 import java.util.Optional;
@@ -12,10 +13,10 @@ abstract class NavigationQueryTemplate
 {
     protected final Journal journal;
     protected final QueryResultFactory resultFactory;
-    protected final GeneralMessages messages;
+    protected final JournalMessages messages;
 
     protected NavigationQueryTemplate(
-        Journal journal, QueryResultFactory resultFactory, GeneralMessages messages)
+        Journal journal, QueryResultFactory resultFactory, JournalMessages messages)
     {
         this.journal = journal;
         this.resultFactory = resultFactory;

@@ -46,7 +46,7 @@ final class TableResult
             builder.append(" ");
             var column = capitalize(columns.get(i));
             builder.append(column);
-            builder.append(" ".repeat(Math.max(0, widths[i] - column.length())));
+            builder.repeat(" ", Math.max(0, widths[i] - column.length()));
             builder.append(" |");
         }
         builder.append(lineSeparator());
@@ -56,7 +56,7 @@ final class TableResult
             if (alignments == null)
             {
                 builder.append(" ");
-                builder.append("-".repeat(widths[i]));
+                builder.repeat("-", widths[i]);
                 builder.append(" |");
             }
             else
@@ -66,15 +66,15 @@ final class TableResult
                 {
                     case LEFT:
                         builder.append(":");
-                        builder.append("-".repeat(Math.max(widths[i] - 1, 1)));
+                        builder.repeat("-", Math.max(widths[i] - 1, 1));
                         break;
                     case RIGHT:
-                        builder.append("-".repeat(Math.max(widths[i] - 1, 1)));
+                        builder.repeat("-", Math.max(widths[i] - 1, 1));
                         builder.append(":");
                         break;
                     case CENTER:
                         builder.append(":");
-                        builder.append("-".repeat(Math.max(widths[i] - 2, 1)));
+                        builder.repeat("-", Math.max(widths[i] - 2, 1));
                         builder.append(":");
                         break;
                 }
@@ -91,7 +91,7 @@ final class TableResult
                 var column = applyObsidianFormattingWorkaround(
                     row.getOrDefault(columns.get(i), ""));
                 builder.append(column);
-                builder.append(" ".repeat(Math.max(0, widths[i] - column.length())));
+                builder.repeat(" ", Math.max(0, widths[i] - column.length()));
                 builder.append(" |");
             }
             builder.append(lineSeparator());

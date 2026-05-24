@@ -73,22 +73,9 @@ class DefaultPidManagerTest
         return new DummyCuratorFactory(name);
     }
 
-    private static final class DummyCuratorFactory
+    private record DummyCuratorFactory(String name)
         implements CuratorFactory
     {
-        private final String name;
-
-        private DummyCuratorFactory(String name)
-        {
-            this.name = name;
-        }
-
-        @Override
-        public String name()
-        {
-            return name;
-        }
-
         @Override
         public Curator createCurator()
         {

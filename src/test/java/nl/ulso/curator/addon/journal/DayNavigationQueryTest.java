@@ -9,6 +9,7 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
 import java.util.Locale;
+import java.util.Optional;
 import java.util.stream.Stream;
 
 import static java.util.Locale.ENGLISH;
@@ -21,8 +22,7 @@ import static nl.ulso.curator.change.Change.create;
 import static nl.ulso.curator.change.Change.delete;
 import static nl.ulso.curator.change.Change.update;
 import static nl.ulso.curator.change.Changelog.changelogFor;
-import static nl.ulso.curator.query.QueryModuleTest.createMessages;
-import static nl.ulso.curator.query.QueryModuleTest.createQueryResultFactory;
+import static nl.ulso.curator.query.QueryTestModule.createQueryResultFactory;
 import static org.assertj.core.api.Assertions.assertThat;
 
 class DayNavigationQueryTest
@@ -167,7 +167,7 @@ class DayNavigationQueryTest
         var definition = new QueryDefinitionStub(
             query, vault.findDocument(currentDailyName).orElseThrow());
         var changedWeekly = parseWeeklyFrom(
-                vault.findDocument(changedWeeklyName).orElseThrow())
+            vault.findDocument(changedWeeklyName).orElseThrow())
             .orElseThrow();
         var change = switch (kind)
         {
@@ -190,5 +190,10 @@ class DayNavigationQueryTest
             Arguments.of("2023-01-25", DELETE, "2023 Week 04", true),
             Arguments.of("2023-01-25", DELETE, "2023 Week 05", false)
         );
+    }
+
+    private static JournalMessages createMessages(Locale locale)
+    {
+        return new ResourceBundleJournalMessages(Optional.of(locale));
     }
 }

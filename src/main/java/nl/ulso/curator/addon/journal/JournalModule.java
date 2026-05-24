@@ -25,6 +25,9 @@ import nl.ulso.curator.statistics.MeasurementTracker;
 public abstract class JournalModule
 {
     @Binds
+    abstract JournalMessages bindJournalMessages(ResourceBundleJournalMessages messages);
+
+    @Binds
     @IntoSet
     abstract ChangeProcessor bindDailyProcessor(DefaultDailyRepository dailyRepository);
 

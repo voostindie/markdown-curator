@@ -14,7 +14,7 @@ class WeeklyTest
         var vault = new VaultStub();
         vault.addDocument(weekly.toString(), "");
         var document = vault.findDocument(weekly.toString()).orElseThrow();
-        assertThat(Weekly.isWeekly(document));
+        assertThat(Weekly.isWeekly(document)).isTrue();
     }
 
     @Test

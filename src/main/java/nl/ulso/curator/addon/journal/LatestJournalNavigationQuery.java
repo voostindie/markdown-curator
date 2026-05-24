@@ -12,12 +12,12 @@ import static nl.ulso.curator.change.Change.isDelete;
 import static nl.ulso.curator.change.Change.isPayloadType;
 
 @Singleton
-public class LatestJournalNavigationQuery
+final class LatestJournalNavigationQuery
     extends NavigationQueryTemplate
 {
     @Inject
-    protected LatestJournalNavigationQuery(
-        Journal journal, QueryResultFactory resultFactory, GeneralMessages messages)
+    LatestJournalNavigationQuery(
+        Journal journal, QueryResultFactory resultFactory, JournalMessages messages)
     {
         super(journal, resultFactory, messages);
     }

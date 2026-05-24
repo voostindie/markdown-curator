@@ -6,10 +6,9 @@ import static nl.ulso.curator.vault.ElementCounter.Scope.FOLDERS_AND_DOCUMENTS;
 /// Simple visitor that counts all occurrences of the different types.
 ///
 /// It supports two search scopes:
-/// <ol>
-///   - {@literal ALL}: the default; it counts all elements, on all levels.
-///   - {@literal FOLDERS_AND_DOCUMENTS}: counts only folders and documents.
-/// </ol>
+///
+/// - `ALL`: the default; it counts all elements, on all levels.
+/// - `FOLDERS_AND_DOCUMENTS`: counts only folders and documents.
 public final class ElementCounter
     extends BreadthFirstVaultVisitor
 {

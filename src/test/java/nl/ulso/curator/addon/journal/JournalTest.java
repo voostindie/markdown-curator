@@ -148,7 +148,7 @@ class JournalTest
     {
         var journal = createTestJournal(new VaultStub());
         var latest = journal.latest();
-        assertThat(latest.get().date()).isEqualTo(LocalDate.of(2024, 8, 12));
+        assertThat(latest.orElseThrow().date()).isEqualTo(LocalDate.of(2024, 8, 12));
     }
 
     @Test
@@ -177,7 +177,7 @@ class JournalTest
     {
         var journal = createTestJournal(new VaultStub());
         var markers = journal.markers();
-        var marker = markers.values().stream().findFirst().get();
+        var marker = markers.values().stream().findFirst().orElseThrow();
         assertThat(journal.isMarkerDocument(marker.document())).isTrue();
     }
 
@@ -186,7 +186,7 @@ class JournalTest
     {
         var vault = new VaultStub();
         var journal = createTestJournal(vault);
-        var project = vault.folder("Projects").get().document("foo").get();
+        var project = vault.folder("Projects").orElseThrow().document("foo").orElseThrow();
         assertThat(journal.isMarkerDocument(project)).isFalse();
     }
 

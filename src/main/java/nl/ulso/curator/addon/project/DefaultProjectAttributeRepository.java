@@ -12,6 +12,7 @@ import java.util.*;
 
 import static java.util.Collections.emptyMap;
 import static java.util.Collections.emptySortedSet;
+import static java.util.HashMap.newHashMap;
 import static java.util.HashSet.newHashSet;
 import static java.util.Objects.requireNonNull;
 import static nl.ulso.curator.addon.project.ProjectAttributeRepositoryUpdate.REPOSITORY_UPDATE;
@@ -98,13 +99,16 @@ final class DefaultProjectAttributeRepository
         var weightedValues = resolveWeightedValues(newProjectAttributeValue);
         if (weightedValues.contains(newWeightedValue))
         {
-            LOGGER.warn(
-                "Unexpected existing weighted value for attribute '{}' with weight '{}' on " +
-                "project '{}' found.",
-                newProjectAttributeValue.definition().frontMatterProperty(),
-                newWeightedValue.weight(),
-                newProjectAttributeValue.project().name()
-            );
+            if (LOGGER.isWarnEnabled())
+            {
+                LOGGER.warn(
+                    "Unexpected existing weighted value for attribute '{}' with weight '{}' on " +
+                    "project '{}' found.",
+                    newProjectAttributeValue.definition().frontMatterProperty(),
+                    newWeightedValue.weight(),
+                    newProjectAttributeValue.project().name()
+                );
+            }
             weightedValues.remove(newWeightedValue);
         }
         weightedValues.add(newWeightedValue);
@@ -122,25 +126,31 @@ final class DefaultProjectAttributeRepository
             .orElse(null);
         if (oldWeightedValue == null)
         {
-            LOGGER.warn(
-                "Expected existing weighted value for attribute '{}' with weight '{}' on project " +
-                "'{}' not found.",
-                projectAttributeValue.definition().frontMatterProperty(),
-                newWeightedValue.weight(),
-                projectAttributeValue.project().name()
-            );
+            if (LOGGER.isWarnEnabled())
+            {
+                LOGGER.warn(
+                    "Expected existing weighted value for attribute '{}' with weight '{}' on " +
+                    "project '{}' not found.",
+                    projectAttributeValue.definition().frontMatterProperty(),
+                    newWeightedValue.weight(),
+                    projectAttributeValue.project().name()
+                );
+            }
         }
         else
         {
             if (oldWeightedValue.value().equals(newWeightedValue.value()))
             {
-                LOGGER.warn(
-                    "Detected meaningless value update for attribute '{}' with weight '{}' on " +
-                    "project '{}'.",
-                    projectAttributeValue.definition().frontMatterProperty(),
-                    newWeightedValue.weight(),
-                    projectAttributeValue.project().name()
-                );
+                if (LOGGER.isWarnEnabled())
+                {
+                    LOGGER.warn(
+                        "Detected meaningless value update for attribute '{}' with weight '{}' " +
+                        "on project '{}'.",
+                        projectAttributeValue.definition().frontMatterProperty(),
+                        newWeightedValue.weight(),
+                        projectAttributeValue.project().name()
+                    );
+                }
             }
             weightedValues.remove(oldWeightedValue);
         }
@@ -157,13 +167,16 @@ final class DefaultProjectAttributeRepository
             .getOrDefault(oldProjectAttributeValue.definition(), emptySortedSet());
         if (!weightedValues.contains(oldWeightedValue))
         {
-            LOGGER.warn(
-                "Detected deletion of a non-existent value for attribute '{}' with weight '{}' on" +
-                " project '{}'.",
-                oldProjectAttributeValue.definition().frontMatterProperty(),
-                oldWeightedValue.weight(),
-                oldProjectAttributeValue.project().name()
-            );
+            if (LOGGER.isWarnEnabled())
+            {
+                LOGGER.warn(
+                    "Detected deletion of a non-existent value for attribute '{}' with weight " +
+                    "'{}' on  project '{}'.",
+                    oldProjectAttributeValue.definition().frontMatterProperty(),
+                    oldWeightedValue.weight(),
+                    oldProjectAttributeValue.project().name()
+                );
+            }
             return;
         }
         weightedValues.remove(oldWeightedValue);
@@ -176,7 +189,7 @@ final class DefaultProjectAttributeRepository
     {
         return projectAttributes.computeIfAbsent(
             projectAttributeValue.project().name(),
-            _ -> new HashMap<>(attributeDefinitions.size())
+            _ -> newHashMap(attributeDefinitions.size())
         ).computeIfAbsent(
             projectAttributeValue.definition(),
             _ -> new TreeSet<>()

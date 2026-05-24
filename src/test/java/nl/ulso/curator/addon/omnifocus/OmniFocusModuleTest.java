@@ -14,7 +14,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 /// This is more of a system context than a unit test: it sets up the change processor chain with
 /// the project and OmniFocus modules, runs a vault with 3 projects, and an extract from OmniFocus
 /// with 3 projects through it, and checks that all the outcomes are as expected.
-public class OmniFocusModuleTest
+class OmniFocusModuleTest
 {
     private OmniFocusTestContext testContext;
 

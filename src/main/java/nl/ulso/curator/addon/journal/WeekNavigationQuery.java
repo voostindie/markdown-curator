@@ -16,12 +16,12 @@ import static nl.ulso.curator.change.Change.isDelete;
 import static nl.ulso.curator.change.Change.isPayloadType;
 
 @Singleton
-public class WeekNavigationQuery
+final class WeekNavigationQuery
     extends NavigationQueryTemplate
 {
     @Inject
-    protected WeekNavigationQuery(
-        Journal journal, QueryResultFactory resultFactory, GeneralMessages messages)
+    WeekNavigationQuery(
+        Journal journal, QueryResultFactory resultFactory, JournalMessages messages)
     {
         super(journal, resultFactory, messages);
     }

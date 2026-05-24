@@ -12,7 +12,7 @@ import org.junit.jupiter.params.provider.MethodSource;
 import java.util.stream.Stream;
 
 import static nl.ulso.curator.addon.journal.JournalTest.createTestJournal;
-import static nl.ulso.curator.query.QueryModuleTest.createQueryResultFactory;
+import static nl.ulso.curator.query.QueryTestModule.createQueryResultFactory;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @ExtendWith(SoftAssertionsExtension.class)

@@ -13,7 +13,7 @@ abstract class FolderQuery
 {
     private final Vault vault;
 
-    public FolderQuery(Vault vault)
+    protected FolderQuery(Vault vault)
     {
         this.vault = vault;
     }

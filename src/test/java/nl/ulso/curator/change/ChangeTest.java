@@ -45,7 +45,7 @@ class ChangeTest
     void updateWithOldValue()
     {
         var change = update(0, 42, Integer.class);
-        assertThat(change.oldValue()).isEqualTo(0);
+        assertThat(change.oldValue()).isZero();
     }
 
     @Test
@@ -89,7 +89,7 @@ class ChangeTest
     void asInvalidValue()
     {
         var change = create(42, Integer.class);
-        assertThatThrownBy(() -> change.as(String.class).value())
+        assertThatThrownBy(() -> change.as(String.class))
             .isInstanceOf(IllegalArgumentException.class);
     }
 

@@ -85,10 +85,12 @@ class FileSystemVaultTest
                 }
                 else
                 {
+                    //noinspection ResultOfMethodCallIgnored
                     file.delete();
                 }
             }
         }
+        //noinspection ResultOfMethodCallIgnored
         directory.delete();
     }
 

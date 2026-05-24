@@ -144,15 +144,15 @@ public final class Document
             throw new IllegalArgumentException("pathFromRoot may not be empty");
         }
         var firstPart = pathParts.removeLast();
-        var folder = this.folder;
+        var currentFolder = this.folder;
         var found = false;
-        while (!folder.isRoot())
+        while (!currentFolder.isRoot())
         {
-            if (folder.name().contentEquals(firstPart))
+            if (currentFolder.name().contentEquals(firstPart))
             {
                 found = true;
             }
-            folder = folder.parent();
+            currentFolder = currentFolder.parent();
             if (found)
             {
                 break;
@@ -164,17 +164,17 @@ public final class Document
         }
         while (!pathParts.isEmpty())
         {
-            if (folder.isRoot())
+            if (currentFolder.isRoot())
             {
                 return false;
             }
             var part = pathParts.removeLast();
-            if (!folder.name().contentEquals(part))
+            if (!currentFolder.name().contentEquals(part))
             {
                 return false;
             }
-            folder = folder.parent();
+            currentFolder = currentFolder.parent();
         }
-        return folder.isRoot();
+        return currentFolder.isRoot();
     }
 }

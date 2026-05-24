@@ -18,7 +18,7 @@ class DefaultQueryResultFactory
 
     public DefaultQueryResultFactory()
     {
-        this(new ResourceBundledGeneralMessages());
+        this(new ResourceBundleGeneralMessages());
     }
 
     @Inject

@@ -9,6 +9,8 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
+import java.util.Locale;
+import java.util.Optional;
 import java.util.stream.Stream;
 
 import static java.util.Locale.ENGLISH;
@@ -19,8 +21,7 @@ import static nl.ulso.curator.change.Change.Kind.UPDATE;
 import static nl.ulso.curator.change.Change.create;
 import static nl.ulso.curator.change.Change.delete;
 import static nl.ulso.curator.change.Change.update;
-import static nl.ulso.curator.query.QueryModuleTest.createMessages;
-import static nl.ulso.curator.query.QueryModuleTest.createQueryResultFactory;
+import static nl.ulso.curator.query.QueryTestModule.createQueryResultFactory;
 import static org.assertj.core.api.Assertions.assertThat;
 
 class LatestJournalNavigationQueryTest
@@ -126,7 +127,10 @@ class LatestJournalNavigationQueryTest
             Arguments.of("2024-07-21", DELETE, false),
             Arguments.of("2024-07-21", UPDATE, false)
         );
-
     }
 
+    private static JournalMessages createMessages(Locale locale)
+    {
+        return new ResourceBundleJournalMessages(Optional.of(locale));
+    }
 }

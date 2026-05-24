@@ -1,6 +1,6 @@
 package nl.ulso.curator.query.builtin;
 
-import nl.ulso.curator.query.*;
+import nl.ulso.curator.query.QueryDefinitionStub;
 import nl.ulso.curator.vault.VaultStub;
 import org.assertj.core.api.junit.jupiter.SoftAssertionsExtension;
 import org.junit.jupiter.api.Test;
@@ -14,7 +14,7 @@ import java.util.Map;
 import java.util.stream.Stream;
 
 import static java.util.Collections.emptyMap;
-import static nl.ulso.curator.query.QueryModuleTest.createQueryResultFactory;
+import static nl.ulso.curator.query.QueryTestModule.createQueryResultFactory;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @ExtendWith(SoftAssertionsExtension.class)

@@ -14,7 +14,7 @@ import static java.util.Collections.emptyList;
 final class JavaScriptForAutomationStub
     implements JavaScriptForAutomation
 {
-    private static JsonArray EXPECTED_RESULT;
+    private static JsonArray expectedResult;
     static {
         setExpectedResult(emptyList());
     }
@@ -28,7 +28,7 @@ final class JavaScriptForAutomationStub
     {
         if (list == null)
         {
-            EXPECTED_RESULT = null;
+            expectedResult = null;
             return;
         }
         var arrayBuilder = Json.createArrayBuilder();
@@ -36,7 +36,7 @@ final class JavaScriptForAutomationStub
         {
             arrayBuilder.add(Json.createObjectBuilder(item).build());
         }
-        EXPECTED_RESULT = arrayBuilder.build();
+        expectedResult = arrayBuilder.build();
     }
 
     @Override
@@ -48,10 +48,10 @@ final class JavaScriptForAutomationStub
     @Override
     public JsonArray runScriptForArray(String name, String... arguments)
     {
-        if (EXPECTED_RESULT == null)
+        if (expectedResult == null)
         {
             throw new IllegalStateException("No JSON Array available.");
         }
-        return EXPECTED_RESULT;
+        return expectedResult;
     }
 }

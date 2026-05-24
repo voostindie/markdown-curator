@@ -4,7 +4,7 @@ import org.assertj.core.api.junit.jupiter.SoftAssertionsExtension;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
-import static nl.ulso.curator.query.QueryModuleTest.createEmptyCatalog;
+import static nl.ulso.curator.query.QueryTestModule.createEmptyCatalog;
 import static nl.ulso.curator.vault.QueryBlockTest.emptyQueryBlock;
 import static org.assertj.core.api.Assertions.assertThat;
 

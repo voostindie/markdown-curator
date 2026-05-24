@@ -10,7 +10,7 @@ public abstract class EntityFrontMatterProducer<E>
 {
     private final FrontMatterCollector frontMatterCollector;
 
-    public EntityFrontMatterProducer(FrontMatterCollector frontMatterCollector)
+    protected EntityFrontMatterProducer(FrontMatterCollector frontMatterCollector)
     {
         this.frontMatterCollector = frontMatterCollector;
     }

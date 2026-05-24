@@ -48,7 +48,8 @@ class ChangeProcessorOrchestratorTest
     {
         var model = new ChangeProcessorStub(1).consuming(Integer.class).producing(payloadType);
         var models = createModelSet(model);
-        assertThatThrownBy(() -> new DefaultChangeProcessorOrchestrator(models, new NullStatistics()))
+        var statistics = new NullStatistics();
+        assertThatThrownBy(() -> new DefaultChangeProcessorOrchestrator(models, statistics))
             .isInstanceOf(IllegalArgumentException.class)
             .hasMessageContaining("reserved payload type");
 
@@ -60,7 +61,8 @@ class ChangeProcessorOrchestratorTest
         var model1 = new ChangeProcessorStub(1).consuming(Integer.class).producing(String.class);
         var model2 = new ChangeProcessorStub(2).producing(Integer.class).consuming(String.class);
         var models = createModelSet(model1, model2);
-        assertThatThrownBy(() -> new DefaultChangeProcessorOrchestrator(models, new NullStatistics()))
+        var statistics = new NullStatistics();
+        assertThatThrownBy(() -> new DefaultChangeProcessorOrchestrator(models, statistics))
             .isInstanceOf(IllegalStateException.class)
             .hasMessageContaining("Dependency cycle");
     }
@@ -70,7 +72,8 @@ class ChangeProcessorOrchestratorTest
     {
         var model = new ChangeProcessorStub(1);
         var models = createModelSet(model);
-        assertThatThrownBy(() -> new DefaultChangeProcessorOrchestrator(models, new NullStatistics()))
+        var statistics = new NullStatistics();
+        assertThatThrownBy(() -> new DefaultChangeProcessorOrchestrator(models, statistics))
             .isInstanceOf(IllegalArgumentException.class)
             .hasMessageContaining("must consume at least one payload type");
     }
@@ -80,7 +83,8 @@ class ChangeProcessorOrchestratorTest
     {
         var model = new ChangeProcessorStub(1).consuming(Integer.class);
         var models = createModelSet(model);
-        assertThatThrownBy(() -> new DefaultChangeProcessorOrchestrator(models, new NullStatistics()))
+        var statistics = new NullStatistics();
+        assertThatThrownBy(() -> new DefaultChangeProcessorOrchestrator(models, statistics))
             .isInstanceOf(IllegalStateException.class)
             .hasMessageContaining("unsatisfied consumer");
     }

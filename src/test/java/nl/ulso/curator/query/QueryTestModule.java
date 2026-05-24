@@ -4,7 +4,7 @@ import java.util.Locale;
 
 import static java.util.Collections.emptySet;
 
-public class QueryModuleTest
+public class QueryTestModule
 {
     public static QueryCatalog createEmptyCatalog()
     {
@@ -18,6 +18,6 @@ public class QueryModuleTest
 
     public static GeneralMessages createMessages(Locale locale)
     {
-        return new ResourceBundledGeneralMessages(locale);
+        return new ResourceBundleGeneralMessages(locale);
     }
 }

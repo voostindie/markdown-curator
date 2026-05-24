@@ -19,7 +19,7 @@ import static org.slf4j.LoggerFactory.getLogger;
 final class DefaultPidManager
     implements PidManager
 {
-    private static final Logger LOGGER = getLogger(PidManager.class);
+    private static final Logger LOGGER = getLogger(DefaultPidManager.class);
 
     private static final String PID_FOLDER = getProperty("java.io.tmpdir");
     private static final String PID_PREFIX = "markdown-curator-";

@@ -18,19 +18,19 @@ import static nl.ulso.curator.addon.project.ProjectAttributeDefinition.STATUS;
 import static nl.ulso.curator.change.Change.isPayloadType;
 
 /// Lists all projects lead by a specific party (contact, team, ...document).
-public final class ProjectLeadQuery
+final class ProjectLeadQuery
     implements Query
 {
     private final ProjectRepository projectRepository;
     private final ProjectAttributeRepository projectAttributeRepository;
-    private final GeneralMessages messages;
+    private final ProjectMessages messages;
     private final QueryResultFactory resultFactory;
 
     @Inject
-    public ProjectLeadQuery(
+    ProjectLeadQuery(
         ProjectRepository projectRepository,
         ProjectAttributeRepository projectAttributeRepository,
-        GeneralMessages messages,
+        ProjectMessages messages,
         QueryResultFactory resultFactory)
     {
         this.projectRepository = projectRepository;

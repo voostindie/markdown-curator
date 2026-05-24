@@ -43,7 +43,7 @@ class DefaultOmniFocusDatabaseTest
     void nonExistentFileHasZeroLastModified()
     {
         var database = new DefaultOmniFocusDatabase(new File("NOTHING"));
-        assertThat(database.lastModified()).isEqualTo(0L);
+        assertThat(database.lastModified()).isZero();
     }
 
     @Test

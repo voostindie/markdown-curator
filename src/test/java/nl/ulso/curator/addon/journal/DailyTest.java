@@ -24,7 +24,7 @@ class DailyTest
         var document = vault.addDocument("2023-01-27", "## Activities");
         var section = (Section) document.fragments().get(1);
         var daily = Daily.parseDailyFrom(section);
-        assertThat(daily.date().toString()).isEqualTo("2023-01-27");
+        assertThat(daily.date()).hasToString("2023-01-27");
     }
 
     @Test

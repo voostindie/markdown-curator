@@ -1,6 +1,8 @@
-package nl.ulso.curator.query;
+package nl.ulso.curator.addon.journal;
 
 import jakarta.inject.Inject;
+import jakarta.inject.Singleton;
+
 import java.text.MessageFormat;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -10,34 +12,30 @@ import java.util.*;
 import static java.lang.Character.toTitleCase;
 import static java.util.ResourceBundle.getBundle;
 
-final class ResourceBundledGeneralMessages
-        implements GeneralMessages
+@Singleton
+final class ResourceBundleJournalMessages
+    implements JournalMessages
 {
     private final ResourceBundle bundle;
     private final DateTimeFormatter dayFormatter;
 
-    public ResourceBundledGeneralMessages()
+    ResourceBundleJournalMessages()
     {
         this(Optional.empty());
     }
 
-    public ResourceBundledGeneralMessages(Locale locale)
+    ResourceBundleJournalMessages(Locale locale)
     {
         this(Optional.of(locale));
     }
 
     @Inject
-    ResourceBundledGeneralMessages(Optional<Locale> optionalLocale)
+    ResourceBundleJournalMessages(Optional<Locale> optionalLocale)
     {
         var locale = optionalLocale.orElse(Locale.ENGLISH);
-        this.bundle = getBundle("GeneralMessages", locale);
+        this.bundle = getBundle("JournalMessages", locale);
         this.dayFormatter = DateTimeFormatter.ofLocalizedDate(FormatStyle.FULL).withLocale(locale);
-    }
 
-    @Override
-    public String noResults()
-    {
-        return bundle.getString("results.none");
     }
 
     @Override
@@ -53,7 +51,7 @@ final class ResourceBundledGeneralMessages
     public String journalWeek(int year, int week)
     {
         return MessageFormat.format(bundle.getString("journal.week"),
-                Integer.toString(year), Integer.toString(week));
+            Integer.toString(year), Integer.toString(week));
     }
 
     @Override
@@ -88,59 +86,5 @@ final class ResourceBundledGeneralMessages
     public String journalLatest()
     {
         return bundle.getString("journal.latest");
-    }
-
-    @Override
-    public String projectLead()
-    {
-        return bundle.getString("project.lead");
-    }
-
-    @Override
-    public String projectPriority()
-    {
-        return bundle.getString("project.priority");
-    }
-
-    @Override
-    public String projectName()
-    {
-        return bundle.getString("project.name");
-    }
-
-    @Override
-    public String projectLastModified()
-    {
-        return bundle.getString("project.lastModified");
-    }
-
-    @Override
-    public String projectStatus()
-    {
-        return bundle.getString("project.status");
-    }
-
-    @Override
-    public String projectPriorityUnknown()
-    {
-        return bundle.getString("project.priority.unknown");
-    }
-
-    @Override
-    public String projectDateUnknown()
-    {
-        return bundle.getString("project.lead.unknown");
-    }
-
-    @Override
-    public String projectLeadUnknown()
-    {
-        return bundle.getString("project.lead.unknown");
-    }
-
-    @Override
-    public String projectStatusUnknown()
-    {
-        return bundle.getString("project.status.unknown");
     }
 }

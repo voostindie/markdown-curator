@@ -15,7 +15,7 @@ public abstract class QueryModule
     abstract QueryResultFactory bindQueryResultFactory(DefaultQueryResultFactory queryResultFactory);
 
     @Binds
-    abstract GeneralMessages bindGeneralMessages(ResourceBundledGeneralMessages generalMessages);
+    abstract GeneralMessages bindGeneralMessages(ResourceBundleGeneralMessages messages);
 
     @Binds
     @IntoSet

@@ -17,7 +17,7 @@ class DefaultStatisticsTest
         var statistics = new DefaultStatistics(Set.of(tracker));
         var writer = new StringWriter();
         statistics.logTo(new PrintWriter(writer, true));
-        assertThat(writer.toString()).isEqualTo("""
+        assertThat(writer).hasToString("""
             totals:
               lang:
                 string: 50

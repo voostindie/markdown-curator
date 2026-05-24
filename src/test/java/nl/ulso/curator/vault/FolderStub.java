@@ -38,8 +38,8 @@ public class FolderStub
                 break;
             }
             var folderName = path.substring(index, folderEnd);
-            final FolderStub parent = folder;
-            folder = parent.folders.computeIfAbsent(folderName, s -> new FolderStub(parent, s));
+            var newParent = folder;
+            folder = newParent.folders.computeIfAbsent(folderName, s -> new FolderStub(newParent, s));
             index = folderEnd + 1;
         }
         var documentName = path.substring(index);

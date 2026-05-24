@@ -101,7 +101,8 @@ class MapBasedEntityRepositoryTest
         }
         else
         {
-            softly.assertThat(changelog.changes().findFirst().get()).isEqualTo(expectedChange);
+            softly.assertThat(changelog.changes().findFirst().orElseThrow())
+                .isEqualTo(expectedChange);
             var expectedSize = switch (expectedChange.kind())
             {
                 case CREATE -> size + 1;

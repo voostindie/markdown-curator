@@ -38,7 +38,7 @@ public abstract class ChangeProcessorTemplate
     protected ChangeProcessorTemplate()
     {
         this.changeHandlers = List.copyOf(createChangeHandlers());
-        if (this.changeHandlers.isEmpty())
+        if (this.changeHandlers.isEmpty() && LOGGER.isWarnEnabled())
         {
             LOGGER.warn("No change handlers configured for change processor: {}.", this.name());
         }
@@ -68,7 +68,10 @@ public abstract class ChangeProcessorTemplate
     {
         if (isResetRequired(changelog))
         {
-            LOGGER.debug("Performing a reset on change processor: {}.", this.name());
+            if (LOGGER.isWarnEnabled())
+            {
+                LOGGER.debug("Performing a reset on change processor: {}.", this.name());
+            }
             reset();
         }
         var collector = new DefaultChangeCollector(createChangeCollection());

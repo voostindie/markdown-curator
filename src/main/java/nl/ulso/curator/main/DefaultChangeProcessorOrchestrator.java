@@ -158,21 +158,23 @@ final class DefaultChangeProcessorOrchestrator
         var changelog = changelogFor(changes);
         for (ChangeProcessor processor : changeProcessors)
         {
+            var processorName = processor.name();
             try
             {
                 var filteredChangelog = changelog.changelogFor(processor.consumedPayloadTypes());
                 if (filteredChangelog.isEmpty())
                 {
-                    LOGGER.debug("Skipping change processor {}. No relevant changes available.",
-                        processor.name()
+                    LOGGER.debug(
+                        "Skipping change processor {}. No relevant changes available.",
+                        processorName
                     );
                     continue;
                 }
-                LOGGER.debug("Running change processor {}.", processor.name());
+                LOGGER.debug("Running change processor {}.", processorName);
                 var newChangelog = processor.apply(filteredChangelog);
                 verifyChanges(processor, newChangelog);
                 changelog = changelog.append(newChangelog);
-                LOGGER.trace("Executed change processor {}.", processor.name());
+                LOGGER.trace("Executed change processor {}.", processorName);
             }
             catch (RuntimeException e)
             {

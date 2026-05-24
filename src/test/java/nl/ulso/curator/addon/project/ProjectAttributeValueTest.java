@@ -95,7 +95,7 @@ class ProjectAttributeValueTest
         var project = new Project(vault.resolveDocumentInPath("Project 1"));
         var priority = newAttributeDefinition(Integer.class, "priority");
         var value = new ProjectAttributeValue(project, priority, 42, 100);
-        assertThat(value.toString()).isEqualTo("Project 1', priority: '42', weight: '100");
+        assertThat(value).hasToString("Project 1', priority: '42', weight: '100");
     }
 
 }

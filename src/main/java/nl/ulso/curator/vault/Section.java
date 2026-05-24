@@ -27,11 +27,11 @@ public final class Section
 
     Section(int level, String title, List<Fragment> fragments)
     {
-        super(fragments);
         if (level < 1)
         {
             throw new IllegalArgumentException("Minimum allowed section level is 1");
         }
+        super(fragments);
         this.level = level;
         this.title = requireNonNull(title);
         this.sortableTitle = stripEmojisFrom(title).trim();

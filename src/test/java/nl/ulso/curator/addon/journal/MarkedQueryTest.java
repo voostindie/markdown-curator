@@ -11,7 +11,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import java.util.List;
 
 import static nl.ulso.curator.addon.journal.JournalTest.createTestJournal;
-import static nl.ulso.curator.query.QueryModuleTest.createQueryResultFactory;
+import static nl.ulso.curator.query.QueryTestModule.createQueryResultFactory;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @ExtendWith(SoftAssertionsExtension.class)

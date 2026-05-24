@@ -11,15 +11,15 @@ public enum RunMode
     ONCE,
     DAEMON;
 
-    private static RunMode RUN_MODE = ONCE;
+    private static RunMode runMode = ONCE;
 
     static void set(RunMode runMode)
     {
-        RUN_MODE = runMode;
+        RunMode.runMode = runMode;
     }
 
     public static RunMode get()
     {
-        return RUN_MODE;
+        return runMode;
     }
 }
