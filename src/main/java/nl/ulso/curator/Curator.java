@@ -6,7 +6,7 @@ public interface Curator
     /// documents back to disk, then exit.
     void runOnce();
 
-    /// Start the curator and watch for changes, continuously running queries and updating
-    /// documents on disk when needed.
+    /// Start the curator and watch for changes, continuously running queries and updating documents
+    /// on disk when needed.
     void run();
 }

@@ -4,6 +4,7 @@ import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 import jakarta.json.JsonArray;
 import jakarta.json.JsonValue;
+import nl.ulso.curator.RunMode;
 import nl.ulso.curator.change.ExternalChangeHandler;
 import nl.ulso.jxa.JavaScriptForAutomation;
 import org.slf4j.*;
@@ -31,6 +32,9 @@ import static org.slf4j.MDC.getCopyOfContextMap;
 /// database hasn't changed (based on the modification timestamp of the database folder), refresh is
 /// skipped. If, after a refresh, a change is detected to the set of projects in memory, a change
 /// object is published, requesting the system to process the update.
+///
+/// If the application is not run as a daemon, but just once, then no thread is scheduled and
+/// projects are fetched once in the main application thread.
 @Singleton
 final class DefaultOmniFocusRepository
     implements OmniFocusRepository
@@ -70,9 +74,22 @@ final class DefaultOmniFocusRepository
         }
         this.refreshExecutor = newSingleThreadScheduledExecutor();
         this.cache = new AtomicReference<>();
-        scheduleBackgroundRefresh(omniFocusDatabase, externalChangeHandler, javaScriptForAutomation,
-            settings
-        );
+        switch (RunMode.get())
+        {
+            case DAEMON -> scheduleBackgroundRefresh(
+                omniFocusDatabase,
+                externalChangeHandler,
+                javaScriptForAutomation,
+                settings
+            );
+            case ONCE -> reloadProjects(
+                omniFocusDatabase,
+                externalChangeHandler,
+                javaScriptForAutomation,
+                settings);
+            default -> throw new IllegalArgumentException(
+                "Unsupported run mode: " + RunMode.get());
+        }
     }
 
     private void scheduleBackgroundRefresh(

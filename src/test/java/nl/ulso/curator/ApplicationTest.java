@@ -40,7 +40,7 @@ class ApplicationTest
 
     @Test
     void existingPidFileReturnsTrue()
-            throws IOException
+        throws IOException
     {
         Path path = tempPidPath();
         path.toFile().createNewFile();
@@ -60,8 +60,7 @@ class ApplicationTest
     {
         assertDoesNotThrow(() -> {
             var factory = new MusicCuratorFactory();
-            new Application(null).runCuratorsInSeparateThreads(List.of(factory),
-                    Application.RunMode.ONCE);
+            new Application(null).runCuratorsInSeparateThreads(List.of(factory));
         });
     }
 

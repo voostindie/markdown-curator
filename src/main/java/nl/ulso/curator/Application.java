@@ -17,6 +17,8 @@ import static java.nio.file.Files.writeString;
 import static java.nio.file.StandardOpenOption.CREATE_NEW;
 import static java.util.concurrent.Executors.callable;
 import static java.util.concurrent.Executors.newFixedThreadPool;
+import static nl.ulso.curator.RunMode.DAEMON;
+import static nl.ulso.curator.RunMode.ONCE;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /// Main application: sets up all curators and runs them; each curator runs in its own thread.
@@ -51,12 +53,6 @@ public class Application
 
     private final Path pid;
 
-    enum RunMode
-    {
-        ONCE,
-        DAEMON
-    }
-
     Application(Path pid)
     {
         this.pid = pid;
@@ -64,24 +60,23 @@ public class Application
 
     static void main(String[] args)
     {
-        var runMode = RunMode.DAEMON;
+        RunMode.set(DAEMON);
         var vaults = new HashSet<String>();
         for (String arg : args)
         {
             if (arg.contentEquals("--once") || arg.contentEquals("-1"))
             {
-                runMode = RunMode.ONCE;
+                RunMode.set(ONCE);
             }
             else
             {
                 vaults.add(arg.toLowerCase());
             }
-
         }
-        new Application(DEFAULT_PID).run(runMode, vaults);
+        new Application(DEFAULT_PID).run(vaults);
     }
 
-    void run(RunMode runMode, HashSet<String> vaults)
+    void run(HashSet<String> vaults)
     {
         if (!ensureNewPidFile())
         {
@@ -114,7 +109,7 @@ public class Application
                 return;
             }
         }
-        runCuratorsInSeparateThreads(factories, runMode);
+        runCuratorsInSeparateThreads(factories);
     }
 
     boolean ensureNewPidFile()
@@ -147,7 +142,7 @@ public class Application
         }
     }
 
-    void runCuratorsInSeparateThreads(List<CuratorFactory> factories, RunMode runMode)
+    void runCuratorsInSeparateThreads(List<CuratorFactory> factories)
     {
         try (var executor = newFixedThreadPool(factories.size()))
         {
@@ -170,12 +165,12 @@ public class Application
                 {
                     try
                     {
-                        switch (runMode)
+                        switch (RunMode.get())
                         {
                             case DAEMON -> curator.run();
                             case ONCE -> curator.runOnce();
                             default -> throw new IllegalArgumentException(
-                                "Unsupported run mode: " + runMode);
+                                "Unsupported run mode: " + RunMode.get());
                         }
                     }
                     catch (Exception e)
