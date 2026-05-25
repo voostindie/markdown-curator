@@ -72,21 +72,29 @@ final class DefaultOmniFocusRepository
                 "OmniFocus database is inaccessible: " + omniFocusDatabase.path());
 
         }
-        this.refreshExecutor = newSingleThreadScheduledExecutor();
         this.cache = new AtomicReference<>();
         switch (RunMode.get())
         {
-            case DAEMON -> scheduleBackgroundRefresh(
-                omniFocusDatabase,
-                externalChangeHandler,
-                javaScriptForAutomation,
-                settings
-            );
-            case ONCE -> reloadProjects(
-                omniFocusDatabase,
-                externalChangeHandler,
-                javaScriptForAutomation,
-                settings);
+            case DAEMON ->
+            {
+                this.refreshExecutor = newSingleThreadScheduledExecutor();
+                scheduleBackgroundRefresh(
+                    omniFocusDatabase,
+                    externalChangeHandler,
+                    javaScriptForAutomation,
+                    settings
+                );
+            }
+            case ONCE ->
+            {
+                this.refreshExecutor = null;
+                reloadProjects(
+                    omniFocusDatabase,
+                    externalChangeHandler,
+                    javaScriptForAutomation,
+                    settings
+                );
+            }
             default -> throw new IllegalArgumentException(
                 "Unsupported run mode: " + RunMode.get());
         }
