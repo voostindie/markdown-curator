@@ -126,9 +126,9 @@ final class DefaultProjectAttributeRepository
             .orElse(null);
         if (oldWeightedValue == null)
         {
-            if (LOGGER.isWarnEnabled())
+            if (LOGGER.isDebugEnabled())
             {
-                LOGGER.warn(
+                LOGGER.debug(
                     "Expected existing weighted value for attribute '{}' with weight '{}' on " +
                     "project '{}' not found.",
                     projectAttributeValue.definition().frontMatterProperty(),
@@ -167,9 +167,9 @@ final class DefaultProjectAttributeRepository
             .getOrDefault(oldProjectAttributeValue.definition(), emptySortedSet());
         if (!weightedValues.contains(oldWeightedValue))
         {
-            if (LOGGER.isWarnEnabled())
+            if (LOGGER.isDebugEnabled())
             {
-                LOGGER.warn(
+                LOGGER.debug(
                     "Detected deletion of a non-existent value for attribute '{}' with weight " +
                     "'{}' on  project '{}'.",
                     oldProjectAttributeValue.definition().frontMatterProperty(),
