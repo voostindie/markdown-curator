@@ -103,9 +103,7 @@ final class WeekNavigationQuery
                 .filter(Optional::isPresent)
                 .map(Optional::get)
                 .collect(Collectors.joining(" | "));
-            return resultFactory.string("# " + title + lineSeparator() +
-                                        lineSeparator() +
-                                        "## " + subtitle);
+            return resultFactory.string("**" + title + "**<br/>" + lineSeparator() + subtitle);
 
         }).orElseGet(() ->
             resultFactory.error("Document is not a weekly journal!")

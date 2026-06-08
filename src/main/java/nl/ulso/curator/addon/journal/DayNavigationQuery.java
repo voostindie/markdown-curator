@@ -95,7 +95,7 @@ final class DayNavigationQuery
                 .filter(Optional::isPresent)
                 .map(Optional::get)
                 .collect(joining(" "));
-            return resultFactory.string("# " + title);
+            return resultFactory.string("**" + title + "**");
 
         }).orElseGet(() ->
             resultFactory.error("Document is not a daily journal!")
