@@ -9,7 +9,6 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static java.lang.System.lineSeparator;
 import static nl.ulso.curator.addon.journal.Weekly.parseWeeklyFrom;
 import static nl.ulso.curator.change.Change.isCreate;
 import static nl.ulso.curator.change.Change.isDelete;
@@ -87,8 +86,7 @@ final class WeekNavigationQuery
         {
             var title = Stream.of(
                     toLink(journal.weeklyBefore(weekly), messages.journalPrevious()),
-                    toLink(journal.weeklyAfter(weekly), messages.journalNext()),
-                    Optional.of(messages.journalWeek(weekly.year(), weekly.week()))
+                    toLink(journal.weeklyAfter(weekly), messages.journalNext())
                 )
                 .filter(Optional::isPresent)
                 .map(Optional::get)
@@ -103,7 +101,7 @@ final class WeekNavigationQuery
                 .filter(Optional::isPresent)
                 .map(Optional::get)
                 .collect(Collectors.joining(" | "));
-            return resultFactory.string("**" + title + "**<br/>" + lineSeparator() + subtitle);
+            return resultFactory.string("**" + title + " " + subtitle + "**");
 
         }).orElseGet(() ->
             resultFactory.error("Document is not a weekly journal!")
