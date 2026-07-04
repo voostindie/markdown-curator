@@ -11,8 +11,8 @@ import nl.ulso.curator.statistics.MeasurementTracker;
 /// Combines the Project and Journal modules by offering additional functionality to extract project
 /// attributes from the journal.
 ///
-/// This module adds resolvers for the project lead, status, and last modification that have
-/// greater weights than the resolvers in the Project module that use front matter.
+/// This module adds resolvers for the project lead, status, and last modification that have greater
+/// weights than the resolvers in the Project module that use front matter.
 ///
 /// An earlier, rudimentary implementation of this module pulled attribute values for all supported
 /// attribute definitions from the journal. That was efficient but hard to maintain. This
@@ -26,15 +26,16 @@ public abstract class ProjectJournalModule
 {
     @Binds
     @IntoSet
-    abstract ChangeProcessor bindProjectLeadMarkerProcessor(
-        ProjectLeadMarkerRepository
-            processor);
+    abstract ChangeProcessor bindProjectLeadMarkerProducer(ProjectLeadMarkerProducer producer);
+
+    @Binds
+    @IntoSet
+    abstract ChangeProcessor bindProjectLeadMarkerProcessor(ProjectLeadMarkerRepository processor);
 
     @Binds
     @IntoSet
     abstract MeasurementTracker bindProjectLeadMarkerTracker(
-        ProjectLeadMarkerRepository
-            tracker);
+        ProjectLeadMarkerRepository tracker);
 
     @Binds
     @IntoSet
@@ -45,6 +46,10 @@ public abstract class ProjectJournalModule
     @IntoSet
     abstract MeasurementTracker bindLeadProjectAttributeValueTracker(
         ProjectLeadAttributeValueProducer producer);
+
+    @Binds
+    @IntoSet
+    abstract ChangeProcessor bindProjectStatusMarkerProducer(ProjectStatusMarkerProducer producer);
 
     @Binds
     @IntoSet

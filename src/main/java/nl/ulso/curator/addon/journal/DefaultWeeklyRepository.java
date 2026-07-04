@@ -3,52 +3,34 @@ package nl.ulso.curator.addon.journal;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 import nl.ulso.curator.change.SetBasedEntityRepository;
-import nl.ulso.curator.vault.Document;
 
 import java.time.LocalDate;
 import java.time.temporal.WeekFields;
 import java.util.*;
 
-import static nl.ulso.curator.addon.journal.Weekly.isWeekly;
-import static nl.ulso.curator.addon.journal.Weekly.parseWeeklyFrom;
-
 @Singleton
 final class DefaultWeeklyRepository
-    extends SetBasedEntityRepository<Document, Weekly>
+    extends SetBasedEntityRepository<Weekly>
     implements WeeklyRepository
 {
-    private final String journalFolderName;
     private final WeekFields weekFields;
 
     @Inject
     DefaultWeeklyRepository(JournalSettings settings)
     {
-        this.journalFolderName = settings.journalFolderName();
         this.weekFields = settings.weekFields();
     }
 
     @Override
-    protected Class<Document> sourceEntityClass()
-    {
-        return Document.class;
-    }
-
-    @Override
-    protected Class<Weekly> targetEntityClass()
+    protected Class<Weekly> entityClass()
     {
         return Weekly.class;
     }
 
     @Override
-    protected boolean isEntity(Document document)
+    protected Class<?> repositoryClass()
     {
-        return document.isInPath(journalFolderName) && isWeekly(document);
-    }
-
-    @Override
-    protected Weekly createEntityFrom(Document document)
-    {
-        return parseWeeklyFrom(document).orElseThrow();
+        return WeeklyRepository.class;
     }
 
     @Override
@@ -100,11 +82,5 @@ final class DefaultWeeklyRepository
     public int dayOfWeekNumberFor(LocalDate date)
     {
         return date.get(weekFields.dayOfWeek());
-    }
-
-    @Override
-    public String name()
-    {
-        return WeeklyRepository.class.getSimpleName();
     }
 }

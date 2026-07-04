@@ -22,7 +22,7 @@ public abstract class EntityFrontMatterProducer<E>
     }
 
     @Override
-    protected final void entityUpdate(E oldEntity, E newEntity, ChangeCollector collector)
+    protected final void entityUpdated(E oldEntity, E newEntity, ChangeCollector collector)
     {
         processFrontMatter(newEntity);
     }

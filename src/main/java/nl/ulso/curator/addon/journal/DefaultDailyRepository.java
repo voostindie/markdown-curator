@@ -3,65 +3,42 @@ package nl.ulso.curator.addon.journal;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 import nl.ulso.curator.change.MapBasedEntityRepository;
-import nl.ulso.curator.vault.*;
+import nl.ulso.curator.vault.Document;
 
 import java.time.LocalDate;
 import java.util.*;
 import java.util.stream.Stream;
 
 import static java.util.Comparator.reverseOrder;
-import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.toUnmodifiableSet;
 import static nl.ulso.curator.addon.journal.Daily.parseDateFrom;
-import static nl.ulso.date.LocalDates.parseDateOrNull;
 
 @Singleton
 final class DefaultDailyRepository
-    extends MapBasedEntityRepository<Document, LocalDate, Daily>
+    extends MapBasedEntityRepository<LocalDate, Daily>
     implements DailyRepository
 {
-    private final String journalFolderName;
-    private final String activitiesSectionName;
-
     @Inject
-    DefaultDailyRepository(JournalSettings settings)
+    DefaultDailyRepository()
     {
-        this.journalFolderName = settings.journalFolderName();
-        this.activitiesSectionName = settings.activitiesSectionName();
     }
 
     @Override
-    protected Class<Document> sourceEntityClass()
-    {
-        return Document.class;
-    }
-
-    @Override
-    protected Class<Daily> targetEntityClass()
+    protected Class<Daily> entityClass()
     {
         return Daily.class;
     }
 
     @Override
-    protected boolean isEntity(Document document)
+    protected Class<?> repositoryClass()
     {
-        return document.isInPath(journalFolderName)
-               && parseDateOrNull(document.name()) != null;
+        return DailyRepository.class;
     }
 
     @Override
-    protected LocalDate entityKeyFrom(Document document)
+    protected LocalDate entityKeyFrom(Daily daily)
     {
-        return requireNonNull(parseDateOrNull(document.name()));
-    }
-
-    @Override
-    protected Daily createEntityFrom(LocalDate date, Document document)
-    {
-        var finder = new ActivitiesSectionFinder();
-        document.accept(finder);
-        var section = finder.section != null ? finder.section : Section.EMPTY_SECTION;
-        return new Daily(date, section);
+        return daily.date();
     }
 
     @Override
@@ -149,31 +126,5 @@ final class DefaultDailyRepository
             daily = dailyBefore(daily.get());
         }
         return Optional.empty();
-    }
-
-    @Override
-    public String name()
-    {
-        return DailyRepository.class.getSimpleName();
-    }
-
-    private class ActivitiesSectionFinder
-        extends BreadthFirstVaultVisitor
-    {
-        private Section section;
-
-        @Override
-        public void visit(Section section)
-        {
-            if (this.section != null)
-            {
-                return;
-            }
-            if (section.level() == 2 &&
-                section.sortableTitle().contentEquals(activitiesSectionName))
-            {
-                this.section = section;
-            }
-        }
     }
 }

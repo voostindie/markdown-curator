@@ -1,12 +1,34 @@
 package nl.ulso.curator.change;
 
+import java.util.List;
 import java.util.Set;
 
-/// Base class for change processors that process entities of a specific type and that do not keep
-/// any internal state.
+import static nl.ulso.curator.change.Change.isCreate;
+import static nl.ulso.curator.change.Change.isDelete;
+import static nl.ulso.curator.change.Change.isUpdate;
+import static nl.ulso.curator.change.ChangeHandler.newChangeHandler;
+
+/// Base class for change processors that process changes with a specific payload type `E`.
+/// Subclasses can override the [#entityCreated(Object, ChangeCollector)],
+/// [#entityUpdated(Object, Object, ChangeCollector)] and [#entityDeleted(Object, ChangeCollector)]
+/// methods. The default implementations do nothing.
 public abstract class EntityProcessor<E>
-    implements ChangeProcessor
+    extends ChangeProcessorTemplate
 {
+    protected abstract Class<E> entityClass();
+
+    protected void entityCreated(E newEntity, ChangeCollector collector)
+    {
+    }
+
+    protected void entityUpdated(E oldEntity, E newEntity, ChangeCollector collector)
+    {
+    }
+
+    protected void entityDeleted(E oldEntity, ChangeCollector collector)
+    {
+    }
+
     @Override
     public final Set<Class<?>> consumedPayloadTypes()
     {
@@ -14,43 +36,34 @@ public abstract class EntityProcessor<E>
     }
 
     @Override
-    public final Changelog apply(Changelog changelog)
+    protected final List<? extends ChangeHandler> createChangeHandlers()
     {
-        var collector = new DefaultChangeCollector();
-        changelog.changes()
-            .map(change -> change.as(entityClass()))
-            .forEach(change ->
-            {
-                switch (change.kind())
-                {
-                    case CREATE:
-                        entityCreated(change.newValue(), collector);
-                        break;
-                    case UPDATE:
-                        entityUpdate(change.oldValue(), change.newValue(), collector);
-                        break;
-                    case DELETE:
-                        entityDeleted(change.oldValue(), collector);
-                        break;
-                }
-            });
-        return collector.changelog();
-    }
-
-    protected abstract Class<E> entityClass();
-
-    protected void entityCreated(E newEntity, ChangeCollector collector)
-    {
-        // Do nothing by default.
-    }
-
-    protected void entityUpdate(E oldEntity, E newEntity, ChangeCollector collector)
-    {
-        // Do nothing by default.
-    }
-
-    protected void entityDeleted(E oldEntity, ChangeCollector collector)
-    {
-        // Do nothing by default.
+        return List.of(
+            newChangeHandler(
+                isCreate(),
+                (change, collector) ->
+                    entityCreated(
+                        change.as(entityClass()).newValue(),
+                        collector
+                    )
+            ),
+            newChangeHandler(
+                isUpdate(),
+                (change, collector) ->
+                    entityUpdated(
+                        change.as(entityClass()).oldValue(),
+                        change.as(entityClass()).newValue(),
+                        collector
+                    )
+            ),
+            newChangeHandler(
+                isDelete(),
+                (change, collector) ->
+                    entityDeleted(
+                        change.as(entityClass()).oldValue(),
+                        collector
+                    )
+            )
+        );
     }
 }

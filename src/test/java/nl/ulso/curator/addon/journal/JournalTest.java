@@ -156,9 +156,10 @@ class JournalTest
     {
         var settings = new JournalSettings("Journal", "Markers", "Activities", "Projects");
         var journal = new DefaultJournal(
-            new DefaultDailyRepository(settings),
+            new DefaultDailyRepository(),
             new DefaultWeeklyRepository(settings),
-            new DefaultMarkerRepository(settings)
+            new DefaultMarkerRepository(),
+            new MarkerProducer(settings)
         );
         var latest = journal.latest();
         assertThat(latest).isEmpty();
@@ -278,16 +279,26 @@ class JournalTest
             WeekFields.ISO
         );
         var changelog = initializeVault(vault);
-        var dailyRepository = new DefaultDailyRepository(settings);
-        dailyRepository.apply(changelog);
+        var dailyProducer = new DailyProducer(settings);
+        changelog = changelog.append(
+            dailyProducer.apply(changelog.changelogFor(dailyProducer.consumedPayloadTypes())));
+        var weeklyProducer = new WeeklyProducer(settings);
+        changelog = changelog.append(
+            weeklyProducer.apply(changelog.changelogFor(weeklyProducer.consumedPayloadTypes())));
+        var markerProducer = new MarkerProducer(settings);
+        changelog = changelog.append(
+            markerProducer.apply(changelog.changelogFor(markerProducer.consumedPayloadTypes())));
+        var dailyRepository = new DefaultDailyRepository();
+        dailyRepository.apply(changelog.changelogFor(dailyRepository.consumedPayloadTypes()));
         var weeklyRepository = new DefaultWeeklyRepository(settings);
-        weeklyRepository.apply(changelog);
-        var markerRepository = new DefaultMarkerRepository(settings);
-        markerRepository.apply(changelog);
+        weeklyRepository.apply(changelog.changelogFor(weeklyRepository.consumedPayloadTypes()));
+        var markerRepository = new DefaultMarkerRepository();
+        markerRepository.apply(changelog.changelogFor(markerRepository.consumedPayloadTypes()));
         return new DefaultJournal(
             dailyRepository,
             weeklyRepository,
-            markerRepository
+            markerRepository,
+            markerProducer
         );
     }
 }

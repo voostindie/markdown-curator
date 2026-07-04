@@ -18,16 +18,19 @@ final class DefaultJournal
     private final DailyRepository dailyRepository;
     private final WeeklyRepository weeklyRepository;
     private final MarkerRepository markerRepository;
+    private final MarkerProducer markerProducer;
 
     @Inject
     DefaultJournal(
         DailyRepository dailyRepository,
         WeeklyRepository weeklyRepository,
-        MarkerRepository markerRepository)
+        MarkerRepository markerRepository,
+        MarkerProducer markerProducer)
     {
         this.dailyRepository = dailyRepository;
         this.weeklyRepository = weeklyRepository;
         this.markerRepository = markerRepository;
+        this.markerProducer = markerProducer;
     }
 
     @Override
@@ -186,7 +189,7 @@ final class DefaultJournal
     @Override
     public boolean isMarkerDocument(Document document)
     {
-        return markerRepository.isMarkerDocument(document);
+        return markerProducer.isMarkerDocument(document);
     }
 
     private static <T> List<T> mergeLists(List<T> first, List<T> second)

@@ -1,6 +1,5 @@
 package nl.ulso.curator.addon.projectjournal;
 
-import nl.ulso.curator.addon.journal.Marker;
 import nl.ulso.curator.change.MapBasedEntityRepository;
 
 import java.util.Map;
@@ -9,36 +8,18 @@ import java.util.Set;
 import static java.util.HashMap.newHashMap;
 
 /// Base class for repositories of project markers. The repository keeps track of a specific
-/// [ProjectMarker] subclass, not all. In other words: every [ProjectMarker] subclass needs it own
+/// [ProjectMarker] subclass, not all. In other words: every [ProjectMarker] subclass needs its own
 /// repository.
 ///
 /// In theory a single [ProjectMarker] can have multiple matching marker documents, but in practice
 /// there's just one, or zero.
 abstract class ProjectMarkerRepository<P extends ProjectMarker>
-    extends MapBasedEntityRepository<Marker, String, P>
+    extends MapBasedEntityRepository<String, P>
 {
     @Override
-    protected final Class<Marker> sourceEntityClass()
-    {
-        return Marker.class;
-    }
-
-    @Override
-    protected final boolean isEntity(Marker marker)
-    {
-        return isProjectMarker(marker);
-    }
-
-    @Override
-    protected final String entityKeyFrom(Marker marker)
+    protected final String entityKeyFrom(P marker)
     {
         return marker.name();
-    }
-
-    @Override
-    protected final P createEntityFrom(String documentName, Marker marker)
-    {
-        return createProjectMarker(marker);
     }
 
     @Override
@@ -46,10 +27,6 @@ abstract class ProjectMarkerRepository<P extends ProjectMarker>
     {
         return newHashMap(1);
     }
-
-    protected abstract boolean isProjectMarker(Marker marker);
-
-    protected abstract P createProjectMarker(Marker marker);
 
     final Set<String> allMarkers()
     {

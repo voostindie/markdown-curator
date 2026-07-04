@@ -29,6 +29,10 @@ public abstract class JournalModule
 
     @Binds
     @IntoSet
+    abstract ChangeProcessor bindDailyProducer(DailyProducer dailyProducer);
+
+    @Binds
+    @IntoSet
     abstract ChangeProcessor bindDailyProcessor(DefaultDailyRepository dailyRepository);
 
     @Binds
@@ -40,6 +44,10 @@ public abstract class JournalModule
 
     @Binds
     @IntoSet
+    abstract ChangeProcessor bindWeeklyProducer(WeeklyProducer weeklyProducer);
+
+    @Binds
+    @IntoSet
     abstract ChangeProcessor bindWeeklyProcessor(DefaultWeeklyRepository weeklyRepository);
 
     @Binds
@@ -48,6 +56,10 @@ public abstract class JournalModule
     @Binds
     @IntoSet
     abstract MeasurementTracker bindWeeklyMeasurements(DefaultWeeklyRepository weeklyRepository);
+
+    @Binds
+    @IntoSet
+    abstract ChangeProcessor bindMarkerProducer(MarkerProducer markerProducer);
 
     @Binds
     @IntoSet

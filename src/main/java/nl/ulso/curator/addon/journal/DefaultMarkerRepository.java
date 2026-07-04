@@ -3,7 +3,6 @@ package nl.ulso.curator.addon.journal;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 import nl.ulso.curator.change.MapBasedEntityRepository;
-import nl.ulso.curator.vault.Document;
 import nl.ulso.dictionary.Dictionary;
 
 import java.util.Map;
@@ -12,48 +11,30 @@ import static nl.ulso.dictionary.Dictionary.emptyDictionary;
 
 @Singleton
 final class DefaultMarkerRepository
-    extends MapBasedEntityRepository<Document, String, Marker>
+    extends MapBasedEntityRepository<String, Marker>
     implements MarkerRepository
 {
-    private final String[] markerPath;
-
     @Inject
-    DefaultMarkerRepository(JournalSettings settings)
+    DefaultMarkerRepository()
     {
-        this.markerPath = new String[] {
-            settings.journalFolderName(),
-            settings.markerSubFolderName()
-        };
     }
 
     @Override
-    protected Class<Document> sourceEntityClass()
-    {
-        return Document.class;
-    }
-
-    @Override
-    protected Class<Marker> targetEntityClass()
+    protected Class<Marker> entityClass()
     {
         return Marker.class;
     }
 
     @Override
-    protected boolean isEntity(Document document)
+    protected Class<?> repositoryClass()
     {
-        return document.isInPath(markerPath);
+        return MarkerRepository.class;
     }
 
     @Override
-    protected String entityKeyFrom(Document document)
+    protected String entityKeyFrom(Marker marker)
     {
-        return document.name();
-    }
-
-    @Override
-    protected Marker createEntityFrom(String name, Document document)
-    {
-        return new Marker(document);
+        return marker.name();
     }
 
     @Override
@@ -67,17 +48,5 @@ final class DefaultMarkerRepository
     {
         var marker = map().get(markerName);
         return marker != null ? marker.settings() : emptyDictionary();
-    }
-
-    @Override
-    public boolean isMarkerDocument(Document document)
-    {
-        return isEntity(document);
-    }
-
-    @Override
-    public String name()
-    {
-        return MarkerRepository.class.getSimpleName();
     }
 }

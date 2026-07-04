@@ -88,8 +88,11 @@ public abstract class ProjectModule
 
     @Binds
     @IntoSet
-    abstract ChangeProcessor bindProjectProcessor(
-        DefaultProjectRepository projectRepository);
+    abstract ChangeProcessor bindProjectProducer(ProjectProducer projectProducer);
+
+    @Binds
+    @IntoSet
+    abstract ChangeProcessor bindProjectProcessor(DefaultProjectRepository projectRepository);
 
     @Binds
     abstract ProjectRepository bindProjectRepository(DefaultProjectRepository projectRepository);

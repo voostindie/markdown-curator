@@ -1,14 +1,10 @@
 package nl.ulso.curator.change;
 
-import nl.ulso.curator.vault.Document;
-
 import java.util.Map;
 
 /// Simple map-based repository of [Dummy] objects, for testing purposes.
-///
-/// Every document that has a property `dummy` is considered a [Dummy] candidate.
 final class MapBasedDummyRepository
-    extends MapBasedEntityRepository<Document, String, Dummy>
+    extends MapBasedEntityRepository<String, Dummy>
 {
     private Map<String, Dummy> mutableMap;
 
@@ -21,9 +17,21 @@ final class MapBasedDummyRepository
     {
         if (initialState != null)
         {
-            // mutableMap won't be null, because the superclass constructor initializes it.
+            // mutableMap won't be null because the superclass constructor initializes it.
             mutableMap.put(initialState.name(), initialState);
         }
+    }
+
+    @Override
+    protected Class<Dummy> entityClass()
+    {
+        return Dummy.class;
+    }
+
+    @Override
+    protected Class<?> repositoryClass()
+    {
+        return MapBasedDummyRepository.class;
     }
 
     @Override
@@ -35,32 +43,8 @@ final class MapBasedDummyRepository
     }
 
     @Override
-    protected Class<Document> sourceEntityClass()
+    protected String entityKeyFrom(Dummy dummy)
     {
-        return Document.class;
-    }
-
-    @Override
-    protected Class<Dummy> targetEntityClass()
-    {
-        return Dummy.class;
-    }
-
-    @Override
-    protected boolean isEntity(Document document)
-    {
-        return document.frontMatter().hasProperty("dummy");
-    }
-
-    @Override
-    protected String entityKeyFrom(Document document)
-    {
-        return document.name();
-    }
-
-    @Override
-    protected Dummy createEntityFrom(String name, Document document)
-    {
-        return new Dummy(name);
+        return dummy.name();
     }
 }

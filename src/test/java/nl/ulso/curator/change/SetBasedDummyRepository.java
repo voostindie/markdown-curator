@@ -1,14 +1,12 @@
 package nl.ulso.curator.change;
 
-import nl.ulso.curator.vault.Document;
-
 import java.util.Set;
 
 /// Simple set-based repository of [Dummy] objects, for testing purposes.
 ///
 /// Every document that has a property `dummy` is considered a [Dummy] candidate.
 final class SetBasedDummyRepository
-    extends SetBasedEntityRepository<Document, Dummy>
+    extends SetBasedEntityRepository<Dummy>
 {
     private Set<Dummy> mutableSet;
 
@@ -21,9 +19,21 @@ final class SetBasedDummyRepository
     {
         if (initialState != null)
         {
-            // mutableSet won't be null, because the superclass constructor initializes it.
+            // mutableSet won't be null because the superclass constructor initializes it.
             mutableSet.add(initialState);
         }
+    }
+
+    @Override
+    protected Class<?> repositoryClass()
+    {
+        return SetBasedDummyRepository.class;
+    }
+
+    @Override
+    protected Class<Dummy> entityClass()
+    {
+        return Dummy.class;
     }
 
     @Override
@@ -32,29 +42,5 @@ final class SetBasedDummyRepository
         var set = super.createSet();
         this.mutableSet = set;
         return set;
-    }
-
-    @Override
-    protected Class<Document> sourceEntityClass()
-    {
-        return Document.class;
-    }
-
-    @Override
-    protected Class<Dummy> targetEntityClass()
-    {
-        return Dummy.class;
-    }
-
-    @Override
-    protected boolean isEntity(Document document)
-    {
-        return document.frontMatter().hasProperty("dummy");
-    }
-
-    @Override
-    protected Dummy createEntityFrom(Document document)
-    {
-        return new Dummy(document.name());
     }
 }

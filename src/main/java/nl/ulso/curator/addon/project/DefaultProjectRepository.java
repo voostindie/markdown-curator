@@ -9,56 +9,32 @@ import java.util.*;
 
 /// Represents a repository of projects on top of a single folder in the vault, excluding its
 /// subfolders.
-///
-/// This repository only keeps track of _active_ projects. A project is considered active if it is
-/// in the main project folder. As soon as a project is archived, typically by moving it to a
-/// subfolder, the project is no longer considered active and therefore not tracked by this
-/// repository.
-///
-/// For each project that is created, updated, or deleted, this repository publishes a change with
-/// the relevant [Project] as its payload.
 @Singleton
 final class DefaultProjectRepository
-    extends MapBasedEntityRepository<Document, String, Project>
+    extends MapBasedEntityRepository<String, Project>
     implements ProjectRepository
 {
-    private final String projectFolderName;
-
     @Inject
-    DefaultProjectRepository(ProjectSettings settings)
+    DefaultProjectRepository()
     {
-        this.projectFolderName = settings.projectFolderName();
     }
 
     @Override
-    protected Class<Document> sourceEntityClass()
+    protected Class<?> repositoryClass()
     {
-        return Document.class;
+        return ProjectRepository.class;
     }
 
     @Override
-    protected Class<Project> targetEntityClass()
+    protected Class<Project> entityClass()
     {
         return Project.class;
     }
 
     @Override
-    protected boolean isEntity(Document document)
+    protected String entityKeyFrom(Project project)
     {
-        return document.folder().name().contentEquals(projectFolderName) &&
-               !document.folder().isRoot() && document.folder().parent().isRoot();
-    }
-
-    @Override
-    protected String entityKeyFrom(Document document)
-    {
-        return document.name();
-    }
-
-    @Override
-    protected Project createEntityFrom(String name, Document document)
-    {
-        return new Project(document);
+        return project.name();
     }
 
     @Override
@@ -83,11 +59,5 @@ final class DefaultProjectRepository
     public Optional<Project> projectNamed(String name)
     {
         return Optional.ofNullable(map().get(name));
-    }
-
-    @Override
-    public String name()
-    {
-        return ProjectRepository.class.getSimpleName();
     }
 }

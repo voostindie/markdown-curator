@@ -31,7 +31,7 @@ public sealed interface Change<T>
     {
         CREATE,
         UPDATE,
-        DELETE
+        DELETE;
     }
 
     /// @param newValue    the new object that was created.
@@ -57,6 +57,12 @@ public sealed interface Change<T>
     static <T> Change<T> update(T oldValue, T newValue, Class<T> payloadType)
     {
         return new Update2<>(oldValue, newValue, payloadType);
+    }
+
+    // This is probably not the most elegant solution...
+    static <T> Change<T> updateWithObjectCast(Object object, Class<T> payLoadType)
+    {
+        return new Update1<>(payLoadType.cast(object), payLoadType);
     }
 
     /// @param oldValue    the object that was deleted.

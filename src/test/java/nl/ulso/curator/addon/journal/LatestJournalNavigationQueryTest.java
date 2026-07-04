@@ -82,9 +82,10 @@ class LatestJournalNavigationQueryTest
     {
         var settings = new JournalSettings("Journal", "Markers", "Activities", "Projects");
         var journal = new DefaultJournal(
-            new DefaultDailyRepository(settings),
+            new DefaultDailyRepository(),
             new DefaultWeeklyRepository(settings),
-            new DefaultMarkerRepository(settings)
+            new DefaultMarkerRepository(),
+            new MarkerProducer(settings)
         );
         var query = new LatestJournalNavigationQuery(journal, createQueryResultFactory(),
             createMessages(ENGLISH)

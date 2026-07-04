@@ -2,11 +2,8 @@ package nl.ulso.curator.addon.projectjournal;
 
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
-import nl.ulso.curator.addon.journal.Marker;
 
-import static nl.ulso.curator.addon.projectjournal.ProjectLeadMarker.isProjectLeadMarker;
-
-/// Repository for [ProjectStatusMarker]s.
+/// Repository for [ProjectLeadMarker]s.
 @Singleton
 final class ProjectLeadMarkerRepository
     extends ProjectMarkerRepository<ProjectLeadMarker>
@@ -17,20 +14,14 @@ final class ProjectLeadMarkerRepository
     }
 
     @Override
-    protected Class<ProjectLeadMarker> targetEntityClass()
+    protected Class<?> repositoryClass()
+    {
+        return ProjectLeadMarkerRepository.class;
+    }
+
+    @Override
+    protected Class<ProjectLeadMarker> entityClass()
     {
         return ProjectLeadMarker.class;
-    }
-
-    @Override
-    protected boolean isProjectMarker(Marker marker)
-    {
-        return isProjectLeadMarker(marker);
-    }
-
-    @Override
-    protected ProjectLeadMarker createProjectMarker(Marker marker)
-    {
-        return new ProjectLeadMarker(marker);
     }
 }

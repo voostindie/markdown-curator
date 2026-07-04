@@ -64,7 +64,7 @@ public final class FrontMatterProjectAttributeValueProducer
     /// Compares the supported front matter properties in the old and new project documents and
     /// creates, updates, or deletes project attribute values accordingly.
     @Override
-    protected void entityUpdate(Project oldProject, Project newProject, ChangeCollector collector)
+    protected void entityUpdated(Project oldProject, Project newProject, ChangeCollector collector)
     {
         var oldFrontMatter = oldProject.document().frontMatter();
         var newFrontMatter = newProject.document().frontMatter();
