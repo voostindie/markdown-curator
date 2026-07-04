@@ -42,9 +42,9 @@ class EntityProcessorTest
     private static class EntityProcessorStub
         extends EntityProcessor<Integer>
     {
-        private List<Integer> created = new ArrayList<>();
-        private List<Integer> updated = new ArrayList<>();
-        private List<Integer> deleted = new ArrayList<>();
+        private final List<Integer> created = new ArrayList<>();
+        private final List<Integer> updated = new ArrayList<>();
+        private final List<Integer> deleted = new ArrayList<>();
 
         @Override
         protected Class<Integer> entityClass()

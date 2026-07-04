@@ -56,7 +56,7 @@ public interface ChangeProcessor
         return emptySet();
     }
 
-    /// Returns the set of payload tupes that his model requires to have been produced first, but
+    /// Returns the set of payload types that his model requires to have been produced first, but
     /// does not consume itself.
     ///
     /// This is a weaker form of the [#consumedPayloadTypes()] method, in the sense that the payload

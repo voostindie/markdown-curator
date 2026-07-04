@@ -31,7 +31,7 @@ public sealed interface Change<T>
     {
         CREATE,
         UPDATE,
-        DELETE;
+        DELETE
     }
 
     /// @param newValue    the new object that was created.
