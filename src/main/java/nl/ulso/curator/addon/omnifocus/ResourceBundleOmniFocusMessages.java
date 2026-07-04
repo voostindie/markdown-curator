@@ -19,18 +19,6 @@ final class ResourceBundleOmniFocusMessages
     }
 
     @Override
-    public String allGoodTitle()
-    {
-        return bundle.getString("allGoodTitle");
-    }
-
-    @Override
-    public String allGoodText()
-    {
-        return bundle.getString("allGoodText");
-    }
-
-    @Override
     public String projectsWithoutDocumentsTitle()
     {
         return bundle.getString("projectsWithoutDocumentsTitle");

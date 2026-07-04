@@ -1,14 +1,13 @@
 package nl.ulso.curator.addon.omnifocus;
 
 import nl.ulso.curator.query.QueryDefinitionStub;
-import nl.ulso.curator.vault.Vault;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
 import java.util.Map;
 
-import static nl.ulso.curator.change.Change.create;
+import static nl.ulso.curator.change.Reset.RESET;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /// This is more of a system context than a unit test: it sets up the change processor chain with
@@ -42,8 +41,7 @@ class OmniFocusModuleTest
         var vault = testContext.vaultStub();
         vault.addDocumentInPath("Projects/Project 1", "Project also in OmniFocus");
         vault.addDocumentInPath("Projects/Project 3", "Project not in OmniFocus");
-        testContext.changeProcessorOrchestrator()
-            .runFor(List.of(create(testContext.vaultStub(), Vault.class)));
+        testContext.changeProcessorOrchestrator().runFor(List.of(RESET));
     }
 
     @Test

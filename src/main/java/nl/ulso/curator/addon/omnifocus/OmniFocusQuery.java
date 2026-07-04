@@ -25,17 +25,20 @@ public final class OmniFocusQuery
     private final ProjectRepository projectRepository;
     private final OmniFocusSettings settings;
     private final OmniFocusMessages messages;
+    private final QueryResultFactory queryResultFactory;
 
     @Inject
     public OmniFocusQuery(
         OmniFocusRepository omniFocusRepository, ProjectRepository projectRepository,
         OmniFocusSettings settings,
-        OmniFocusMessages messages)
+        OmniFocusMessages messages,
+        QueryResultFactory queryResultFactory)
     {
         this.omniFocusRepository = omniFocusRepository;
         this.projectRepository = projectRepository;
         this.settings = settings;
         this.messages = messages;
+        this.queryResultFactory = queryResultFactory;
     }
 
     @Override
@@ -112,7 +115,7 @@ public final class OmniFocusQuery
             var builder = new StringBuilder();
             if (projectsWithoutDocuments.isEmpty() && documentsWithoutProjects.isEmpty())
             {
-                reportAllIsGood(builder);
+                return queryResultFactory.empty().toMarkdown();
             }
             else
             {
@@ -126,17 +129,6 @@ public final class OmniFocusQuery
                 }
             }
             return builder.toString().trim();
-        }
-
-        private void reportAllIsGood(StringBuilder builder)
-        {
-            builder.append("**")
-                .append(messages.allGoodTitle())
-                .append("**")
-                .append(lineSeparator())
-                .append(lineSeparator())
-                .append(messages.allGoodText())
-                .append(lineSeparator());
         }
 
         private void reportProjectsWithoutDocuments(StringBuilder builder)

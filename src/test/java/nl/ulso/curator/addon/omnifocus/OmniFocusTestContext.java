@@ -5,11 +5,13 @@ import jakarta.inject.Singleton;
 import nl.ulso.curator.addon.project.*;
 import nl.ulso.curator.main.ChangeProcessorOrchestrator;
 import nl.ulso.curator.main.ChangeProcessorTestModule;
+import nl.ulso.curator.query.DaggerQueryTestModule;
 import nl.ulso.curator.vault.VaultStub;
 
 @Singleton
 @Component(modules = {
     ChangeProcessorTestModule.class,
+    DaggerQueryTestModule.class,
     ProjectModule.class,
     OmniFocusTestModule.class}
 )
