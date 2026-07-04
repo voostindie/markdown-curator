@@ -57,12 +57,6 @@ public final class ProjectAttributeValueFrontMatterWriter
         return Set.of(ProjectAttributeRepositoryUpdate.class, ProjectAttributeValue.class);
     }
 
-    @Override
-    protected boolean isResetRequired(Changelog changelog)
-    {
-        return false;
-    }
-
     /// When an attribute value has changed - created, updated, or deleted - that doesn't
     /// necessarily mean anything: it depends on the weight of the attribute value.
     ///

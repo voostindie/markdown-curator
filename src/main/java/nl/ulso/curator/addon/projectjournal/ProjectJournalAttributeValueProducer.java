@@ -62,7 +62,7 @@ abstract class ProjectJournalAttributeValueProducer
     }
 
     @Override
-    protected final void reset()
+    public final void reset()
     {
         datedValues.clear();
     }

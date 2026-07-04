@@ -11,12 +11,8 @@ import java.util.*;
 
 import static nl.ulso.curator.change.Changelog.changelogFor;
 
-/// Special change processor that triggers on [Vault] events and then generates a CREATE change for
+/// Special change processor that triggers on [Reset] events and then generates a CREATE change for
 /// every folder and document in the vault.
-///
-/// This processor can be triggered in one of two ways:
-/// 1. On startup, when the system publishes an initial [Vault] CREATE chaneg.
-/// 2. On demand by the [VaultReloader], when the watch document is changed.
 @Singleton
 final class VaultInitializer
     implements ChangeProcessor
@@ -34,7 +30,7 @@ final class VaultInitializer
     @Override
     public Set<Class<?>> consumedPayloadTypes()
     {
-        return Set.of(Vault.class);
+        return Set.of(Reset.class);
     }
 
     @Override

@@ -1,9 +1,9 @@
 package nl.ulso.curator.main;
 
-import nl.ulso.curator.change.ChangeProcessor;
-import nl.ulso.curator.change.Changelog;
+import nl.ulso.curator.change.*;
 import nl.ulso.curator.statistics.Statistics;
-import nl.ulso.curator.vault.*;
+import nl.ulso.curator.vault.Document;
+import nl.ulso.curator.vault.Folder;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -32,9 +32,19 @@ class ChangeProcessorOrchestratorTest
     }
 
     @Test
-    void acceptVaultConsumers()
+    void orderProducersBeforeRequired()
     {
-        var model1 = new ChangeProcessorStub(1).consuming(Vault.class);
+        var model1 = new ChangeProcessorStub(1).consuming(Document.class).requiring(Integer.class);
+        var model2 = new ChangeProcessorStub(2).consuming(Document.class).producing(Integer.class);
+        var models = createModelSet(model1, model2);
+        var orchestrator = new DefaultChangeProcessorOrchestrator(models, new NullStatistics());
+        assertThat(orchestrator.changeProcessors()).containsExactly(model2, model1);
+    }
+
+    @Test
+    void acceptResetConsumers()
+    {
+        var model1 = new ChangeProcessorStub(1).consuming(Reset.class);
         var model2 = new ChangeProcessorStub(2).consuming(Document.class);
         var model3 = new ChangeProcessorStub(3).consuming(Folder.class);
         var models = createModelSet(model1, model2, model3);
@@ -43,8 +53,8 @@ class ChangeProcessorOrchestratorTest
     }
 
     @ParameterizedTest
-    @ValueSource(classes = {Vault.class, Document.class, Folder.class})
-    void rejectVaultProducer(Class<?> payloadType)
+    @ValueSource(classes = {Reset.class, Document.class, Folder.class})
+    void rejectResetProducer(Class<?> payloadType)
     {
         var model = new ChangeProcessorStub(1).consuming(Integer.class).producing(payloadType);
         var models = createModelSet(model);
@@ -89,7 +99,7 @@ class ChangeProcessorOrchestratorTest
             .hasMessageContaining("unsatisfied consumer");
     }
 
-    /// Creates a set of models that are in a guaranteed order, to ensure non-flaky tests. Data
+    /// Creates a set of models that are in a guaranteed order to ensure non-flaky tests. Data
     /// models are ordered on their... order.
     private Set<ChangeProcessor> createModelSet(ChangeProcessorStub... models)
     {
@@ -102,6 +112,7 @@ class ChangeProcessorOrchestratorTest
         private final int order;
         private final Set<Class<?>> processedPayloadTypes = new HashSet<>();
         private final Set<Class<?>> consumedPayloadTypes = new HashSet<>();
+        private final Set<Class<?>> requiredPayloadTypes = new HashSet<>();
 
         ChangeProcessorStub(int order)
         {
@@ -117,6 +128,12 @@ class ChangeProcessorOrchestratorTest
         ChangeProcessorStub producing(Class<?> payloadType)
         {
             processedPayloadTypes.add(payloadType);
+            return this;
+        }
+
+        ChangeProcessorStub requiring(Class<?> payloadType)
+        {
+            requiredPayloadTypes.add(payloadType);
             return this;
         }
 
@@ -149,9 +166,16 @@ class ChangeProcessorOrchestratorTest
         {
             return processedPayloadTypes;
         }
+
+        @Override
+        public Set<Class<?>> requiredPayloadTypes()
+        {
+            return requiredPayloadTypes;
+        }
     }
 
-    private static final class NullStatistics implements Statistics
+    private static final class NullStatistics
+        implements Statistics
     {
         @Override
         public void logTo(Logger logger, Level level)

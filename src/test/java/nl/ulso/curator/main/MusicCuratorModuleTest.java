@@ -14,8 +14,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import java.io.IOException;
 import java.nio.file.Files;
 
-import static nl.ulso.curator.change.Change.create;
 import static nl.ulso.curator.change.Changelog.changelogFor;
+import static nl.ulso.curator.change.Reset.RESET;
 import static nl.ulso.curator.vault.ElementCounter.countAll;
 import static nl.ulso.curator.vault.QueryBlockTest.emptyQueryBlock;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -159,7 +159,7 @@ class MusicCuratorModuleTest
     @Test
     void runAllQueries()
     {
-        var changelog = changelogFor(create(vault, Vault.class));
+        var changelog = changelogFor(RESET);
         var updates = queryOrchestrator.runFor(changelog).stream()
             .map(item -> item.document().name())
             .filter(name -> !name.contentEquals("queries-expected"))

@@ -1,6 +1,7 @@
 package nl.ulso.curator.change;
 
-import nl.ulso.curator.vault.*;
+import nl.ulso.curator.vault.Document;
+import nl.ulso.curator.vault.Folder;
 import org.assertj.core.api.junit.jupiter.SoftAssertionsExtension;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -8,8 +9,11 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
+import java.util.List;
+import java.util.Set;
 import java.util.stream.Stream;
 
+import static java.util.Collections.emptyList;
 import static nl.ulso.curator.change.Changelog.changelogFor;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -22,32 +26,21 @@ class ChangeProcessorTemplateTest
     void runReset(Change<?> change)
     {
         var processor = new DummyChangeProcessor();
-        assertThat(processor.refreshed).isFalse();
+        assertThat(processor.didWork).isFalse();
         processor.apply(changelogFor(change));
-        assertThat(processor.refreshed).isTrue();
+        assertThat(processor.didWork).isTrue();
     }
 
     @Test
-    void processorWithoutResetAndChangeHandlersDoesNothing()
+    void processorWithoutChangeHandlersThroes()
     {
-        var log = new NoOpChangeProcessor(false)
-            .apply(changelogFor(Change.create(null, Vault.class)));
-        assertThat(log.isEmpty()).isTrue();
-    }
-
-    @Test
-    void processorWithResetButNoImplementationThrows()
-    {
-        var processor = new NoOpChangeProcessor(true);
-        var changelog = changelogFor(Change.create(null, Vault.class));
-        assertThatThrownBy(() -> processor.apply(changelog))
+        assertThatThrownBy(InvalidChangeProcessor::new)
             .isInstanceOf(IllegalStateException.class);
     }
 
     public static Stream<Arguments> provideChanges()
     {
         return Stream.of(
-            Arguments.of(Change.update(null, Vault.class)),
             Arguments.of(Change.create(null, Folder.class)),
             Arguments.of(Change.delete(null, Folder.class)),
             Arguments.of(Change.create(null, Document.class)),
@@ -59,35 +52,42 @@ class ChangeProcessorTemplateTest
     private static class DummyChangeProcessor
         extends ChangeProcessorTemplate
     {
-        private boolean refreshed = false;
+        private boolean didWork = false;
 
         @Override
-        public void reset()
+        protected List<? extends ChangeHandler> createChangeHandlers()
         {
-            refreshed = true;
+            return List.of(
+                ChangeHandler.newChangeHandler(
+                    (_) -> true, (_, _) -> didWork = true
+                )
+            );
         }
 
         @Override
-        protected boolean isResetRequired(Changelog changelog)
+        public Set<Class<?>> consumedPayloadTypes()
         {
-            return true;
+            return Set.of(Folder.class, Document.class);
         }
     }
 
-    private static class NoOpChangeProcessor
+    private static class InvalidChangeProcessor
         extends ChangeProcessorTemplate
     {
-        private final boolean doReset;
-
-        NoOpChangeProcessor(boolean doReset)
+        InvalidChangeProcessor()
         {
-            this.doReset = doReset;
         }
 
         @Override
-        protected boolean isResetRequired(Changelog changelog)
+        protected List<? extends ChangeHandler> createChangeHandlers()
         {
-            return doReset;
+            return emptyList();
+        }
+
+        @Override
+        public Set<Class<?>> consumedPayloadTypes()
+        {
+            return Set.of(Document.class);
         }
     }
 }

@@ -1,17 +1,18 @@
 package nl.ulso.curator.main;
 
-import dagger.Module;
 import dagger.*;
+import dagger.Module;
+import jakarta.inject.Singleton;
 import nl.ulso.curator.*;
 import nl.ulso.curator.change.ChangeProcessor;
 import nl.ulso.curator.change.Changelog;
 import nl.ulso.curator.query.*;
-import nl.ulso.curator.vault.*;
+import nl.ulso.curator.vault.Document;
+import nl.ulso.curator.vault.Folder;
 import org.assertj.core.api.junit.jupiter.SoftAssertionsExtension;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
-import jakarta.inject.Singleton;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Map;
@@ -85,7 +86,7 @@ class CuratorModuleTest
         @Override
         public Set<Class<?>> consumedPayloadTypes()
         {
-            return Set.of(Vault.class, Document.class, Folder.class);
+            return Set.of(Document.class, Folder.class);
         }
     }
 

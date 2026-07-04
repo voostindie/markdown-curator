@@ -3,8 +3,7 @@ package nl.ulso.curator.main;
 import jakarta.inject.Inject;
 import nl.ulso.curator.Curator;
 import nl.ulso.curator.RunMode;
-import nl.ulso.curator.change.Change;
-import nl.ulso.curator.change.ChangeProcessor;
+import nl.ulso.curator.change.*;
 import nl.ulso.curator.query.Query;
 import nl.ulso.curator.vault.*;
 import org.slf4j.Logger;
@@ -19,7 +18,7 @@ import static java.nio.file.Files.getLastModifiedTime;
 import static java.nio.file.Files.writeString;
 import static java.util.concurrent.Executors.newScheduledThreadPool;
 import static java.util.concurrent.TimeUnit.SECONDS;
-import static nl.ulso.curator.change.Change.create;
+import static nl.ulso.curator.change.Reset.RESET;
 import static nl.ulso.curator.main.DocumentRewriter.rewriteDocument;
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -82,14 +81,14 @@ final class DefaultCurator
         {
             case DAEMON ->
             {
-                vaultChanged(create(vault, Vault.class));
+                vaultChanged(RESET);
                 vault.setVaultChangedCallback(this);
                 vault.watchForChanges();
             }
             case ONCE ->
             {
                 LOGGER.info("Running this curator once.");
-                vaultChanged(create(vault, Vault.class));
+                vaultChanged(RESET);
                 cancelQueryWriteRunIfPresent();
                 processChangeQueue();
             }
@@ -150,13 +149,13 @@ final class DefaultCurator
         return newChange;
     }
 
-    /// If the incoming change is a [Vault] change, that means the application is starting up, and
+    /// If the incoming change is a [Reset] change, that means the application is starting up, and
     /// then there's no reason to wait. If the incoming change is expected as the result of a file
-    /// written by the curator, then there's no reason to wait to either. In all cases the curator
+    /// written by the curator, then there's no reason to wait either. In all cases the curator
     /// should wait for a bit.
     private boolean canRunImmediatelyFor(Change<?> change)
     {
-        if (change.payloadType().equals(Vault.class))
+        if (change.payloadType().equals(Reset.class))
         {
             return true;
         }

@@ -3,7 +3,6 @@ package nl.ulso.curator.change;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
 import java.util.Collection;
 
 final class DefaultChangeCollector
@@ -11,11 +10,6 @@ final class DefaultChangeCollector
 {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultChangeCollector.class);
     private final Collection<Change<?>> collection;
-
-    DefaultChangeCollector()
-    {
-        this.collection = new ArrayList<>();
-    }
 
     DefaultChangeCollector(Collection<Change<?>> collection)
     {

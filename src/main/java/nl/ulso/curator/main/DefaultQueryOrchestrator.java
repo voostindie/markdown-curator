@@ -2,8 +2,7 @@ package nl.ulso.curator.main;
 
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
-import nl.ulso.curator.change.Change;
-import nl.ulso.curator.change.Changelog;
+import nl.ulso.curator.change.*;
 import nl.ulso.curator.query.QueryCatalog;
 import nl.ulso.curator.query.QueryResult;
 import nl.ulso.curator.vault.*;
@@ -81,20 +80,17 @@ final class DefaultQueryOrchestrator
 
     /// Find all documents in the vault that are impacted by the changelog.
     ///
-    /// If the changelog contains a change to the [Vault], this method returns all documents with a
-    /// query block. This change is only published at application startup, and therefore at startup
-    /// all queries are run once. This catches any changes that might have happened while the
-    /// curator wasn't running. Optionally, the change can also be published if a specific document
-    /// in the vault has changed by the user.
+    /// If the changelog contains a [Reset], this method returns all documents with a query block so
+    /// that all queries are executed in that case.
     ///
-    /// If there is no [Vault] change in the changelog, then this method returns all documents in
+    /// If there is no [Reset] change in the changelog, then this method returns all documents in
     /// the vault that have a query in them that is impacted by the changelog. To verify that, this
     /// method calls `isImpactedBy` for each query in each document. There can be many queries, so
     /// this is done in parallel.
     private Set<Document> findImpactedDocuments(Changelog changelog)
     {
         var queryBlocks = vault.findAllQueryBlocks();
-        if (changelog.changes().anyMatch(isPayloadType(Vault.class)))
+        if (changelog.changes().anyMatch(isPayloadType(Reset.class)))
         {
             LOGGER.debug(
                 "Detected change to the complete vault. Running all queries for all documents.");
@@ -135,8 +131,8 @@ final class DefaultQueryOrchestrator
                 if (query.isImpactedBy(changelog, queryBlock))
                 {
                     LOGGER.trace(
-                        "Document '{}' has a query that might be impacted by the changelog: '{}'. " +
-                        "Adding.",
+                        "Document '{}' has a query that might be impacted by the changelog: '{}'." +
+                        " Adding.",
                         queryBlock.document(),
                         queryBlock.queryName()
                     );

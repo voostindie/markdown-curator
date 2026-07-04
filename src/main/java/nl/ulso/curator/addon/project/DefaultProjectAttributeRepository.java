@@ -5,7 +5,6 @@ import jakarta.inject.Singleton;
 import nl.ulso.curator.change.*;
 import nl.ulso.curator.statistics.MeasurementCollector;
 import nl.ulso.curator.statistics.MeasurementTracker;
-import nl.ulso.curator.vault.Vault;
 import org.slf4j.Logger;
 
 import java.util.*;
@@ -71,7 +70,7 @@ final class DefaultProjectAttributeRepository
     @Override
     public Set<Class<?>> consumedPayloadTypes()
     {
-        return Set.of(Vault.class, Project.class, ProjectAttributeValue.class);
+        return Set.of(Project.class, ProjectAttributeValue.class);
     }
 
     @Override
@@ -81,7 +80,7 @@ final class DefaultProjectAttributeRepository
     }
 
     @Override
-    protected void reset()
+    public void reset()
     {
         projectAttributes.clear();
     }
@@ -199,7 +198,7 @@ final class DefaultProjectAttributeRepository
     /// Collect the changes in a set instead of a list so that at the end of the run there is
     /// exactly one change in the changelog.
     @Override
-    protected Collection<Change<?>> createChangeCollection()
+    public Collection<Change<?>> createChangeCollection()
     {
         return newHashSet(1);
     }

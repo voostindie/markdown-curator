@@ -1,10 +1,8 @@
 package nl.ulso.curator.addon.projectjournal;
 
-import nl.ulso.curator.addon.project.Project;
 import nl.ulso.curator.addon.project.ProjectAttributeValue;
 import nl.ulso.curator.change.Change;
 import nl.ulso.curator.vault.Document;
-import nl.ulso.curator.vault.Vault;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -16,6 +14,7 @@ import static nl.ulso.curator.change.Change.create;
 import static nl.ulso.curator.change.Change.delete;
 import static nl.ulso.curator.change.Change.update;
 import static nl.ulso.curator.change.ChangeCollector.newChangeCollector;
+import static nl.ulso.curator.change.Reset.RESET;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /// This is an extensive test case for the last modification attribute alone. The reason is that it
@@ -29,8 +28,7 @@ class ProjectLastModifiedAttributeValueProducerTest
     {
         testContext = DaggerProjectJournalTestContext.create();
         createTestDocuments();
-        testContext.changeProcessorOrchestrator()
-            .runFor(List.of(create(testContext.vaultStub(), Vault.class)));
+        testContext.changeProcessorOrchestrator().runFor(List.of(RESET));
     }
 
     @Test
@@ -66,21 +64,6 @@ class ProjectLastModifiedAttributeValueProducerTest
                 delete(
                     testContext.vaultStub().findDocument("2026-05-15").orElseThrow(),
                     Document.class
-                )
-            ),
-            "Project 1",
-            null
-        );
-    }
-
-    @Test
-    void deletingTheProjectResultsInNoDate()
-    {
-        testChanges(
-            List.of(
-                delete(
-                    testContext.projectRepository().projectNamed("Project 1").orElseThrow(),
-                    Project.class
                 )
             ),
             "Project 1",

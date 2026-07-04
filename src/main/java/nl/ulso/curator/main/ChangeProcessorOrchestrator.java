@@ -9,7 +9,7 @@ import java.util.List;
 ///
 /// Starting with an initial change - typically a change to a file in the vault - all
 /// [ChangeProcessor]s that consume vault changes are executed in order. In turn, they can produce
-/// other changes with other, domain-specific payload types, to be picked up by other
+/// other changes with other, domain-specific payload types, to be picked up by yet other
 /// [ChangeProcessor]s later in the same run. At the end of the run, the full changelog provides a
 /// complete view on what has happened.
 ///
@@ -17,17 +17,21 @@ import java.util.List;
 /// startup the orchestrator orders the processors in such a way that all requirements are
 /// satisfied:
 ///
-/// - Producers of certain payload types before consumers of these payload types.
+/// - Producers of certain payload types come before consumers of these payload types.
+/// - Producers of certain payload types come before processors that require these payload types.
 /// - All consumed payload types have at least one producer.
 ///
 /// When a processor is executed from a [Changelog], it receives only changes of payload types it
 /// can consume. If there are none, the processor is not executed at all. When a processor produces
 /// payload types other than it advocates, that is considered a programming error and will throw an
 /// [IllegalStateException].
+///
+/// A special change is the [Reset] change. Whenever it is detected in the changelog, it triggers a
+/// reset of all change processors. Additionally, all changes that come before it are ignored.
 public interface ChangeProcessorOrchestrator
 {
     /// Runs all change processors in the system in the right order and only when needed based on
-    /// the provided [Change].
+    /// the provided [Change]s.
     ///
     /// @return the full changelog of all changes that was built up by and applied to the change
     /// processors.

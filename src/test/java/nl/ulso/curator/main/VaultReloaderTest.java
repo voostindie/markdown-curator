@@ -1,6 +1,8 @@
 package nl.ulso.curator.main;
 
-import nl.ulso.curator.vault.*;
+import nl.ulso.curator.change.Reset;
+import nl.ulso.curator.vault.Document;
+import nl.ulso.curator.vault.VaultStub;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -24,21 +26,21 @@ class VaultReloaderTest
     @Test
     void consumedPayloadTypes()
     {
-        var set = new VaultReloader(vault, Optional.empty()).consumedPayloadTypes();
+        var set = new VaultReloader(Optional.empty()).consumedPayloadTypes();
         assertThat(set).containsExactly(Document.class);
     }
 
     @Test
     void producedPayloadTypes()
     {
-        var set = new VaultReloader(vault, Optional.empty()).producedPayloadTypes();
-        assertThat(set).containsExactly(Vault.class);
+        var set = new VaultReloader(Optional.empty()).producedPayloadTypes();
+        assertThat(set).containsExactly(Reset.class);
     }
 
     @Test
     void doNothingIfNoWatchDocIsProvided()
     {
-        var reloader = new VaultReloader(vault, Optional.empty());
+        var reloader = new VaultReloader(Optional.empty());
         assertThat(reloader.apply(emptyChangelog())).isEqualTo(emptyChangelog());
     }
 
@@ -46,7 +48,7 @@ class VaultReloaderTest
     void triggerFullRefreshIfWatchDocChanges()
     {
         var document = vault.addDocumentInPath("WATCHER", "");
-        var reloader = new VaultReloader(vault, Optional.of("WATCHER"));
+        var reloader = new VaultReloader(Optional.of("WATCHER"));
         var changelog = changelogFor(update(document, Document.class));
         assertThat(reloader.apply(changelog).isEmpty()).isFalse();
     }
@@ -55,10 +57,10 @@ class VaultReloaderTest
     void fullRefreshResultsInVaultChangeEvent()
     {
         var document = vault.addDocumentInPath("WATCHER", "");
-        var reloader = new VaultReloader(vault, Optional.of("WATCHER"));
+        var reloader = new VaultReloader(Optional.of("WATCHER"));
         var inputChangelog = changelogFor(update(document, Document.class));
         var outputChangelog = reloader.apply(inputChangelog);
         assertThat(outputChangelog.changes()
-            .allMatch(change -> change.payloadType() == Vault.class)).isTrue();
+            .allMatch(change -> change.payloadType() == Reset.class)).isTrue();
     }
 }

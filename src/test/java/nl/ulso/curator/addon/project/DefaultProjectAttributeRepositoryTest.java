@@ -1,7 +1,6 @@
 package nl.ulso.curator.addon.project;
 
 import nl.ulso.curator.statistics.MeasurementCollectorStub;
-import nl.ulso.curator.vault.Vault;
 import nl.ulso.curator.vault.VaultStub;
 import org.assertj.core.api.SoftAssertions;
 import org.assertj.core.api.junit.jupiter.InjectSoftAssertions;
@@ -45,7 +44,7 @@ class DefaultProjectAttributeRepositoryTest
     void consumedPayloadTypes()
     {
         assertThat(repository.consumedPayloadTypes())
-            .containsExactlyInAnyOrder(Vault.class, Project.class, ProjectAttributeValue.class);
+            .containsExactlyInAnyOrder(Project.class, ProjectAttributeValue.class);
     }
 
     @Test

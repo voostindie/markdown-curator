@@ -1,12 +1,11 @@
 package nl.ulso.curator.addon.projectjournal;
 
-import nl.ulso.curator.vault.Vault;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
 
-import static nl.ulso.curator.change.Change.create;
+import static nl.ulso.curator.change.Reset.RESET;
 import static org.assertj.core.api.Assertions.assertThat;
 
 class ProjectLeadAttributeValueProducerTest
@@ -18,8 +17,7 @@ class ProjectLeadAttributeValueProducerTest
     {
         testContext = DaggerProjectJournalTestContext.create();
         createTestDocuments();
-        testContext.changeProcessorOrchestrator()
-            .runFor(List.of(create(testContext.vaultStub(), Vault.class)));
+        testContext.changeProcessorOrchestrator().runFor(List.of(RESET));
     }
 
     @Test

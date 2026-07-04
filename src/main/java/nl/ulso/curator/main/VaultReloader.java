@@ -2,45 +2,41 @@ package nl.ulso.curator.main;
 
 import jakarta.inject.*;
 import nl.ulso.curator.CuratorModule;
-import nl.ulso.curator.change.ChangeProcessor;
-import nl.ulso.curator.change.Changelog;
+import nl.ulso.curator.change.*;
 import nl.ulso.curator.vault.Document;
-import nl.ulso.curator.vault.Vault;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Optional;
 import java.util.Set;
 
+import static nl.ulso.curator.CuratorModule.WATCH_DOCUMENT_KEY;
 import static nl.ulso.curator.change.Change.isUpdate;
-import static nl.ulso.curator.change.Change.update;
 import static nl.ulso.curator.change.Changelog.changelogFor;
 import static nl.ulso.curator.change.Changelog.emptyChangelog;
+import static nl.ulso.curator.change.Reset.RESET;
 
 /// Special change processor that is only enabled if a watch document is configured in the curator
 /// module, under the name [CuratorModule#WATCH_DOCUMENT_KEY].
 ///
 /// This processor monitors changes to the watch document. If it is changed on disk, it publishes a
-/// [Vault] update, which change processors can consume to perform a full refresh of their internal
-/// data structures. The [Vault] update also triggers the execution of all queries, regardless of
-/// the actual changes that were detected.
+/// [Reset] change, which in turn triggers all change processors to be reset first. Next, only the
+/// changes after the last [Reset] change in the changelog are applied to the change processors.
 ///
 /// This provides an easy way to force a complete reload and refresh without having to restart the
-/// application. It's just "touch and go", but in a good way.
+/// application. It's just "touch and go".
 @Singleton
 final class VaultReloader
     implements ChangeProcessor
 {
     private static final Logger LOGGER = LoggerFactory.getLogger(VaultReloader.class);
 
-    private final Vault vault;
     private final String watchDocumentName;
 
     @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
     @Inject
-    VaultReloader(Vault vault, @Named(CuratorModule.WATCH_DOCUMENT_KEY) Optional<String> watchDocumentName)
+    VaultReloader(@Named(WATCH_DOCUMENT_KEY) Optional<String> watchDocumentName)
     {
-        this.vault = vault;
         this.watchDocumentName = watchDocumentName.orElse(null);
         if (LOGGER.isDebugEnabled())
         {
@@ -66,7 +62,7 @@ final class VaultReloader
     @Override
     public Set<Class<?>> producedPayloadTypes()
     {
-        return Set.of(Vault.class);
+        return Set.of(Reset.class);
     }
 
     @Override
@@ -77,7 +73,7 @@ final class VaultReloader
                 change.as(Document.class).value().name().equals(watchDocumentName))))
         {
             LOGGER.info("Watch document has changed. Forcing a complete refresh.");
-            return changelogFor(update(vault, Vault.class));
+            return changelogFor(RESET);
         }
         return emptyChangelog();
     }

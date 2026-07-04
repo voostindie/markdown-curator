@@ -71,13 +71,19 @@ final class OmniFocusProjectAttributeValueProducer
     }
 
     @Override
+    public Set<Class<?>> requiredPayloadTypes()
+    {
+        return Set.of(ProjectRepository.class);
+    }
+
+    @Override
     public Set<Class<?>> producedPayloadTypes()
     {
         return Set.of(ProjectAttributeValue.class);
     }
 
     @Override
-    protected void reset()
+    public void reset()
     {
         knownProjectNames.clear();
     }

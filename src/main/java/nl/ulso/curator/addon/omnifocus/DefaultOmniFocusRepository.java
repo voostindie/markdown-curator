@@ -198,7 +198,7 @@ final class DefaultOmniFocusRepository
     /// the system spins and waits.
     ///
     /// @see OmniFocusInitializer
-    public void waitForInitialFetchToComplete()
+    void waitForInitialFetchToComplete()
     {
         Map<String, OmniFocusProject> result = null;
         while (result == null)

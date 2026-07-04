@@ -32,6 +32,12 @@ public interface ChangeProcessor
     /// @see #producedPayloadTypes()@Override
     Changelog apply(Changelog changelog);
 
+    /// Resets any internal state this change processor has; the default implementation does
+    /// nothing.
+    default void reset()
+    {
+    }
+
     /// Returns the set of payload types that this model can consume from changelogs.
     ///
     /// When processing a changelog, all payload types that do not satisfy this set are filtered
@@ -46,6 +52,18 @@ public interface ChangeProcessor
     /// defaults to an empty set. When processing a changelog, any payload type produced by this
     /// processor not in this set throws an exception.
     default Set<Class<?>> producedPayloadTypes()
+    {
+        return emptySet();
+    }
+
+    /// Returns the set of payload tupes that his model requires to have been produced first, but
+    /// does not consume itself.
+    ///
+    /// This is a weaker form of the [#consumedPayloadTypes()] method, in the sense that the payload
+    /// types returned by this method will not be offered to this change processor for consumption.
+    ///
+    /// The system calls this method only at startup to order all change processors.
+    default Set<Class<?>> requiredPayloadTypes()
     {
         return emptySet();
     }

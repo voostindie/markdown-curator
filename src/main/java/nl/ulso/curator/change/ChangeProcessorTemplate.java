@@ -1,114 +1,52 @@
 package nl.ulso.curator.change;
 
-import nl.ulso.curator.vault.Document;
-import nl.ulso.curator.vault.Vault;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.util.*;
-
-import static java.util.Collections.emptyList;
 
 /// Base class for [ChangeProcessor]s that processes [Changelog]s through [ChangeHandler]s.
 ///
-/// Subclasses can do an optional full reset of their internal state followed by fine-grained change
-/// processing for each applicable change in the changelog.
+/// Subclasses must register one or more [ChangeHandler]s by overriding the
+/// [#createChangeHandlers()] method.
 ///
-/// A reset is executed whenever [#isResetRequired(Changelog)] returns `true`.
+/// Notes:
 ///
-/// To perform fine-grained change processing, subclasses need to register one or more
-/// [ChangeHandler]s by overriding the [#createChangeHandlers()] method.
-///
-/// When performing a full reset or running a [ChangeHandler], new changes can be produced to the
-/// changelog through the [ChangeCollector].
-///
-/// Note:
-///
-/// - A reset, if applicable, always comes before fine-grained change processing, independent of the
-/// order of the changes available in the changelog.
+/// - Changes are processed fully, in order.
 /// - The same change can be accepted by multiple [ChangeHandler]s
 /// - The order in which handlers are executed is guaranteed.
 public abstract class ChangeProcessorTemplate
     implements ChangeProcessor
 {
-    private static final Logger LOGGER = LoggerFactory.getLogger(ChangeProcessorTemplate.class);
-
     private final List<ChangeHandler> changeHandlers;
 
     protected ChangeProcessorTemplate()
     {
         this.changeHandlers = List.copyOf(createChangeHandlers());
-        if (this.changeHandlers.isEmpty() && LOGGER.isWarnEnabled())
+        if (this.changeHandlers.isEmpty())
         {
-            LOGGER.warn("No change handlers configured for change processor: {}.", this.name());
+            throw new IllegalStateException(
+                "No change handlers configured. This processor is useless!"
+            );
         }
     }
 
-    protected List<? extends ChangeHandler> createChangeHandlers()
-    {
-        return emptyList();
-    }
-
-    /// Creates the collection to capture the changes of the various change handlers in. The default
-    /// implementation creates an [ArrayList]. Maybe a subclass wants to collect unique changes
-    /// only. In such a case: override this method to return a set.
-    protected Collection<Change<?>> createChangeCollection()
-    {
-        return new ArrayList<>();
-    }
-
-    @Override
-    public Set<Class<?>> consumedPayloadTypes()
-    {
-        return Set.of(Vault.class, Document.class);
-    }
+    protected abstract List<? extends ChangeHandler> createChangeHandlers();
 
     @Override
     public final Changelog apply(Changelog changelog)
     {
-        if (isResetRequired(changelog))
-        {
-            if (LOGGER.isWarnEnabled())
-            {
-                LOGGER.debug("Performing a reset on change processor: {}.", this.name());
-            }
-            reset();
-        }
         var collector = new DefaultChangeCollector(createChangeCollection());
-        if (!changeHandlers.isEmpty())
-        {
-            process(changelog, collector);
-        }
-        return collector.changelog();
-    }
-
-    /// Determines whether a reset is required from this changelog.
-    ///
-    /// The default implementation checks for the existence of an UPDATE to the [Vault].
-    protected boolean isResetRequired(Changelog changelog)
-    {
-        return changelog.changesFor(Vault.class).
-            anyMatch(change -> change.kind() == Change.Kind.UPDATE);
-    }
-
-    /// Performs a reset.
-    protected void reset()
-    {
-        throw new IllegalStateException(
-            "A reset is triggered, but not supported by this change processor: " +
-            getClass().getSimpleName());
-    }
-
-    /// Processes the changes in the changelog one by one, in order.
-    ///
-    /// Every change in the changelog is tested against each of the change handlers. When tested
-    /// positively, the change handler is requested to handle (accept) the change.
-    private void process(Changelog changelog, ChangeCollector collector)
-    {
         changelog.changes().forEach(change ->
             changeHandlers.stream()
                 .filter(handler -> handler.test(change))
                 .forEach(handler -> handler.accept(change, collector))
         );
+        return collector.changelog();
+    }
+
+
+    /// Creates the collection to capture changes in. The default implementation creates an
+    /// [ArrayList].
+    protected Collection<Change<?>> createChangeCollection()
+    {
+        return new ArrayList<>();
     }
 }

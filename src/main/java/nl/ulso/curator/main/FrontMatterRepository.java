@@ -46,21 +46,24 @@ final class FrontMatterRepository
     @Override
     public Changelog apply(Changelog changelog)
     {
-        if (changelog.changesFor(Vault.class).findAny().isPresent())
-        {
-            documentFrontMatters.clear();
-        }
-        changelog.changesFor(Document.class)
+        changelog.changes()
             .filter(change -> change.kind() == Change.Kind.DELETE)
-            .map(change -> change.as(Document.class).value().name())
+            .map(change -> change.as(Document.class))
+            .map(change -> change.value().name())
             .forEach(documentFrontMatters::remove);
         return emptyChangelog();
     }
 
     @Override
+    public void reset()
+    {
+        documentFrontMatters.clear();
+    }
+
+    @Override
     public Set<Class<?>> consumedPayloadTypes()
     {
-        return Set.of(Vault.class, Document.class);
+        return Set.of(Document.class);
     }
 
     @Override

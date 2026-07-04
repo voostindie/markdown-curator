@@ -13,8 +13,11 @@ import java.util.stream.Collectors;
 
 import static java.util.Comparator.comparing;
 import static java.util.List.copyOf;
+import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toSet;
+import static nl.ulso.curator.change.Change.isPayloadType;
 import static nl.ulso.curator.change.Changelog.changelogFor;
+import static nl.ulso.curator.change.Changelog.emptyChangelog;
 import static org.slf4j.LoggerFactory.getLogger;
 
 @Singleton
@@ -22,7 +25,7 @@ final class DefaultChangeProcessorOrchestrator
     implements ChangeProcessorOrchestrator
 {
     private static final Set<Class<?>> RESERVED_PAYLOAD_TYPES =
-        Set.of(Vault.class, Folder.class, Document.class);
+        Set.of(Reset.class, Vault.class, Folder.class, Document.class);
     private static final List<Class<?>> RESERVED_CHANGE_PROCESSORS_CLASSES =
         List.of(VaultReloader.class, VaultInitializer.class);
 
@@ -112,15 +115,26 @@ final class DefaultChangeProcessorOrchestrator
             iteration++;
             if (iteration > maxIterations)
             {
-                throw new IllegalStateException("Dependency cycle or unsatisfied consumer.");
+                throw new IllegalStateException(
+                    "Dependency cycle or unsatisfied consumer(s). The following change " +
+                    "processor(s) cannot be put in order: " +
+                    queue.stream()
+                        .map(Object::getClass)
+                        .map(Class::getSimpleName)
+                        .collect(joining(", "))
+                );
             }
             var processor = queue.pollFirst();
-            if (!availablePayloadTypes.containsAll(processor.consumedPayloadTypes()))
+            var neededPayloadTypes = HashSet.<Class<?>>newHashSet(
+                processor.consumedPayloadTypes().size() + processor.requiredPayloadTypes().size());
+            neededPayloadTypes.addAll(processor.consumedPayloadTypes());
+            neededPayloadTypes.addAll(processor.requiredPayloadTypes());
+            if (!availablePayloadTypes.containsAll(neededPayloadTypes))
             {
                 queue.addLast(processor);
                 continue;
             }
-            if (producesAnyOf(queue, processor.consumedPayloadTypes()))
+            if (producesAnyOf(queue, neededPayloadTypes))
             {
                 queue.addLast(processor);
                 continue;
@@ -156,44 +170,57 @@ final class DefaultChangeProcessorOrchestrator
     public Changelog runFor(List<Change<?>> changes)
     {
         var changelog = changelogFor(changes);
+        resetIfNeeded(changelog);
         for (ChangeProcessor processor : changeProcessors)
         {
             var processorName = processor.name();
-            try
+            var filteredChangelog = changelog.changelogFor(processor.consumedPayloadTypes());
+            if (filteredChangelog.isEmpty())
             {
-                var filteredChangelog = changelog.changelogFor(processor.consumedPayloadTypes());
-                if (filteredChangelog.isEmpty())
-                {
-                    LOGGER.debug(
-                        "Skipping change processor {}. No relevant changes available.",
-                        processorName
-                    );
-                    continue;
-                }
-                LOGGER.debug("Running change processor {}.", processorName);
-                var newChangelog = processor.apply(filteredChangelog);
-                verifyChanges(processor, newChangelog);
-                changelog = changelog.append(newChangelog);
-                LOGGER.trace("Executed change processor {}.", processorName);
-            }
-            catch (RuntimeException e)
-            {
-                LOGGER.error("Caught runtime exception while executing change processor {}.",
-                    processor.getClass().getSimpleName(), e
+                LOGGER.debug(
+                    "Skipping change processor {}. No relevant changes available.",
+                    processorName
                 );
+                continue;
             }
+            LOGGER.debug("Running change processor {}.", processorName);
+            var newChangelog = safelyApplyChangelogTo(processor, filteredChangelog);
+            verifyChanges(processor, newChangelog);
+            if (resetIfNeeded(newChangelog))
+            {
+                // The new changelog contains a Reset. All changes before it are no longer
+                // relevant and can be ignored going forward.
+                changelog = newChangelog;
+            }
+            else
+            {
+                // Append the new changelog to the existing one for the next processor.
+                changelog = changelog.append(newChangelog);
+            }
+            LOGGER.trace("Executed change processor {}.", processorName);
         }
         LOGGER.info(
             "Executed {} change processors on {} change(s).",
             changeProcessors.size(),
             changes.size()
         );
-        var level = changelog.changesFor(Vault.class).findAny().
-            map(_ -> Level.INFO)
-            .orElse(Level.TRACE);
-        statistics.logTo(LOGGER, level);
+        statistics.logTo(
+            LOGGER,
+            changelog.changes().anyMatch(isPayloadType(Reset.class)) ? Level.INFO : Level.TRACE
+        );
         LOGGER.info("Produced changelog with {} change(s).", changelog.size());
         return changelog;
+    }
+
+    private boolean resetIfNeeded(Changelog changelog)
+    {
+        if (changelog.changes().noneMatch(isPayloadType(Reset.class)))
+        {
+            return false;
+        }
+        LOGGER.info("Resetting all change processors.");
+        changeProcessors.forEach(DefaultChangeProcessorOrchestrator::safelyReset);
+        return true;
     }
 
     private static void verifyChanges(ChangeProcessor processor, Changelog newChangelog)
@@ -220,5 +247,38 @@ final class DefaultChangeProcessorOrchestrator
                 "Change processor " + processor.getClass().getSimpleName() +
                 " is producing changes of a type that it doesn't claim to produce.");
         }
+    }
+
+    private Changelog safelyApplyChangelogTo(ChangeProcessor processor, Changelog changelog)
+    {
+        try
+        {
+            return processor.apply(changelog);
+        }
+        catch (RuntimeException e)
+        {
+            logProcessorError(processor, e);
+        }
+        return emptyChangelog();
+    }
+
+    private static void safelyReset(ChangeProcessor processor)
+    {
+        try
+        {
+            processor.reset();
+        }
+        catch (RuntimeException e)
+        {
+            logProcessorError(processor, e);
+        }
+    }
+
+    private static void logProcessorError(ChangeProcessor processor, RuntimeException e)
+    {
+        LOGGER.error(
+            "Caught runtime exception while executing change processor {}. Check the code!",
+            processor.getClass().getSimpleName(), e
+        );
     }
 }
