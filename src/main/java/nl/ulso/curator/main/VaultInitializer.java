@@ -7,9 +7,9 @@ import nl.ulso.curator.vault.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.*;
+import java.util.Set;
 
-import static nl.ulso.curator.change.Changelog.changelogFor;
+import static nl.ulso.curator.change.ChangeCollector.newChangeCollector;
 
 /// Special change processor that triggers on [Reset] events and then generates a CREATE change for
 /// every folder and document in the vault.
@@ -46,26 +46,27 @@ final class VaultInitializer
             "Initializing the vault by publishing CREATE events for every folder and document.");
         var finder = new FolderAndDocumentChangeFinder();
         vault.accept(finder);
-        LOGGER.info("Initialized the vault with {} changes.", finder.changes.size());
-        return changelogFor(finder.changes);
+        var newChangelog = finder.collector.changelog();
+        LOGGER.info("Initialized the vault with {} changes.", newChangelog.size());
+        return newChangelog;
     }
 
     private static final class FolderAndDocumentChangeFinder
         extends BreadthFirstVaultVisitor
     {
-        private final List<Change<?>> changes = new ArrayList<>();
+        private final ChangeCollector collector = newChangeCollector();
 
         @Override
         public void visit(Folder folder)
         {
-            changes.add(Change.create(folder, Folder.class));
+            collector.create(folder, Folder.class);
             super.visit(folder);
         }
 
         @Override
         public void visit(Document document)
         {
-            changes.add(Change.create(document, Document.class));
+            collector.create(document, Document.class);
         }
     }
 }

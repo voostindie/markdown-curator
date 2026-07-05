@@ -127,6 +127,16 @@ public class FileSystemFolder
         folders.remove(name);
     }
 
+    void clearAll()
+    {
+        if (parent != null)
+        {
+            throw new IllegalStateException("Reset is only allowed for the root folder");
+        }
+        documents.clear();
+        folders.clear();
+    }
+
     /// Add a document to the current folder. If a document with the same name already exists, it is
     /// replaced.
     ///

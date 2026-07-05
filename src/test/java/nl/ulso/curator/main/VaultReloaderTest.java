@@ -26,38 +26,40 @@ class VaultReloaderTest
     @Test
     void consumedPayloadTypes()
     {
-        var set = new VaultReloader(Optional.empty()).consumedPayloadTypes();
+        var set = new VaultReloader(Optional.empty(), vault).consumedPayloadTypes();
         assertThat(set).containsExactly(Document.class);
     }
 
     @Test
     void producedPayloadTypes()
     {
-        var set = new VaultReloader(Optional.empty()).producedPayloadTypes();
+        var set = new VaultReloader(Optional.empty(), vault).producedPayloadTypes();
         assertThat(set).containsExactly(Reset.class);
     }
 
     @Test
     void doNothingIfNoWatchDocIsProvided()
     {
-        var reloader = new VaultReloader(Optional.empty());
-        assertThat(reloader.apply(emptyChangelog())).isEqualTo(emptyChangelog());
+        var reloader = new VaultReloader(Optional.empty(), vault);
+        reloader.apply(emptyChangelog());
+        assertThat(vault.reloadCount()).isZero();
     }
 
     @Test
     void triggerFullRefreshIfWatchDocChanges()
     {
         var document = vault.addDocumentInPath("WATCHER", "");
-        var reloader = new VaultReloader(Optional.of("WATCHER"));
+        var reloader = new VaultReloader(Optional.of("WATCHER"), vault);
         var changelog = changelogFor(update(document, Document.class));
-        assertThat(reloader.apply(changelog).isEmpty()).isFalse();
+        reloader.apply(changelog);
+        assertThat(vault.reloadCount()).isPositive();
     }
 
     @Test
     void fullRefreshResultsInVaultChangeEvent()
     {
         var document = vault.addDocumentInPath("WATCHER", "");
-        var reloader = new VaultReloader(Optional.of("WATCHER"));
+        var reloader = new VaultReloader(Optional.of("WATCHER"), vault);
         var inputChangelog = changelogFor(update(document, Document.class));
         var outputChangelog = reloader.apply(inputChangelog);
         assertThat(outputChangelog.changes()

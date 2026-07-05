@@ -31,6 +31,7 @@ import static nl.ulso.curator.change.Change.create;
 import static nl.ulso.curator.vault.DirectoryChangeEventHandler.DIRECTORY_CHANGE_EVENT_HANDLERS;
 import static nl.ulso.curator.vault.DirectoryChangeEventHandler.FileSystemItemType;
 import static nl.ulso.curator.vault.Document.newDocument;
+import static nl.ulso.curator.vault.ElementCounter.countFoldersAndDocuments;
 import static org.slf4j.LoggerFactory.getLogger;
 import static org.slf4j.MDC.getCopyOfContextMap;
 
@@ -57,10 +58,10 @@ final class FileSystemVault
         super(absolutePath.toString());
         this.callback = _ -> {}; // By default, do nothing.
         this.absolutePath = absolutePath;
-        VaultBuilder vaultBuilder = new VaultBuilder(this, absolutePath);
+        var builder = new VaultBuilder(this, absolutePath);
         try
         {
-            walkFileTree(absolutePath, vaultBuilder);
+            walkFileTree(absolutePath, builder);
             // On macOS, use a faster hasher, based on file timestamps instead of contents.
             // From the README on https://github.com/gmethvin/directory-watcher:
             // "This hasher is only suitable for platforms that have at least millisecond precision
@@ -77,17 +78,11 @@ final class FileSystemVault
         }
         catch (IOException e)
         {
-            throw new IllegalStateException("Could not instantiate vault on path '"
-                                            + absolutePath + "'", e
+            throw new IllegalStateException(
+                "Could not instantiate vault on path '" + absolutePath + "'", e
             );
         }
-        if (LOGGER.isInfoEnabled())
-        {
-            var statistics = ElementCounter.countFoldersAndDocuments(this);
-            LOGGER.info("Read vault {} into memory with {} folders and {} documents.", name(),
-                statistics.folders(), statistics.documents()
-            );
-        }
+        logStatistics();
     }
 
     public FileSystemVault(Path absolutePath)
@@ -154,9 +149,39 @@ final class FileSystemVault
     }
 
     @Override
+    public void reload()
+    {
+        LOGGER.info("Reloading the complete vault from '{}'.", absolutePath);
+        clearAll();
+        var builder = new VaultBuilder(this, absolutePath);
+        try
+        {
+            walkFileTree(absolutePath, builder);
+        }
+        catch (IOException e)
+        {
+            throw new IllegalStateException(
+                "Could not reload vault on path '" + absolutePath + "'", e
+            );
+        }
+        logStatistics();
+    }
+
+    private void logStatistics()
+    {
+        if (LOGGER.isInfoEnabled())
+        {
+            var statistics = countFoldersAndDocuments(this);
+            LOGGER.info("Read vault {} into memory with {} folders and {} documents.", name(),
+                statistics.folders(), statistics.documents()
+            );
+        }
+    }
+
+    @Override
     public void collectMeasurements(MeasurementCollector collector)
     {
-        var statistics = ElementCounter.countFoldersAndDocuments(this);
+        var statistics = countFoldersAndDocuments(this);
         collector.total(Folder.class, statistics.folders());
         collector.total(Document.class, statistics.documents());
     }

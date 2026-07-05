@@ -126,6 +126,15 @@ class FileSystemVaultTest
     }
 
     @Test
+    void reload()
+    {
+        var oldReadme = vault.document("README").orElseThrow();
+        vault.reload();
+        var newReadme = vault.document("README").orElseThrow();
+        assertThat(oldReadme).isNotSameAs(newReadme);
+    }
+
+    @Test
     void watchVaultForNewFiles()
     {
         whileWatchingForChanges(new TestCase()
@@ -155,7 +164,6 @@ class FileSystemVaultTest
     }
 
     @Test
-        //    @Disabled("Unpredictable; don't know why. Use only when needed. Or fix.")
     void watchVaultForFilesInNewFolders()
     {
         whileWatchingForChanges(new TestCase()

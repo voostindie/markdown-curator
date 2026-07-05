@@ -4,6 +4,7 @@ import jakarta.inject.*;
 import nl.ulso.curator.CuratorModule;
 import nl.ulso.curator.change.*;
 import nl.ulso.curator.vault.Document;
+import nl.ulso.curator.vault.Vault;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -32,12 +33,14 @@ final class VaultReloader
     private static final Logger LOGGER = LoggerFactory.getLogger(VaultReloader.class);
 
     private final String watchDocumentName;
+    private final Vault vault;
 
     @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
     @Inject
-    VaultReloader(@Named(WATCH_DOCUMENT_KEY) Optional<String> watchDocumentName)
+    VaultReloader(@Named(WATCH_DOCUMENT_KEY) Optional<String> watchDocumentName, Vault vault)
     {
         this.watchDocumentName = watchDocumentName.orElse(null);
+        this.vault = vault;
         if (LOGGER.isDebugEnabled())
         {
             if (this.watchDocumentName != null)
@@ -73,6 +76,7 @@ final class VaultReloader
                 change.as(Document.class).value().name().equals(watchDocumentName))))
         {
             LOGGER.info("Watch document has changed. Forcing a complete refresh.");
+            vault.reload();
             return changelogFor(RESET);
         }
         return emptyChangelog();

@@ -6,6 +6,8 @@ public class VaultStub
         extends FolderStub
         implements Vault
 {
+    private int reloadCount = 0;
+
     public VaultStub()
     {
         this("stub");
@@ -40,5 +42,16 @@ public class VaultStub
     public void watchForChanges()
     {
         // Do nothing
+    }
+
+    @Override
+    public void reload()
+    {
+        reloadCount++;
+    }
+
+    public int reloadCount()
+    {
+        return reloadCount;
     }
 }
