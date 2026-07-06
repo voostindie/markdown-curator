@@ -109,10 +109,10 @@ final class DefaultCurator
         changeQueue.addLast(optimizeChangeQueue(change));
         if (canRunImmediatelyFor(change))
         {
-            LOGGER.info(
-                "Immediately processing all expected document updates.");
+            LOGGER.info("Immediately processing all expected document updates.");
             processChangeQueue();
             expectedDocumentUpdates.clear();
+            requestGarbageCollectionIfPotentiallyBeneficial(change);
         }
         else
         {
@@ -165,6 +165,33 @@ final class DefaultCurator
                    expectedDocumentUpdates.isEmpty();
         }
         return false;
+    }
+
+    /// Yes, calling `System.gc()` is bad practice and almost always a bad idea. Here, however, we
+    /// do have a special situation.
+    ///
+    /// During normal operations, the [Reset] change happens once: at application startup. (It can
+    /// also be triggered by the user by modifying the watch document, but that should happen
+    /// sporadically if at all; it's intended as the equivalent of a restart, without actually
+    /// shutting down the application and the JVM.)
+    ///
+    /// During the [Reset] change all files and folders in the vault are read from disk, a changelog
+    /// with as many create events is processed, and all query instances are executed and generate
+    /// output. In a large vault that implies a lot of memory usage.
+    ///
+    /// Once the [Reset] change is done, which is when this method is called, the system goes into a
+    /// mode where the typical changelog contains just one event: a change to a file. The memory
+    /// usage is much lower.
+    ///
+    /// So, hinting to the JVM that the garbage collector may run after a [Reset] is potentially
+    /// beneficial.
+    private void requestGarbageCollectionIfPotentiallyBeneficial(Change<?> change)
+    {
+        if (change.payloadType().equals(Reset.class))
+        {
+            LOGGER.debug("Requesting the JVM to garbage collect.");
+            System.gc();
+        }
     }
 
     /// If there is an incoming change, there's no need to write changes to disk from the previous
