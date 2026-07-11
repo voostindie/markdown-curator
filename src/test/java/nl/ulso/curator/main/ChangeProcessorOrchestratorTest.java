@@ -106,7 +106,7 @@ class ChangeProcessorOrchestratorTest
         return new TreeSet<>(Arrays.asList(models));
     }
 
-    private static final class ChangeProcessorStub
+    static final class ChangeProcessorStub
         implements ChangeProcessor, Comparable<ChangeProcessorStub>
     {
         private final int order;
@@ -171,6 +171,12 @@ class ChangeProcessorOrchestratorTest
         public Set<Class<?>> requiredPayloadTypes()
         {
             return requiredPayloadTypes;
+        }
+
+        @Override
+        public String name()
+        {
+            return "Stub-" + order;
         }
     }
 

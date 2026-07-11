@@ -5,6 +5,7 @@ import dagger.Module;
 import dagger.multibindings.IntoSet;
 import nl.ulso.curator.Curator;
 import nl.ulso.curator.change.ChangeProcessor;
+import nl.ulso.curator.query.Query;
 import nl.ulso.curator.query.QueryModule;
 import nl.ulso.curator.statistics.MeasurementTracker;
 import nl.ulso.curator.vault.VaultModule;
@@ -46,4 +47,7 @@ public abstract class MainModule
     @IntoSet
     abstract MeasurementTracker bindFrontMatterMeasurements(FrontMatterRepository frontMatterRepository);
 
+    @Binds
+    @IntoSet
+    abstract Query bindChangeProcessorGraphQuery(ChangeProcessorGraphQuery changeProcessorGraphQuery);
 }
