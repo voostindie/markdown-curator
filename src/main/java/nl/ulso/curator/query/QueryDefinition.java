@@ -15,7 +15,4 @@ public interface QueryDefinition
 
     /// @return the document this query is run against.
     Document document();
-
-    /// @return the persisted hash of the output of this query instance.
-    String outputHash();
 }

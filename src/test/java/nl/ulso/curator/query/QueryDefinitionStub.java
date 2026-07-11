@@ -1,7 +1,7 @@
 package nl.ulso.curator.query;
 
-import nl.ulso.dictionary.Dictionary;
 import nl.ulso.curator.vault.Document;
+import nl.ulso.dictionary.Dictionary;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -41,11 +41,5 @@ public class QueryDefinitionStub implements QueryDefinition
     public Document document()
     {
         return document;
-    }
-
-    @Override
-    public String outputHash()
-    {
-        return "";
     }
 }

@@ -175,12 +175,6 @@ class ChangeProcessorGraphQueryTest
         {
             return null;
         }
-
-        @Override
-        public String outputHash()
-        {
-            return "";
-        }
     }
 
     private static class StringOnlyQueryResultFactory
