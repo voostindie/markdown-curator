@@ -72,7 +72,7 @@ final class ChangeProcessorGraphQuery
             ORIENTATION_PROPERTY, "Orientation of the graph: " +
                                   join(", ", Orientation.supportedOrientations()) +
                                   ". Defaults to '" +
-                                  Orientation.TopToBottom.toString().toLowerCase() + "'."
+                                  Orientation.TOP_TO_BOTTOM.toString().toLowerCase() + "'."
         );
     }
 
@@ -125,9 +125,9 @@ final class ChangeProcessorGraphQuery
             orientation -> orientations.put(orientation.mermaidText().toLowerCase(), orientation));
         var selection = configuration.string(
             ORIENTATION_PROPERTY,
-            Orientation.LeftToRight.mermaidText()
+            Orientation.LEFT_TO_RIGHT.mermaidText()
         ).toLowerCase();
-        return orientations.getOrDefault(selection, Orientation.LeftToRight);
+        return orientations.getOrDefault(selection, Orientation.LEFT_TO_RIGHT);
     }
 
     private Set<Edge> resolveEdges(Dictionary configuration)
@@ -207,10 +207,10 @@ final class ChangeProcessorGraphQuery
     /// Graph orientations, as supported by Mermaid.
     private enum Orientation
     {
-        TopToBottom("TB"),
-        BottomToTop("BT"),
-        LeftToRight("LR"),
-        RightToLeft("RL");
+        TOP_TO_BOTTOM("TB"),
+        BOTTOM_TO_TOP("BT"),
+        LEFT_TO_RIGHT("LR"),
+        RIGHT_TO_LEFT("RL");
 
         private final String mermaidText;
 
