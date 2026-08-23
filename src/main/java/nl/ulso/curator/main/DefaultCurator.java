@@ -211,7 +211,7 @@ final class DefaultCurator
     /// meantime, the task will be cancelled and replaced by a new one.
     private void scheduleChangeQueueProcessing()
     {
-        LOGGER.info("Scheduling query processing and document writing task to run in {} seconds.",
+        LOGGER.debug("Scheduling query processing and document writing task to run in {} seconds.",
             SCHEDULE_TIMEOUT_IN_SECONDS
         );
         runTask = delayedExecutor.schedule(
