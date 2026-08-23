@@ -2,18 +2,13 @@ package nl.ulso.curator.query;
 
 import jakarta.inject.Inject;
 
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
-import static java.lang.System.lineSeparator;
+import static java.util.Collections.unmodifiableList;
 
 class DefaultQueryResultFactory
     implements QueryResultFactory
 {
-    private static final String COMMENT_START = "<!-- ";
-    private static final String COMMENT_END = " -->";
-    private static final String PERFORMANCE_WARNING =
-            "WARNING: do not overuse this query; it is slow!";
     private final GeneralMessages messages;
 
     public DefaultQueryResultFactory()
@@ -25,6 +20,16 @@ class DefaultQueryResultFactory
     public DefaultQueryResultFactory(GeneralMessages messages)
     {
         this.messages = messages;
+    }
+
+    @Override
+    public QueryResult string(String output)
+    {
+        if (output.isBlank())
+        {
+            return empty();
+        }
+        return new StringResult(output);
     }
 
     @Override
@@ -42,11 +47,11 @@ class DefaultQueryResultFactory
     @Override
     public QueryResult table(List<String> columns, List<Map<String, String>> rows)
     {
-        if (rows.isEmpty())
-        {
-            return empty();
-        }
-        return new TableResult(columns, rows);
+        return table(
+            columns,
+            Collections.nCopies(columns.size(), Alignment.LEFT),
+            rows
+        );
     }
 
     @Override
@@ -58,7 +63,11 @@ class DefaultQueryResultFactory
         {
             return empty();
         }
-        return new TableResult(columns, alignments, rows);
+        return new TableResult(
+            unmodifiableList(columns),
+            unmodifiableList(alignments),
+            unmodifiableList(rows)
+        );
     }
 
     @Override
@@ -68,65 +77,6 @@ class DefaultQueryResultFactory
         {
             return empty();
         }
-        return new UnorderedListResult(rows);
-    }
-
-    @Override
-    public QueryResult string(String output)
-    {
-        if (output.isBlank())
-        {
-            return empty();
-        }
-        return () -> output;
-    }
-
-    @Override
-    public QueryResult withPerformanceWarning(QueryResult slowQueryResult)
-    {
-        return wrapSlowQueryResult(slowQueryResult);
-    }
-
-    @Override
-    public QueryResultFactory withPerformanceWarning()
-    {
-        return new DefaultQueryResultFactory()
-        {
-            @Override
-            public QueryResult table(List<String> columns, List<Map<String, String>> rows)
-            {
-                return wrapSlowQueryResult(super.table(columns, rows));
-            }
-
-            @Override
-            public QueryResult unorderedList(List<String> rows)
-            {
-                return wrapSlowQueryResult(super.unorderedList(rows));
-            }
-
-            @Override
-            public QueryResult string(String output)
-            {
-                return wrapSlowQueryResult(super.string(output));
-            }
-
-            @Override
-            public DefaultQueryResultFactory withPerformanceWarning()
-            {
-                return this;
-            }
-
-            @Override
-            public QueryResult withPerformanceWarning(QueryResult slowQueryResult)
-            {
-                return slowQueryResult;
-            }
-        };
-    }
-
-    private QueryResult wrapSlowQueryResult(QueryResult slowQueryResult)
-    {
-        return () -> slowQueryResult.toMarkdown().trim() + lineSeparator() + lineSeparator() +
-                     COMMENT_START + PERFORMANCE_WARNING + COMMENT_END;
+        return new UnorderedListResult(unmodifiableList(rows));
     }
 }

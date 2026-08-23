@@ -1,6 +1,7 @@
 package nl.ulso.curator.addon.journal;
 
 import nl.ulso.curator.query.QueryDefinitionStub;
+import nl.ulso.curator.query.QueryResultFormatterRegistry;
 import nl.ulso.curator.vault.VaultStub;
 import org.assertj.core.api.junit.jupiter.SoftAssertionsExtension;
 import org.junit.jupiter.api.Test;
@@ -12,12 +13,21 @@ import org.junit.jupiter.params.provider.MethodSource;
 import java.util.stream.Stream;
 
 import static nl.ulso.curator.addon.journal.JournalTest.createTestJournal;
+import static nl.ulso.curator.query.OutputFormat.MARKDOWN;
 import static nl.ulso.curator.query.QueryTestModule.createQueryResultFactory;
+import static nl.ulso.curator.query.QueryTestModule.createQueryResultFormatterRegistry;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @ExtendWith(SoftAssertionsExtension.class)
 class TimelineQueryTest
 {
+    private final QueryResultFormatterRegistry queryResultFormatterRegistry;
+
+    TimelineQueryTest()
+    {
+        this.queryResultFormatterRegistry = createQueryResultFormatterRegistry();
+    }
+
     @Test
     void name()
     {
@@ -50,7 +60,8 @@ class TimelineQueryTest
             .withConfiguration("document", documentName)
             .withConfiguration("limit", limit);
         var result = query.run(definition);
-        assertThat(result.toMarkdown()).isEqualTo(expectedSummary);
+        var output = queryResultFormatterRegistry.format(result, MARKDOWN);
+        assertThat(output).isEqualTo(expectedSummary);
     }
 
     public static Stream<Arguments> documentSummaries()

@@ -39,7 +39,7 @@ class CuratorModuleTest
         var path = VaultPaths.iCloudIAWriterFolder("Test");
         var home = System.getProperty("user.home");
         assertThat(path).hasToString(
-                home + "/Library/Mobile Documents/27N4MQEA55~pro~writer/Documents/Test");
+            home + "/Library/Mobile Documents/27N4MQEA55~pro~writer/Documents/Test");
     }
 
     @Test
@@ -48,13 +48,13 @@ class CuratorModuleTest
         var path = VaultPaths.iCloudObsidianVault("Test");
         var home = System.getProperty("user.home");
         assertThat(path).hasToString(
-                home + "/Library/Mobile Documents/iCloud~md~obsidian/Documents/Test");
+            home + "/Library/Mobile Documents/iCloud~md~obsidian/Documents/Test");
     }
 
     @Singleton
     @Component(modules = ModuleStub.class)
     public interface FactoryStub
-            extends CuratorFactory
+        extends CuratorFactory
     {
         @Override
         default String name()
@@ -75,7 +75,7 @@ class CuratorModuleTest
 
     @Singleton
     private static class ChangeProcessorStub
-            implements ChangeProcessor
+        implements ChangeProcessor
     {
         @Override
         public Changelog apply(Changelog changelog)
@@ -91,7 +91,7 @@ class CuratorModuleTest
     }
 
     private static class QueryStub
-            implements Query
+        implements Query
     {
         @Override
         public String name()
@@ -121,7 +121,7 @@ class CuratorModuleTest
         public QueryResult run(QueryDefinition definition)
         {
             // Do nothing
-            return () -> "";
+            return new QueryResult() {};
         }
     }
 }

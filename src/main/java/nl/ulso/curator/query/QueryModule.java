@@ -12,7 +12,12 @@ public abstract class QueryModule
     abstract QueryCatalog bindQueryCatalog(DefaultQueryCatalog queryCatalog);
 
     @Binds
-    abstract QueryResultFactory bindQueryResultFactory(DefaultQueryResultFactory queryResultFactory);
+    abstract QueryResultFormatterRegistry bindQueryResultFormatterRegistry(
+        DefaultQueryResultFormatterRegistry registry);
+
+    @Binds
+    abstract QueryResultFactory bindQueryResultFactory(
+        DefaultQueryResultFactory queryResultFactory);
 
     @Binds
     abstract GeneralMessages bindGeneralMessages(ResourceBundleGeneralMessages messages);
@@ -28,4 +33,21 @@ public abstract class QueryModule
     @Binds
     @IntoSet
     abstract Query bindTableOfContentsQuery(TableOfContentsQuery tableOfContentsQuery);
+
+    @Binds
+    @IntoSet
+    abstract QueryResultFormatter<?> stringMarkdownFormatter(StringMarkdownFormatter formatter);
+
+    @Binds
+    @IntoSet
+    abstract QueryResultFormatter<?> errorMarkdownFormatter(ErrorMarkdownFormatter formatter);
+
+    @Binds
+    @IntoSet
+    abstract QueryResultFormatter<?> tableMarkdownFormatter(TableMarkdownFormatter formatter);
+
+    @Binds
+    @IntoSet
+    abstract QueryResultFormatter<?> unorderedListMarkdownFormatter(
+        UnorderedListMarkdownFormatter formatter);
 }

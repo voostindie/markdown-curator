@@ -4,7 +4,9 @@ import org.assertj.core.api.junit.jupiter.SoftAssertionsExtension;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
+import static nl.ulso.curator.query.OutputFormat.MARKDOWN;
 import static nl.ulso.curator.query.QueryTestModule.createEmptyCatalog;
+import static nl.ulso.curator.query.QueryTestModule.createQueryResultFormatterRegistry;
 import static nl.ulso.curator.vault.QueryBlockTest.emptyQueryBlock;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -15,8 +17,10 @@ class HelpQueryTest
     void helpQuery()
     {
         var catalog = createEmptyCatalog();
-        var result = catalog.query("help").run(emptyQueryBlock()).toMarkdown();
-        assertThat(result)
+        var formatterRegistry = createQueryResultFormatterRegistry();
+        var result = catalog.query("help").run(emptyQueryBlock());
+        var output = formatterRegistry.format(result, MARKDOWN);
+        assertThat(output)
             .contains("### help")
             .contains("Shows detailed help information for a query.")
             .contains("Configuration options")

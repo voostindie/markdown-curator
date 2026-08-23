@@ -1,6 +1,7 @@
 package nl.ulso.curator.addon.project;
 
 import nl.ulso.curator.query.QueryDefinitionStub;
+import nl.ulso.curator.query.QueryResultFormatterRegistry;
 import nl.ulso.curator.vault.VaultStub;
 import org.assertj.core.api.junit.jupiter.SoftAssertionsExtension;
 import org.junit.jupiter.api.BeforeEach;
@@ -14,19 +15,23 @@ import static java.util.Locale.ENGLISH;
 import static nl.ulso.curator.addon.project.ProjectTestData.createAttributeRegistry;
 import static nl.ulso.curator.addon.project.ProjectTestData.createProjectRepository;
 import static nl.ulso.curator.addon.project.ProjectTestData.createTestVault;
+import static nl.ulso.curator.query.OutputFormat.MARKDOWN;
 import static nl.ulso.curator.query.QueryTestModule.createQueryResultFactory;
+import static nl.ulso.curator.query.QueryTestModule.createQueryResultFormatterRegistry;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @ExtendWith(SoftAssertionsExtension.class)
 class ProjectListQueryTest
 {
     private VaultStub vault;
+    private QueryResultFormatterRegistry formatterRegistry;
     private ProjectListQuery query;
 
     @BeforeEach
     void setUp()
     {
         vault = createTestVault();
+        formatterRegistry = createQueryResultFormatterRegistry();
         query = new ProjectListQuery(
             createProjectRepository(vault),
             createAttributeRegistry(vault),
@@ -40,8 +45,9 @@ class ProjectListQueryTest
     {
         var definition = new QueryDefinitionStub(query, vault.resolveDocumentInPath("README"))
             .withConfiguration("format", "foo");
-        var result = query.run(definition).toMarkdown();
-        assertThat(result).contains("Unsupported format");
+        var result = query.run(definition);
+        var output = formatterRegistry.format(result, MARKDOWN);
+        assertThat(output).contains("Unsupported format");
     }
 
     @Test
@@ -49,8 +55,9 @@ class ProjectListQueryTest
     {
         var definition = new QueryDefinitionStub(query, vault.resolveDocumentInPath("README"))
             .withConfiguration("format", "table");
-        var result = query.run(definition).toMarkdown();
-        assertThat(result).isEqualTo("""
+        var result = query.run(definition);
+        var output = formatterRegistry.format(result, MARKDOWN);
+        assertThat(output).isEqualTo("""
             
             | Prio | Project       | Lead        | Last&nbsp;modified | Status |
             | ---- | ------------- | ----------- | ------------------ | ------ |
@@ -66,8 +73,9 @@ class ProjectListQueryTest
     {
         var definition = new QueryDefinitionStub(query, vault.resolveDocumentInPath("README"))
             .withConfiguration("format", "list");
-        var result = query.run(definition).toMarkdown();
-        assertThat(result).isEqualTo("""
+        var result = query.run(definition);
+        var output = formatterRegistry.format(result, MARKDOWN);
+        assertThat(output).isEqualTo("""
             - [[Project 3]]
             - [[Project 1]]
             - [[Project 2]]

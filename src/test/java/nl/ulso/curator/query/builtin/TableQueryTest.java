@@ -1,6 +1,6 @@
 package nl.ulso.curator.query.builtin;
 
-import nl.ulso.curator.query.QueryDefinitionStub;
+import nl.ulso.curator.query.*;
 import nl.ulso.curator.vault.VaultStub;
 import org.assertj.core.api.junit.jupiter.SoftAssertionsExtension;
 import org.junit.jupiter.api.Test;
@@ -14,18 +14,22 @@ import java.util.Map;
 import java.util.stream.Stream;
 
 import static java.util.Collections.emptyMap;
+import static nl.ulso.curator.query.OutputFormat.MARKDOWN;
 import static nl.ulso.curator.query.QueryTestModule.createQueryResultFactory;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @ExtendWith(SoftAssertionsExtension.class)
 class TableQueryTest
 {
+    private final QueryResultFormatterRegistry formatterRegistry =
+        QueryTestModule.createQueryResultFormatterRegistry();
+
     @Test
     void configurationOptions()
     {
         var query = new TableQuery(null, createQueryResultFactory());
         assertThat(query.supportedConfiguration())
-                .containsOnlyKeys("folder", "recurse", "reverse", "columns", "sort");
+            .containsOnlyKeys("folder", "recurse", "reverse", "columns", "sort");
     }
 
     @ParameterizedTest
@@ -38,49 +42,51 @@ class TableQueryTest
         QueryDefinitionStub definition = new QueryDefinitionStub(query, document);
         configuration.forEach(definition::withConfiguration);
         var result = query.run(definition);
-        assertThat(result.toMarkdown()).isEqualTo(expectedOutput);
+        var output = formatterRegistry.format(result, MARKDOWN);
+        assertThat(output).isEqualTo(expectedOutput);
     }
 
     static Stream<Arguments> provideConfigurations()
     {
         return Stream.of(
-                Arguments.of(
-                        emptyMap(), """
-                                
-                                | Name |
-                                | ---- |
-                                | [[M]] |
-                                | [[V]] |
-                                
-                                """
-                ),
-                Arguments.of(
-                        Map.of("columns", List.of("date")), """
-                                
-                                | Name  | Date |
-                                | ----- | ---- |
-                                | [[M]] | 1977‑11‑11 |
-                                | [[V]] | 1976‑11‑30 |
-                                
-                                """
-                ),
-                Arguments.of(
-                        Map.of("columns", List.of("date"),
-                                "sort", "date",
-                                "recurse", true,
-                                "reverse", true), """
-                                
-                                | Date       | Name |
-                                | ---------- | ---- |
-                                | 2003‑08‑05 | [[Y]] |
-                                | 1977‑11‑11 | [[M]] |
-                                | 1976‑11‑30 | [[V]] |
-                                
-                                """
-                ),
-                Arguments.of(
-                        Map.of("folder", "X"), "No results"
-                )
+            Arguments.of(
+                emptyMap(), """
+                    
+                    | Name |
+                    | ---- |
+                    | [[M]] |
+                    | [[V]] |
+                    
+                    """
+            ),
+            Arguments.of(
+                Map.of("columns", List.of("date")), """
+                    
+                    | Name  | Date |
+                    | ----- | ---- |
+                    | [[M]] | 1977‑11‑11 |
+                    | [[V]] | 1976‑11‑30 |
+                    
+                    """
+            ),
+            Arguments.of(
+                Map.of("columns", List.of("date"),
+                    "sort", "date",
+                    "recurse", true,
+                    "reverse", true
+                ), """
+                    
+                    | Date       | Name |
+                    | ---------- | ---- |
+                    | 2003‑08‑05 | [[Y]] |
+                    | 1977‑11‑11 | [[M]] |
+                    | 1976‑11‑30 | [[V]] |
+                    
+                    """
+            ),
+            Arguments.of(
+                Map.of("folder", "X"), "No results"
+            )
         );
     }
 
@@ -88,20 +94,23 @@ class TableQueryTest
     {
         var vault = new VaultStub();
         vault.addDocumentInPath("C/V", """
-                ---
-                date: 1976-11-30
-                ---
-                """);
+            ---
+            date: 1976-11-30
+            ---
+            """
+        );
         vault.addDocumentInPath("C/M", """
-                ---
-                date: 1977-11-11
-                ---
-                """);
+            ---
+            date: 1977-11-11
+            ---
+            """
+        );
         vault.addDocumentInPath("C/C/Y", """
-                ---
-                date: 2003-08-05
-                ---
-                """);
+            ---
+            date: 2003-08-05
+            ---
+            """
+        );
         vault.addFolder("X");
         return vault;
     }

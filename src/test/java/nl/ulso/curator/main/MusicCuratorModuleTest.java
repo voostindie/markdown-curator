@@ -2,7 +2,8 @@ package nl.ulso.curator.main;
 
 import nl.ulso.curator.Curator;
 import nl.ulso.curator.RunMode;
-import nl.ulso.curator.query.*;
+import nl.ulso.curator.query.QueryCatalog;
+import nl.ulso.curator.query.QueryResultFormatterRegistry;
 import nl.ulso.curator.vault.*;
 import org.assertj.core.api.SoftAssertions;
 import org.assertj.core.api.junit.jupiter.InjectSoftAssertions;
@@ -16,6 +17,7 @@ import java.nio.file.Files;
 
 import static nl.ulso.curator.change.Changelog.changelogFor;
 import static nl.ulso.curator.change.Reset.RESET;
+import static nl.ulso.curator.query.OutputFormat.MARKDOWN;
 import static nl.ulso.curator.vault.ElementCounter.countAll;
 import static nl.ulso.curator.vault.QueryBlockTest.emptyQueryBlock;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -26,6 +28,7 @@ class MusicCuratorModuleTest
     private Curator musicCurator;
     private Vault vault;
     private QueryCatalog queryCatalog;
+    private QueryResultFormatterRegistry queryResultFormatterRegistry;
     private DefaultQueryOrchestrator queryOrchestrator;
     private DocumentPathResolver documentPathResolver;
 
@@ -38,6 +41,7 @@ class MusicCuratorModuleTest
         var component = DaggerMusicCurator.create();
         musicCurator = component.curator();
         queryCatalog = component.queryCatalog();
+        queryResultFormatterRegistry = component.queryResultFormatterRegistry();
         queryOrchestrator = (DefaultQueryOrchestrator) component.queryOrchestrator();
         vault = component.vault();
         documentPathResolver = component.documentPathResolver();
@@ -62,9 +66,9 @@ class MusicCuratorModuleTest
     void queryCatalog()
     {
         softly.assertThat(queryCatalog.queries().size()).isEqualTo(16);
-        Query dummy = queryCatalog.query("dummy");
-        QueryResult result = dummy.run(emptyQueryBlock());
-        var markdown = result.toMarkdown();
+        var dummy = queryCatalog.query("dummy");
+        var result = dummy.run(emptyQueryBlock());
+        var markdown = queryResultFormatterRegistry.format(result, MARKDOWN);
         softly.assertThat(markdown).contains("albums");
         softly.assertThat(markdown).contains("recordings");
         softly.assertThat(markdown).contains("members");

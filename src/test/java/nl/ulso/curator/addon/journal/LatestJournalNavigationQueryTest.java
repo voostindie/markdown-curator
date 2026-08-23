@@ -2,7 +2,7 @@ package nl.ulso.curator.addon.journal;
 
 import nl.ulso.curator.change.Change;
 import nl.ulso.curator.change.Changelog;
-import nl.ulso.curator.query.QueryDefinitionStub;
+import nl.ulso.curator.query.*;
 import nl.ulso.curator.vault.VaultStub;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -21,11 +21,19 @@ import static nl.ulso.curator.change.Change.Kind.UPDATE;
 import static nl.ulso.curator.change.Change.create;
 import static nl.ulso.curator.change.Change.delete;
 import static nl.ulso.curator.change.Change.update;
+import static nl.ulso.curator.query.OutputFormat.MARKDOWN;
 import static nl.ulso.curator.query.QueryTestModule.createQueryResultFactory;
 import static org.assertj.core.api.Assertions.assertThat;
 
 class LatestJournalNavigationQueryTest
 {
+    private final QueryResultFormatterRegistry formatterRegistry;
+
+    LatestJournalNavigationQueryTest()
+    {
+        formatterRegistry = QueryTestModule.createQueryResultFormatterRegistry();
+    }
+
     @Test
     void name()
     {
@@ -61,7 +69,8 @@ class LatestJournalNavigationQueryTest
             createMessages(ENGLISH)
         );
         var result = query.run(new QueryDefinitionStub(query, null));
-        assertThat(result.toMarkdown()).isEqualTo("[[2024-08-12|🗓️ Latest]]");
+        var output = formatterRegistry.format(result, MARKDOWN);
+        assertThat(output).isEqualTo("[[2024-08-12|🗓️ Latest]]");
     }
 
     @Test
@@ -74,7 +83,8 @@ class LatestJournalNavigationQueryTest
         var result = query.run(
             new QueryDefinitionStub(query, null).withConfiguration("prefix", ">> ")
                 .withConfiguration("postfix", " <<"));
-        assertThat(result.toMarkdown()).isEqualTo(">> [[2024-08-12|🗓️ Latest]] <<");
+        var output = formatterRegistry.format(result, MARKDOWN);
+        assertThat(output).isEqualTo(">> [[2024-08-12|🗓️ Latest]] <<");
     }
 
     @Test
@@ -91,7 +101,8 @@ class LatestJournalNavigationQueryTest
             createMessages(ENGLISH)
         );
         var result = query.run(new QueryDefinitionStub(query, null));
-        assertThat(result.toMarkdown()).isEqualTo("No results");
+        var output = formatterRegistry.format(result, MARKDOWN);
+        assertThat(output).isEqualTo("No results");
     }
 
     @ParameterizedTest

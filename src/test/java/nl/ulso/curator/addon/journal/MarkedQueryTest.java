@@ -1,7 +1,6 @@
 package nl.ulso.curator.addon.journal;
 
-import nl.ulso.curator.query.QueryDefinition;
-import nl.ulso.curator.query.QueryDefinitionStub;
+import nl.ulso.curator.query.*;
 import nl.ulso.curator.vault.VaultStub;
 import org.assertj.core.api.junit.jupiter.SoftAssertionsExtension;
 import org.junit.jupiter.api.BeforeEach;
@@ -11,13 +10,16 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import java.util.List;
 
 import static nl.ulso.curator.addon.journal.JournalTest.createTestJournal;
+import static nl.ulso.curator.query.OutputFormat.MARKDOWN;
 import static nl.ulso.curator.query.QueryTestModule.createQueryResultFactory;
+import static nl.ulso.curator.query.QueryTestModule.createQueryResultFormatterRegistry;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @ExtendWith(SoftAssertionsExtension.class)
 class MarkedQueryTest
 {
     private VaultStub vault;
+    private QueryResultFormatterRegistry formatterRegistry;
     private Journal journal;
     private MarkedQuery query;
 
@@ -25,6 +27,7 @@ class MarkedQueryTest
     void setUp()
     {
         vault = new VaultStub();
+        formatterRegistry = createQueryResultFormatterRegistry();
         journal = createTestJournal(vault);
         query = createQuery();
     }
@@ -55,7 +58,8 @@ class MarkedQueryTest
         var definition = new QueryDefinitionStub(query, document)
             .withConfiguration("markers", List.of("❗️", "❓"));
         var result = query.run(definition);
-        assertThat(result.toMarkdown()).isEqualTo("""
+        var output = formatterRegistry.format(result, MARKDOWN);
+        assertThat(output).isEqualTo("""
             ## ❗️
             
             - Remember this
@@ -75,7 +79,8 @@ class MarkedQueryTest
         var definition = new QueryDefinitionStub(query, document)
             .withConfiguration("markers", "❗️");
         var result = query.run(definition);
-        assertThat(result.toMarkdown()).isEqualTo("""
+        var output = formatterRegistry.format(result, MARKDOWN);
+        assertThat(output).isEqualTo("""
             ## ❗️
             
             - baR marker
@@ -90,7 +95,8 @@ class MarkedQueryTest
         var definition = new QueryDefinitionStub(query, document)
             .withConfiguration("markers", "❌");
         var result = query.run(definition);
-        assertThat(result.toMarkdown()).isEqualTo("""
+        var output = formatterRegistry.format(result, MARKDOWN);
+        assertThat(output).isEqualTo("""
             ## CUSTOM TITLE
             
             - Special marker
@@ -104,7 +110,8 @@ class MarkedQueryTest
         var document = vault.resolveDocumentInPath("Projects/Project 42");
         var definition = (QueryDefinition) document.fragments().get(1);
         var result = query.run(definition);
-        assertThat(result.toMarkdown()).isEqualTo("""
+        var output = formatterRegistry.format(result, MARKDOWN);
+        assertThat(output).isEqualTo("""
             ## Status log
             
             - [[2024-08-11]]:

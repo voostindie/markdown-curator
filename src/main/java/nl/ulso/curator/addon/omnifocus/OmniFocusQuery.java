@@ -72,7 +72,13 @@ public final class OmniFocusQuery
     {
         var projectsWithoutDocuments = collectOmniFocusProjectsWithoutDocuments();
         var documentsWithoutProjects = collectDocumentsWithoutOmniFocusProjects();
-        return new OmniFocusQueryResult(projectsWithoutDocuments, documentsWithoutProjects);
+        if (projectsWithoutDocuments.isEmpty() && documentsWithoutProjects.isEmpty())
+        {
+            return queryResultFactory.empty();
+        }
+        return queryResultFactory.string(
+            generateReport(projectsWithoutDocuments, documentsWithoutProjects)
+        );
     }
 
     private List<OmniFocusProject> collectOmniFocusProjectsWithoutDocuments()
@@ -95,81 +101,62 @@ public final class OmniFocusQuery
             .toList();
     }
 
-    private class OmniFocusQueryResult
-        implements QueryResult
+    private String generateReport(
+        List<OmniFocusProject> projectsWithoutDocuments,
+        List<Document> documentsWithoutProjects)
     {
-        private final List<OmniFocusProject> projectsWithoutDocuments;
-        private final List<Document> documentsWithoutProjects;
-
-        OmniFocusQueryResult(
-            List<OmniFocusProject> projectsWithoutDocuments,
-            List<Document> documentsWithoutProjects)
+        var builder = new StringBuilder();
+        if (!projectsWithoutDocuments.isEmpty())
         {
-            this.projectsWithoutDocuments = projectsWithoutDocuments;
-            this.documentsWithoutProjects = documentsWithoutProjects;
+            reportProjectsWithoutDocuments(builder, projectsWithoutDocuments);
         }
-
-        @Override
-        public String toMarkdown()
+        if (!documentsWithoutProjects.isEmpty())
         {
-            var builder = new StringBuilder();
-            if (projectsWithoutDocuments.isEmpty() && documentsWithoutProjects.isEmpty())
-            {
-                return queryResultFactory.empty().toMarkdown();
-            }
-            else
-            {
-                if (!projectsWithoutDocuments.isEmpty())
-                {
-                    reportProjectsWithoutDocuments(builder);
-                }
-                if (!documentsWithoutProjects.isEmpty())
-                {
-                    reportDocumentsWithoutProjects(builder);
-                }
-            }
-            return builder.toString().trim();
+            reportDocumentsWithoutProjects(builder, documentsWithoutProjects);
         }
+        return builder.toString().trim();
+    }
 
-        private void reportProjectsWithoutDocuments(StringBuilder builder)
-        {
-            builder.append("### ")
-                .append(messages.projectsWithoutDocumentsTitle())
-                .append(lineSeparator())
-                .append(lineSeparator());
-            projectsWithoutDocuments.forEach(project ->
-                builder.append("- [[")
-                    .append(project.name())
-                    .append("]]")
-                    .append(lineSeparator()));
-            builder.append(lineSeparator());
-        }
+    private void reportProjectsWithoutDocuments(
+        StringBuilder builder, List<OmniFocusProject> projectsWithoutDocuments)
+    {
+        builder.append("### ")
+            .append(messages.projectsWithoutDocumentsTitle())
+            .append(lineSeparator())
+            .append(lineSeparator());
+        projectsWithoutDocuments.forEach(project ->
+            builder.append("- [[")
+                .append(project.name())
+                .append("]]")
+                .append(lineSeparator()));
+        builder.append(lineSeparator());
+    }
 
-        private void reportDocumentsWithoutProjects(StringBuilder builder)
-        {
-            builder.append("### ")
-                .append(messages.documentsWithoutProjectsTitle())
-                .append(lineSeparator())
-                .append(lineSeparator());
-            documentsWithoutProjects.forEach(document ->
-                builder.append("- ")
-                    .append(document.link())
-                    .append(" - [")
-                    .append(messages.createProjectInOmniFocus())
-                    .append("](omnifocus:///paste")
-                    .append("?index=1")
-                    .append("&target=/folder/")
-                    .append(urlEncode(settings.omniFocusFolder()))
-                    .append("&content=")
-                    .append(urlEncode(document.name() + ":"))
-                    .append(")")
-                    .append(lineSeparator()));
-            builder.append(lineSeparator());
-        }
+    private void reportDocumentsWithoutProjects(
+        StringBuilder builder, List<Document> documentsWithoutProjects)
+    {
+        builder.append("### ")
+            .append(messages.documentsWithoutProjectsTitle())
+            .append(lineSeparator())
+            .append(lineSeparator());
+        documentsWithoutProjects.forEach(document ->
+            builder.append("- ")
+                .append(document.link())
+                .append(" - [")
+                .append(messages.createProjectInOmniFocus())
+                .append("](omnifocus:///paste")
+                .append("?index=1")
+                .append("&target=/folder/")
+                .append(urlEncode(settings.omniFocusFolder()))
+                .append("&content=")
+                .append(urlEncode(document.name() + ":"))
+                .append(")")
+                .append(lineSeparator()));
+        builder.append(lineSeparator());
+    }
 
-        private String urlEncode(String value)
-        {
-            return encode(value, StandardCharsets.UTF_8).replace("+", "%20");
-        }
+    private String urlEncode(String value)
+    {
+        return encode(value, StandardCharsets.UTF_8).replace("+", "%20");
     }
 }

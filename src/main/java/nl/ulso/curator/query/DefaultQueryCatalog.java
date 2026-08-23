@@ -31,7 +31,7 @@ final class DefaultQueryCatalog
     {
         this.resultFactory = resultFactory;
         Map<String, Query> map = new HashMap<>();
-        var help = new HelpQuery(this);
+        var help = new HelpQuery(this, resultFactory);
         map.put(help.name(), help);
         for (Query query : querySet)
         {
@@ -41,7 +41,8 @@ final class DefaultQueryCatalog
             }
             else if (LOGGER.isWarnEnabled())
             {
-                LOGGER.warn("Duplicate query name: '{}'. Application behavior is unspecified!",
+                LOGGER.warn(
+                    "Duplicate query name: '{}'. Application behavior is unspecified!",
                     query.name()
                 );
             }

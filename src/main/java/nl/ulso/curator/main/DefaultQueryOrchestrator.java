@@ -3,8 +3,7 @@ package nl.ulso.curator.main;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 import nl.ulso.curator.change.*;
-import nl.ulso.curator.query.QueryCatalog;
-import nl.ulso.curator.query.QueryResult;
+import nl.ulso.curator.query.*;
 import nl.ulso.curator.vault.*;
 import org.slf4j.Logger;
 import org.slf4j.MDC;
@@ -20,6 +19,7 @@ import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.toSet;
 import static nl.ulso.curator.change.Change.isCreateOrUpdate;
 import static nl.ulso.curator.change.Change.isPayloadType;
+import static nl.ulso.curator.query.OutputFormat.MARKDOWN;
 import static nl.ulso.dictionary.Dictionary.emptyDictionary;
 import static nl.ulso.hash.ShortHasher.shortHashOf;
 import static org.slf4j.LoggerFactory.getLogger;
@@ -35,16 +35,20 @@ final class DefaultQueryOrchestrator
 
     private final Vault vault;
     private final QueryCatalog queryCatalog;
+    private final QueryResultFormatterRegistry queryResultFormatterRegistry;
     private final FrontMatterRewriteResolver frontMatterRewriteResolver;
     private final ExecutorService parallelExecutor;
 
     @Inject
     DefaultQueryOrchestrator(
-        Vault vault, QueryCatalog queryCatalog,
+        Vault vault,
+        QueryCatalog queryCatalog,
+        QueryResultFormatterRegistry queryResultFormatterRegistry,
         FrontMatterRewriteResolver frontMatterRewriteResolver)
     {
         this.vault = vault;
         this.queryCatalog = queryCatalog;
+        this.queryResultFormatterRegistry = queryResultFormatterRegistry;
         this.frontMatterRewriteResolver = frontMatterRewriteResolver;
         this.parallelExecutor = newVirtualThreadPerTaskExecutor();
     }
@@ -185,7 +189,7 @@ final class DefaultQueryOrchestrator
                     );
                     return;
                 }
-                var output = result.toMarkdown();
+                var output = queryResultFormatterRegistry.format(result, MARKDOWN);
                 var hash = shortHashOf(output);
                 var isChanged = !queryBlock.outputHash().contentEquals(hash);
                 writeQueue.add(new QueryOutput(queryBlock, output, hash, isChanged));

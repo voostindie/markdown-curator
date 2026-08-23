@@ -11,11 +11,15 @@ import org.junit.jupiter.api.Test;
 import java.util.*;
 
 import static java.util.Collections.emptyMap;
+import static nl.ulso.curator.query.OutputFormat.MARKDOWN;
+import static nl.ulso.curator.query.QueryTestModule.createQueryResultFactory;
+import static nl.ulso.curator.query.QueryTestModule.createQueryResultFormatterRegistry;
 import static org.assertj.core.api.Assertions.assertThat;
 
 class ChangeProcessorGraphQueryTest
 {
     private ChangeProcessorGraphQuery query;
+    private QueryResultFormatterRegistry formatterRegistry;
 
     @BeforeEach
     void setUp()
@@ -39,6 +43,7 @@ class ChangeProcessorGraphQueryTest
         var orchestrator = new DefaultChangeProcessorOrchestrator(processors, null);
         this.query =
             new ChangeProcessorGraphQuery(orchestrator, new StringOnlyQueryResultFactory());
+        formatterRegistry = createQueryResultFormatterRegistry();
     }
 
     @Test
@@ -63,9 +68,9 @@ class ChangeProcessorGraphQueryTest
     @Test
     void testDefaultConfiguration()
     {
-        var result =
-            query.run(QueryDefinitionStub.forConfiguration(emptyMap())).toMarkdown();
-        assertThat(result)
+        var result = query.run(QueryDefinitionStub.forConfiguration(emptyMap()));
+        var output = formatterRegistry.format(result, MARKDOWN);
+        assertThat(output)
             .contains("graph LR")
             .contains(" ==> ")
             .doesNotContain(" --> ");
@@ -74,20 +79,20 @@ class ChangeProcessorGraphQueryTest
     @Test
     void testOrientation()
     {
-        var result =
-            query.run(QueryDefinitionStub.forConfiguration(Map.of("orientation", "tb")))
-                .toMarkdown();
-        assertThat(result)
+        var result = query.run(
+            QueryDefinitionStub.forConfiguration(Map.of("orientation", "tb")));
+        var output = formatterRegistry.format(result, MARKDOWN);
+        assertThat(output)
             .contains("graph TB");
     }
 
     @Test
     void testOrder()
     {
-        var result = query.run(QueryDefinitionStub.forConfiguration(Map.of(
-            "edges", "order"
-        ))).toMarkdown();
-        assertThat(result)
+        var result = query.run(
+            QueryDefinitionStub.forConfiguration(Map.of("edges", "order")));
+        var output = formatterRegistry.format(result, MARKDOWN);
+        assertThat(output)
             .contains("Stub-1 ==> Stub-2")
             .contains("Stub-2 ==> Stub-3")
             .contains("Stub-3 ==> Stub-4")
@@ -97,10 +102,10 @@ class ChangeProcessorGraphQueryTest
     @Test
     void testConsume()
     {
-        var result = query.run(QueryDefinitionStub.forConfiguration(Map.of(
-            "edges", "consume"
-        ))).toMarkdown();
-        assertThat(result)
+        var result = query.run(
+            QueryDefinitionStub.forConfiguration(Map.of("edges", "consume")));
+        var output = formatterRegistry.format(result, MARKDOWN);
+        assertThat(output)
             .contains("Folder --> Stub-1")
             .contains("Document --> Stub-2")
             .contains("String --> Stub-3")
@@ -111,10 +116,10 @@ class ChangeProcessorGraphQueryTest
     @Test
     void testProduce()
     {
-        var result = query.run(QueryDefinitionStub.forConfiguration(Map.of(
-            "edges", "produce"
-        ))).toMarkdown();
-        assertThat(result)
+        var result = query.run(
+            QueryDefinitionStub.forConfiguration(Map.of("edges", "produce")));
+        var output = formatterRegistry.format(result, MARKDOWN);
+        assertThat(output)
             .contains("Stub-1 --> String")
             .contains("Stub-2 --> Integer")
             .contains("Stub-3 --> Integer");
@@ -123,20 +128,21 @@ class ChangeProcessorGraphQueryTest
     @Test
     void testRequire()
     {
-        var result = query.run(QueryDefinitionStub.forConfiguration(Map.of(
-            "edges", "require"
-        ))).toMarkdown();
-        assertThat(result)
+        var result = query.run(
+            QueryDefinitionStub.forConfiguration(Map.of("edges", "require")));
+        var output = formatterRegistry.format(result, MARKDOWN);
+        assertThat(output)
             .contains("Document -.-> Stub-3");
     }
 
     @Test
     void testAll()
     {
-        var result = query.run(QueryDefinitionStub.forConfiguration(Map.of(
-            "edges", List.of("order", "produce", "consume", "require")
-        ))).toMarkdown();
-        assertThat(result)
+        var result = query.run(
+            QueryDefinitionStub.forConfiguration(
+                Map.of("edges", List.of("order", "produce", "consume", "require"))));
+        var output = formatterRegistry.format(result, MARKDOWN);
+        assertThat(output)
             .contains(" ==> ")
             .contains("Folder --> Stub-1")
             .contains("Stub-1 --> String")
@@ -215,19 +221,7 @@ class ChangeProcessorGraphQueryTest
         @Override
         public QueryResult string(String output)
         {
-            return () -> output;
-        }
-
-        @Override
-        public QueryResult withPerformanceWarning(QueryResult slowQueryResult)
-        {
-            return null;
-        }
-
-        @Override
-        public QueryResultFactory withPerformanceWarning()
-        {
-            return null;
+            return createQueryResultFactory().string(output);
         }
     }
 }

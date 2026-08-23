@@ -8,6 +8,7 @@ import jakarta.inject.Named;
 import nl.ulso.curator.change.ChangeProcessor;
 import nl.ulso.curator.main.MainModule;
 import nl.ulso.curator.query.Query;
+import nl.ulso.curator.query.QueryResultFormatter;
 
 import java.nio.file.WatchService;
 import java.util.Locale;
@@ -25,6 +26,7 @@ import java.util.Set;
 /// processor must be a singleton.
 /// - Register custom [Query]s. Create an abstract method for every concrete implementation that
 /// binds it to the `Query` interface.
+/// - Reqister custom [QueryResultFormatter]s.
 /// - Provide a [WatchService] to detect changes to the vault. The default implementation is
 /// optimized for macOS. Other platforms are not tested.
 /// - Provide a [Locale]. This will be used for translations in output. The default is English.
@@ -46,6 +48,11 @@ public abstract class CuratorModule
     @Multibinds
     abstract Set<Query> bindAllAvailableQueries();
 
+    /// To add a [QueryResultFormatter], configure it so that it [Binds] [IntoSet] of
+    /// [QueryResultFormatter<?>].
+    @Multibinds
+    abstract Set<QueryResultFormatter<?>> bindAllAvailableQueryResultFormatters();
+    
     /// Bind a custom [WatchService]; the default is optimized for macOS.
     @BindsOptionalOf
     abstract WatchService bindOptionalWatchService();

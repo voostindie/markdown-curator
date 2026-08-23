@@ -29,8 +29,8 @@ class DefaultQueryCatalogTest
         softly.assertThat(specification.name()).isEqualTo("invalid");
         softly.assertThat(specification.description()).contains("Does nothing");
         softly.assertThat(specification.supportedConfiguration()).isEmpty();
-        var result = specification.run(emptyQueryBlock());
-        softly.assertThat(result.toMarkdown()).contains("no queries defined");
+        var result = (ErrorResult) specification.run(emptyQueryBlock());
+        softly.assertThat(result.errorMessage()).contains("no queries defined");
     }
 
     @Test
@@ -44,7 +44,7 @@ class DefaultQueryCatalogTest
     }
 
     record DummyQuery(String name)
-            implements Query
+        implements Query
     {
         @Override
         public String description()
@@ -67,7 +67,7 @@ class DefaultQueryCatalogTest
         @Override
         public QueryResult run(QueryDefinition definition)
         {
-            return () -> "Not implemented";
+            return new ErrorResult("Not implemented");
         }
     }
 }

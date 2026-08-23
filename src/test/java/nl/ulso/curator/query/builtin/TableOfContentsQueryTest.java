@@ -13,6 +13,9 @@ import java.util.Map;
 import java.util.stream.Stream;
 
 import static java.util.Collections.emptyMap;
+import static nl.ulso.curator.query.OutputFormat.MARKDOWN;
+import static nl.ulso.curator.query.QueryTestModule.createQueryResultFactory;
+import static nl.ulso.curator.query.QueryTestModule.createQueryResultFormatterRegistry;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @ExtendWith(SoftAssertionsExtension.class)
@@ -21,9 +24,10 @@ class TableOfContentsQueryTest
     @Test
     void configurationOptions()
     {
-        var query = new TableOfContentsQuery();
+        var query = new TableOfContentsQuery(createQueryResultFactory());
         assertThat(query.supportedConfiguration()).containsOnlyKeys("minimum-level",
-                "maximum-level");
+            "maximum-level"
+        );
     }
 
     @ParameterizedTest
@@ -32,54 +36,56 @@ class TableOfContentsQueryTest
     {
         var folder = new FolderStub(null, "root");
         var document = folder.addDocument("toc", """
-                # One
-                
-                ## Two
-                
-                ## Three
-                
-                ### Four
-                
-                ### Five
-                
-                ## Six
-                """);
-        var query = new TableOfContentsQuery();
+            # One
+            
+            ## Two
+            
+            ## Three
+            
+            ### Four
+            
+            ### Five
+            
+            ## Six
+            """
+        );
+        var query = new TableOfContentsQuery(createQueryResultFactory());
         QueryDefinitionStub definition = new QueryDefinitionStub(query, document);
         configuration.forEach(definition::withConfiguration);
         var result = query.run(definition);
-        assertThat(result.toMarkdown()).isEqualTo(expectedOutput);
+        var output = createQueryResultFormatterRegistry().format(result, MARKDOWN);
+        assertThat(output).isEqualTo(expectedOutput);
     }
 
     static Stream<Arguments> provideConfigurations()
     {
         return Stream.of(
-                Arguments.of(
-                        emptyMap(), """
-                                - Two
-                                - Three
-                                    - Four
-                                    - Five
-                                - Six
-                                """
-                ),
-                Arguments.of(
-                        Map.of("minimum-level", 1), """
-                                - One
-                                    - Two
-                                    - Three
-                                        - Four
-                                        - Five
-                                    - Six
-                                """
-                ),
-                Arguments.of(
-                        Map.of("maximum-level", 2), """
-                                - Two
-                                - Three
-                                - Six
-                                """
-                )
+            Arguments.of(
+                emptyMap(), """
+                    - Two
+                    - Three
+                        - Four
+                        - Five
+                    - Six
+                    """
+            ),
+            Arguments.of(
+                Map.of("minimum-level", 1), """
+                    - One
+                        - Two
+                        - Three
+                            - Four
+                            - Five
+                        - Six
+                    """
+            ),
+            Arguments.of(
+                Map.of("maximum-level", 2), """
+                    - Two
+                    - Three
+                    - Six
+                    """
+            )
         );
     }
 }

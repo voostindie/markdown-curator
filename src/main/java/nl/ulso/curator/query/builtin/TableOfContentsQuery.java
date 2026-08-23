@@ -12,11 +12,14 @@ import static nl.ulso.curator.change.Change.isPayloadType;
 
 /// Generates a table of contents from the current document.
 public final class TableOfContentsQuery
-        implements Query
+    implements Query
 {
+    private final QueryResultFactory factory;
+
     @Inject
-    TableOfContentsQuery()
+    TableOfContentsQuery(QueryResultFactory factory)
     {
+        this.factory = factory;
     }
 
     @Override
@@ -35,7 +38,8 @@ public final class TableOfContentsQuery
     public Map<String, String> supportedConfiguration()
     {
         return Map.of("minimum-level", "minimum section level to include, defaults to 2",
-                "maximum-level", "maximum section level to include, defaults to 6");
+            "maximum-level", "maximum section level to include, defaults to 6"
+        );
     }
 
     @Override
@@ -53,24 +57,21 @@ public final class TableOfContentsQuery
         var maximumLevel = configuration.integer("maximum-level", 6);
         var tocBuilder = new TableOfContentsBuilder(minimumLevel, maximumLevel);
         definition.document().accept(tocBuilder);
-        return () ->
-        {
-            var builder = new StringBuilder();
-            tocBuilder.sections.forEach(section ->
-                    {
-                        var indentLevel = (section.level() - tocBuilder.minimumLevel) * 4;
-                        builder.repeat(" ", indentLevel)
-                                .append("- ")
-                                .append(section.title())
-                                .append(lineSeparator());
-                    }
-            );
-            return builder.toString();
-        };
+        var builder = new StringBuilder();
+        tocBuilder.sections.forEach(section ->
+            {
+                var indentLevel = (section.level() - tocBuilder.minimumLevel) * 4;
+                builder.repeat(" ", indentLevel)
+                    .append("- ")
+                    .append(section.title())
+                    .append(lineSeparator());
+            }
+        );
+        return factory.string(builder.toString());
     }
 
     private static class TableOfContentsBuilder
-            extends BreadthFirstVaultVisitor
+        extends BreadthFirstVaultVisitor
     {
         private final List<Section> sections = new ArrayList<>();
         private final int minimumLevel;

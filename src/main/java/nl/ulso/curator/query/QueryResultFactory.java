@@ -5,6 +5,9 @@ import java.util.Map;
 
 public interface QueryResultFactory
 {
+    /// @return a [String] result.
+    QueryResult string(String output);
+
     /// @return an empty result; it shows that there are no results.
     QueryResult empty();
 
@@ -14,14 +17,6 @@ public interface QueryResultFactory
     /// @return QueryResult that represents an error.
     QueryResult error(String errorMessage);
 
-    /// Creates a Markdown table, nicely formatted.
-    ///
-    /// @param columns Columns to show in the table, in this order.
-    /// @param rows    Data for the table: a map for each row, with the column as the key and the
-    ///                content as the value.
-    /// @return QueryResult that outputs a table.
-    QueryResult table(List<String> columns, List<Map<String, String>> rows);
-
     enum Alignment
     {
         LEFT,
@@ -29,26 +24,29 @@ public interface QueryResultFactory
         CENTER
     }
 
-    /// Creates a Markdown table, nicely formatted and columns aligned.
+    /// Creates a table.
+    ///
+    /// @param columns Columns to show in the table, in this order.
+    /// @param rows    Data for the table: a map for each row, with the column as the key and the
+    /// content as the value.
+    /// @return QueryResult that represents the table.
+    QueryResult table(List<String> columns, List<Map<String, String>> rows);
+
+    /// Creates a table including instructions for column alignment..
     ///
     /// @param columns    Columns to show in the table, in this order.
-    /// @param rows       Data for the table: a map for each row, with the column as the key and the
-    ///                   content as the value.
     /// @param alignments Alignment for each of the columms
-    /// @return QueryResult that outputs a table.
+    /// @param rows       Data for the table: a map for each row, with the column as the key and the
+    /// content as the value.
+    /// @return QueryResult that represents the table.
     QueryResult table(
-        List<String> columns, List<Alignment> alignments,
+        List<String> columns,
+        List<Alignment> alignments,
         List<Map<String, String>> rows);
 
-    /// Creates an unordered Markdown list
+    /// Creates an unordered list
     ///
     /// @param rows Data for the list; each value is written as is.
     /// @return QueryResult that outputs a list.
     QueryResult unorderedList(List<String> rows);
-
-    QueryResult string(String output);
-
-    QueryResult withPerformanceWarning(QueryResult slowQueryResult);
-
-    QueryResultFactory withPerformanceWarning();
 }

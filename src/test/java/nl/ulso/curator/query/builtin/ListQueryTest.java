@@ -1,6 +1,6 @@
 package nl.ulso.curator.query.builtin;
 
-import nl.ulso.curator.query.QueryDefinitionStub;
+import nl.ulso.curator.query.*;
 import nl.ulso.curator.vault.VaultStub;
 import org.assertj.core.api.junit.jupiter.SoftAssertionsExtension;
 import org.junit.jupiter.api.Test;
@@ -13,12 +13,16 @@ import java.util.Map;
 import java.util.stream.Stream;
 
 import static java.util.Collections.emptyMap;
+import static nl.ulso.curator.query.OutputFormat.MARKDOWN;
 import static nl.ulso.curator.query.QueryTestModule.createQueryResultFactory;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @ExtendWith(SoftAssertionsExtension.class)
 class ListQueryTest
 {
+    private final QueryResultFormatterRegistry formatterRegistry =
+        QueryTestModule.createQueryResultFormatterRegistry();
+
     @Test
     void configurationOptions()
     {
@@ -36,7 +40,8 @@ class ListQueryTest
         QueryDefinitionStub definition = new QueryDefinitionStub(query, document);
         configuration.forEach(definition::withConfiguration);
         var result = query.run(definition);
-        assertThat(result.toMarkdown()).isEqualTo(expectedOutput);
+        var output = formatterRegistry.format(result, MARKDOWN);
+        assertThat(output).isEqualTo(expectedOutput);
     }
 
     static Stream<Arguments> provideConfigurations()
@@ -44,29 +49,29 @@ class ListQueryTest
         return Stream.of(
             Arguments.of(
                 emptyMap(), """
-                                - [[1]]
-                                - [[2]]
-                                """
+                    - [[1]]
+                    - [[2]]
+                    """
             ),
             Arguments.of(
                 Map.of("reverse", true), """
-                                - [[2]]
-                                - [[1]]
-                                """
+                    - [[2]]
+                    - [[1]]
+                    """
             ),
             Arguments.of(
                 Map.of("recurse", true), """
-                                - [[1]]
-                                - [[2]]
-                                - [[3]]
-                                """
+                    - [[1]]
+                    - [[2]]
+                    - [[3]]
+                    """
             ),
             Arguments.of(
                 Map.of("recurse", true, "reverse", true), """
-                                - [[3]]
-                                - [[2]]
-                                - [[1]]
-                                """
+                    - [[3]]
+                    - [[2]]
+                    - [[1]]
+                    """
             ),
             Arguments.of(
                 Map.of("folder", "B"), "No results"

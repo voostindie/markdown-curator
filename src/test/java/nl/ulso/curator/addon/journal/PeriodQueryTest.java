@@ -1,6 +1,6 @@
 package nl.ulso.curator.addon.journal;
 
-import nl.ulso.curator.query.QueryDefinitionStub;
+import nl.ulso.curator.query.*;
 import nl.ulso.curator.vault.VaultStub;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -12,6 +12,7 @@ import java.time.temporal.WeekFields;
 import java.util.stream.Stream;
 
 import static nl.ulso.curator.addon.journal.JournalTest.createTestJournal;
+import static nl.ulso.curator.query.OutputFormat.MARKDOWN;
 import static nl.ulso.curator.query.QueryTestModule.createQueryResultFactory;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -19,6 +20,8 @@ class PeriodQueryTest
 {
     private VaultStub vault;
     private Journal journal;
+    private final QueryResultFormatterRegistry formatterRegistry =
+        QueryTestModule.createQueryResultFormatterRegistry();
 
     @BeforeEach
     void setUp()
@@ -61,7 +64,8 @@ class PeriodQueryTest
             .withConfiguration("start", startDate)
             .withConfiguration("end", endDate);
         var result = query.run(definition);
-        assertThat(result.toMarkdown().trim()).isEqualTo(expectedResult.trim());
+        var output = formatterRegistry.format(result, MARKDOWN);
+        assertThat(output.trim()).isEqualTo(expectedResult.trim());
     }
 
     public static Stream<Arguments> periods()

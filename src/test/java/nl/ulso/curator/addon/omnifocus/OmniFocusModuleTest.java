@@ -8,6 +8,8 @@ import java.util.List;
 import java.util.Map;
 
 import static nl.ulso.curator.change.Reset.RESET;
+import static nl.ulso.curator.query.OutputFormat.MARKDOWN;
+import static nl.ulso.curator.query.QueryTestModule.createQueryResultFormatterRegistry;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /// This is more of a system context than a unit test: it sets up the change processor chain with
@@ -73,8 +75,9 @@ class OmniFocusModuleTest
     void queryFindsTwoWayDifferences()
     {
         var query = testContext.omniFocusQuery();
-        var markdown = query.run(new QueryDefinitionStub(query, null)).toMarkdown();
-        assertThat(markdown).isEqualTo("""
+        var result = query.run(new QueryDefinitionStub(query, null));
+        var output = createQueryResultFormatterRegistry().format(result, MARKDOWN);
+        assertThat(output).isEqualTo("""
             ### Projects without a matching document
             
             - [[Project 2]]

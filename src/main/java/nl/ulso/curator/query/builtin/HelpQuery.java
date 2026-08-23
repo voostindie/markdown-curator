@@ -12,11 +12,13 @@ public final class HelpQuery
     implements Query
 {
     private final QueryCatalog catalog;
+    private final QueryResultFactory resultFactory;
 
     @Inject
-    public HelpQuery(QueryCatalog catalog)
+    public HelpQuery(QueryCatalog catalog, QueryResultFactory resultFactory)
     {
         this.catalog = catalog;
+        this.resultFactory = resultFactory;
     }
 
     @Override
@@ -50,34 +52,31 @@ public final class HelpQuery
     {
         var queryName = definition.configuration().string("name", "help");
         var query = catalog.query(queryName);
-        return () ->
+        var builder = new StringBuilder();
+        builder.append("### ")
+            .append(queryName)
+            .append(lineSeparator())
+            .append(lineSeparator())
+            .append(query.description())
+            .append(lineSeparator())
+            .append(lineSeparator());
+        var config = query.supportedConfiguration();
+        if (config.isEmpty())
         {
-            var builder = new StringBuilder();
-            builder.append("### ")
-                .append(queryName)
-                .append(lineSeparator())
-                .append(lineSeparator())
-                .append(query.description())
+            builder.append("This query has no configuration options.");
+        }
+        else
+        {
+            builder.append("Configuration options:")
                 .append(lineSeparator())
                 .append(lineSeparator());
-            var config = query.supportedConfiguration();
-            if (config.isEmpty())
-            {
-                builder.append("This query has no configuration options.");
-            }
-            else
-            {
-                builder.append("Configuration options:")
-                    .append(lineSeparator())
-                    .append(lineSeparator());
-                config.keySet().stream().sorted().forEach(name ->
-                    builder.append("- **")
-                        .append(name)
-                        .append("**: ")
-                        .append(config.get(name))
-                        .append(lineSeparator()));
-            }
-            return builder.toString();
-        };
+            config.keySet().stream().sorted().forEach(name ->
+                builder.append("- **")
+                    .append(name)
+                    .append("**: ")
+                    .append(config.get(name))
+                    .append(lineSeparator()));
+        }
+        return resultFactory.string(builder.toString());
     }
 }

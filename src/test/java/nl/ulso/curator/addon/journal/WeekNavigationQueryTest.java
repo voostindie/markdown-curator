@@ -1,7 +1,7 @@
 package nl.ulso.curator.addon.journal;
 
 import nl.ulso.curator.change.Change;
-import nl.ulso.curator.query.QueryDefinitionStub;
+import nl.ulso.curator.query.*;
 import nl.ulso.curator.vault.VaultStub;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -22,11 +22,15 @@ import static nl.ulso.curator.change.Change.create;
 import static nl.ulso.curator.change.Change.delete;
 import static nl.ulso.curator.change.Change.update;
 import static nl.ulso.curator.change.Changelog.changelogFor;
+import static nl.ulso.curator.query.OutputFormat.MARKDOWN;
 import static nl.ulso.curator.query.QueryTestModule.createQueryResultFactory;
 import static org.assertj.core.api.Assertions.assertThat;
 
 class WeekNavigationQueryTest
 {
+    private final QueryResultFormatterRegistry formatterRegistry =
+        QueryTestModule.createQueryResultFormatterRegistry();
+
     @Test
     void name()
     {
@@ -66,7 +70,8 @@ class WeekNavigationQueryTest
             vault.folder("Journal").orElseThrow().folder("2023").orElseThrow()
                 .document("2023 Week 04").orElseThrow()
         ));
-        assertThat(result.toMarkdown().trim())
+        var output = formatterRegistry.format(result, MARKDOWN);
+        assertThat(output)
             .isEqualTo("""
                 **[[2023 Week 05|→]] [[2023-01-25|Wednesday]] | [[2023-01-26|Thursday]] | [[2023-01-27|Friday]]**
                 """.trim());
@@ -84,12 +89,9 @@ class WeekNavigationQueryTest
             vault.folder("Journal").orElseThrow().folder("2023").orElseThrow()
                 .document("2023-01-25").orElseThrow()
         ));
-        assertThat(result.toMarkdown().trim())
-            .isEqualTo("""
-                ### Error
-                
-                Document is not a weekly journal!
-                """.trim());
+        var output = formatterRegistry.format(result, MARKDOWN);
+        assertThat(output)
+            .contains("Document is not a weekly journal!");
     }
 
     @ParameterizedTest

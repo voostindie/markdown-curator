@@ -1,6 +1,7 @@
 package nl.ulso.curator.addon.journal;
 
 import nl.ulso.curator.query.QueryDefinitionStub;
+import nl.ulso.curator.query.QueryResultFormatterRegistry;
 import nl.ulso.curator.vault.VaultStub;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -13,18 +14,22 @@ import java.time.temporal.WeekFields;
 import java.util.stream.Stream;
 
 import static nl.ulso.curator.addon.journal.JournalTest.createTestJournal;
+import static nl.ulso.curator.query.OutputFormat.MARKDOWN;
 import static nl.ulso.curator.query.QueryTestModule.createQueryResultFactory;
+import static nl.ulso.curator.query.QueryTestModule.createQueryResultFormatterRegistry;
 import static org.assertj.core.api.Assertions.assertThat;
 
 class WeeklyQueryTest
 {
     private VaultStub vault;
+    private QueryResultFormatterRegistry formatterRegistry;
     private Journal journal;
 
     @BeforeEach
     void setUp()
     {
         vault = new VaultStub();
+        formatterRegistry = createQueryResultFormatterRegistry();
         journal = createTestJournal(vault);
     }
 
@@ -80,7 +85,8 @@ class WeeklyQueryTest
         var definition = new QueryDefinitionStub(query, document)
             .withConfiguration("folder", "Projects");
         var result = query.run(definition);
-        assertThat(result.toMarkdown().trim()).isEqualTo(expectedResult.trim());
+        var output = formatterRegistry.format(result, MARKDOWN);
+        assertThat(output.trim()).isEqualTo(expectedResult.trim());
     }
 
     public static Stream<Arguments> weeks()

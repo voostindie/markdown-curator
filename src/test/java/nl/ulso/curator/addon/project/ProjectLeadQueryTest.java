@@ -1,6 +1,6 @@
 package nl.ulso.curator.addon.project;
 
-import nl.ulso.curator.query.QueryDefinitionStub;
+import nl.ulso.curator.query.*;
 import nl.ulso.curator.vault.VaultStub;
 import org.assertj.core.api.junit.jupiter.SoftAssertionsExtension;
 import org.junit.jupiter.api.BeforeEach;
@@ -14,12 +14,15 @@ import static java.util.Locale.ENGLISH;
 import static nl.ulso.curator.addon.project.ProjectTestData.createAttributeRegistry;
 import static nl.ulso.curator.addon.project.ProjectTestData.createProjectRepository;
 import static nl.ulso.curator.addon.project.ProjectTestData.createTestVault;
+import static nl.ulso.curator.query.OutputFormat.MARKDOWN;
 import static nl.ulso.curator.query.QueryTestModule.createQueryResultFactory;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @ExtendWith(SoftAssertionsExtension.class)
 class ProjectLeadQueryTest
 {
+    private final QueryResultFormatterRegistry formatterRegistry =
+        QueryTestModule.createQueryResultFormatterRegistry();
     private VaultStub vault;
     private ProjectLeadQuery query;
 
@@ -41,8 +44,9 @@ class ProjectLeadQueryTest
         var definition =
             new QueryDefinitionStub(query, vault.resolveDocumentInPath("Projects/Project 1"))
                 .withConfiguration("lead", "Yaël");
-        var result = query.run(definition).toMarkdown();
-        assertThat(result).isEqualTo("No results");
+        var result = query.run(definition);
+        var output = formatterRegistry.format(result, MARKDOWN);
+        assertThat(output).isEqualTo("No results");
     }
 
     @Test
@@ -50,8 +54,9 @@ class ProjectLeadQueryTest
     {
         var definition =
             new QueryDefinitionStub(query, vault.resolveDocumentInPath("Contacts/Marieke"));
-        var result = query.run(definition).toMarkdown();
-        assertThat(result).isEqualTo("""
+        var result = query.run(definition);
+        var output = formatterRegistry.format(result, MARKDOWN);
+        assertThat(output).isEqualTo("""
             
             | Prio | Project       | Last&nbsp;modified | Status |
             | ---- | ------------- | ------------------ | ------ |
@@ -65,8 +70,9 @@ class ProjectLeadQueryTest
     {
         var definition =
             new QueryDefinitionStub(query, vault.resolveDocumentInPath("Contacts/Vincent"));
-        var result = query.run(definition).toMarkdown();
-        assertThat(result).isEqualTo("""
+        var result = query.run(definition);
+        var output = formatterRegistry.format(result, MARKDOWN);
+        assertThat(output).isEqualTo("""
             
             | Prio | Project       | Last&nbsp;modified | Status |
             | ---- | ------------- | ------------------ | ------ |

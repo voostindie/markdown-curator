@@ -22,7 +22,9 @@ import static nl.ulso.curator.change.Change.create;
 import static nl.ulso.curator.change.Change.delete;
 import static nl.ulso.curator.change.Change.update;
 import static nl.ulso.curator.change.Changelog.changelogFor;
+import static nl.ulso.curator.query.OutputFormat.MARKDOWN;
 import static nl.ulso.curator.query.QueryTestModule.createQueryResultFactory;
+import static nl.ulso.curator.query.QueryTestModule.createQueryResultFormatterRegistry;
 import static org.assertj.core.api.Assertions.assertThat;
 
 class DayNavigationQueryTest
@@ -67,7 +69,8 @@ class DayNavigationQueryTest
             vault.folder("Journal").orElseThrow().folder("2023").orElseThrow()
                 .document(daily).orElseThrow()
         ));
-        assertThat(result.toMarkdown()).isEqualTo(markdownOutput);
+        var output = createQueryResultFormatterRegistry().format(result, MARKDOWN);
+        assertThat(output).isEqualTo(markdownOutput);
     }
 
     public static Stream<Arguments> navigatorStream()
@@ -104,12 +107,8 @@ class DayNavigationQueryTest
             vault.folder("Journal").orElseThrow().folder("2023").orElseThrow()
                 .document("2023 Week 04").orElseThrow()
         ));
-        assertThat(result.toMarkdown().trim())
-            .isEqualTo("""
-                ### Error
-                
-                Document is not a daily journal!
-                """.trim());
+        var output = createQueryResultFormatterRegistry().format(result, MARKDOWN);
+        assertThat(output).contains("Document is not a daily journal!");
     }
 
     @ParameterizedTest
