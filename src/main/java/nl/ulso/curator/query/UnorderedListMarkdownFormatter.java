@@ -3,9 +3,9 @@ package nl.ulso.curator.query;
 import jakarta.inject.Inject;
 
 import static java.lang.System.lineSeparator;
-import static nl.ulso.curator.query.OutputFormat.MARKDOWN;
 
 final class UnorderedListMarkdownFormatter
+    extends MarkdownFormatter
     implements QueryResultFormatter<UnorderedListResult>
 {
     @Inject
@@ -17,12 +17,6 @@ final class UnorderedListMarkdownFormatter
     public Class<UnorderedListResult> queryResultType()
     {
         return UnorderedListResult.class;
-    }
-
-    @Override
-    public OutputFormat outputFormat()
-    {
-        return MARKDOWN;
     }
 
     @Override

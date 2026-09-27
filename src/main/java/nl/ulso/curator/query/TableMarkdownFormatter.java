@@ -7,9 +7,9 @@ import java.util.function.Predicate;
 
 import static java.lang.System.lineSeparator;
 import static java.util.regex.Pattern.compile;
-import static nl.ulso.curator.query.OutputFormat.MARKDOWN;
 
 final class TableMarkdownFormatter
+    extends MarkdownFormatter
     implements QueryResultFormatter<TableResult>
 {
     private static final char NORMAL_HYPHEN = '-';
@@ -26,12 +26,6 @@ final class TableMarkdownFormatter
     public Class<TableResult> queryResultType()
     {
         return TableResult.class;
-    }
-
-    @Override
-    public OutputFormat outputFormat()
-    {
-        return MARKDOWN;
     }
 
     @Override

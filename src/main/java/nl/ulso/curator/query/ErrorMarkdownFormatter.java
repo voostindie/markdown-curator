@@ -3,9 +3,9 @@ package nl.ulso.curator.query;
 import jakarta.inject.Inject;
 
 import static java.lang.System.lineSeparator;
-import static nl.ulso.curator.query.OutputFormat.MARKDOWN;
 
 public final class ErrorMarkdownFormatter
+    extends MarkdownFormatter
     implements QueryResultFormatter<ErrorResult>
 {
     @Inject
@@ -17,12 +17,6 @@ public final class ErrorMarkdownFormatter
     public Class<ErrorResult> queryResultType()
     {
         return ErrorResult.class;
-    }
-
-    @Override
-    public OutputFormat outputFormat()
-    {
-        return MARKDOWN;
     }
 
     @Override

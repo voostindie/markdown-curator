@@ -5,7 +5,9 @@ import jakarta.inject.Singleton;
 import org.slf4j.Logger;
 
 import java.util.*;
+import java.util.function.Predicate;
 
+import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.groupingBy;
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -25,29 +27,47 @@ final class DefaultQueryResultFormatterRegistry
     }
 
     @Override
+    public Set<OutputFormat> outputFormats()
+    {
+        return formatters.keySet();
+    }
+
+    @Override
+    public boolean supports(QueryResult queryResult, OutputFormat outputFormat)
+    {
+        return resolveFormattersFor(outputFormat).stream()
+            .anyMatch(supportsQueryResult(queryResult));
+    }
+
+    @Override
     public String format(QueryResult queryResult, OutputFormat outputFormat)
     {
-        var outputFormatters = formatters.get(outputFormat);
-        if (outputFormatters == null)
-        {
-            return noOutputFormattersAvailable(outputFormat);
-        }
-        return outputFormatters.stream()
-            .filter(formatter -> formatter.queryResultType().isInstance(queryResult))
+        return resolveFormattersFor(outputFormat).stream()
+            .filter(supportsQueryResult(queryResult))
             .findFirst()
             .map(this::safeUncheckedCast)
             .map(formatter -> formatter.format(formatter.queryResultType().cast(queryResult)))
-            .orElseGet(() -> noOutputFormatterAvailableForResultType(outputFormat, queryResult));
+            .orElseGet(() -> noOutputFormatterAvailable(queryResult, outputFormat));
     }
 
-    private String noOutputFormattersAvailable(OutputFormat outputFormat)
+    private List<QueryResultFormatter<?>> resolveFormattersFor(OutputFormat outputFormat)
     {
-        if (LOGGER.isErrorEnabled())
+        var resultFormatters = formatters.get(outputFormat);
+        if (resultFormatters == null)
         {
-            LOGGER.error("Unknown output format '{}'.", outputFormat.name());
+            // Try again, but now on mimetype (a little more expensive)
+            resultFormatters = formatters.entrySet().stream()
+                .filter(entry -> entry.getKey().mimeType().equals(outputFormat.mimeType()))
+                .findFirst()
+                .map(Map.Entry::getValue)
+                .orElse(null);
         }
-        return new ErrorMarkdownFormatter().format(new ErrorResult(
-            "Unknown output format '" + outputFormat.name() + "'."));
+        return resultFormatters == null ? emptyList() : resultFormatters;
+    }
+
+    private static Predicate<QueryResultFormatter<?>> supportsQueryResult(QueryResult queryResult)
+    {
+        return formatter -> formatter.queryResultType().isInstance(queryResult);
     }
 
     @SuppressWarnings("unchecked")
@@ -57,8 +77,7 @@ final class DefaultQueryResultFormatterRegistry
         return (QueryResultFormatter<QR>) formatter;
     }
 
-    private String noOutputFormatterAvailableForResultType(
-        OutputFormat outputFormat, QueryResult queryResult)
+    private String noOutputFormatterAvailable(QueryResult queryResult, OutputFormat outputFormat)
     {
         if (LOGGER.isErrorEnabled())
         {

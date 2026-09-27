@@ -1,5 +1,6 @@
 package nl.ulso.curator;
 
+import nl.ulso.curator.server.DaggerHttpServerFactory;
 import org.slf4j.Logger;
 import org.slf4j.MDC;
 import org.slf4j.helpers.Reporter;
@@ -7,11 +8,14 @@ import org.slf4j.helpers.Reporter;
 import java.io.IOException;
 import java.util.*;
 import java.util.ServiceLoader.Provider;
+import java.util.concurrent.ConcurrentHashMap;
 
 import static java.lang.System.setProperty;
 import static java.lang.Thread.currentThread;
+import static java.util.Collections.emptyMap;
+import static java.util.Collections.unmodifiableMap;
 import static java.util.concurrent.Executors.callable;
-import static java.util.concurrent.Executors.newFixedThreadPool;
+import static java.util.concurrent.Executors.newVirtualThreadPerTaskExecutor;
 import static nl.ulso.curator.RunMode.DAEMON;
 import static nl.ulso.curator.RunMode.ONCE;
 import static org.slf4j.LoggerFactory.getLogger;
@@ -38,28 +42,42 @@ public class Application
     private static final String UNKNOWN_VERSION = "<UNKNOWN>";
 
     private final PidManager pidManager;
+    private final boolean enableHttpServer;
 
-    Application(PidManager pidManager)
+    Application(PidManager pidManager, boolean enableHttpServer)
     {
         this.pidManager = pidManager;
+        this.enableHttpServer = enableHttpServer;
     }
 
     static void main(String[] args)
     {
         RunMode.set(DAEMON);
         var curators = new HashSet<String>();
+        var enableHttpServer = false;
         for (String arg : args)
         {
             if (arg.contentEquals("--once") || arg.contentEquals("-1"))
             {
                 RunMode.set(ONCE);
             }
+            if (arg.contentEquals("--server") || arg.contentEquals("-s"))
+            {
+                if (RunMode.get() == ONCE)
+                {
+                    LOGGER.warn("Server mode is not available in single-run mode.");
+                }
+                else
+                {
+                    enableHttpServer = true;
+                }
+            }
             else
             {
                 curators.add(arg.toLowerCase());
             }
         }
-        new Application(new DefaultPidManager()).run(curators);
+        new Application(new DefaultPidManager(), enableHttpServer).run(curators);
     }
 
     void run(Set<String> selectedCuratorNames)
@@ -96,7 +114,12 @@ public class Application
             LOGGER.error("Another Markdown Curator is running for the same vault(s). Exiting.");
             return;
         }
-        runCuratorsInSeparateThreads(factories);
+        var curators = createCurators(factories);
+        if (enableHttpServer)
+        {
+            runEmbeddedHttpServer(curators);
+        }
+        runCuratorsInParallel(curators);
     }
 
     String resolveVersion()
@@ -115,23 +138,36 @@ public class Application
         }
     }
 
-    void runCuratorsInSeparateThreads(List<CuratorFactory> factories)
+    /// Invokes each factory, creating a curator for each one.
+    ///
+    /// This implementation runs in parallel for each factory, because initializing a curator might
+    /// be a long-running operation, depending on the size of the curator: at startup all files in
+    /// the vault are pulled into memory and processed.
+    ///
+    /// The size of the map returned might not be equal to the size of the list of factories: if a
+    /// curator could not be created, it will not be included in the map. Possible reasons:
+    ///
+    /// - A Markdown curator is already running for the specific curator (a PID is present).
+    /// - Curator initialization throws an exception.
+    ///
+    /// @return A map of curator names to curators that were successfully created.
+    Map<String, Curator> createCurators(List<CuratorFactory> factories)
     {
-        try (var executor = newFixedThreadPool(factories.size()))
+        Map<String, Curator> result = new ConcurrentHashMap<>(factories.size());
+        try (var executor = newVirtualThreadPerTaskExecutor())
         {
             var curators = factories.stream().map(factory -> callable(() ->
             {
-                var name = factory.name();
-                currentThread().setName(name);
-                MDC.put("curator", name);
+                var curatorName = factory.name();
+                initializeThreadContext(curatorName);
                 if (!pidManager.createPidFor(factory))
                 {
                     LOGGER.error("Failed to create PID for curator '{}'. It will not be run.",
-                        name
+                        curatorName
                     );
                     return;
                 }
-                LOGGER.debug("Instantiating curator: {}", name);
+                LOGGER.debug("Instantiating curator: '{}'.", curatorName);
                 Curator curator = null;
                 try
                 {
@@ -139,27 +175,66 @@ public class Application
                 }
                 catch (Exception e)
                 {
-                    LOGGER.error("Could not create curator '{}'. It will not be run.", name, e);
+                    LOGGER.error("Could not create curator '{}'.", curatorName, e);
                 }
                 if (curator != null)
                 {
-                    try
-                    {
-                        curator.run(RunMode.get());
-                    }
-                    catch (Exception e)
-                    {
-                        LOGGER.error("Curator '{}' errored out. It's non-functional from now on.",
-                            name, e
-                        );
-                    }
+                    result.put(curatorName, curator);
                 }
             })).toList();
             executor.invokeAll(curators);
+            return unmodifiableMap(new HashMap<>(result));
+        }
+        catch (InterruptedException _)
+        {
+            currentThread().interrupt();
+            return emptyMap();
+        }
+    }
+
+    /// Runs the embedded HTTP server for the given curators. This method does not block. The server
+    /// is started in its own thread.
+    void runEmbeddedHttpServer(Map<String, Curator> curators)
+    {
+        var httpServer = DaggerHttpServerFactory
+            .builder()
+            .curators(curators)
+            .build()
+            .httpServer();
+        httpServer.start();
+    }
+
+    void runCuratorsInParallel(Map<String, Curator> curators)
+    {
+        try (var executor = newVirtualThreadPerTaskExecutor())
+        {
+            var tasks = curators.entrySet().stream().map(entry -> callable(() ->
+            {
+                var curatorName = entry.getKey();
+                var curator = entry.getValue();
+                initializeThreadContext(curatorName);
+                try
+                {
+                    curator.run(RunMode.get());
+                }
+                catch (Exception e)
+                {
+                    LOGGER.error("Curator '{}' errored out. It's non-functional from now on.",
+                        curatorName, e
+                    );
+                }
+            })).toList();
+            executor.invokeAll(tasks);
         }
         catch (InterruptedException _)
         {
             currentThread().interrupt();
         }
+    }
+
+    private void initializeThreadContext(String curatorName)
+    {
+        currentThread().setName(curatorName);
+        MDC.put("curator", curatorName);
     }
 }

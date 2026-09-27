@@ -2,9 +2,8 @@ package nl.ulso.curator.query;
 
 import jakarta.inject.Inject;
 
-import static nl.ulso.curator.query.OutputFormat.MARKDOWN;
-
 final class StringMarkdownFormatter
+    extends MarkdownFormatter
     implements QueryResultFormatter<StringResult>
 {
     @Inject
@@ -16,12 +15,6 @@ final class StringMarkdownFormatter
     public Class<StringResult> queryResultType()
     {
         return StringResult.class;
-    }
-
-    @Override
-    public OutputFormat outputFormat()
-    {
-        return MARKDOWN;
     }
 
     @Override

@@ -4,7 +4,7 @@ import jakarta.inject.Inject;
 import nl.ulso.curator.Curator;
 import nl.ulso.curator.RunMode;
 import nl.ulso.curator.change.*;
-import nl.ulso.curator.query.Query;
+import nl.ulso.curator.query.*;
 import nl.ulso.curator.vault.*;
 import org.slf4j.Logger;
 import org.slf4j.MDC;
@@ -61,7 +61,8 @@ final class DefaultCurator
     public DefaultCurator(
         Vault vault,
         ChangeProcessorOrchestrator changeProcessorOrchestrator,
-        QueryOrchestrator queryOrchestrator, DocumentPathResolver documentPathResolver)
+        QueryOrchestrator queryOrchestrator,
+        DocumentPathResolver documentPathResolver)
     {
         this.curatorName = Thread.currentThread().getName();
         this.vault = vault;
@@ -95,6 +96,36 @@ final class DefaultCurator
             default -> throw new IllegalArgumentException(
                 "Unsupported run mode: " + RunMode.get());
         }
+    }
+
+    @Override
+    public Vault vault()
+    {
+        return vault;
+    }
+
+    @Override
+    public Query query(String queryName)
+    {
+        return queryOrchestrator.query(queryName);
+    }
+
+    @Override
+    public Set<OutputFormat> outputFormats()
+    {
+        return queryOrchestrator.outputFormats();
+    }
+
+    @Override
+    public boolean supports(QueryResult queryResult, OutputFormat outputFormat)
+    {
+        return queryOrchestrator.supports(queryResult, outputFormat);
+    }
+
+    @Override
+    public String format(QueryResult result, OutputFormat format)
+    {
+        return queryOrchestrator.format(result, format);
     }
 
     /// This method is synchronized to ensure it doesn't run concurrently with
@@ -195,7 +226,7 @@ final class DefaultCurator
     }
 
     /// If there is an incoming change, there's no need to write changes to disk from the previous
-    /// processing run, if that exists; a new one will be scheduled shortly.
+    /// processing run if that exists; a new one will be scheduled shortly.
     private void cancelQueryWriteRunIfPresent()
     {
         if (runTask != null)

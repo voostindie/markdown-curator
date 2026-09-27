@@ -82,6 +82,30 @@ final class DefaultQueryOrchestrator
             .collect(toSet());
     }
 
+    @Override
+    public Query query(String queryName)
+    {
+        return queryCatalog.query(queryName);
+    }
+
+    @Override
+    public Set<OutputFormat> outputFormats()
+    {
+        return queryResultFormatterRegistry.outputFormats();
+    }
+
+    @Override
+    public boolean supports(QueryResult result, OutputFormat format)
+    {
+        return queryResultFormatterRegistry.supports(result, format);
+    }
+
+    //    @Override
+    public String format(QueryResult result, OutputFormat format)
+    {
+        return queryResultFormatterRegistry.format(result, format);
+    }
+
     /// Find all documents in the vault that are impacted by the changelog.
     ///
     /// If the changelog contains a [Reset], this method returns all documents with a query block so

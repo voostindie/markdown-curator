@@ -40,6 +40,10 @@ public abstract class QueryModule
 
     @Binds
     @IntoSet
+    abstract QueryResultFormatter<?> stringJsonFormatter(StringJsonFormatter formatter);
+
+    @Binds
+    @IntoSet
     abstract QueryResultFormatter<?> errorMarkdownFormatter(ErrorMarkdownFormatter formatter);
 
     @Binds
@@ -48,6 +52,15 @@ public abstract class QueryModule
 
     @Binds
     @IntoSet
+    abstract QueryResultFormatter<?> tableJsonFormatter(TableJsonFormatter formatter);
+
+    @Binds
+    @IntoSet
     abstract QueryResultFormatter<?> unorderedListMarkdownFormatter(
         UnorderedListMarkdownFormatter formatter);
+
+    @Binds
+    @IntoSet
+    abstract QueryResultFormatter<?> unorderedListJsonFormatter(
+        UnorderedListJsonFormatter formatter);
 }

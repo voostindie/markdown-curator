@@ -4,6 +4,7 @@ import nl.ulso.dictionary.Dictionary;
 
 import java.util.*;
 
+import static java.util.Collections.emptyList;
 import static java.util.Objects.requireNonNull;
 import static nl.ulso.emoji.EmojiStripper.stripEmojisFrom;
 
@@ -18,12 +19,14 @@ import static nl.ulso.emoji.EmojiStripper.stripEmojisFrom;
 public final class Document
     extends FragmentContainer
 {
+    public static final Document EMPTY_DOCUMENT = createEmptyDocument();
+
     private Folder folder;
+
     private final String name;
     private final String title;
     private final String sortableTitle;
     private final long lastModified;
-
     Document(String name, long lastModified, List<Fragment> fragments)
     {
         super(fragments);
@@ -176,5 +179,71 @@ public final class Document
             currentFolder = currentFolder.parent();
         }
         return currentFolder.isRoot();
+    }
+
+    private static Document createEmptyDocument()
+    {
+        var document = newDocument("empty", -1, emptyList());
+        var emptyFolder = new Folder() {
+            @Override
+            public boolean isRoot()
+            {
+                return true;
+            }
+
+            @Override
+            public Folder parent()
+            {
+                return null;
+            }
+
+            @Override
+            public String name()
+            {
+                return "empty";
+            }
+
+            @Override
+            public Collection<Folder> folders()
+            {
+                return emptyList();
+            }
+
+            @Override
+            public Optional<Folder> folder(String name)
+            {
+                return Optional.empty();
+            }
+
+            @Override
+            public Collection<Document> documents()
+            {
+                return List.of(document);
+            }
+
+            @Override
+            public Optional<Document> document(String name)
+            {
+                if (name.equals(document.name()))
+                {
+                    return Optional.of(document);
+                }
+                return Optional.empty();
+            }
+
+            @Override
+            public Optional<Document> findDocument(String name)
+            {
+                return document(name);
+            }
+
+            @Override
+            public void accept(VaultVisitor visitor)
+            {
+                visitor.visit(this);
+            }
+        };
+        document.setFolder(emptyFolder);
+        return document;
     }
 }

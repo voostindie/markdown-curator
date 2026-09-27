@@ -54,13 +54,13 @@ public interface Dictionary
         return new YamlDictionary(string);
     }
 
-    static Dictionary mapDictionary(Map<String, Object> map)
+    static Dictionary mapDictionary(Map<String, ?> map)
     {
         if (requireNonNull(map).isEmpty())
         {
             return emptyDictionary();
         }
-        return new MapDictionary(requireNonNull(map));
+        return new MapDictionary(new HashMap<>(map));
     }
 
     static MutableDictionary mutableDictionary(Dictionary source)

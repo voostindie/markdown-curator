@@ -3,6 +3,7 @@
     <appender name="null" class="ch.qos.logback.core.helpers.NOPAppender"/>
 
     <logger name="io.methvin.watcher" level="warn"/>
+    <logger name="org.eclipse.jetty" level="warn"/>
 
     <root level="trace">
         <appender-ref ref="null"/>

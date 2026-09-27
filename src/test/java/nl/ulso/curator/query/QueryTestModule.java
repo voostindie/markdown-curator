@@ -24,7 +24,7 @@ public class QueryTestModule
 
     public static QueryResultFormatterRegistry createQueryResultFormatterRegistry()
     {
-        var formatters = Set.of(
+        Set<QueryResultFormatter<?>> formatters = Set.of(
             new ErrorMarkdownFormatter(),
             new StringMarkdownFormatter(),
             new TableMarkdownFormatter(),

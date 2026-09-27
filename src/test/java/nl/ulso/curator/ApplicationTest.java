@@ -16,7 +16,7 @@ class ApplicationTest
     @Test
     void testVersion()
     {
-        var application = new Application(null);
+        var application = new Application(null, false);
         assertThat(application.resolveVersion()).isNotEqualTo("<UNKNOWN>");
     }
 
@@ -25,7 +25,7 @@ class ApplicationTest
     {
         assertDoesNotThrow(() -> {
             var factory = new MusicCuratorFactory();
-            new Application(null).runCuratorsInSeparateThreads(List.of(factory));
+            new Application(null, false).createCurators(List.of(factory));
         });
     }
 }

@@ -15,7 +15,7 @@ class DefaultQueryResultFormatterRegistryTest
     @BeforeEach
     void setUp()
     {
-        var formatters = Set.of(
+        Set<QueryResultFormatter<?>> formatters = Set.of(
             new StringMarkdownFormatter(),
             new UnorderedListMarkdownFormatter(),
             new TableMarkdownFormatter(),
@@ -33,7 +33,7 @@ class DefaultQueryResultFormatterRegistryTest
         );
         assertThat(output)
             .contains("Error")
-            .contains("Unknown output format 'UNKNOWN'");
+            .contains("No output formatter for 'UNKNOWN'");
     }
 
     @Test
@@ -70,6 +70,16 @@ class DefaultQueryResultFormatterRegistryTest
             MARKDOWN
         );
         assertThat(output).contains("empty");
+    }
+
+    @Test
+    void stringResulFromNewMimeType()
+    {
+        var output = registry.format(
+            new StringResult("Hello, world"),
+            new OutputFormat("NEW", "text/markdown")
+        );
+        assertThat(output).contains("Hello, world");
     }
 
     private static final class DummyQueryResult

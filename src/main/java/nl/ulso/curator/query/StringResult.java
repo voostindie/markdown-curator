@@ -1,6 +1,6 @@
 package nl.ulso.curator.query;
 
-class StringResult
+public class StringResult
     implements QueryResult
 {
     private final String outputMessage;
