@@ -10,10 +10,10 @@ import java.util.*;
 import java.util.ServiceLoader.Provider;
 import java.util.concurrent.ConcurrentHashMap;
 
+import static java.lang.Integer.parseInt;
 import static java.lang.System.setProperty;
 import static java.lang.Thread.currentThread;
 import static java.util.Collections.emptyMap;
-import static java.util.Collections.unmodifiableMap;
 import static java.util.concurrent.Executors.callable;
 import static java.util.concurrent.Executors.newVirtualThreadPerTaskExecutor;
 import static nl.ulso.curator.RunMode.DAEMON;
@@ -34,20 +34,29 @@ public class Application
     static
     {
         // Make sure we disable SLF4J's useless logging before it initializes itself.
-        // Because the application's main method is in this class, this is how that needs to happen.
+        // Because the application's main method is in this class, this is where and how that
+        // needs to happen.
         setProperty(Reporter.SLF4J_INTERNAL_VERBOSITY_KEY, "ERROR");
         LOGGER = getLogger(Application.class);
     }
 
     private static final String UNKNOWN_VERSION = "<UNKNOWN>";
+    private static final int DEFAULT_SERVER_PORT = 7767; // MC
 
     private final PidManager pidManager;
     private final boolean enableHttpServer;
+    private final int serverPort;
 
     Application(PidManager pidManager, boolean enableHttpServer)
     {
+        this(pidManager, enableHttpServer, DEFAULT_SERVER_PORT);
+    }
+
+    Application(PidManager pidManager, boolean enableHttpServer, int serverPort)
+    {
         this.pidManager = pidManager;
         this.enableHttpServer = enableHttpServer;
+        this.serverPort = serverPort;
     }
 
     static void main(String[] args)
@@ -55,11 +64,13 @@ public class Application
         RunMode.set(DAEMON);
         var curators = new HashSet<String>();
         var enableHttpServer = false;
+        var serverPort = DEFAULT_SERVER_PORT;
         for (String arg : args)
         {
             if (arg.contentEquals("--once") || arg.contentEquals("-1"))
             {
                 RunMode.set(ONCE);
+                continue;
             }
             if (arg.contentEquals("--server") || arg.contentEquals("-s"))
             {
@@ -71,13 +82,36 @@ public class Application
                 {
                     enableHttpServer = true;
                 }
+                continue;
             }
-            else
+            if (arg.startsWith("--port:"))
             {
-                curators.add(arg.toLowerCase());
+                try
+                {
+                    serverPort = parseInt(arg.substring(7));
+                    if (serverPort < 1024)
+                    {
+                        LOGGER.warn(
+                            "Invalid port number specified. Port numbers below 1024 are reserved." +
+                            " Falling back on default port.");
+                        serverPort = DEFAULT_SERVER_PORT;
+                    }
+                }
+                catch (NumberFormatException e)
+                {
+                    if (LOGGER.isErrorEnabled())
+                    {
+                        LOGGER.warn(
+                            "Invalid port number specified. Using default port instead: {}.",
+                            DEFAULT_SERVER_PORT
+                        );
+                    }
+                }
+                continue;
             }
+            curators.add(arg.toLowerCase());
         }
-        new Application(new DefaultPidManager(), enableHttpServer).run(curators);
+        new Application(new DefaultPidManager(), enableHttpServer, serverPort).run(curators);
     }
 
     void run(Set<String> selectedCuratorNames)
@@ -103,7 +137,8 @@ public class Application
                 .toList();
             if (factories.isEmpty())
             {
-                LOGGER.error("No curators are available in the system. Nothing to do! Filter: {}",
+                LOGGER.error(
+                    "No curators are available in the system. Nothing to do! Filter: {}",
                     selectedCuratorNames
                 );
                 return;
@@ -141,8 +176,8 @@ public class Application
     /// Invokes each factory, creating a curator for each one.
     ///
     /// This implementation runs in parallel for each factory, because initializing a curator might
-    /// be a long-running operation, depending on the size of the curator: at startup all files in
-    /// the vault are pulled into memory and processed.
+    /// be a long-running operation, depending on the size of the curator: at startup all in the
+    /// vault are pulled into memory and processed.
     ///
     /// The size of the map returned might not be equal to the size of the list of factories: if a
     /// curator could not be created, it will not be included in the map. Possible reasons:
@@ -183,7 +218,7 @@ public class Application
                 }
             })).toList();
             executor.invokeAll(curators);
-            return unmodifiableMap(new HashMap<>(result));
+            return Map.copyOf(result);
         }
         catch (InterruptedException _)
         {
@@ -198,6 +233,7 @@ public class Application
     {
         var httpServer = DaggerHttpServerFactory
             .builder()
+            .serverPort(serverPort)
             .curators(curators)
             .build()
             .httpServer();

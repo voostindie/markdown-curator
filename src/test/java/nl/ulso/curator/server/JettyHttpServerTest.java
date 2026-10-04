@@ -4,9 +4,12 @@ import nl.ulso.curator.query.OutputFormat;
 import nl.ulso.curator.vault.VaultStub;
 import nl.ulso.dictionary.Dictionary;
 import org.eclipse.jetty.server.Server;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
+import java.io.IOException;
 import java.lang.reflect.Field;
+import java.net.ServerSocket;
 import java.util.Map;
 import java.util.Set;
 
@@ -14,6 +17,7 @@ import static nl.ulso.curator.query.OutputFormat.JSON;
 import static nl.ulso.curator.query.OutputFormat.MARKDOWN;
 import static org.assertj.core.api.Assertions.assertThat;
 
+@Tag("integration-test")
 class JettyHttpServerTest
 {
     @Test
@@ -45,7 +49,8 @@ class JettyHttpServerTest
 
         var httpServer = new JettyHttpServer(
             Map.of("curator1", curator1, "curator2", curator2),
-            Set.of(dummyProcessor)
+            Set.of(dummyProcessor),
+            findRandomOpenPortOnAllLocalInterfaces()
         );
 
         Server jettyServer = getUnderlyingServer(httpServer);
@@ -64,8 +69,9 @@ class JettyHttpServerTest
     void serverStartHandlesPortConflictGracefully()
         throws Exception
     {
-        var server1 = new JettyHttpServer(Map.of(), Set.of());
-        var server2 = new JettyHttpServer(Map.of(), Set.of());
+        var port = findRandomOpenPortOnAllLocalInterfaces();
+        var server1 = new JettyHttpServer(Map.of(), Set.of(), port);
+        var server2 = new JettyHttpServer(Map.of(), Set.of(), port);
         Server jettyServer1 = getUnderlyingServer(server1);
         Server jettyServer2 = getUnderlyingServer(server2);
 
@@ -93,10 +99,12 @@ class JettyHttpServerTest
 
     @Test
     void daggerHttpServerFactoryCreatesHttpServerWithAllProcessors()
+        throws Exception
     {
         var curator = new CuratorStub();
         HttpServerFactory factory = DaggerHttpServerFactory.builder()
             .curators(Map.of("main", curator))
+            .serverPort(findRandomOpenPortOnAllLocalInterfaces())
             .build();
         assertThat(factory).isNotNull();
         var httpServer = factory.httpServer();
@@ -109,5 +117,14 @@ class JettyHttpServerTest
         Field serverField = JettyHttpServer.class.getDeclaredField("server");
         serverField.setAccessible(true);
         return (Server) serverField.get(httpServer);
+    }
+
+    private int findRandomOpenPortOnAllLocalInterfaces()
+        throws IOException
+    {
+        try (ServerSocket socket = new ServerSocket(0))
+        {
+            return socket.getLocalPort();
+        }
     }
 }

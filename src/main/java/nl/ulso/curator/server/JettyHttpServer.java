@@ -20,20 +20,20 @@ public class JettyHttpServer
     implements HttpServer
 {
     private static final Logger LOGGER = getLogger(JettyHttpServer.class);
-    private static final int SERVER_PORT = 7767; // MC
     private static final String SERVER_HOST = "localhost";
 
     private final Server server;
 
     @Inject
-    JettyHttpServer(Map<String, Curator> curators, Set<RequestProcessor> requestProcessors)
+    JettyHttpServer(
+        Map<String, Curator> curators, Set<RequestProcessor> requestProcessors, int serverPort)
     {
-        this.server = createServer();
+        this.server = createServer(serverPort);
         var availableOutputFormats = collectOutputFormats(curators);
         configureServer(requestProcessors, availableOutputFormats);
     }
 
-    private Server createServer()
+    private Server createServer(int serverPort)
     {
         QueuedThreadPool threadPool = new QueuedThreadPool();
         threadPool.setName("HTTP Server");
@@ -43,7 +43,7 @@ public class JettyHttpServer
         configuration.setSendServerVersion(false);
         var connectionFactory = new HttpConnectionFactory(configuration);
         var connector = new ServerConnector(server, connectionFactory);
-        connector.setPort(SERVER_PORT);
+        connector.setPort(serverPort);
         connector.setHost(SERVER_HOST);
         server.addConnector(connector);
         return server;
@@ -73,16 +73,18 @@ public class JettyHttpServer
     @Override
     public void start()
     {
+        var port = (((NetworkConnector) server.getConnectors()[0])).getPort();
         try
         {
             server.start();
+            LOGGER.info("Started HTTP server on port {}.", port);
         }
         catch (Exception e)
         {
-            LOGGER.error("Couldn't start HTTP server on port {}. The HTTP server is disabled.",
-                SERVER_PORT
+            LOGGER.error(
+                "Couldn't start HTTP server on port {}. The HTTP server is disabled.",
+                port
             );
         }
-        LOGGER.info("Started HTTP server on port {}.", SERVER_PORT);
     }
 }

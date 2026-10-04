@@ -17,6 +17,9 @@ public interface HttpServerFactory
     interface Builder
     {
         @BindsInstance
+        Builder serverPort(int serverPort);
+
+        @BindsInstance
         Builder curators(Map<String, Curator> curators);
 
         HttpServerFactory build();
