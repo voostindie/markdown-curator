@@ -72,7 +72,7 @@ public class Application
                 RunMode.set(ONCE);
                 continue;
             }
-            if (arg.contentEquals("--server") || arg.contentEquals("-s"))
+            if (arg.startsWith("--server") || arg.startsWith("-s"))
             {
                 if (RunMode.get() == ONCE)
                 {
@@ -81,30 +81,30 @@ public class Application
                 else
                 {
                     enableHttpServer = true;
-                }
-                continue;
-            }
-            if (arg.startsWith("--port:"))
-            {
-                try
-                {
-                    serverPort = parseInt(arg.substring(7));
-                    if (serverPort < 1024)
+                    var index = arg.indexOf(':');
+                    if (index != -1 && index < arg.length() - 1)
                     {
-                        LOGGER.warn(
-                            "Invalid port number specified. Port numbers below 1024 are reserved." +
-                            " Falling back on default port.");
-                        serverPort = DEFAULT_SERVER_PORT;
-                    }
-                }
-                catch (NumberFormatException e)
-                {
-                    if (LOGGER.isErrorEnabled())
-                    {
-                        LOGGER.warn(
-                            "Invalid port number specified. Using default port instead: {}.",
-                            DEFAULT_SERVER_PORT
-                        );
+                        try
+                        {
+                            serverPort = parseInt(arg.substring(index + 1));
+                            if (serverPort < 1024)
+                            {
+                                LOGGER.warn(
+                                    "Invalid port specified. Port numbers below 1024 are " +
+                                    "reserved. Falling back on default port.");
+                                serverPort = DEFAULT_SERVER_PORT;
+                            }
+                        }
+                        catch (NumberFormatException e)
+                        {
+                            if (LOGGER.isErrorEnabled())
+                            {
+                                LOGGER.warn(
+                                    "Invalid port specified. Using default port instead: {}.",
+                                    DEFAULT_SERVER_PORT
+                                );
+                            }
+                        }
                     }
                 }
                 continue;

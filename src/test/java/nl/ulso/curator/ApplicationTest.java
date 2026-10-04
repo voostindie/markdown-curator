@@ -70,7 +70,7 @@ class ApplicationTest
     void mainWithPortOption()
     {
         assertDoesNotThrow(() ->
-            Application.main(new String[]{"--server", "--port:8080", "unknown"})
+            Application.main(new String[]{"--server:8080", "unknown"})
         );
         assertThat(RunMode.get()).isEqualTo(DAEMON);
     }
@@ -79,7 +79,7 @@ class ApplicationTest
     void mainWithInvalidPortBelow1024()
     {
         assertDoesNotThrow(() ->
-            Application.main(new String[]{"--server", "--port:80", "unknown"})
+            Application.main(new String[]{"--server:80", "unknown"})
         );
         assertThat(RunMode.get()).isEqualTo(DAEMON);
     }
@@ -88,7 +88,7 @@ class ApplicationTest
     void mainWithInvalidPortNotANumber()
     {
         assertDoesNotThrow(() ->
-            Application.main(new String[]{"--server", "--port:invalid", "unknown"})
+            Application.main(new String[]{"--server:invalid", "unknown"})
         );
         assertThat(RunMode.get()).isEqualTo(DAEMON);
     }
