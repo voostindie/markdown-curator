@@ -1,10 +1,13 @@
 package nl.ulso.curator.server;
 
+import nl.ulso.date.LocalDates;
 import nl.ulso.dictionary.Dictionary;
 import org.eclipse.jetty.util.Fields;
 
 import java.time.LocalDate;
 import java.util.*;
+
+import static nl.ulso.date.LocalDates.parseDateOrNull;
 
 /// Wraps a Jetty [Fields] object as a [Dictionary].
 final class JettyFieldsDictionary
@@ -67,7 +70,17 @@ final class JettyFieldsDictionary
     @Override
     public LocalDate date(String property, LocalDate defaultDate)
     {
-        throw new UnsupportedOperationException("Not yet implemented!");
+        var dateString = fields.getValue(property);
+        if (dateString == null)
+        {
+            return defaultDate;
+        }
+        var date = parseDateOrNull(dateString);
+        if (date == null)
+        {
+            return defaultDate;
+        }
+        return date;
     }
 
     @Override
@@ -80,19 +93,34 @@ final class JettyFieldsDictionary
     @Override
     public List<String> listOfStrings(String property)
     {
-        throw new UnsupportedOperationException("Not yet implemented!");
+        return fields.getValuesOrEmpty(property);
     }
 
     @Override
     public List<Integer> listOfIntegers(String property)
     {
-        throw new UnsupportedOperationException("Not yet implemented!");
+        return listOfStrings(property).stream()
+            .map(value -> {
+                try
+                {
+                    return Integer.parseInt(value);
+                }
+                catch (NumberFormatException _)
+                {
+                    return null;
+                }
+            })
+            .filter(Objects::nonNull)
+            .toList();
     }
 
     @Override
     public List<LocalDate> listOfDates(String property)
     {
-        throw new UnsupportedOperationException("Not yet implemented!");
+        return listOfStrings(property).stream()
+            .map(LocalDates::parseDateOrNull)
+            .filter(Objects::nonNull)
+            .toList();
     }
 
     @Override
@@ -104,6 +132,7 @@ final class JettyFieldsDictionary
     @Override
     public String toYamlString()
     {
-        throw new UnsupportedOperationException("Not yet implemented!");
+        throw new UnsupportedOperationException(
+            "Conversion of JettyFields to YAML is not supported.");
     }
 }
