@@ -14,6 +14,7 @@
 - It detects queries in the documents, executes them, and writes back the results in the documents themselves.
 - It extracts information out of documents as properties and writes them into documents as front matter.
 - As an application, it monitors and processes directories in the background.
+- Optionally, as an application it runs an HTTP server that exposes the curators, documents, and queries for use in local automation.
 
 Even shorter: this tool allows you to keep your static content [DRY](https://en.wikipedia.org/wiki/Don%27t_repeat_yourself).
 
@@ -123,6 +124,22 @@ This library/application does **not** fully parse Markdown. It only does so on a
 - Text
 
 A text block is "anything *not* of the above". The content of a text block itself is not parsed. Whether text is in bold or italic, holds a list or a table, uses CriticMarkup or some other format: the internal parser is oblivious to it; it's all just text. When you build your own queries, it's up to you to extract content out of the various blocks, as you see fit. 
+
+## Local HTTP server
+
+When run as a daemon, the application can also add an HTTP server that exposes the curators, documents, and queries. Enable the server by adding the `--server` or `-s` option. Optionally, specify a port by adding `:<port>`. to the server option. The default port is **7767**.
+
+The server listens only on localhost. It supports only GET requests.
+
+All queries in the curator are available automatically through the HTTP server. Query configuration normally passed in the page, are instead passed as query parameters. Queries are executed live; there's no caching involved whatsoever.
+
+Most queries support both Markdown and JSON format. Specify the requested format through the `Accept` header. If not specified, the default format is JSON.
+
+Endpoints:
+
+- `/curators`: Returns a list of all curators in the application.
+- `/curators/{curator}/document`: Returns the contents - as it is known in memory, not on disk! - of a document. (The JSON format is especially useful here.)
+- `/curators/{curator}/queries/{query}`: Performs a query on a curator.
 
 ## Creating your own application
 
