@@ -25,7 +25,7 @@ class JournalTest
     void timeline(String documentName, Map<LocalDate, String> expected)
     {
         var journal = createTestJournal(new VaultStub());
-        assertThat(journal.timelineFor(documentName)).containsExactlyInAnyOrderEntriesOf(expected);
+        assertThat(journal.timelineFor(documentName, -1)).containsExactlyInAnyOrderEntriesOf(expected);
     }
 
     @ParameterizedTest
@@ -148,7 +148,7 @@ class JournalTest
     {
         var journal = createTestJournal(new VaultStub());
         var latest = journal.latest();
-        assertThat(latest.orElseThrow().date()).isEqualTo(LocalDate.of(2024, 8, 12));
+        assertThat(latest.orElseThrow().date()).isEqualTo(LocalDate.now().minusDays(1));
     }
 
     @Test
@@ -238,6 +238,17 @@ class JournalTest
                 - [[❌]] Special marker
             """
         );
+        var date = LocalDate.now();
+        for (int i = 0; i < 3; i++)
+        {
+            date = date.minusDays(1);
+            vault.addDocumentInPath("Journal/" + date.getYear() + "/" + date, """
+            ## Log
+            
+            - [[shift]]
+                - foo bar
+            """);
+        }
         vault.addDocumentInPath("Journal/Markers/❌", """
             ---
             title: CUSTOM TITLE

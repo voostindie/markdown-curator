@@ -64,9 +64,9 @@ final class DefaultJournal
     }
 
     @Override
-    public SortedMap<LocalDate, String> timelineFor(String documentName)
+    public SortedMap<LocalDate, String> timelineFor(String documentName, int daysFromToday)
     {
-        return dailyRepository.timelineFor(documentName);
+        return dailyRepository.timelineFor(documentName, daysFromToday);
     }
 
     @Override

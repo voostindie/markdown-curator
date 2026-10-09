@@ -22,7 +22,7 @@ public interface Journal
 
     Set<String> referencedDocumentsIn(Collection<Daily> dailies);
 
-    SortedMap<LocalDate, String> timelineFor(String documentName);
+    SortedMap<LocalDate, String> timelineFor(String documentName, int daysFromToday);
 
     Stream<Daily> dailiesFor(String documentName);
 

@@ -3,6 +3,7 @@ package nl.ulso.curator.addon.journal;
 import dagger.Binds;
 import dagger.Module;
 import dagger.multibindings.IntoSet;
+import nl.ulso.curator.addon.newday.NewDayModule;
 import nl.ulso.curator.change.ChangeProcessor;
 import nl.ulso.curator.query.Query;
 import nl.ulso.curator.statistics.MeasurementTracker;
@@ -21,7 +22,7 @@ import nl.ulso.curator.statistics.MeasurementTracker;
 /// is statically included in Markdown files, instead of dynamic.
 ///
 /// To use this journal in your own curator, you have to install it in your Dagger module.
-@Module
+@Module(includes = NewDayModule.class)
 public abstract class JournalModule
 {
     @Binds

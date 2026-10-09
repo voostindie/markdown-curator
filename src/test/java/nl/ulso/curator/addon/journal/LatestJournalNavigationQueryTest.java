@@ -9,6 +9,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
+import java.time.LocalDate;
 import java.util.Locale;
 import java.util.Optional;
 import java.util.stream.Stream;
@@ -70,7 +71,8 @@ class LatestJournalNavigationQueryTest
         );
         var result = query.run(new QueryDefinitionStub(query, null));
         var output = formatterRegistry.format(result, MARKDOWN);
-        assertThat(output).isEqualTo("[[2024-08-12|🗓️ Latest]]");
+        var today = LocalDate.now().minusDays(1);
+        assertThat(output).isEqualTo("[[" + today + "|🗓️ Latest]]");
     }
 
     @Test
@@ -84,7 +86,7 @@ class LatestJournalNavigationQueryTest
             new QueryDefinitionStub(query, null).withConfiguration("prefix", ">> ")
                 .withConfiguration("postfix", " <<"));
         var output = formatterRegistry.format(result, MARKDOWN);
-        assertThat(output).isEqualTo(">> [[2024-08-12|🗓️ Latest]] <<");
+        assertThat(output).isEqualTo(">> [[" + LocalDate.now().minusDays(1) + "|🗓️ Latest]] <<");
     }
 
     @Test
@@ -131,9 +133,10 @@ class LatestJournalNavigationQueryTest
 
     public static Stream<Arguments> dailyStream()
     {
+        var yesterday = LocalDate.now().minusDays(1).toString();
         return Stream.of(
-            Arguments.of("2024-08-12", CREATE, true),
-            Arguments.of("2024-08-12", DELETE, true),
+            Arguments.of(yesterday, CREATE, true),
+            Arguments.of(yesterday, DELETE, true),
             Arguments.of("2024-08-12", UPDATE, false),
             Arguments.of("2024-07-21", CREATE, false),
             Arguments.of("2024-07-21", DELETE, false),

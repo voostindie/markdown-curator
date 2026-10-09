@@ -19,7 +19,7 @@ interface DailyRepository
 
     Set<String> referencedDocumentsIn(Collection<Daily> dailies);
 
-    SortedMap<LocalDate, String> timelineFor(String documentName);
+    SortedMap<LocalDate, String> timelineFor(String documentName, int daysFromToday);
 
     Optional<Daily> dailyFor(LocalDate date);
 

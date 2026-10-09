@@ -87,11 +87,15 @@ final class DefaultDailyRepository
     }
 
     @Override
-    public SortedMap<LocalDate, String> timelineFor(String documentName)
+    public SortedMap<LocalDate, String> timelineFor(String documentName, int daysFromToday)
     {
         var timeline = new TreeMap<LocalDate, String>(reverseOrder());
-        dailiesFor(documentName).forEach(
-            daily -> timeline.put(daily.date(), daily.summaryFor(documentName)));
+        var untilDate = daysFromToday < 0
+                        ? LocalDate.MAX
+                        : LocalDate.now().minusDays(daysFromToday + 1);
+        dailiesFor(documentName)
+            .filter(daily -> daysFromToday < 0 || daily.date().isAfter(untilDate))
+            .forEach(daily -> timeline.put(daily.date(), daily.summaryFor(documentName)));
         return timeline;
     }
 

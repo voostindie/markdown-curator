@@ -2,6 +2,7 @@ package nl.ulso.curator.addon.journal;
 
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
+import nl.ulso.curator.addon.newday.NewDayAlarm;
 import nl.ulso.curator.change.Changelog;
 import nl.ulso.curator.query.*;
 
@@ -17,12 +18,14 @@ public class TimelineQuery
     implements Query
 {
     private final Journal journal;
+    private final NewDayAlarm newDayAlarm;
     private final QueryResultFactory resultFactory;
 
     @Inject
-    TimelineQuery(Journal journal, QueryResultFactory resultFactory)
+    TimelineQuery(Journal journal, NewDayAlarm newDayAlarm, QueryResultFactory resultFactory)
     {
         this.journal = journal;
+        this.newDayAlarm = newDayAlarm;
         this.resultFactory = resultFactory;
     }
 
@@ -43,7 +46,7 @@ public class TimelineQuery
     public Map<String, String> supportedConfiguration()
     {
         return Map.of("document", "Name of the document; defaults to the current document",
-            "limit", "Maximum number of entries to include; defaults to all"
+            "limit", "Number of days from today to include; defaults to all available"
         );
     }
 
@@ -51,25 +54,21 @@ public class TimelineQuery
     public boolean isImpactedBy(Changelog changelog, QueryDefinition definition)
     {
         var documentName = resolveDocumentName(definition);
+        var daysFromToday = resolveDaysFromToday(definition);
         return changelog.changes()
-            .anyMatch(isPayloadType(Daily.class).and(change ->
-                change.as(Daily.class).values()
-                    .anyMatch(daily -> daily.refersTo(documentName)))
-            );
+                   .anyMatch(isPayloadType(Daily.class).and(change ->
+                       change.as(Daily.class).values()
+                           .anyMatch(daily -> daily.refersTo(documentName)))
+                   ) || (daysFromToday > 0 && newDayAlarm.didAlarmTrigger(changelog));
     }
 
     @Override
     public QueryResult run(QueryDefinition definition)
     {
         var documentName = resolveDocumentName(definition);
-        var limit = definition.configuration().integer("limit", -1);
-        var timeline = journal.timelineFor(documentName);
-        var stream = timeline.entrySet().stream();
-        if (limit > 0)
-        {
-            stream = stream.limit(limit);
-        }
-        var result = stream
+        var daysFromToday = resolveDaysFromToday(definition);
+        var timeline = journal.timelineFor(documentName, daysFromToday);
+        var result = timeline.entrySet().stream()
             .map(entry -> "- **[[" + entry.getKey() + "]]**:" + lineSeparator() +
                           entry.getValue().indent(4))
             .collect(joining());
@@ -79,5 +78,10 @@ public class TimelineQuery
     private String resolveDocumentName(QueryDefinition definition)
     {
         return definition.configuration().string("document", definition.document().name());
+    }
+
+    private int resolveDaysFromToday(QueryDefinition definition)
+    {
+        return definition.configuration().integer("limit", -1);
     }
 }

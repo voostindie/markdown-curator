@@ -12,6 +12,7 @@ import org.junit.jupiter.params.provider.MethodSource;
 
 import java.util.stream.Stream;
 
+import static java.time.LocalDate.now;
 import static nl.ulso.curator.addon.journal.JournalTest.createTestJournal;
 import static nl.ulso.curator.query.OutputFormat.MARKDOWN;
 import static nl.ulso.curator.query.QueryTestModule.createQueryResultFactory;
@@ -31,21 +32,21 @@ class TimelineQueryTest
     @Test
     void name()
     {
-        var query = new TimelineQuery(null, createQueryResultFactory());
+        var query = new TimelineQuery(null, null, createQueryResultFactory());
         assertThat(query.name()).isEqualTo("timeline");
     }
 
     @Test
     void description()
     {
-        var query = new TimelineQuery(null, createQueryResultFactory());
+        var query = new TimelineQuery(null, null, createQueryResultFactory());
         assertThat(query.description()).isNotBlank();
     }
 
     @Test
     void supportedConfiguration()
     {
-        var query = new TimelineQuery(null, createQueryResultFactory());
+        var query = new TimelineQuery(null, null, createQueryResultFactory());
         assertThat(query.supportedConfiguration()).hasSize(2);
     }
 
@@ -55,7 +56,7 @@ class TimelineQueryTest
     {
         var vault = new VaultStub();
         var journal = createTestJournal(vault);
-        var query = new TimelineQuery(journal, createQueryResultFactory());
+        var query = new TimelineQuery(journal, null, createQueryResultFactory());
         var definition = new QueryDefinitionStub(query, vault.addDocument("query", ""))
             .withConfiguration("document", documentName)
             .withConfiguration("limit", limit);
@@ -93,15 +94,17 @@ class TimelineQueryTest
                 """
             ),
             Arguments.of("nothing", -1, "No results"),
-            Arguments.of("foo", 2, """
-                - **[[2023-01-27]]**:
-                    - [[foo]]
-                        - [[❓]] Important question!
-                - **[[2023-01-26]]**:
-                    - [[foo]]
-                        - [[❗️|Important!]] Remember this too
-                
-                """
+            Arguments.of("shift", 3,
+                "- **[[" + now().minusDays(1) + "]]**:\n" +
+                "    - [[shift]]\n" +
+                "        - foo bar\n" +
+                "- **[[" + now().minusDays(2) + "]]**:\n" +
+                "    - [[shift]]\n" +
+                "        - foo bar\n" +
+                "- **[[" + now().minusDays(3) + "]]**:\n" +
+                "    - [[shift]]\n" +
+                "        - foo bar\n" +
+                "\n"
             )
         );
     }
