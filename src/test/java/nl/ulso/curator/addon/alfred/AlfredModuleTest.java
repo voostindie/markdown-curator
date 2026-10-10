@@ -5,6 +5,8 @@ import dagger.Module;
 import jakarta.inject.Singleton;
 import nl.ulso.curator.CuratorFactory;
 import nl.ulso.curator.CuratorModule;
+import nl.ulso.curator.addon.journal.JournalSettings;
+import nl.ulso.curator.addon.project.ProjectSettings;
 import nl.ulso.curator.query.Query;
 import org.assertj.core.api.SoftAssertions;
 import org.assertj.core.api.junit.jupiter.InjectSoftAssertions;
@@ -35,7 +37,7 @@ class AlfredModuleTest
     @Singleton
     @Component(modules = ModuleStub.class)
     public interface FactoryStub
-            extends CuratorFactory
+        extends CuratorFactory
     {
         @Override
         default String name()
@@ -47,8 +49,8 @@ class AlfredModuleTest
     }
 
     @Module(includes = {
-            CuratorModule.class,
-            AlfredModule.class})
+        CuratorModule.class,
+        AlfredModule.class})
     static class ModuleStub
     {
         @Provides
@@ -58,9 +60,21 @@ class AlfredModuleTest
         }
 
         @Provides
-        public AlfredSettings provideAlfredSettings()
+        JournalSettings provideJournalSettings()
         {
-            return new AlfredSettings("Projects");
+            return new JournalSettings("Journal", "Markers", "Activities", "Projects");
+        }
+
+        @Provides
+        ProjectSettings provideProjectSettings()
+        {
+            return new ProjectSettings("Projects");
+        }
+
+        @Provides
+        static ExternalLinksQuerySettings provideExternalLinksQuerySettings()
+        {
+            return new ExternalLinksQuerySettings("Links", Set.of("🔗"));
         }
     }
 }

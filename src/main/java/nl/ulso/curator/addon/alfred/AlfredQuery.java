@@ -1,6 +1,7 @@
 package nl.ulso.curator.addon.alfred;
 
 import jakarta.inject.Inject;
+import nl.ulso.curator.addon.project.ProjectSettings;
 import nl.ulso.curator.change.Changelog;
 import nl.ulso.curator.query.*;
 
@@ -10,11 +11,11 @@ import java.util.*;
 final class AlfredQuery
     implements Query
 {
-    private final AlfredSettings settings;
+    private final ProjectSettings settings;
     private final QueryResultFactory queryResultFactory;
 
     @Inject
-    AlfredQuery(AlfredSettings settings, QueryResultFactory queryResultFactory)
+    AlfredQuery(ProjectSettings settings, QueryResultFactory queryResultFactory)
     {
         this.settings = settings;
         this.queryResultFactory = queryResultFactory;
@@ -51,7 +52,7 @@ final class AlfredQuery
             List.of("name", "value"),
             List.of(
                 Map.of("name", "projects",
-                    "value", settings.projectFolder()
+                    "value", settings.projectFolderName()
                 )
             )
         );

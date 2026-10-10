@@ -18,7 +18,7 @@ import static nl.ulso.curator.main.VaultTestSupport.initializeVault;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @ExtendWith(SoftAssertionsExtension.class)
-class JournalTest
+public class JournalTest
 {
     @ParameterizedTest
     @MethodSource("timelineEntries")
@@ -191,7 +191,7 @@ class JournalTest
         assertThat(journal.isMarkerDocument(project)).isFalse();
     }
 
-    static Journal createTestJournal(VaultStub vault)
+    public static Journal createTestJournal(VaultStub vault)
     {
         vault.addDocumentInPath("Projects/foo", "Project 'foo'");
         vault.addDocumentInPath("Projects/bar", "Project 'bar'");

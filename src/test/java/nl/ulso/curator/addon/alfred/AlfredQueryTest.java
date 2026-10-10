@@ -1,5 +1,6 @@
 package nl.ulso.curator.addon.alfred;
 
+import nl.ulso.curator.addon.project.ProjectSettings;
 import nl.ulso.curator.query.*;
 import org.assertj.core.api.junit.jupiter.SoftAssertionsExtension;
 import org.junit.jupiter.api.BeforeEach;
@@ -22,7 +23,7 @@ class AlfredQueryTest
     @BeforeEach
     void setUp()
     {
-        query = new AlfredQuery(new AlfredSettings("Projects"), createQueryResultFactory());
+        query = new AlfredQuery(new ProjectSettings("Projects"), createQueryResultFactory());
     }
 
     @Test
