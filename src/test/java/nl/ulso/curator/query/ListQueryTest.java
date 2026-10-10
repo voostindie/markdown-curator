@@ -1,6 +1,5 @@
-package nl.ulso.curator.query.builtin;
+package nl.ulso.curator.query;
 
-import nl.ulso.curator.query.*;
 import nl.ulso.curator.vault.VaultStub;
 import org.assertj.core.api.junit.jupiter.SoftAssertionsExtension;
 import org.junit.jupiter.api.Test;

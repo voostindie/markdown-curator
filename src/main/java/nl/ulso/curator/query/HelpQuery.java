@@ -1,21 +1,20 @@
-package nl.ulso.curator.query.builtin;
+package nl.ulso.curator.query;
 
 import jakarta.inject.Inject;
 import nl.ulso.curator.change.Changelog;
-import nl.ulso.curator.query.*;
 
 import java.util.Map;
 
 import static java.lang.System.lineSeparator;
 
-public final class HelpQuery
+final class HelpQuery
     implements Query
 {
     private final QueryCatalog catalog;
     private final QueryResultFactory resultFactory;
 
     @Inject
-    public HelpQuery(QueryCatalog catalog, QueryResultFactory resultFactory)
+    HelpQuery(QueryCatalog catalog, QueryResultFactory resultFactory)
     {
         this.catalog = catalog;
         this.resultFactory = resultFactory;

@@ -4,7 +4,7 @@ import jakarta.inject.Inject;
 
 import static java.lang.System.lineSeparator;
 
-public final class ErrorMarkdownFormatter
+final class ErrorMarkdownFormatter
     extends MarkdownFormatter
     implements QueryResultFormatter<ErrorResult>
 {

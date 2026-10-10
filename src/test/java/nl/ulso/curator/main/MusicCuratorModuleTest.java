@@ -65,7 +65,7 @@ class MusicCuratorModuleTest
     @Test
     void queryCatalog()
     {
-        softly.assertThat(queryCatalog.queries().size()).isEqualTo(16);
+        softly.assertThat(queryCatalog.queries().size()).isEqualTo(17);
         var dummy = queryCatalog.query("dummy");
         var result = dummy.run(emptyQueryBlock());
         var markdown = queryResultFormatterRegistry.format(result, MARKDOWN);

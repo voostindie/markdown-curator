@@ -11,7 +11,7 @@ final class UnorderedListJsonFormatter
     implements QueryResultFormatter<UnorderedListResult>
 {
     @Inject
-    public UnorderedListJsonFormatter()
+    UnorderedListJsonFormatter()
     {
     }
 

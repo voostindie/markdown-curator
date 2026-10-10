@@ -2,8 +2,6 @@ package nl.ulso.curator.query;
 
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
-import nl.ulso.curator.query.builtin.HelpQuery;
-import nl.ulso.curator.query.builtin.UnknownQuery;
 import org.slf4j.Logger;
 
 import java.util.*;

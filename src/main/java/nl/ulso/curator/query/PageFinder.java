@@ -1,4 +1,4 @@
-package nl.ulso.curator.query.builtin;
+package nl.ulso.curator.query;
 
 import nl.ulso.curator.vault.*;
 

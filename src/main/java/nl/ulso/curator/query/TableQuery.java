@@ -1,21 +1,20 @@
-package nl.ulso.curator.query.builtin;
+package nl.ulso.curator.query;
 
 import jakarta.inject.Inject;
-import nl.ulso.curator.query.*;
 import nl.ulso.curator.vault.Vault;
 
 import java.util.*;
 
 import static java.util.Collections.reverse;
 
-public final class TableQuery
+final class TableQuery
     extends FolderQuery
     implements Query
 {
     private final QueryResultFactory resultFactory;
 
     @Inject
-    public TableQuery(Vault vault, QueryResultFactory resultFactory)
+    TableQuery(Vault vault, QueryResultFactory resultFactory)
     {
         super(vault);
         this.resultFactory = resultFactory;

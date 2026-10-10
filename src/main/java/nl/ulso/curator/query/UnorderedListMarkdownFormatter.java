@@ -9,7 +9,7 @@ final class UnorderedListMarkdownFormatter
     implements QueryResultFormatter<UnorderedListResult>
 {
     @Inject
-    public UnorderedListMarkdownFormatter()
+    UnorderedListMarkdownFormatter()
     {
     }
 

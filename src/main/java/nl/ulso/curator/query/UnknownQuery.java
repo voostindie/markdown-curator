@@ -1,7 +1,6 @@
-package nl.ulso.curator.query.builtin;
+package nl.ulso.curator.query;
 
 import nl.ulso.curator.change.Changelog;
-import nl.ulso.curator.query.*;
 
 import java.util.Map;
 
@@ -9,14 +8,14 @@ import static java.lang.System.lineSeparator;
 import static java.util.Collections.emptyMap;
 import static java.util.Comparator.comparing;
 
-public final class UnknownQuery
+final class UnknownQuery
     implements Query
 {
     private final QueryCatalog catalog;
     private final String name;
     private final QueryResultFactory resultFactory;
 
-    public UnknownQuery(QueryCatalog catalog, String name, QueryResultFactory resultFactory)
+    UnknownQuery(QueryCatalog catalog, String name, QueryResultFactory resultFactory)
     {
         this.catalog = catalog;
         this.name = name;

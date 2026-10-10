@@ -1,8 +1,7 @@
-package nl.ulso.curator.query.builtin;
+package nl.ulso.curator.query;
 
 import nl.ulso.curator.change.Change;
 import nl.ulso.curator.change.Changelog;
-import nl.ulso.curator.query.QueryDefinition;
 import nl.ulso.curator.vault.*;
 
 import java.util.function.Predicate;

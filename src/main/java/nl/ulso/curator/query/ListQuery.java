@@ -1,7 +1,6 @@
-package nl.ulso.curator.query.builtin;
+package nl.ulso.curator.query;
 
 import jakarta.inject.Inject;
-import nl.ulso.curator.query.*;
 import nl.ulso.curator.vault.Document;
 import nl.ulso.curator.vault.Vault;
 
@@ -11,14 +10,14 @@ import java.util.Map;
 import static java.util.Collections.reverse;
 import static java.util.Comparator.comparing;
 
-public final class ListQuery
+final class ListQuery
     extends FolderQuery
     implements Query
 {
     private final QueryResultFactory resultFactory;
 
     @Inject
-    public ListQuery(Vault vault, QueryResultFactory resultFactory)
+    ListQuery(Vault vault, QueryResultFactory resultFactory)
     {
         super(vault);
         this.resultFactory = resultFactory;

@@ -3,7 +3,6 @@ package nl.ulso.curator.query;
 import dagger.Binds;
 import dagger.Module;
 import dagger.multibindings.IntoSet;
-import nl.ulso.curator.query.builtin.*;
 
 @Module
 public abstract class QueryModule
@@ -36,31 +35,45 @@ public abstract class QueryModule
 
     @Binds
     @IntoSet
-    abstract QueryResultFormatter<?> stringMarkdownFormatter(StringMarkdownFormatter formatter);
+    abstract Query bindListFolderContentQuery(ListFolderContentQuery query);
 
     @Binds
     @IntoSet
-    abstract QueryResultFormatter<?> stringJsonFormatter(StringJsonFormatter formatter);
+    abstract QueryResultFormatter<?> bindStringMarkdownFormatter(StringMarkdownFormatter formatter);
 
     @Binds
     @IntoSet
-    abstract QueryResultFormatter<?> errorMarkdownFormatter(ErrorMarkdownFormatter formatter);
+    abstract QueryResultFormatter<?> bindStringJsonFormatter(StringJsonFormatter formatter);
 
     @Binds
     @IntoSet
-    abstract QueryResultFormatter<?> tableMarkdownFormatter(TableMarkdownFormatter formatter);
+    abstract QueryResultFormatter<?> bindErrorMarkdownFormatter(ErrorMarkdownFormatter formatter);
 
     @Binds
     @IntoSet
-    abstract QueryResultFormatter<?> tableJsonFormatter(TableJsonFormatter formatter);
+    abstract QueryResultFormatter<?> bindErrorJsonFormatter(ErrorJsonFormatter formatter);
 
     @Binds
     @IntoSet
-    abstract QueryResultFormatter<?> unorderedListMarkdownFormatter(
+    abstract QueryResultFormatter<?> bindTableMarkdownFormatter(TableMarkdownFormatter formatter);
+
+    @Binds
+    @IntoSet
+    abstract QueryResultFormatter<?> bindTableJsonFormatter(TableJsonFormatter formatter);
+
+    @Binds
+    @IntoSet
+    abstract QueryResultFormatter<?> bindUnorderedListMarkdownFormatter(
         UnorderedListMarkdownFormatter formatter);
 
     @Binds
     @IntoSet
-    abstract QueryResultFormatter<?> unorderedListJsonFormatter(
+    abstract QueryResultFormatter<?> bindUnorderedListJsonFormatter(
         UnorderedListJsonFormatter formatter);
+
+    @Binds
+    @IntoSet
+    abstract QueryResultFormatter<?> bindFolderResultJsonFormatter(
+        FolderResultJsonFormatter formatter);
+
 }

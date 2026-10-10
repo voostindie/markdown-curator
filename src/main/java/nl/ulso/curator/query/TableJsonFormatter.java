@@ -11,7 +11,7 @@ final class TableJsonFormatter
     implements QueryResultFormatter<TableResult>
 {
     @Inject
-    public TableJsonFormatter()
+    TableJsonFormatter()
     {
     }
 

@@ -1,4 +1,4 @@
-package nl.ulso.curator.query.builtin;
+package nl.ulso.curator.query;
 
 import org.assertj.core.api.junit.jupiter.SoftAssertionsExtension;
 import org.junit.jupiter.api.Test;

@@ -1,8 +1,7 @@
-package nl.ulso.curator.query.builtin;
+package nl.ulso.curator.query;
 
 import jakarta.inject.Inject;
 import nl.ulso.curator.change.Changelog;
-import nl.ulso.curator.query.*;
 import nl.ulso.curator.vault.*;
 
 import java.util.*;
@@ -11,7 +10,7 @@ import static java.lang.System.lineSeparator;
 import static nl.ulso.curator.change.Change.isPayloadType;
 
 /// Generates a table of contents from the current document.
-public final class TableOfContentsQuery
+final class TableOfContentsQuery
     implements Query
 {
     private final QueryResultFactory factory;
