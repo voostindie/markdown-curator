@@ -9,7 +9,12 @@ public class QueryTestModule
 {
     public static QueryCatalog createEmptyCatalog()
     {
-        return new DefaultQueryCatalog(emptySet(), new DefaultQueryResultFactory());
+        return createQueryCatalog(emptySet());
+    }
+
+    public static QueryCatalog createQueryCatalog(Set<Query> queries)
+    {
+        return new DefaultQueryCatalog(queries, new DefaultQueryResultFactory());
     }
 
     public static QueryResultFactory createQueryResultFactory()
@@ -24,12 +29,22 @@ public class QueryTestModule
 
     public static QueryResultFormatterRegistry createQueryResultFormatterRegistry()
     {
-        Set<QueryResultFormatter<?>> formatters = Set.of(
+        return createQueryResultFormatterRegistry(Set.of(
             new ErrorMarkdownFormatter(),
+            new ErrorJsonFormatter(),
             new StringMarkdownFormatter(),
+            new StringJsonFormatter(),
             new TableMarkdownFormatter(),
-            new UnorderedListMarkdownFormatter()
-        );
+            new TableJsonFormatter(),
+            new UnorderedListMarkdownFormatter(),
+            new UnorderedListJsonFormatter(),
+            new FolderResultJsonFormatter()
+        ));
+    }
+
+    public static QueryResultFormatterRegistry createQueryResultFormatterRegistry(
+        Set<QueryResultFormatter<?>> formatters)
+    {
         return new DefaultQueryResultFormatterRegistry(formatters);
     }
 }

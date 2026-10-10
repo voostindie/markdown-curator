@@ -31,6 +31,7 @@ import static org.slf4j.LoggerFactory.getLogger;
 final class DefaultQueryOrchestrator
     implements QueryOrchestrator
 {
+    private static final String FORMAT_OVERRIDE_PROPERTY = "_format";
     private static final Logger LOGGER = getLogger(DefaultQueryOrchestrator.class);
 
     private final Vault vault;
@@ -213,7 +214,7 @@ final class DefaultQueryOrchestrator
                     );
                     return;
                 }
-                var output = queryResultFormatterRegistry.format(result, MARKDOWN);
+                var output = formatResult(queryBlock, result);
                 var hash = shortHashOf(output);
                 var isChanged = !queryBlock.outputHash().contentEquals(hash);
                 writeQueue.add(new QueryOutput(queryBlock, output, hash, isChanged));
@@ -221,6 +222,31 @@ final class DefaultQueryOrchestrator
         );
         LOGGER.info("Executed {} queries in {}ms.", queryBlocks.size(), duration);
         return writeQueue;
+    }
+
+    private String formatResult(QueryBlock queryBlock, QueryResult result)
+    {
+        var format = resolveOutputFormat(queryBlock);
+        var output = queryResultFormatterRegistry.format(result, format);
+        if (format != MARKDOWN)
+        {
+            output = "```" + format.name() + "\n" + output + "\n```";
+        }
+        return output;
+    }
+
+    private OutputFormat resolveOutputFormat(QueryDefinition queryDefinition)
+    {
+        var format = queryDefinition.configuration().string(FORMAT_OVERRIDE_PROPERTY, null);
+        if (format == null)
+        {
+            return MARKDOWN;
+        }
+        return outputFormats().stream()
+            .filter(outputFormat -> outputFormat.name().equalsIgnoreCase(format))
+            .findFirst()
+            .orElse(MARKDOWN);
+
     }
 
     private List<QueryBlock> findAllQueryBlocksIn(Set<Document> documents)
