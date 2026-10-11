@@ -26,14 +26,14 @@ class QueryResultTest
     void empty()
     {
         var empty = (EmptyResult) factory.empty();
-        assertThat(empty.outputMessage()).isEqualTo("No results");
+        assertThat(empty).isNotNull();
     }
 
     @Test
     void tableNoResults()
     {
-        var table = (EmptyResult) factory.table(List.of("1", "2"), emptyList());
-        assertThat(table.outputMessage()).isEqualTo("No results");
+        var table = factory.table(List.of("1", "2"), emptyList());
+        assertThat(table).isInstanceOf(EmptyResult.class);
     }
 
     @Test
@@ -100,8 +100,8 @@ class QueryResultTest
     @Test
     void listNoResults()
     {
-        var list = (EmptyResult) factory.unorderedList(emptyList());
-        assertThat(list.outputMessage()).isEqualTo("No results");
+        var list = factory.unorderedList(emptyList());
+        assertThat(list).isInstanceOf(EmptyResult.class);
     }
 
     @Test

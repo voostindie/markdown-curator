@@ -4,6 +4,7 @@ import java.util.Locale;
 import java.util.Set;
 
 import static java.util.Collections.emptySet;
+import static java.util.Locale.ENGLISH;
 
 public class QueryTestModule
 {
@@ -30,6 +31,8 @@ public class QueryTestModule
     public static QueryResultFormatterRegistry createQueryResultFormatterRegistry()
     {
         return createQueryResultFormatterRegistry(Set.of(
+            new EmptyMarkdownFormatter(new ResourceBundleGeneralMessages(ENGLISH)),
+            new EmptyJsonFormatter(),
             new ErrorMarkdownFormatter(),
             new ErrorJsonFormatter(),
             new StringMarkdownFormatter(),

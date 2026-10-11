@@ -98,7 +98,7 @@ class ExternalLinksQueryTest
         assertThat(markdownOutput).isEqualTo("No results");
 
         var jsonOutput = formatterRegistry.format(result, JSON);
-        assertThat(jsonOutput).isEqualTo("{\"value\":\"No results\"}");
+        assertThat(jsonOutput).isEqualTo("{\"items\":[]}");
     }
 
     @Test

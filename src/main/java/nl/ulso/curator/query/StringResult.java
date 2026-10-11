@@ -1,17 +1,6 @@
 package nl.ulso.curator.query;
 
-class StringResult
+record StringResult(String outputMessage)
     implements QueryResult
 {
-    private final String outputMessage;
-
-    StringResult(String outputMessage)
-    {
-        this.outputMessage = outputMessage;
-    }
-
-    String outputMessage()
-    {
-        return outputMessage;
-    }
 }

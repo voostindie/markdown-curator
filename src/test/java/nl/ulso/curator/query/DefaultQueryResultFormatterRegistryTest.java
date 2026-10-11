@@ -5,6 +5,7 @@ import org.junit.jupiter.api.Test;
 
 import java.util.Set;
 
+import static java.util.Locale.ENGLISH;
 import static nl.ulso.curator.query.OutputFormat.MARKDOWN;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -19,7 +20,8 @@ class DefaultQueryResultFormatterRegistryTest
             new StringMarkdownFormatter(),
             new UnorderedListMarkdownFormatter(),
             new TableMarkdownFormatter(),
-            new ErrorMarkdownFormatter()
+            new ErrorMarkdownFormatter(),
+            new EmptyMarkdownFormatter(new ResourceBundleGeneralMessages(ENGLISH))
         );
         registry = new DefaultQueryResultFormatterRegistry(formatters);
     }
@@ -66,10 +68,10 @@ class DefaultQueryResultFormatterRegistryTest
     void emptyResult()
     {
         var output = registry.format(
-            new EmptyResult("empty"),
+            new EmptyResult(),
             MARKDOWN
         );
-        assertThat(output).contains("empty");
+        assertThat(output).contains("No results");
     }
 
     @Test

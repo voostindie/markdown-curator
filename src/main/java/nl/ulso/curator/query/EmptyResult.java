@@ -1,10 +1,6 @@
 package nl.ulso.curator.query;
 
-final class EmptyResult
-    extends StringResult
+record EmptyResult()
+    implements QueryResult
 {
-    EmptyResult(String message)
-    {
-        super(message);
-    }
 }

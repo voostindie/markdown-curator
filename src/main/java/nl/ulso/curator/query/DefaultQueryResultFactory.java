@@ -6,20 +6,12 @@ import java.util.*;
 
 import static java.util.Collections.unmodifiableList;
 
-class DefaultQueryResultFactory
+final class DefaultQueryResultFactory
     implements QueryResultFactory
 {
-    private final GeneralMessages messages;
-
-    public DefaultQueryResultFactory()
-    {
-        this(new ResourceBundleGeneralMessages());
-    }
-
     @Inject
-    public DefaultQueryResultFactory(GeneralMessages messages)
+    DefaultQueryResultFactory()
     {
-        this.messages = messages;
     }
 
     @Override
@@ -35,7 +27,7 @@ class DefaultQueryResultFactory
     @Override
     public QueryResult empty()
     {
-        return new EmptyResult(messages.noResults());
+        return new EmptyResult();
     }
 
     @Override

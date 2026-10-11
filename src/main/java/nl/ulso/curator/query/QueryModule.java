@@ -39,6 +39,14 @@ public abstract class QueryModule
 
     @Binds
     @IntoSet
+    abstract QueryResultFormatter<?> bindEmptyMarkdownFormatter(EmptyMarkdownFormatter formatter);
+
+    @Binds
+    @IntoSet
+    abstract QueryResultFormatter<?> bindEmptyJsonFormatter(EmptyJsonFormatter formatter);
+
+    @Binds
+    @IntoSet
     abstract QueryResultFormatter<?> bindStringMarkdownFormatter(StringMarkdownFormatter formatter);
 
     @Binds
@@ -75,5 +83,4 @@ public abstract class QueryModule
     @IntoSet
     abstract QueryResultFormatter<?> bindFolderResultJsonFormatter(
         FolderResultJsonFormatter formatter);
-
 }
