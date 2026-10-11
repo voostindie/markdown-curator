@@ -70,11 +70,5 @@ class AlfredModuleTest
         {
             return new ProjectSettings("Projects");
         }
-
-        @Provides
-        static ExternalLinksQuerySettings provideExternalLinksQuerySettings()
-        {
-            return new ExternalLinksQuerySettings("Links", Set.of("🔗"));
-        }
     }
 }

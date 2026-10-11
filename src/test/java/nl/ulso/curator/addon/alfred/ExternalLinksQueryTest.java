@@ -42,22 +42,22 @@ class ExternalLinksQueryTest
     @Test
     void name()
     {
-        var query = createQuery(new ExternalLinksQuerySettings("Links", Set.of("🔗")));
+        var query = createQuery(null);
         assertThat(query.name()).isEqualTo("links");
     }
 
     @Test
     void description()
     {
-        var query = createQuery(new ExternalLinksQuerySettings("Links", Set.of("🔗")));
+        var query = createQuery(null);
         assertThat(query.description()).isEqualTo(
-            "Gathers all external links for a document, for use in the HTTP server only");
+            "Gathers all external links for a document, for use in the HTTP server only.");
     }
 
     @Test
     void supportedConfiguration()
     {
-        var query = createQuery(new ExternalLinksQuerySettings("Links", Set.of("🔗")));
+        var query = createQuery(null);
         assertThat(query.supportedConfiguration())
             .containsExactlyEntriesOf(Map.of("document", "Document to gather links for."));
     }
@@ -65,14 +65,14 @@ class ExternalLinksQueryTest
     @Test
     void isImpactedBy()
     {
-        var query = createQuery(new ExternalLinksQuerySettings("Links", Set.of("🔗")));
+        var query = createQuery(null);
         assertThat(query.isImpactedBy(emptyChangelog(), null)).isFalse();
     }
 
     @Test
     void missingDocumentConfigurationReturnsError()
     {
-        var query = createQuery(new ExternalLinksQuerySettings("Links", Set.of("🔗")));
+        var query = createQuery(null);
         var definition = new QueryDefinitionStub(query, null);
         var result = query.run(definition);
 
@@ -87,9 +87,9 @@ class ExternalLinksQueryTest
     }
 
     @Test
-    void documentNotFoundReturnsEmptyTable()
+    void documentNotFoundReturnsEmptyResult()
     {
-        var query = createQuery(new ExternalLinksQuerySettings("Links", Set.of("🔗")));
+        var query = createQuery(null);
         var definition = new QueryDefinitionStub(query, null)
             .withConfiguration("document", "NonExistentDoc");
         var result = query.run(definition);
@@ -120,7 +120,7 @@ class ExternalLinksQueryTest
             """
         );
 
-        var query = createQuery(new ExternalLinksQuerySettings("Links", emptySet()));
+        var query = createQuery(null);
         var definition = new QueryDefinitionStub(query, null)
             .withConfiguration("document", "Alpha");
         var result = query.run(definition);
@@ -153,7 +153,7 @@ class ExternalLinksQueryTest
             """
         );
 
-        var query = createQuery(new ExternalLinksQuerySettings("Links", emptySet()));
+        var query = createQuery(null);
         var definition = new QueryDefinitionStub(query, null)
             .withConfiguration("document", "Beta");
         var result = query.run(definition);
@@ -169,7 +169,38 @@ class ExternalLinksQueryTest
     }
 
     @Test
-    void ignoresSubsectionsUnderLinksSection()
+    void matchesCustomDocumentSectionName()
+    {
+        vault.addDocumentInPath("Projects/Custom", """
+            # Project Custom
+            
+            ## External
+            
+            - [CustomLink](https://custom.com)
+            
+            ## Links
+            
+            - [DefaultLink](https://default.com)
+            """
+        );
+
+        var query = createQuery("External");
+        var definition = new QueryDefinitionStub(query, null)
+            .withConfiguration("document", "Custom");
+        var result = query.run(definition);
+
+        var markdownOutput = formatterRegistry.format(result, MARKDOWN);
+        assertThat(markdownOutput).isEqualTo("""
+            
+            | Name       | Url |
+            | ---------- | --- |
+            | CustomLink | https://custom.com |
+            
+            """);
+    }
+
+    @Test
+    void collectsLinksFromSubsectionsUnderLinksSection()
     {
         vault.addDocumentInPath("Projects/Gamma", """
             # Project Gamma
@@ -184,7 +215,7 @@ class ExternalLinksQueryTest
             """
         );
 
-        var query = createQuery(new ExternalLinksQuerySettings("Links", emptySet()));
+        var query = createQuery(null);
         var definition = new QueryDefinitionStub(query, null)
             .withConfiguration("document", "Gamma");
         var result = query.run(definition);
@@ -192,9 +223,10 @@ class ExternalLinksQueryTest
         var markdownOutput = formatterRegistry.format(result, MARKDOWN);
         assertThat(markdownOutput).isEqualTo("""
             
-            | Name  | Url |
-            | ----- | --- |
-            | Valid | https://valid.com |
+            | Name   | Url |
+            | ------ | --- |
+            | Valid  | https://valid.com |
+            | Nested | https://nested.com |
             
             """);
     }
@@ -211,7 +243,7 @@ class ExternalLinksQueryTest
             """
         );
 
-        var query = createQuery(new ExternalLinksQuerySettings("Links", emptySet()));
+        var query = createQuery(null);
         var definition = new QueryDefinitionStub(query, null)
             .withConfiguration("document", "Delta");
         var result = query.run(definition);
@@ -228,46 +260,28 @@ class ExternalLinksQueryTest
     }
 
     @Test
-    void nullDocumentSectionNameDisablesDocumentExtraction()
-    {
-        vault.addDocumentInPath("Projects/Epsilon", """
-            # Project Epsilon
-            
-            ## Links
-            
-            - [Google](https://google.com)
-            """
-        );
-
-        var query = createQuery(new ExternalLinksQuerySettings(null, emptySet()));
-        var definition = new QueryDefinitionStub(query, null)
-            .withConfiguration("document", "Epsilon");
-        var result = query.run(definition);
-
-        var markdownOutput = formatterRegistry.format(result, MARKDOWN);
-        assertThat(markdownOutput).isEqualTo("No results");
-    }
-
-    @Test
     void collectsLinksFromJournalMarkers()
     {
-        var stubJournal = new StubJournal(Map.of(
-            "Zeta", Map.of(
-                "🔗", List.of(
-                    new MarkedLine(LocalDate.of(2024, 1, 1),
-                        "- [Alfred](https://www.alfredapp.com)"
-                    ),
-                    new MarkedLine(LocalDate.of(2024, 1, 2), "- [Docs](https://docs.alfredapp.com)")
+        var stubJournal = new StubJournal(
+            Map.of(
+                "Zeta", Map.of(
+                    "🔗", List.of(
+                        new MarkedLine(LocalDate.of(2024, 1, 1),
+                            "- [Alfred](https://www.alfredapp.com)"
+                        ),
+                        new MarkedLine(LocalDate.of(2024, 1, 2), "- [Docs](https://docs.alfredapp.com)")
+                    )
                 )
-            )
-        ));
+            ),
+            Map.of("🔗", createMarker("🔗", true))
+        );
 
         vault.addDocumentInPath("Projects/Zeta", "# Project Zeta");
 
         var query = new ExternalLinksQuery(
             vault,
             stubJournal,
-            new ExternalLinksQuerySettings(null, Set.of("🔗")),
+            Optional.empty(),
             createQueryResultFactory()
         );
         var definition = new QueryDefinitionStub(query, null)
@@ -288,23 +302,29 @@ class ExternalLinksQueryTest
     @Test
     void ignoresNonConfiguredJournalMarkers()
     {
-        var stubJournal = new StubJournal(Map.of(
-            "Eta", Map.of(
-                "🔗", List.of(
-                    new MarkedLine(LocalDate.of(2024, 1, 1), "- [Valid](https://valid.com)")
-                ),
-                "❗️", List.of(
-                    new MarkedLine(LocalDate.of(2024, 1, 1), "- [Ignored](https://ignored.com)")
+        var stubJournal = new StubJournal(
+            Map.of(
+                "Eta", Map.of(
+                    "🔗", List.of(
+                        new MarkedLine(LocalDate.of(2024, 1, 1), "- [Valid](https://valid.com)")
+                    ),
+                    "❗️", List.of(
+                        new MarkedLine(LocalDate.of(2024, 1, 1), "- [Ignored](https://ignored.com)")
+                    )
                 )
+            ),
+            Map.of(
+                "🔗", createMarker("🔗", true),
+                "❗️", createMarker("❗️", false)
             )
-        ));
+        );
 
         vault.addDocumentInPath("Projects/Eta", "# Project Eta");
 
         var query = new ExternalLinksQuery(
             vault,
             stubJournal,
-            new ExternalLinksQuerySettings(null, Set.of("🔗")),
+            Optional.empty(),
             createQueryResultFactory()
         );
         var definition = new QueryDefinitionStub(query, null)
@@ -322,51 +342,48 @@ class ExternalLinksQueryTest
     }
 
     @Test
-    void nullOrEmptyJournalMarkersDisablesJournalExtraction()
+    void noExportLinksMarkersDisablesJournalExtraction()
     {
-        var stubJournal = new StubJournal(Map.of(
-            "Theta", Map.of(
-                "🔗", List.of(
-                    new MarkedLine(LocalDate.of(2024, 1, 1), "- [Valid](https://valid.com)")
+        var stubJournal = new StubJournal(
+            Map.of(
+                "Theta", Map.of(
+                    "🔗", List.of(
+                        new MarkedLine(LocalDate.of(2024, 1, 1), "- [Valid](https://valid.com)")
+                    )
                 )
-            )
-        ));
+            ),
+            Map.of("🔗", createMarker("🔗", false))
+        );
 
         vault.addDocumentInPath("Projects/Theta", "# Project Theta");
 
-        var queryWithNull = new ExternalLinksQuery(
+        var query = new ExternalLinksQuery(
             vault,
             stubJournal,
-            new ExternalLinksQuerySettings(null, null),
+            Optional.empty(),
             createQueryResultFactory()
         );
-        var definition = new QueryDefinitionStub(queryWithNull, null)
+        var definition = new QueryDefinitionStub(query, null)
             .withConfiguration("document", "Theta");
-        var resultWithNull = queryWithNull.run(definition);
-        assertThat(formatterRegistry.format(resultWithNull, MARKDOWN)).isEqualTo("No results");
-
-        var queryWithEmpty = new ExternalLinksQuery(
-            vault,
-            stubJournal,
-            new ExternalLinksQuerySettings(null, emptySet()),
-            createQueryResultFactory()
-        );
-        var resultWithEmpty = queryWithEmpty.run(definition);
-        assertThat(formatterRegistry.format(resultWithEmpty, MARKDOWN)).isEqualTo("No results");
+        var result = query.run(definition);
+        assertThat(formatterRegistry.format(result, MARKDOWN)).isEqualTo("No results");
     }
 
     @Test
     void combinesDocumentAndJournalLinksInOrder()
     {
-        var stubJournal = new StubJournal(Map.of(
-            "Iota", Map.of(
-                "🔗", List.of(
-                    new MarkedLine(LocalDate.of(2024, 1, 1),
-                        "- [Journal Link](https://journal.example.com)"
+        var stubJournal = new StubJournal(
+            Map.of(
+                "Iota", Map.of(
+                    "🔗", List.of(
+                        new MarkedLine(LocalDate.of(2024, 1, 1),
+                            "- [Journal Link](https://journal.example.com)"
+                        )
                     )
                 )
-            )
-        ));
+            ),
+            Map.of("🔗", createMarker("🔗", true))
+        );
 
         vault.addDocumentInPath("Projects/Iota", """
             # Project Iota
@@ -380,7 +397,7 @@ class ExternalLinksQueryTest
         var query = new ExternalLinksQuery(
             vault,
             stubJournal,
-            new ExternalLinksQuerySettings("Links", Set.of("🔗")),
+            Optional.empty(),
             createQueryResultFactory()
         );
         var definition = new QueryDefinitionStub(query, null)
@@ -398,19 +415,41 @@ class ExternalLinksQueryTest
             """);
     }
 
-    private ExternalLinksQuery createQuery(ExternalLinksQuerySettings settings)
+    private ExternalLinksQuery createQuery(String documentLinkSectionName)
     {
-        return new ExternalLinksQuery(vault, journal, settings, createQueryResultFactory());
+        return new ExternalLinksQuery(vault, journal, Optional.ofNullable(documentLinkSectionName),
+            createQueryResultFactory()
+        );
+    }
+
+    private static Marker createMarker(String name, boolean exportLinks)
+    {
+        var document = new VaultStub().addDocument(name, """
+            ---
+            export-links: %s
+            ---
+            """.formatted(exportLinks));
+        return new Marker(document);
     }
 
     private static class StubJournal
         implements Journal
     {
         private final Map<String, Map<String, List<MarkedLine>>> documentMarkedLines;
+        private final Map<String, Marker> markers;
 
-        StubJournal(Map<String, Map<String, List<MarkedLine>>> documentMarkedLines)
+        StubJournal(
+            Map<String, Map<String, List<MarkedLine>>> documentMarkedLines,
+            Map<String, Marker> markers)
         {
             this.documentMarkedLines = documentMarkedLines;
+            this.markers = markers;
+        }
+
+        @Override
+        public Map<String, Marker> markers()
+        {
+            return markers;
         }
 
         @Override
@@ -418,7 +457,7 @@ class ExternalLinksQueryTest
             String documentName, Set<String> markerNames)
         {
             var markedLines = documentMarkedLines.getOrDefault(documentName, emptyMap());
-            var result = new java.util.HashMap<String, List<MarkedLine>>();
+            var result = new HashMap<String, List<MarkedLine>>();
             for (String marker : markerNames)
             {
                 if (markedLines.containsKey(marker))
@@ -450,7 +489,7 @@ class ExternalLinksQueryTest
         @Override
         public Stream<Daily> dailiesInPeriod(LocalDate start, LocalDate end)
         {
-            return java.util.stream.Stream.empty();
+            return Stream.empty();
         }
 
         @Override
@@ -468,7 +507,7 @@ class ExternalLinksQueryTest
         @Override
         public Stream<Daily> dailiesFor(String documentName)
         {
-            return java.util.stream.Stream.empty();
+            return Stream.empty();
         }
 
         @Override
@@ -504,7 +543,7 @@ class ExternalLinksQueryTest
         @Override
         public Stream<Daily> dailiesForWeek(Weekly weekly)
         {
-            return java.util.stream.Stream.empty();
+            return Stream.empty();
         }
 
         @Override
@@ -526,12 +565,6 @@ class ExternalLinksQueryTest
         }
 
         @Override
-        public Map<String, Marker> markers()
-        {
-            return emptyMap();
-        }
-
-        @Override
         public Dictionary markerSettings(String markerName)
         {
             return null;
@@ -545,18 +578,16 @@ class ExternalLinksQueryTest
 
         @Override
         public Map<String, List<MarkedLine>> markedLinesFor(
-            String documentName,
-            Set<String> markerNames, boolean removeMarkers)
+            String documentName, Set<String> markerNames, boolean removeMarkers)
         {
             return markedLinesFor(documentName, markerNames);
         }
 
         @Override
         public Map<String, List<MarkedLine>> markedLinesFor(
-            String documentName,
-            Set<String> markerNames, LocalDate date)
+            String documentName, Set<String> markerNames, LocalDate date)
         {
-            return emptyMap();
+            return markedLinesFor(documentName, markerNames);
         }
     }
 }
