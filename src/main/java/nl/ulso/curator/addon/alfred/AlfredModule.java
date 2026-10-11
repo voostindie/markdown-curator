@@ -9,8 +9,8 @@ import nl.ulso.curator.query.Query;
 
 /// Simple module that exposes curator settings for use in the separate Alfred workflow
 ///
-/// See the [Alfred Markdown Curator]()https://github.com/voostindie/alfred-markdown-curator) for
-/// more information.
+/// See the [Alfred Markdown
+/// Curator]()https://github.com/voostindie/alfred-markdown-curator-workflow) for more information.
 @Module(includes = ProjectJournalModule.class)
 public abstract class AlfredModule
 {
