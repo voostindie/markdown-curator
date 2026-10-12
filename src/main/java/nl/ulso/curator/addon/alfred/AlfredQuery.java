@@ -1,7 +1,6 @@
 package nl.ulso.curator.addon.alfred;
 
 import jakarta.inject.Inject;
-import nl.ulso.curator.addon.project.ProjectSettings;
 import nl.ulso.curator.change.Changelog;
 import nl.ulso.curator.query.*;
 
@@ -11,11 +10,11 @@ import java.util.*;
 final class AlfredQuery
     implements Query
 {
-    private final ProjectSettings settings;
+    private final AlfredSettings settings;
     private final QueryResultFactory queryResultFactory;
 
     @Inject
-    AlfredQuery(ProjectSettings settings, QueryResultFactory queryResultFactory)
+    AlfredQuery(AlfredSettings settings, QueryResultFactory queryResultFactory)
     {
         this.settings = settings;
         this.queryResultFactory = queryResultFactory;
@@ -48,13 +47,25 @@ final class AlfredQuery
     @Override
     public QueryResult run(QueryDefinition definition)
     {
+        var features = new ArrayList<Map<String, String>>();
+        settings.projectsPath().ifPresent(path -> features.add(
+            Map.of("name", "projects", "value", path)
+        ));
+        settings.contactsPath().ifPresent(path -> features.add(
+            Map.of("name", "contacts", "value", path)
+        ));
+        settings.teamsPath().ifPresent(path -> features.add(
+            Map.of("name", "teams", "value", path)
+        ));
+        settings.thirdPartiesPath().ifPresent(path -> features.add(
+            Map.of("name", "third-parties", "value", path)
+        ));
+        settings.remindersPath().ifPresent(path -> features.add(
+            Map.of("name", "reminders", "value", path)
+        ));
         return queryResultFactory.table(
             List.of("name", "value"),
-            List.of(
-                Map.of("name", "projects",
-                    "value", settings.projectFolderName()
-                )
-            )
+            features
         );
     }
 }

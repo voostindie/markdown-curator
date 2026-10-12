@@ -11,6 +11,9 @@ import nl.ulso.curator.query.Query;
 ///
 /// See the [Alfred Markdown
 /// Curator]()https://github.com/voostindie/alfred-markdown-curator-workflow) for more information.
+///
+/// This module has an unsatisfied dependency of type [AlfredSettings]. Provide this in your own
+/// module.
 @Module(includes = ProjectJournalModule.class)
 public abstract class AlfredModule
 {

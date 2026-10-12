@@ -1,11 +1,12 @@
 package nl.ulso.curator.addon.alfred;
 
-import nl.ulso.curator.addon.project.ProjectSettings;
 import nl.ulso.curator.query.*;
 import org.assertj.core.api.junit.jupiter.SoftAssertionsExtension;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+
+import java.util.Optional;
 
 import static nl.ulso.curator.change.Changelog.emptyChangelog;
 import static nl.ulso.curator.query.OutputFormat.JSON;
@@ -23,7 +24,15 @@ class AlfredQueryTest
     @BeforeEach
     void setUp()
     {
-        query = new AlfredQuery(new ProjectSettings("Projects"), createQueryResultFactory());
+        query = new AlfredQuery(
+            new AlfredSettings(
+                Optional.of("Projects"),
+                Optional.empty(),
+                Optional.empty(),
+                Optional.empty(),
+                Optional.empty()
+            ), createQueryResultFactory()
+        );
     }
 
     @Test
@@ -57,11 +66,11 @@ class AlfredQueryTest
         var result = query.run(definition);
         var output = formatterRegistry.format(result, MARKDOWN);
         assertThat(output).isEqualTo("""
-
+            
             | Name     | Value |
             | -------- | ----- |
             | projects | Projects |
-
+            
             """);
     }
 
