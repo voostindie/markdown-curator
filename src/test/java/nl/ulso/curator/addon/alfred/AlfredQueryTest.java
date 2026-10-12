@@ -6,8 +6,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
-import java.util.Optional;
-
 import static nl.ulso.curator.change.Changelog.emptyChangelog;
 import static nl.ulso.curator.query.OutputFormat.JSON;
 import static nl.ulso.curator.query.OutputFormat.MARKDOWN;
@@ -25,13 +23,7 @@ class AlfredQueryTest
     void setUp()
     {
         query = new AlfredQuery(
-            new AlfredSettings(
-                Optional.of("Projects"),
-                Optional.empty(),
-                Optional.empty(),
-                Optional.empty(),
-                Optional.empty()
-            ), createQueryResultFactory()
+            AlfredSettings.builder().projectsPath("Projects").build(), createQueryResultFactory()
         );
     }
 

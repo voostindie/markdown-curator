@@ -48,24 +48,23 @@ final class AlfredQuery
     public QueryResult run(QueryDefinition definition)
     {
         var features = new ArrayList<Map<String, String>>();
-        settings.projectsPath().ifPresent(path -> features.add(
-            Map.of("name", "projects", "value", path)
-        ));
-        settings.contactsPath().ifPresent(path -> features.add(
-            Map.of("name", "contacts", "value", path)
-        ));
-        settings.teamsPath().ifPresent(path -> features.add(
-            Map.of("name", "teams", "value", path)
-        ));
-        settings.thirdPartiesPath().ifPresent(path -> features.add(
-            Map.of("name", "third-parties", "value", path)
-        ));
-        settings.remindersPath().ifPresent(path -> features.add(
-            Map.of("name", "reminders", "value", path)
-        ));
+        addTo(features, "contacts", settings.contactsPath());
+        addTo(features, "teams", settings.teamsPath());
+        addTo(features, "third-parties", settings.thirdPartiesPath());
+        addTo(features, "projects", settings.projectsPath());
+        addTo(features, "reminders", settings.remindersPath());
+        addTo(features, "systems", settings.systemsPath());
         return queryResultFactory.table(
             List.of("name", "value"),
             features
         );
+    }
+
+    private void addTo(ArrayList<Map<String, String>> features, String name, String value)
+    {
+        if (value != null)
+        {
+            features.add(Map.of("name", name, "value", value));
+        }
     }
 }

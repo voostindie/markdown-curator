@@ -16,7 +16,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Optional;
 import java.util.Set;
 
 @ExtendWith(SoftAssertionsExtension.class)
@@ -80,13 +79,9 @@ class AlfredModuleTest
         @Provides
         static AlfredSettings provideAlfredSettings()
         {
-            return new AlfredSettings(
-                Optional.of("Projects"),
-                Optional.empty(),
-                Optional.empty(),
-                Optional.empty(),
-                Optional.empty()
-            );
+            return AlfredSettings.builder()
+                .projectsPath("Projects")
+                .build();
         }
     }
 }
