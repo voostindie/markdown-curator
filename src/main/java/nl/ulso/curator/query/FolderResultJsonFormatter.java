@@ -35,6 +35,7 @@ final class FolderResultJsonFormatter
                 result.documentPathResolver().resolveAbsolutePath(document).toString()
             );
             documentBuilder.add("last_modified", createValue(document.lastModified()));
+            documentBuilder.add("sortable_title", createValue(document.sortableTitle()));
             documentBuilder.add("properties", jsonObjectFor(document.frontMatter()));
             documentListBuilder.add(documentBuilder);
         });

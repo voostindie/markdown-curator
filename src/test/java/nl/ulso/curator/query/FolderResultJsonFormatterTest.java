@@ -54,7 +54,7 @@ class FolderResultJsonFormatterTest
         var result = new FolderResult(folder, pathResolver);
         var json = formatter.format(result);
         assertThat(json).isEqualTo("""
-            {"documents":[{"name":"Doc1","path":"/vault/Doc1.md","last_modified":0,"properties":{}}],"folders":[]}""");
+            {"documents":[{"name":"Doc1","path":"/vault/Doc1.md","last_modified":0,"sortable_title":"Content","properties":{}}],"folders":[]}""");
     }
 
     @Test
@@ -77,7 +77,7 @@ class FolderResultJsonFormatterTest
         var result = new FolderResult(folder, pathResolver);
         var json = formatter.format(result);
         assertThat(json).isEqualTo("""
-            {"documents":[{"name":"Doc1","path":"/vault/Doc1.md","last_modified":0,"properties":{"active":true,"link":"Target Page","rating":5,"tags":["tag1","tag2"],"title":"Document Title"}}],"folders":[]}""");
+            {"documents":[{"name":"Doc1","path":"/vault/Doc1.md","last_modified":0,"sortable_title":"Content","properties":{"active":true,"link":"Target Page","rating":5,"tags":["tag1","tag2"],"title":"Document Title"}}],"folders":[]}""");
     }
 
     @Test
@@ -90,6 +90,6 @@ class FolderResultJsonFormatterTest
         var json = formatter.format(result);
         assertThat(json).isEqualTo("""
             {"documents":[{"name":"Doc1","path":"/vault/Doc1.md","last_modified":0,\
-            "properties":{}}],"folders":["Sub1"]}""");
+            "sortable_title":"Just content","properties":{}}],"folders":["Sub1"]}""");
     }
 }
