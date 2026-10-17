@@ -1,6 +1,11 @@
 package nl.ulso.curator.query;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
+
+import java.util.stream.Stream;
 
 import static nl.ulso.curator.query.OutputFormat.JSON;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -21,27 +26,21 @@ class StringJsonFormatterTest
         assertThat(formatter.outputFormat()).isEqualTo(JSON);
     }
 
-    @Test
-    void formatString()
+    @ParameterizedTest
+    @MethodSource("stringResults")
+    void formatString(String input, String expectedJson)
     {
-        var result = new StringResult("Hello, world!");
+        var result = new StringResult(input);
         var json = formatter.format(result);
-        assertThat(json).isEqualTo("{\"value\":\"Hello, world!\"}");
+        assertThat(json).isEqualTo(expectedJson);
     }
 
-    @Test
-    void formatEmptyString()
+    private static Stream<Arguments> stringResults()
     {
-        var result = new StringResult("");
-        var json = formatter.format(result);
-        assertThat(json).isEqualTo("{\"value\":\"\"}");
-    }
-
-    @Test
-    void formatSpecialCharacters()
-    {
-        var result = new StringResult("Line 1\nLine 2\t\"quoted\"");
-        var json = formatter.format(result);
-        assertThat(json).isEqualTo("{\"value\":\"Line 1\\nLine 2\\t\\\"quoted\\\"\"}");
+        return Stream.of(
+            Arguments.of("Hello, world!", "{\"value\":\"Hello, world!\"}"),
+            Arguments.of("", "{\"value\":\"\"}"),
+            Arguments.of("Line 1\nLine 2\t\"quoted\"", "{\"value\":\"Line 1\\nLine 2\\t\\\"quoted\\\"\"}")
+        );
     }
 }

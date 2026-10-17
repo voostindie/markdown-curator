@@ -4,6 +4,9 @@ import dagger.Binds;
 import dagger.Module;
 import dagger.multibindings.IntoSet;
 
+// S1452: Dagger multibindings requires QueryResultFormatter<?> to bind Set<QueryResultFormatter<?>>
+// S6539: QueryModule serves as the aggregation DI module for the query subsystem
+@SuppressWarnings({"java:S1452", "java:S6539"})
 @Module
 public abstract class QueryModule
 {

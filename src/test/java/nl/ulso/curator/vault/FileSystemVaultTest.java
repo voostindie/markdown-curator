@@ -22,8 +22,8 @@ import static nl.ulso.curator.change.Change.Kind.CREATE;
 import static nl.ulso.curator.change.Change.Kind.DELETE;
 import static nl.ulso.curator.vault.ElementCounter.countAll;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.fail;
 import static org.awaitility.Awaitility.await;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 
 @ExtendWith(SoftAssertionsExtension.class)
 @Tag("integration-test")
@@ -322,7 +322,6 @@ class FileSystemVaultTest
 
     void whileWatchingForChanges(TestCase testCase)
     {
-        int expectedEventCount = 0;
         var events = synchronizedList(new ArrayList<Change<?>>());
         vault.setVaultChangedCallback(events::add);
 
@@ -338,19 +337,16 @@ class FileSystemVaultTest
         {
             Thread.currentThread().interrupt();
         }
-        try
+        final int[] expectedEventCount = new int[1];
+        assertDoesNotThrow(() ->
         {
             var count = testCase.changeFileSystem(testVaultRoot.getFileSystem());
             await().atMost(FILESYSTEM_WAIT_TIME_MILLISECONDS, TimeUnit.MILLISECONDS)
                 .until(() -> events.size() >= count);
-            expectedEventCount = count;
-        }
-        catch (IOException e)
-        {
-            fail("Unexpected exception in test", e);
-        }
+            expectedEventCount[0] = count;
+        });
         background.interrupt();
-        testCase.verify(events.subList(0, expectedEventCount));
+        testCase.verify(events.subList(0, expectedEventCount[0]));
     }
 
     private void writeFile(String relativePath, String content)

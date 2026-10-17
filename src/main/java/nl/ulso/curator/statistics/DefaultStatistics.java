@@ -46,14 +46,14 @@ final class DefaultStatistics
         writer.println("totals:");
         modules.forEach(module ->
         {
-            writer.println(String.format("  %s:", module));
+            writer.println("  " + module + ":");
             var totals = measurements.get(module);
             var entities = new ArrayList<>(totals.keySet());
             Collections.sort(entities);
             entities.forEach(entity ->
             {
                 var total = totals.get(entity);
-                writer.println(String.format("    %s: %d", entity, total));
+                writer.println("    " + entity + ": " + total);
             });
         });
     }

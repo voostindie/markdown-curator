@@ -47,7 +47,10 @@ final class DefaultPidManager
             var path = pidPathFor(curatorFactory.name());
             if (Files.exists(path, NOFOLLOW_LINKS))
             {
-                LOGGER.debug("PID file exists for curator '{}'", curatorFactory.name());
+                if (LOGGER.isDebugEnabled())
+                {
+                    LOGGER.debug("PID file exists for curator '{}'", curatorFactory.name());
+                }
                 return true;
             }
         }
@@ -64,7 +67,10 @@ final class DefaultPidManager
         }
         catch (IOException e)
         {
-            LOGGER.debug("Could not create PID for curator '{}'", curatorFactory.name(), e);
+            if (LOGGER.isDebugEnabled())
+            {
+                LOGGER.debug("Could not create PID for curator '{}'", curatorFactory.name(), e);
+            }
             return false;
         }
         // We can't use path.toFile().deleteOnExit() unconditionally, because the JimFS filesystem

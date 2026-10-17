@@ -36,7 +36,7 @@ public abstract class EntityProcessor<E>
     }
 
     @Override
-    protected final List<? extends ChangeHandler> createChangeHandlers()
+    protected final List<ChangeHandler> createChangeHandlers()
     {
         return List.of(
             newChangeHandler(

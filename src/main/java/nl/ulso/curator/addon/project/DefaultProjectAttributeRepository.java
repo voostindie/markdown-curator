@@ -45,7 +45,7 @@ final class DefaultProjectAttributeRepository
     }
 
     @Override
-    protected List<? extends ChangeHandler> createChangeHandlers()
+    protected List<ChangeHandler> createChangeHandlers()
     {
         return List.of(
             newChangeHandler(
@@ -138,18 +138,15 @@ final class DefaultProjectAttributeRepository
         }
         else
         {
-            if (oldWeightedValue.value().equals(newWeightedValue.value()))
+            if (oldWeightedValue.value().equals(newWeightedValue.value()) && LOGGER.isWarnEnabled())
             {
-                if (LOGGER.isWarnEnabled())
-                {
-                    LOGGER.warn(
-                        "Detected meaningless value update for attribute '{}' with weight '{}' " +
-                        "on project '{}'.",
-                        projectAttributeValue.definition().frontMatterProperty(),
-                        newWeightedValue.weight(),
-                        projectAttributeValue.project().name()
-                    );
-                }
+                LOGGER.warn(
+                    "Detected meaningless value update for attribute '{}' with weight '{}' " +
+                    "on project '{}'.",
+                    projectAttributeValue.definition().frontMatterProperty(),
+                    newWeightedValue.weight(),
+                    projectAttributeValue.project().name()
+                );
             }
             weightedValues.remove(oldWeightedValue);
         }
@@ -210,13 +207,13 @@ final class DefaultProjectAttributeRepository
     }
 
     @Override
-    public Optional<?> valueOf(Project project, String attributeName)
+    public Optional<Object> valueOf(Project project, String attributeName)
     {
         return valueOf(project, requireNonNull(attributeDefinitions.get(attributeName)));
     }
 
     @Override
-    public Optional<?> valueOf(Project project, ProjectAttributeDefinition definition)
+    public Optional<Object> valueOf(Project project, ProjectAttributeDefinition definition)
     {
         var weightedValues = projectAttributes
             .getOrDefault(project.name(), emptyMap())

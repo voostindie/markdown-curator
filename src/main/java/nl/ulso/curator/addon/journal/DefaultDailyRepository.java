@@ -9,6 +9,7 @@ import java.time.LocalDate;
 import java.util.*;
 import java.util.stream.Stream;
 
+import static java.time.ZoneId.systemDefault;
 import static java.util.Comparator.reverseOrder;
 import static java.util.stream.Collectors.toUnmodifiableSet;
 import static nl.ulso.curator.addon.journal.Daily.parseDateFrom;
@@ -92,7 +93,7 @@ final class DefaultDailyRepository
         var timeline = new TreeMap<LocalDate, String>(reverseOrder());
         var untilDate = daysFromToday < 0
                         ? LocalDate.MAX
-                        : LocalDate.now().minusDays(daysFromToday + 1);
+                        : LocalDate.now(systemDefault()).minusDays((long) daysFromToday + 1);
         dailiesFor(documentName)
             .filter(daily -> daysFromToday < 0 || daily.date().isAfter(untilDate))
             .forEach(daily -> timeline.put(daily.date(), daily.summaryFor(documentName)));

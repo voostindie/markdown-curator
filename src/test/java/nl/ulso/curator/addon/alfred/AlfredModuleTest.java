@@ -31,7 +31,7 @@ class AlfredModuleTest
         var curator = factory.createCurator();
         softly.assertThat(curator).isNotNull();
         var queries = factory.queries();
-        softly.assertThat(queries).anyMatch(query -> query instanceof AlfredQuery);
+        softly.assertThat(queries).anyMatch(AlfredQuery.class::isInstance);
     }
 
     @Singleton

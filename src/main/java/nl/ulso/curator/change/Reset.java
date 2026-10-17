@@ -9,6 +9,7 @@ package nl.ulso.curator.change;
 /// at application startup, and when the optional watch document is changed on disk.
 public final class Reset
 {
+    @SuppressWarnings("java:S1700")
     public static final Change<Reset> RESET = Change.create(new Reset(), Reset.class);
 
     private Reset()

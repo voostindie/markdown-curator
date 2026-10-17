@@ -71,10 +71,10 @@ final class DefaultQueryResultFormatterRegistry
     }
 
     @SuppressWarnings("unchecked")
-    private <QR extends QueryResult> QueryResultFormatter<QR> safeUncheckedCast(
+    private <T extends QueryResult> QueryResultFormatter<T> safeUncheckedCast(
         QueryResultFormatter<?> formatter)
     {
-        return (QueryResultFormatter<QR>) formatter;
+        return (QueryResultFormatter<T>) formatter;
     }
 
     private String noOutputFormatterAvailable(QueryResult queryResult, OutputFormat outputFormat)

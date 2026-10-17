@@ -11,6 +11,7 @@ import java.time.LocalDate;
 import java.util.concurrent.ScheduledExecutorService;
 
 import static java.lang.Runtime.getRuntime;
+import static java.time.ZoneId.systemDefault;
 import static java.util.concurrent.Executors.newSingleThreadScheduledExecutor;
 import static java.util.concurrent.TimeUnit.MINUTES;
 import static nl.ulso.curator.addon.newday.NewDay.NEW_DAY;
@@ -45,7 +46,7 @@ final class DefaultNewDayAlarm
         {
             case DAEMON ->
             {
-                this.lastRun = LocalDate.now();
+                this.lastRun = LocalDate.now(systemDefault());
                 this.alarmClock = newSingleThreadScheduledExecutor();
                 scheduleDailyMorningAlarm(externalChangeHandler);
             }
@@ -66,11 +67,11 @@ final class DefaultNewDayAlarm
             {
                 MDC.setContextMap(contextMap);
                 LOGGER.trace("Checking if it's time to announce a new day.");
-                if (lastRun.isBefore(LocalDate.now()))
+                if (lastRun.isBefore(LocalDate.now(systemDefault())))
                 {
                     LOGGER.info("Publishing an event for the start of a new day.");
                     externalChangeHandler.process(NEW_DAY);
-                    lastRun = LocalDate.now();
+                    lastRun = LocalDate.now(systemDefault());
                 }
             },
             INITIAL_DELAY_MINUTES,

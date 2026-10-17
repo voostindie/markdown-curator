@@ -131,6 +131,8 @@ final class DocumentRequestProcessor
         extends BreadthFirstVaultVisitor
         implements DocumentWriter
     {
+        private static final String CONTENTS = "contents";
+
         private JsonObject rootObject;
         private JsonArrayBuilder arrayBuilder;
 
@@ -144,7 +146,7 @@ final class DocumentRequestProcessor
             builder.add("sortable-title", document.sortableTitle());
             builder.add("last-modified", document.lastModified());
             super.visit(document);
-            builder.add("contents", arrayBuilder);
+            builder.add(CONTENTS, arrayBuilder);
             rootObject = builder.build();
         }
 
@@ -174,7 +176,7 @@ final class DocumentRequestProcessor
         {
             var builder = createObjectBuilder();
             builder.add("type", "text");
-            builder.add("contents", textBlock.markdown());
+            builder.add(CONTENTS, textBlock.markdown());
             arrayBuilder.add(builder);
         }
 
@@ -184,7 +186,7 @@ final class DocumentRequestProcessor
             var builder = createObjectBuilder();
             builder.add("type", "code");
             builder.add("language", codeBlock.language());
-            builder.add("contents", codeBlock.code());
+            builder.add(CONTENTS, codeBlock.code());
             arrayBuilder.add(builder);
         }
 

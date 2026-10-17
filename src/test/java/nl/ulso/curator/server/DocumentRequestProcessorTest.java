@@ -87,15 +87,18 @@ class DocumentRequestProcessorTest
 
         assertThat(result.status()).isEqualTo(OK);
         assertThat(result.outputFormat()).isEqualTo(MARKDOWN);
-        assertThat(result.output()).isPresent();
-        var output = result.output().get();
-        assertThat(output).contains("author: Alice");
-        assertThat(output).contains("# Main Title");
-        assertThat(output).contains("System.out.println(42);");
-        assertThat(output).contains("<!--query:configuration-->");
-        assertThat(output).doesNotContain("query content");
-        assertThat(output).contains("## Subsection");
-        assertThat(output).contains("Subsection text content.");
+        assertThat(result.output()).hasValueSatisfying(output ->
+            assertThat(output)
+                .contains(
+                    "author: Alice",
+                    "# Main Title",
+                    "System.out.println(42);",
+                    "<!--query:configuration-->",
+                    "## Subsection",
+                    "Subsection text content."
+                )
+                .doesNotContain("query content")
+        );
     }
 
     @Test
@@ -132,27 +135,28 @@ class DocumentRequestProcessorTest
 
         assertThat(result.status()).isEqualTo(OK);
         assertThat(result.outputFormat()).isEqualTo(JSON);
-        assertThat(result.output()).isPresent();
-        var jsonOutput = result.output().get();
-
-        assertThat(jsonOutput).contains("\"name\":\"Doc1\"");
-        assertThat(jsonOutput).contains("\"title\":\"Main Title\"");
-        assertThat(jsonOutput).contains("\"last-modified\":0");
-        assertThat(jsonOutput).contains("\"type\":\"frontmatter\"");
-        assertThat(jsonOutput).contains("\"author\":\"Alice\"");
-        assertThat(jsonOutput).contains("\"tags\":[\"java\",\"curator\"]");
-        assertThat(jsonOutput).contains("\"type\":\"section\"");
-        assertThat(jsonOutput).contains("\"title\":\"Main Title\"");
-        assertThat(jsonOutput).contains("\"level\":1");
-        assertThat(jsonOutput).contains("\"type\":\"text\"");
-        assertThat(jsonOutput).contains("Introduction text.");
-        assertThat(jsonOutput).contains("\"type\":\"code\"");
-        assertThat(jsonOutput).contains("\"language\":\"java\"");
-        assertThat(jsonOutput).contains("\"contents\":\"int x = 1;\"");
-        assertThat(jsonOutput).contains("\"type\":\"query\"");
-        assertThat(jsonOutput).contains("\"name\":\"custom\"");
-        assertThat(jsonOutput).contains("\"foo\":\"bar\"");
-        assertThat(jsonOutput).contains("\"title\":\"Child Section\"");
-        assertThat(jsonOutput).contains("\"level\":2");
+        assertThat(result.output()).hasValueSatisfying(jsonOutput ->
+            assertThat(jsonOutput).contains(
+                "\"name\":\"Doc1\"",
+                "\"title\":\"Main Title\"",
+                "\"last-modified\":0",
+                "\"type\":\"frontmatter\"",
+                "\"author\":\"Alice\"",
+                "\"tags\":[\"java\",\"curator\"]",
+                "\"type\":\"section\"",
+                "\"title\":\"Main Title\"",
+                "\"level\":1",
+                "\"type\":\"text\"",
+                "Introduction text.",
+                "\"type\":\"code\"",
+                "\"language\":\"java\"",
+                "\"contents\":\"int x = 1;\"",
+                "\"type\":\"query\"",
+                "\"name\":\"custom\"",
+                "\"foo\":\"bar\"",
+                "\"title\":\"Child Section\"",
+                "\"level\":2"
+            )
+        );
     }
 }

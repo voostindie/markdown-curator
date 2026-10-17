@@ -170,30 +170,45 @@ public final class Daily
             var selectedLine = lineValues.get(selectedIndex);
             for (String marker : markerNames)
             {
-                var markerIndexes = documentReferences.get(marker);
-                if (markerIndexes == null)
-                {
-                    continue;
-                }
-                for (int markerIndex = markerIndexes.nextSetBit(0); markerIndex >= 0;
-                     markerIndex = markerIndexes.nextSetBit(markerIndex + 1))
-                {
-                    var markerLine = lineValues.get(markerIndex);
-                    if (!markerLine.isDirectChildOf(selectedLine))
-                    {
-                        continue;
-                    }
-                    var line = sectionLines.get(markerIndex).trim();
-                    if (removeMarkers)
-                    {
-                        line = removeMarker(line, marker);
-                    }
-                    var list = result.computeIfAbsent(marker, _ -> new ArrayList<>());
-                    list.add(new MarkedLine(date, line));
-                }
+                collectMarkedLinesForMarker(
+                    result,
+                    selectedLine,
+                    marker,
+                    sectionLines,
+                    removeMarkers
+                );
             }
         }
         return result;
+    }
+
+    private void collectMarkedLinesForMarker(
+        Map<String, List<MarkedLine>> result,
+        Outline.LineValues selectedLine,
+        String marker,
+        List<String> sectionLines,
+        boolean removeMarkers)
+    {
+        var markerIndexes = documentReferences.get(marker);
+        if (markerIndexes == null)
+        {
+            return;
+        }
+        for (int markerIndex = markerIndexes.nextSetBit(0); markerIndex >= 0;
+             markerIndex = markerIndexes.nextSetBit(markerIndex + 1))
+        {
+            var markerLine = lineValues.get(markerIndex);
+            if (markerLine.isDirectChildOf(selectedLine))
+            {
+                var line = sectionLines.get(markerIndex).trim();
+                if (removeMarkers)
+                {
+                    line = removeMarker(line, marker);
+                }
+                var list = result.computeIfAbsent(marker, _ -> new ArrayList<>());
+                list.add(new MarkedLine(date, line));
+            }
+        }
     }
 
     private String removeMarker(String line, String marker)
@@ -230,7 +245,7 @@ public final class Daily
                 .collect(toSet())
                 .forEach(documentName ->
                     references.computeIfAbsent(documentName,
-                        (_ -> new BitSet(size))
+                        _ -> new BitSet(size)
                     ).set(index)));
         return unmodifiableMap(references);
     }

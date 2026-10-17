@@ -60,14 +60,9 @@ public class InternalLinkFinder
     {
         var result = new ArrayList<InternalLink>();
         var index = 0;
-        var length = content.length();
-        while (index < length)
+        int start;
+        while ((start = content.indexOf(LINK_START, index)) != -1)
         {
-            var start = content.indexOf(LINK_START, index);
-            if (start == -1)
-            {
-                break;
-            }
             var end = content.indexOf(LINK_END, start + LINK_START_LENGTH);
             if (end == -1)
             {

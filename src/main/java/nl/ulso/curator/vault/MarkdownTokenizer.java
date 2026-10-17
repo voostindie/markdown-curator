@@ -177,55 +177,69 @@ class MarkdownTokenizer
                     return documentEnd(size);
                 }
                 var line = lines.get(i);
+                return switch (mode)
+                {
+                    case FRONT_MATTER -> processFrontMatter(line, i);
+                    case QUERY -> processQuery(line, i);
+                    case CODE -> processCode(line, i);
+                    case TEXT -> processText(line, i);
+                };
+            }
+
+            private LineToken processFrontMatter(String line, int i)
+            {
+                var status = CONTENT;
+                if (line.contentEquals(FRONT_MATTER_MARKER))
+                {
+                    status = END;
+                    mode = Mode.TEXT;
+                }
+                return frontMatter(i, status);
+            }
+
+            private LineToken processQuery(String line, int i)
+            {
+                var status = CONTENT;
+                if (line.startsWith(QUERY_CONFIGURATION_PREFIX))
+                {
+                    status = START;
+                }
+                else if (line.startsWith(QUERY_OUTPUT_PREFIX) &&
+                         line.endsWith(QUERY_OUTPUT_POSTFIX))
+                {
+                    status = END;
+                    mode = Mode.TEXT;
+                }
+                return query(i, status);
+            }
+
+            private LineToken processCode(String line, int i)
+            {
+                var status = CONTENT;
+                if (line.contentEquals(CODE_MARKER))
+                {
+                    status = END;
+                    mode = Mode.TEXT;
+                }
+                return code(i, status);
+            }
+
+            private LineToken processText(String line, int i)
+            {
                 if (i == 0 && line.contentEquals(FRONT_MATTER_MARKER))
                 {
                     mode = Mode.FRONT_MATTER;
                     return frontMatter(i, START);
                 }
-                if (mode == Mode.FRONT_MATTER)
-                {
-                    var status = CONTENT;
-                    if (line.contentEquals(FRONT_MATTER_MARKER))
-                    {
-                        status = END;
-                        mode = Mode.TEXT;
-                    }
-                    return frontMatter(i, status);
-                }
-                if (mode == Mode.TEXT && line.startsWith(QUERY_CONFIGURATION_PREFIX))
+                if (line.startsWith(QUERY_CONFIGURATION_PREFIX))
                 {
                     mode = Mode.QUERY;
                     return query(i, START);
                 }
-                if (mode == Mode.QUERY)
-                {
-                    var status = CONTENT;
-                    if (line.startsWith(QUERY_CONFIGURATION_PREFIX))
-                    {
-                        status = START;
-                    }
-                    else if (line.startsWith(QUERY_OUTPUT_PREFIX) &&
-                             line.endsWith(QUERY_OUTPUT_POSTFIX))
-                    {
-                        status = END;
-                        mode = Mode.TEXT;
-                    }
-                    return query(i, status);
-                }
-                if (mode == Mode.TEXT && line.startsWith(CODE_MARKER))
+                if (line.startsWith(CODE_MARKER))
                 {
                     mode = Mode.CODE;
                     return code(i, START);
-                }
-                if (mode == Mode.CODE)
-                {
-                    var status = CONTENT;
-                    if (line.contentEquals(CODE_MARKER))
-                    {
-                        status = END;
-                        mode = Mode.TEXT;
-                    }
-                    return code(i, status);
                 }
                 var matcher = HEADER_PATTERN.matcher(line);
                 if (matcher.matches())

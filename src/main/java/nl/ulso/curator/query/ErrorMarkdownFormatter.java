@@ -9,8 +9,9 @@ final class ErrorMarkdownFormatter
     implements QueryResultFormatter<ErrorResult>
 {
     @Inject
-    public ErrorMarkdownFormatter()
+    ErrorMarkdownFormatter()
     {
+        // Default constructor for Dagger injection
     }
 
     @Override

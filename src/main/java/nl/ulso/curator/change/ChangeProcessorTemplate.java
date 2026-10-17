@@ -28,7 +28,7 @@ public abstract class ChangeProcessorTemplate
         }
     }
 
-    protected abstract List<? extends ChangeHandler> createChangeHandlers();
+    protected abstract List<ChangeHandler> createChangeHandlers();
 
     @Override
     public final Changelog apply(Changelog changelog)

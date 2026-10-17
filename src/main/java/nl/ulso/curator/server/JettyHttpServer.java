@@ -38,15 +38,15 @@ public class JettyHttpServer
         QueuedThreadPool threadPool = new QueuedThreadPool();
         threadPool.setName("HTTP Server");
         threadPool.setVirtualThreadsExecutor(getDefaultVirtualThreadsExecutor());
-        var server = new Server(threadPool);
+        var httpServer = new Server(threadPool);
         var configuration = new HttpConfiguration();
         configuration.setSendServerVersion(false);
         var connectionFactory = new HttpConnectionFactory(configuration);
-        var connector = new ServerConnector(server, connectionFactory);
+        var connector = new ServerConnector(httpServer, connectionFactory);
         connector.setPort(serverPort);
         connector.setHost(SERVER_HOST);
-        server.addConnector(connector);
-        return server;
+        httpServer.addConnector(connector);
+        return httpServer;
     }
 
     private Set<OutputFormat> collectOutputFormats(Map<String, Curator> curators)
@@ -73,13 +73,13 @@ public class JettyHttpServer
     @Override
     public void start()
     {
-        var port = (((NetworkConnector) server.getConnectors()[0])).getPort();
+        var port = ((NetworkConnector) server.getConnectors()[0]).getPort();
         try
         {
             server.start();
             LOGGER.info("Started HTTP server on port {}.", port);
         }
-        catch (Exception e)
+        catch (Exception _)
         {
             LOGGER.error(
                 "Couldn't start HTTP server on port {}. The HTTP server is disabled.",

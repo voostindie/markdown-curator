@@ -25,13 +25,13 @@ final class ProjectAttributeRepositoryStub
     }
 
     @Override
-    public Optional<?> valueOf(Project project, String attributeName)
+    public Optional<Object> valueOf(Project project, String attributeName)
     {
         return valueOf(project, ProjectTestData.ATTRIBUTE_DEFINITIONS.get(attributeName));
     }
 
     @Override
-    public Optional<?> valueOf(Project project, ProjectAttributeDefinition definition)
+    public Optional<Object> valueOf(Project project, ProjectAttributeDefinition definition)
     {
         return Optional.ofNullable(attributes.get(project).get(definition));
     }

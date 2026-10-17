@@ -8,6 +8,8 @@ import java.time.LocalDate;
 import java.time.temporal.WeekFields;
 import java.util.*;
 
+import static java.time.ZoneId.systemDefault;
+
 @Singleton
 final class DefaultWeeklyRepository
     extends SetBasedEntityRepository<Weekly>
@@ -65,7 +67,7 @@ final class DefaultWeeklyRepository
     @Override
     public LocalDate firstDayOf(Weekly weekly)
     {
-        return LocalDate.now().with(weekFields.weekBasedYear(), weekly.year())
+        return LocalDate.now(systemDefault()).with(weekFields.weekBasedYear(), weekly.year())
             .with(weekFields.weekOfWeekBasedYear(), weekly.week())
             .with(weekFields.dayOfWeek(), weekFields.getFirstDayOfWeek().getValue());
     }

@@ -47,7 +47,7 @@ abstract class ProjectMarkerBasedAttributeValueProducer<P extends ProjectMarker>
     }
 
     @Override
-    protected final List<? extends ChangeHandler> createChangeHandlers()
+    protected final List<ChangeHandler> createChangeHandlers()
     {
         var handlers = new ArrayList<ChangeHandler>();
         handlers.add(newChangeHandler(

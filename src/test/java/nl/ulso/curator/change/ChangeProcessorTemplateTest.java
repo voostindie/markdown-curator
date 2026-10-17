@@ -55,11 +55,11 @@ class ChangeProcessorTemplateTest
         private boolean didWork = false;
 
         @Override
-        protected List<? extends ChangeHandler> createChangeHandlers()
+        protected List<ChangeHandler> createChangeHandlers()
         {
             return List.of(
                 ChangeHandler.newChangeHandler(
-                    (_) -> true, (_, _) -> didWork = true
+                    _ -> true, (_, _) -> didWork = true
                 )
             );
         }
@@ -79,7 +79,7 @@ class ChangeProcessorTemplateTest
         }
 
         @Override
-        protected List<? extends ChangeHandler> createChangeHandlers()
+        protected List<ChangeHandler> createChangeHandlers()
         {
             return emptyList();
         }

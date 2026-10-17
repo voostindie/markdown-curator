@@ -129,18 +129,16 @@ final class DefaultChangeProcessorOrchestrator
                 processor.consumedPayloadTypes().size() + processor.requiredPayloadTypes().size());
             neededPayloadTypes.addAll(processor.consumedPayloadTypes());
             neededPayloadTypes.addAll(processor.requiredPayloadTypes());
-            if (!availablePayloadTypes.containsAll(neededPayloadTypes))
+            if (!availablePayloadTypes.containsAll(neededPayloadTypes) ||
+                producesAnyOf(queue, neededPayloadTypes))
             {
                 queue.addLast(processor);
-                continue;
             }
-            if (producesAnyOf(queue, neededPayloadTypes))
+            else
             {
-                queue.addLast(processor);
-                continue;
+                result.add(processor);
+                availablePayloadTypes.addAll(processor.producedPayloadTypes());
             }
-            result.add(processor);
-            availablePayloadTypes.addAll(processor.producedPayloadTypes());
         }
         RESERVED_CHANGE_PROCESSORS_CLASSES.reversed().stream()
             .map(reservedClass -> changeProcessors.stream()

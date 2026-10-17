@@ -89,17 +89,14 @@ class Outline
         for (var i = 0; i < line.length(); i++)
         {
             char c = line.charAt(i);
-            if (c == SPACE)
+            switch (c)
             {
-                spaces++;
-            }
-            else if (c == TAB)
-            {
-                tabs++;
-            }
-            else
-            {
-                break;
+                case SPACE -> spaces++;
+                case TAB -> tabs++;
+                default ->
+                {
+                    return tabs + (spaces / TAB_SIZE);
+                }
             }
         }
         return tabs + (spaces / TAB_SIZE);

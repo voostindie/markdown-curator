@@ -13,8 +13,9 @@ final class EmptyJsonFormatter
     implements QueryResultFormatter<EmptyResult>
 {
     @Inject
-    public EmptyJsonFormatter()
+    EmptyJsonFormatter()
     {
+        // Default constructor for Dagger injection
     }
 
     @Override

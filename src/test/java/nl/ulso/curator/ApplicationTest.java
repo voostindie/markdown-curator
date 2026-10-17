@@ -6,6 +6,8 @@ import org.assertj.core.api.junit.jupiter.SoftAssertionsExtension;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 import java.util.*;
 
@@ -48,47 +50,18 @@ class ApplicationTest
         assertThat(RunMode.get()).isEqualTo(ONCE);
     }
 
-    @Test
-    void mainWithServerInDaemonModeAndUnknownCurator()
+    @ParameterizedTest
+    @ValueSource(strings = {
+        "--server",
+        "-s",
+        "--server:8080",
+        "--server:80",
+        "--server:invalid"
+    })
+    void mainWithServerOptionInDaemonModeAndUnknownCurator(String serverOption)
     {
         assertDoesNotThrow(() ->
-            Application.main(new String[]{"--server", "unknown"})
-        );
-        assertThat(RunMode.get()).isEqualTo(DAEMON);
-    }
-
-    @Test
-    void mainWithShortServerInDaemonModeAndUnknownCurator()
-    {
-        assertDoesNotThrow(() ->
-            Application.main(new String[]{"-s", "unknown"})
-        );
-        assertThat(RunMode.get()).isEqualTo(DAEMON);
-    }
-
-    @Test
-    void mainWithPortOption()
-    {
-        assertDoesNotThrow(() ->
-            Application.main(new String[]{"--server:8080", "unknown"})
-        );
-        assertThat(RunMode.get()).isEqualTo(DAEMON);
-    }
-
-    @Test
-    void mainWithInvalidPortBelow1024()
-    {
-        assertDoesNotThrow(() ->
-            Application.main(new String[]{"--server:80", "unknown"})
-        );
-        assertThat(RunMode.get()).isEqualTo(DAEMON);
-    }
-
-    @Test
-    void mainWithInvalidPortNotANumber()
-    {
-        assertDoesNotThrow(() ->
-            Application.main(new String[]{"--server:invalid", "unknown"})
+            Application.main(new String[]{serverOption, "unknown"})
         );
         assertThat(RunMode.get()).isEqualTo(DAEMON);
     }

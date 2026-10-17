@@ -19,7 +19,7 @@ public abstract class CuratorRequestProcessorTemplate
 
     CuratorRequestProcessorTemplate(Map<String, Curator> curators)
     {
-        var map = new HashMap<String, Curator>(curators.size());
+        var map = HashMap.<String, Curator>newHashMap(curators.size());
         curators.forEach((key, value) -> map.put(key.toLowerCase(), value));
         this.curators = Collections.unmodifiableMap(map);
     }

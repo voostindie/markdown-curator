@@ -31,9 +31,9 @@ public interface ProjectAttributeRepository
     /// @return the value of a named attribute from a project.
     /// @throws NullPointerException if the project does not exist in the [ProjectRepository].
     /// @throws NullPointerException if the attribute with the given name unknown to the repository.
-    Optional<?> valueOf(Project project, String attributeName);
+    Optional<Object> valueOf(Project project, String attributeName);
 
     /// @return the value of an attribute definition from a project.
     /// @throws NullPointerException if the project does not exist in the [ProjectRepository].
-    Optional<?> valueOf(Project project, ProjectAttributeDefinition definition);
+    Optional<Object> valueOf(Project project, ProjectAttributeDefinition definition);
 }

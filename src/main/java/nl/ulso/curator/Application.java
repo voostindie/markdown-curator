@@ -70,9 +70,8 @@ public class Application
             if (arg.contentEquals("--once") || arg.contentEquals("-1"))
             {
                 RunMode.set(ONCE);
-                continue;
             }
-            if (arg.startsWith("--server") || arg.startsWith("-s"))
+            else if (arg.startsWith("--server") || arg.startsWith("-s"))
             {
                 if (RunMode.get() == ONCE)
                 {
@@ -81,37 +80,46 @@ public class Application
                 else
                 {
                     enableHttpServer = true;
-                    var index = arg.indexOf(':');
-                    if (index != -1 && index < arg.length() - 1)
-                    {
-                        try
-                        {
-                            serverPort = parseInt(arg.substring(index + 1));
-                            if (serverPort < 1024)
-                            {
-                                LOGGER.warn(
-                                    "Invalid port specified. Port numbers below 1024 are " +
-                                    "reserved. Falling back on default port.");
-                                serverPort = DEFAULT_SERVER_PORT;
-                            }
-                        }
-                        catch (NumberFormatException e)
-                        {
-                            if (LOGGER.isErrorEnabled())
-                            {
-                                LOGGER.warn(
-                                    "Invalid port specified. Using default port instead: {}.",
-                                    DEFAULT_SERVER_PORT
-                                );
-                            }
-                        }
-                    }
+                    serverPort = parseServerPort(arg);
                 }
-                continue;
             }
-            curators.add(arg.toLowerCase());
+            else
+            {
+                curators.add(arg.toLowerCase());
+            }
         }
         new Application(new DefaultPidManager(), enableHttpServer, serverPort).run(curators);
+    }
+
+    private static int parseServerPort(String arg)
+    {
+        var index = arg.indexOf(':');
+        if (index != -1 && index < arg.length() - 1)
+        {
+            try
+            {
+                var port = parseInt(arg.substring(index + 1));
+                if (port < 1024)
+                {
+                    LOGGER.warn(
+                        "Invalid port specified. Port numbers below 1024 are " +
+                        "reserved. Falling back on default port.");
+                    return DEFAULT_SERVER_PORT;
+                }
+                return port;
+            }
+            catch (NumberFormatException _)
+            {
+                if (LOGGER.isErrorEnabled())
+                {
+                    LOGGER.warn(
+                        "Invalid port specified. Using default port instead: {}.",
+                        DEFAULT_SERVER_PORT
+                    );
+                }
+            }
+        }
+        return DEFAULT_SERVER_PORT;
     }
 
     void run(Set<String> selectedCuratorNames)

@@ -98,9 +98,11 @@ class JettyRequestHandlerTest
             
             """);
 
-        assertThat(response).contains("HTTP/1.1 200 OK");
-        assertThat(response).contains("Content-Type: application/json; charset=UTF-8");
-        assertThat(response).contains("processed:123");
+        assertThat(response).contains(
+            "HTTP/1.1 200 OK",
+            "Content-Type: application/json; charset=UTF-8",
+            "processed:123"
+        );
 
         assertThat(capturedPathParams.get().string("id", "")).isEqualTo("123");
         assertThat(capturedQueryParams.get().string("sort", "")).isEqualTo("asc");
@@ -119,9 +121,11 @@ class JettyRequestHandlerTest
             
             """);
 
-        assertThat(response).contains("HTTP/1.1 200 OK");
-        assertThat(response).contains("Content-Type: text/markdown; charset=UTF-8");
-        assertThat(response).contains("processed:markdown-test");
+        assertThat(response).contains(
+            "HTTP/1.1 200 OK",
+            "Content-Type: text/markdown; charset=UTF-8",
+            "processed:markdown-test"
+        );
         assertThat(capturedOutputFormat.get()).isEqualTo(MARKDOWN);
     }
 
@@ -136,8 +140,10 @@ class JettyRequestHandlerTest
             
             """);
 
-        assertThat(response).contains("HTTP/1.1 200 OK");
-        assertThat(response).contains("Content-Type: application/json; charset=UTF-8");
+        assertThat(response).contains(
+            "HTTP/1.1 200 OK",
+            "Content-Type: application/json; charset=UTF-8"
+        );
         assertThat(capturedOutputFormat.get()).isEqualTo(JSON);
     }
 
@@ -167,8 +173,10 @@ class JettyRequestHandlerTest
             
             """);
 
-        assertThat(response).contains("HTTP/1.1 200 OK");
-        assertThat(response).contains("Content-Type: application/json; charset=UTF-8");
+        assertThat(response).contains(
+            "HTTP/1.1 200 OK",
+            "Content-Type: application/json; charset=UTF-8"
+        );
     }
 
     @Test
@@ -181,7 +189,9 @@ class JettyRequestHandlerTest
             
             """);
 
-        assertThat(response).contains("HTTP/1.1 400 Bad Request");
-        assertThat(response).contains("Invalid id");
+        assertThat(response).contains(
+            "HTTP/1.1 400 Bad Request",
+            "Invalid id"
+        );
     }
 }

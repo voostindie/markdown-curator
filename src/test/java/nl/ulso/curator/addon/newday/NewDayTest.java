@@ -18,7 +18,7 @@ class NewDayTest
     void newDayToString()
     {
         var newDay = new NewDay();
-        assertThat(newDay.toString()).isEqualTo("⏰");
+        assertThat(newDay).hasToString("⏰");
     }
 
     @Test

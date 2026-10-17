@@ -9,8 +9,9 @@ final class ErrorJsonFormatter
     implements QueryResultFormatter<ErrorResult>
 {
     @Inject
-    public ErrorJsonFormatter()
+    ErrorJsonFormatter()
     {
+        // Default constructor for Dagger injection
     }
 
     @Override
