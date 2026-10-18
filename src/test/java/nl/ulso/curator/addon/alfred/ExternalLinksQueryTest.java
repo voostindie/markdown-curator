@@ -293,8 +293,53 @@ class ExternalLinksQueryTest
             
             | Name   | Url |
             | ------ | --- |
-            | Alfred | https://www.alfredapp.com |
             | Docs   | https://docs.alfredapp.com |
+            | Alfred | https://www.alfredapp.com |
+            
+            """);
+    }
+
+    @Test
+    void ordersLinksFromMultipleMarkersNewestToOldestOverall()
+    {
+        var stubJournal = new StubJournal(
+            Map.of(
+                "Multiple", Map.of(
+                    "🔗", List.of(
+                        new MarkedLine(LocalDate.of(2024, 1, 1), "- [Old Link](https://old.com)"),
+                        new MarkedLine(LocalDate.of(2024, 1, 10), "- [Newest Link](https://newest.com)")
+                    ),
+                    "💡", List.of(
+                        new MarkedLine(LocalDate.of(2024, 1, 5), "- [Middle Link](https://middle.com)")
+                    )
+                )
+            ),
+            Map.of(
+                "🔗", createMarker("🔗", true),
+                "💡", createMarker("💡", true)
+            )
+        );
+
+        vault.addDocumentInPath("Projects/Multiple", "# Project Multiple");
+
+        var query = new ExternalLinksQuery(
+            vault,
+            stubJournal,
+            Optional.empty(),
+            createQueryResultFactory()
+        );
+        var definition = new QueryDefinitionStub(query, null)
+            .withConfiguration("document", "Multiple");
+        var result = query.run(definition);
+
+        var markdownOutput = formatterRegistry.format(result, MARKDOWN);
+        assertThat(markdownOutput).isEqualTo("""
+            
+            | Name        | Url |
+            | ----------- | --- |
+            | Newest Link | https://newest.com |
+            | Middle Link | https://middle.com |
+            | Old Link    | https://old.com |
             
             """);
     }

@@ -2,16 +2,18 @@ package nl.ulso.curator.addon.alfred;
 
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
-import nl.ulso.curator.addon.journal.Journal;
-import nl.ulso.curator.addon.journal.Marker;
+import nl.ulso.curator.addon.journal.*;
 import nl.ulso.curator.change.Changelog;
 import nl.ulso.curator.query.*;
 import nl.ulso.curator.vault.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.*;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import static java.util.Comparator.comparing;
 import static java.util.regex.Pattern.compile;
 
 /// Gathers all external links for a document, combining links in specific links sections with any
@@ -24,6 +26,7 @@ import static java.util.regex.Pattern.compile;
 final class ExternalLinksQuery
     implements Query
 {
+    private static final Logger LOGGER = LoggerFactory.getLogger(ExternalLinksQuery.class);
     private static final String EXPORT_LINKS_MARKER_PROPERTY = "export-links";
     private static final String DEFAULT_DOCUMENT_LINK_SECTION_NAME = "Links";
     private static final Pattern LINK_PATTERN = compile("\\[([^]]+)]\\(([^)]+)\\)");
@@ -73,6 +76,13 @@ final class ExternalLinksQuery
     @Override
     public boolean isImpactedBy(Changelog changelog, QueryDefinition definition)
     {
+        if (LOGGER.isWarnEnabled())
+        {
+            LOGGER.warn(
+                "{} is embedded in a page. It's not meant for that. I will not reliably update.",
+                this.getClass().getSimpleName()
+            );
+        }
         return false;
     }
 
@@ -144,13 +154,10 @@ final class ExternalLinksQuery
     private void collectExternalLinksFromJournal(
         Document document, Set<String> markerNames, Collection<Link> links)
     {
-        journal.markedLinesFor(document.name(), markerNames)
-            .values()
-            .forEach(list ->
-                list.forEach(
-                    markedLine -> collectExternalLinksFromLine(markedLine.line(), links)
-                )
-            );
+        journal.markedLinesFor(document.name(), markerNames).values().stream()
+            .flatMap(Collection::stream)
+            .sorted(comparing(MarkedLine::date).reversed())
+            .forEach(markedLine -> collectExternalLinksFromLine(markedLine.line(), links));
     }
 
     private void collectExternalLinksFromLine(String line, Collection<Link> links)
