@@ -42,6 +42,10 @@ public abstract class QueryModule
 
     @Binds
     @IntoSet
+    abstract Query bindExportQuery(ExportQuery exportQuery);
+
+    @Binds
+    @IntoSet
     abstract QueryResultFormatter<?> bindEmptyMarkdownFormatter(EmptyMarkdownFormatter formatter);
 
     @Binds
