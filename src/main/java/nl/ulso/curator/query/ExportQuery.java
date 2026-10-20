@@ -66,7 +66,8 @@ final class ExportQuery
     {
         return Map.of(
             "document", "Name of the document to export.",
-            "strip-emojis-from-links", "Whether to remove emojis from internal links (default: false)."
+            "strip-emojis-from-links", "Whether to remove emojis from internal links (default: true).",
+            "add-title", "Whether to add the document title as a level 1 header (default: true)."
         );
     }
 
@@ -92,7 +93,8 @@ final class ExportQuery
         {
             return resultFactory.error("No document specified in query configuration.");
         }
-        var stripEmojis = definition.configuration().bool("strip-emojis-from-links", false);
+        var stripEmojis = definition.configuration().bool("strip-emojis-from-links", true);
+        var addTitle = definition.configuration().bool("add-title", true);
         return vault.findDocument(documentName).map(document -> {
             var visitor = new ExportVisitor(
                 queryCatalogProvider.get(),
@@ -100,7 +102,12 @@ final class ExportQuery
                 stripEmojis
             );
             document.accept(visitor);
-            return resultFactory.string(visitor.output());
+            var output = visitor.output();
+            if (addTitle && !output.startsWith("# "))
+            {
+                output = "# " + document.title() + lineSeparator() + lineSeparator() + output;
+            }
+            return resultFactory.string(output);
 
         }).orElseGet(() ->
             resultFactory.error("Document not found: " + documentName)
@@ -229,13 +236,13 @@ final class ExportQuery
             {
                 if (alias != null)
                 {
-                    alias = stripEmojisFrom(alias);
+                    alias = stripEmojisFrom(alias).trim();
                 }
                 if (anchor != null)
                 {
-                    anchor = stripEmojisFrom(anchor);
+                    anchor = stripEmojisFrom(anchor).trim();
                 }
-                link = stripEmojisFrom(link);
+                link = stripEmojisFrom(link).trim();
             }
             if (alias != null)
             {

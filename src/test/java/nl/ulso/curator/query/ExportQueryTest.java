@@ -51,7 +51,7 @@ class ExportQueryTest
             formatterRegistry, resultFactory
         );
         assertThat(query.supportedConfiguration())
-            .containsOnlyKeys("document", "strip-emojis-from-links");
+            .containsOnlyKeys("document", "strip-emojis-from-links", "add-title");
     }
 
     @Test
@@ -143,36 +143,36 @@ class ExportQueryTest
     {
         return Stream.of(
             Arguments.of(
-                "This links to [[Internal link]].\n",
-                "This links to Internal link.\n"
+                "# Title\n\nThis links to [[Internal link]].\n",
+                "# Title\n\nThis links to Internal link.\n"
             ),
             Arguments.of(
-                "This links to [[Internal link|Alias]].\n",
-                "This links to Alias.\n"
+                "# Title\n\nThis links to [[Internal link|Alias]].\n",
+                "# Title\n\nThis links to Alias.\n"
             ),
             Arguments.of(
-                "This links to [[Internal link#Heading]].\n",
-                "This links to Internal link > Heading.\n"
+                "# Title\n\nThis links to [[Internal link#Heading]].\n",
+                "# Title\n\nThis links to Internal link > Heading.\n"
             ),
             Arguments.of(
-                "This links to [[Internal link#Heading|Alias]].\n",
-                "This links to Alias.\n"
+                "# Title\n\nThis links to [[Internal link#Heading|Alias]].\n",
+                "# Title\n\nThis links to Alias.\n"
             ),
             Arguments.of(
-                "Multiple links: [[Doc A]], [[Doc B|B-Alias]], and [[Doc C#Section C]].\n",
-                "Multiple links: Doc A, B-Alias, and Doc C > Section C.\n"
+                "# Title\n\nMultiple links: [[Doc A]], [[Doc B|B-Alias]], and [[Doc C#Section C]].\n",
+                "# Title\n\nMultiple links: Doc A, B-Alias, and Doc C > Section C.\n"
             ),
             Arguments.of(
-                "## Section with [[Link In Title|Title Alias]]\n\nContent here.\n",
-                "## Section with Title Alias\n\nContent here.\n"
+                "# Title\n\n## Section with [[Link In Title|Title Alias]]\n\nContent here.\n",
+                "# Title\n\n## Section with Title Alias\n\nContent here.\n"
             ),
             Arguments.of(
-                "Unclosed [[ link is left as is.\n",
-                "Unclosed [[ link is left as is.\n"
+                "# Title\n\nUnclosed [[ link is left as is.\n",
+                "# Title\n\nUnclosed [[ link is left as is.\n"
             ),
             Arguments.of(
-                "Link to same page anchor: [[#Heading]] and [[#Heading|Anchor Alias]].\n",
-                "Link to same page anchor: Heading and Anchor Alias.\n"
+                "# Title\n\nLink to same page anchor: [[#Heading]] and [[#Heading|Anchor Alias]].\n",
+                "# Title\n\nLink to same page anchor: Heading and Anchor Alias.\n"
             )
         );
     }
@@ -319,7 +319,7 @@ class ExportQueryTest
     }
 
     @Test
-    void exportWithStripEmojisFromLinksFalsePreservesEmojisInLinksByDefault()
+    void exportWithStripEmojisFromLinksDefaultTrueStripsEmojisFromLinks()
     {
         var vault = new VaultStub();
         vault.addDocument("docWithEmojis", """
@@ -339,7 +339,7 @@ class ExportQueryTest
         assertThat(markdown).isEqualTo("""
             # Heading with 🚀
 
-            See 🔥 Rocket Alias and 💡 Idea > 📌 Pin.
+            See Rocket Alias and Idea > Pin.
             """);
     }
 
@@ -393,13 +393,184 @@ class ExportQueryTest
         var markdown = formatterRegistry.format(result, MARKDOWN);
 
         assertThat(markdown).isEqualTo("""
-            # Heading with 🚀 and  Star Document
+            # Heading with 🚀 and Star Document
 
             Here is regular text with 🌟 emojis.
-            Link 1:  Rocket Document
-            Link 2:  Rocket Alias
-            Link 3:  Idea >  Pin
-            Link 4:  Rocket Alias
+            Link 1: Rocket Document
+            Link 2: Rocket Alias
+            Link 3: Idea > Pin
+            Link 4: Rocket Alias
+            """);
+    }
+
+    @Test
+    void exportWithAddTitleDefaultTrueAddsDocumentNameToHeaderWhenNoHeaderPresent()
+    {
+        var vault = new VaultStub();
+        vault.addDocument("noHeaderDoc", """
+            Body text without any header.
+            """);
+        var query = new ExportQuery(vault, QueryTestModule.createEmptyCatalog(),
+            formatterRegistry, resultFactory
+        );
+        var definition = new QueryDefinitionStub(query, null)
+            .withConfiguration("document", "noHeaderDoc");
+
+        var result = query.run(definition);
+        var markdown = formatterRegistry.format(result, MARKDOWN);
+
+        assertThat(markdown).isEqualTo("""
+            # noHeaderDoc
+            
+            Body text without any header.
+            """);
+    }
+
+    @Test
+    void exportWithAddTitleExplicitlyFalseDoesNotAddHeader()
+    {
+        var vault = new VaultStub();
+        vault.addDocument("noHeaderDoc", """
+            Body text without any header.
+            """);
+        var query = new ExportQuery(vault, QueryTestModule.createEmptyCatalog(),
+            formatterRegistry, resultFactory
+        );
+        var definition = new QueryDefinitionStub(query, null)
+            .withConfiguration("document", "noHeaderDoc")
+            .withConfiguration("add-title", false);
+
+        var result = query.run(definition);
+        var markdown = formatterRegistry.format(result, MARKDOWN);
+
+        assertThat(markdown).isEqualTo("""
+            Body text without any header.
+            """);
+    }
+
+    @Test
+    void exportWithAddTitleTrueAddsDocumentNameToHeaderWhenNoHeaderPresent()
+    {
+        var vault = new VaultStub();
+        vault.addDocument("myDocument", """
+            Body text without any header.
+            """);
+        var query = new ExportQuery(vault, QueryTestModule.createEmptyCatalog(),
+            formatterRegistry, resultFactory
+        );
+        var definition = new QueryDefinitionStub(query, null)
+            .withConfiguration("document", "myDocument")
+            .withConfiguration("add-title", true);
+
+        var result = query.run(definition);
+        var markdown = formatterRegistry.format(result, MARKDOWN);
+
+        assertThat(markdown).isEqualTo("""
+            # myDocument
+            
+            Body text without any header.
+            """);
+    }
+
+    @Test
+    void exportWithAddTitleTrueAddsFrontMatterTitleWhenNoHeaderPresent()
+    {
+        var vault = new VaultStub();
+        vault.addDocument("myDocument", """
+            ---
+            title: Custom Document Title
+            ---
+            Body text without any header.
+            """);
+        var query = new ExportQuery(vault, QueryTestModule.createEmptyCatalog(),
+            formatterRegistry, resultFactory
+        );
+        var definition = new QueryDefinitionStub(query, null)
+            .withConfiguration("document", "myDocument")
+            .withConfiguration("add-title", true);
+
+        var result = query.run(definition);
+        var markdown = formatterRegistry.format(result, MARKDOWN);
+
+        assertThat(markdown).isEqualTo("""
+            # Custom Document Title
+            
+            Body text without any header.
+            """);
+    }
+
+    @Test
+    void exportWithAddTitleTrueDoesNotAddHeaderWhenLevel1HeaderAlreadyPresent()
+    {
+        var vault = new VaultStub();
+        vault.addDocument("myDocument", """
+            # Existing Level 1 Title
+
+            Body text below header.
+            """);
+        var query = new ExportQuery(vault, QueryTestModule.createEmptyCatalog(),
+            formatterRegistry, resultFactory
+        );
+        var definition = new QueryDefinitionStub(query, null)
+            .withConfiguration("document", "myDocument")
+            .withConfiguration("add-title", true);
+
+        var result = query.run(definition);
+        var markdown = formatterRegistry.format(result, MARKDOWN);
+
+        assertThat(markdown).isEqualTo("""
+            # Existing Level 1 Title
+
+            Body text below header.
+            """);
+    }
+
+    @Test
+    void exportWithAddTitleTrueAddsHeaderWhenLevel2HeaderIsFirstLine()
+    {
+        var vault = new VaultStub();
+        vault.addDocument("myDocument", """
+            ## Existing Level 2 Title
+
+            Body text below level 2 header.
+            """);
+        var query = new ExportQuery(vault, QueryTestModule.createEmptyCatalog(),
+            formatterRegistry, resultFactory
+        );
+        var definition = new QueryDefinitionStub(query, null)
+            .withConfiguration("document", "myDocument")
+            .withConfiguration("add-title", true);
+
+        var result = query.run(definition);
+        var markdown = formatterRegistry.format(result, MARKDOWN);
+
+        assertThat(markdown).isEqualTo("""
+            # myDocument
+            
+            ## Existing Level 2 Title
+
+            Body text below level 2 header.
+            """);
+    }
+
+    @Test
+    void exportWithAddTitleTrueAndEmptyDocument()
+    {
+        var vault = new VaultStub();
+        vault.addDocument("emptyDoc", "");
+        var query = new ExportQuery(vault, QueryTestModule.createEmptyCatalog(),
+            formatterRegistry, resultFactory
+        );
+        var definition = new QueryDefinitionStub(query, null)
+            .withConfiguration("document", "emptyDoc")
+            .withConfiguration("add-title", true);
+
+        var result = query.run(definition);
+        var markdown = formatterRegistry.format(result, MARKDOWN);
+
+        assertThat(markdown).isEqualTo("""
+            # emptyDoc
+            
             """);
     }
 }
