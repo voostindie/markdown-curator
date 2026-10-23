@@ -200,7 +200,8 @@ final class ChangeProcessorGraphQuery
         private Stream<String> toStream(Set<Class<?>> set)
         {
             return set.stream().map(Class::getSimpleName)
-                .filter(name -> !name.contentEquals(name()));
+                .filter(name -> !name.contentEquals(name()))
+                .sorted();
         }
     }
 
