@@ -15,6 +15,8 @@ import static nl.ulso.curator.addon.project.ProjectAttributeDefinition.LAST_MODI
 import static nl.ulso.curator.addon.project.ProjectAttributeDefinition.LEAD;
 import static nl.ulso.curator.addon.project.ProjectAttributeDefinition.PRIORITY;
 import static nl.ulso.curator.addon.project.ProjectAttributeDefinition.STATUS;
+import static nl.ulso.curator.change.Change.isCreate;
+import static nl.ulso.curator.change.Change.isDelete;
 import static nl.ulso.curator.change.Change.isPayloadType;
 
 /// Lists all active projects, either in a simple list or in a table.
@@ -70,7 +72,8 @@ final class ProjectListQuery
     public boolean isImpactedBy(Changelog changelog, QueryDefinition definition)
     {
         return changelog.changes()
-            .anyMatch(isPayloadType(ProjectAttributeRepositoryUpdate.class));
+            .anyMatch(isPayloadType(ProjectAttributeRepositoryUpdate.class).
+                or(isPayloadType(Project.class).and(isCreate().or(isDelete()))));
     }
 
     @Override
