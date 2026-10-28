@@ -14,8 +14,11 @@ import java.util.*;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 
+import static java.lang.System.currentTimeMillis;
 import static java.nio.file.Files.getLastModifiedTime;
+import static java.nio.file.Files.setLastModifiedTime;
 import static java.nio.file.Files.writeString;
+import static java.nio.file.attribute.FileTime.fromMillis;
 import static java.util.concurrent.Executors.newScheduledThreadPool;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static nl.ulso.curator.change.Reset.RESET;
@@ -276,7 +279,8 @@ final class DefaultCurator
             var path = documentPathResolver.resolveAbsolutePath(document);
             if (document.lastModified() != getLastModifiedTime(path).toMillis())
             {
-                LOGGER.warn("Document '{}' has changed on disk. Skipping.", document);
+                LOGGER.warn("Document '{}' has changed on disk. Skipping and forcing a refresh.", document);
+                setLastModifiedTime(path, fromMillis(currentTimeMillis()));
                 return;
             }
             writeString(path, newDocumentContent);
