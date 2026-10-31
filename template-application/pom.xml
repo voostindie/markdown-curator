@@ -5,7 +5,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>com.example.my-markdown-curator</groupId>
-    <artifactId>my-markdown-curator</artifactId>
+    <artifactId>markdown-curator-template</artifactId>
     <version>1.0-SNAPSHOT</version>
 
     <properties>
