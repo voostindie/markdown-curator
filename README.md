@@ -238,7 +238,7 @@ To enable extensions in your curator:
 ```
 
 - Turn a module into an extension:
-  - Define a Dagger `@Subcomponent`, annotated with `@ExtensionScope`, that extends `Extension` and includes the `ExtensionModule` and your own module.
+  - Define a public Dagger `@Subcomponent`, annotated with `@ExtensionScope`, that extends `Extension` and includes the `ExtensionModule` and your own module. (It must be public, because Dagger generates its implementation in the package of the curator that loads it.)
   - In your module, qualify all change processor, query and tracker bindings with `@ExtensionBinding`.
   - Annotate all classes in your module with `@ExtensionScope` instead of `@Singleton`.
   - Implement an `ExtensionFactory` that turns the configuration (a `Dictionary`) into the settings of your extension, and creates the subcomponent.
