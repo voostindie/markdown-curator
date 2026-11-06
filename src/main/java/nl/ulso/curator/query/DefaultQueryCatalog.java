@@ -12,17 +12,22 @@ import static org.slf4j.LoggerFactory.getLogger;
 
 /// Simple [QueryCatalog] implementation that keeps the catalog in memory.
 ///
-/// The queries kept in memory are injected by Dagger, which collects all available queries in a
-/// single Set. This implementation turns that set into a map for easier reference, logging
+/// The static queries kept in memory are injected by Dagger, which collects all available queries
+/// in a single Set. This implementation turns that set into a map for easier reference, logging
 /// duplicates as they are found.
+///
+/// On top of that, queries can be registered at runtime. These dynamic queries can be replaced as a
+/// whole. Because queries are looked up concurrently - by the query orchestrator and by the HTTP
+/// server - the catalog is never modified in place: it's replaced by a new, immutable map.
 @Singleton
 final class DefaultQueryCatalog
-    implements QueryCatalog
+    implements DynamicQueryCatalog
 {
     private static final Logger LOGGER = getLogger(DefaultQueryCatalog.class);
 
-    private final Map<String, Query> queries;
+    private final Map<String, Query> staticQueries;
     private final DefaultQueryResultFactory resultFactory;
+    private volatile Map<String, Query> queries;
 
     @Inject
     DefaultQueryCatalog(Set<Query> querySet, DefaultQueryResultFactory resultFactory)
@@ -45,12 +50,35 @@ final class DefaultQueryCatalog
                 );
             }
         }
+        staticQueries = unmodifiableMap(map);
+        queries = staticQueries;
+        logAvailableQueries();
+    }
+
+    @Override
+    public void replaceDynamicQueries(Collection<Query> dynamicQueries)
+    {
+        var map = new HashMap<>(staticQueries);
+        for (Query query : dynamicQueries)
+        {
+            if (map.putIfAbsent(query.name(), query) != null)
+            {
+                throw new IllegalArgumentException(
+                    "Duplicate query name: '" + query.name() + "'. Queries not registered.");
+            }
+        }
         queries = unmodifiableMap(map);
+        logAvailableQueries();
+    }
+
+    private void logAvailableQueries()
+    {
         if (LOGGER.isDebugEnabled())
         {
+            var snapshot = queries;
             LOGGER.debug("{} queries are available in the catalog: {}.",
-                queries.size(),
-                queries.keySet().stream()
+                snapshot.size(),
+                snapshot.keySet().stream()
                     .sorted()
                     .map(query -> "'" + query + "'")
                     .collect(joining(", "))

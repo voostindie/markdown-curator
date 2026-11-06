@@ -225,6 +225,38 @@ If your change processor transforms objects of one type (e.g. `Document`s) into 
 
 As an example of a custom change processor, see the built-in `Journal` or `ProjectRepository`.
 
+### Load and unload extensions at runtime
+
+Statically registered change processors and queries are fixed when the application starts. An *extension* is a set of change processors, queries and measurement trackers that can be loaded into and unloaded from a running curator, as configured in a document in the vault.
+
+To enable extensions in your curator:
+
+- Provide the name of a configuration document in your curator module:
+
+```java
+@Provides @Named(CuratorModule.CONFIGURATION_DOCUMENT_KEY) static String configurationDocument() { return "CONFIG"; }
+```
+
+- Turn a module into an extension:
+  - Define a Dagger `@Subcomponent`, annotated with `@ExtensionScope`, that extends `Extension` and includes the `ExtensionModule` and your own module.
+  - In your module, qualify all change processor, query and tracker bindings with `@ExtensionBinding`.
+  - Annotate all classes in your module with `@ExtensionScope` instead of `@Singleton`.
+  - Implement an `ExtensionFactory` that turns the configuration (a `Dictionary`) into the settings of your extension, and creates the subcomponent.
+  - Register the subcomponent and the factory in your curator module: `@Module(subcomponents = MyExtension.class)` and `@Binds @IntoMap @StringKey("my-extension") abstract ExtensionFactory bindMyExtensionFactory(MyExtensionFactory factory);`.
+- Enable extensions in the front matter of the configuration document, either as a list of names, or as a map of names to their configuration:
+
+```yaml
+---
+extensions:
+  my-extension:
+    some-setting: some value
+---
+```
+
+Whenever the `extensions` property in the configuration document changes, the curator loads the new set of extensions and performs a complete refresh, exactly like touching the watch document does. If the new configuration is invalid - an unknown extension, a change processor that consumes a payload type nobody produces, a duplicate query name - it is rejected as a whole and the current extensions stay active. Use the `extensions` query to see which extensions are available and active, and why the last configuration was rejected, if it was.
+
+Extensions can inject anything from the curator they are loaded into, but not the other way around: the curator and other extensions can't inject anything from an extension. They can only interact through payload types in the changelog.
+
 ## Query collections
 
 This section lists all readily available queries and explains what they do. Each query supports arguments to be passed to it. To know what they are, use the `help` query somewhere in a monitored repository. For example:

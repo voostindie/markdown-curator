@@ -28,6 +28,10 @@ import java.util.List;
 ///
 /// A special change is the [Reset] change. Whenever it is detected in the changelog, it triggers a
 /// reset of all change processors. Additionally, all changes that come before it are ignored.
+///
+/// The set of change processors is not fixed: [nl.ulso.curator.extension.Extension]s can be loaded
+/// and unloaded at runtime. That only happens during a [Reset], when the change processors of the
+/// extensions are verified and ordered together with all other change processors.
 public interface ChangeProcessorOrchestrator
 {
     /// Runs all change processors in the system in the right order and only when needed based on

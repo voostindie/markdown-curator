@@ -14,6 +14,7 @@ import static java.util.Collections.emptyMap;
 import static nl.ulso.curator.query.OutputFormat.MARKDOWN;
 import static nl.ulso.curator.query.QueryTestModule.createQueryResultFactory;
 import static nl.ulso.curator.query.QueryTestModule.createQueryResultFormatterRegistry;
+import static nl.ulso.curator.main.ExtensionTestSupport.newExtensionRegistry;
 import static org.assertj.core.api.Assertions.assertThat;
 
 class ChangeProcessorGraphQueryTest
@@ -40,7 +41,8 @@ class ChangeProcessorGraphQueryTest
             new ChangeProcessorOrchestratorTest.ChangeProcessorStub(5)
                 .consuming(Integer.class)
         ));
-        var orchestrator = new DefaultChangeProcessorOrchestrator(processors, null);
+        var orchestrator =
+            new DefaultChangeProcessorOrchestrator(processors, null, newExtensionRegistry());
         this.query =
             new ChangeProcessorGraphQuery(orchestrator, new StringOnlyQueryResultFactory());
         formatterRegistry = createQueryResultFormatterRegistry();

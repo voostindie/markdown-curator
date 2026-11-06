@@ -10,7 +10,10 @@ import org.slf4j.event.Level;
 
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
+import static java.util.Collections.unmodifiableList;
+import static java.util.Collections.unmodifiableSequencedSet;
 import static java.util.Comparator.comparing;
 import static java.util.List.copyOf;
 import static java.util.stream.Collectors.joining;
@@ -27,20 +30,41 @@ final class DefaultChangeProcessorOrchestrator
     private static final Set<Class<?>> RESERVED_PAYLOAD_TYPES =
         Set.of(Reset.class, Vault.class, Folder.class, Document.class);
     private static final List<Class<?>> RESERVED_CHANGE_PROCESSORS_CLASSES =
-        List.of(VaultReloader.class, VaultInitializer.class);
+        List.of(VaultReloader.class, ExtensionLoader.class, VaultInitializer.class);
 
     private static final Logger LOGGER = getLogger(DefaultChangeProcessorOrchestrator.class);
 
-    private final List<ChangeProcessor> changeProcessors;
+    private final List<ChangeProcessor> reservedProcessors;
+    private final SequencedSet<ChangeProcessor> staticProcessors;
     private final Statistics statistics;
+    private final ExtensionRegistry extensionRegistry;
+    private volatile List<ChangeProcessor> orderedProcessors;
 
     @Inject
-    DefaultChangeProcessorOrchestrator(Set<ChangeProcessor> changeProcessors, Statistics statistics)
+    DefaultChangeProcessorOrchestrator(
+        Set<ChangeProcessor> changeProcessors,
+        Statistics statistics,
+        ExtensionRegistry extensionRegistry)
     {
         verifyPayloadTypeConsumers(changeProcessors);
         verifyReservedPayloadTypeProducers(changeProcessors);
-        this.changeProcessors = orderChangeProcessors(changeProcessors);
+        this.reservedProcessors = RESERVED_CHANGE_PROCESSORS_CLASSES.stream()
+            .flatMap(reservedClass -> changeProcessors.stream()
+                .filter(processor -> processor.getClass().equals(reservedClass)))
+            .toList();
+        var nonReservedProcessors = new LinkedHashSet<ChangeProcessor>();
+        changeProcessors.stream()
+            .filter(processor -> !isReserved(processor))
+            .forEach(nonReservedProcessors::add);
+        this.staticProcessors = unmodifiableSequencedSet(nonReservedProcessors);
+        this.orderedProcessors = orderChangeProcessors(staticProcessors);
         this.statistics = statistics;
+        this.extensionRegistry = extensionRegistry;
+    }
+
+    private static boolean isReserved(ChangeProcessor processor)
+    {
+        return RESERVED_CHANGE_PROCESSORS_CLASSES.contains(processor.getClass());
     }
 
     private void verifyPayloadTypeConsumers(Set<ChangeProcessor> processors)
@@ -65,7 +89,7 @@ final class DefaultChangeProcessorOrchestrator
     private void verifyReservedPayloadTypeProducers(Set<ChangeProcessor> changeProcessors)
     {
         var processorsToVerify = changeProcessors.stream()
-            .filter(processor -> !RESERVED_CHANGE_PROCESSORS_CLASSES.contains(processor.getClass()))
+            .filter(processor -> !isReserved(processor))
             .collect(toSet());
         if (producesAnyOf(processorsToVerify, RESERVED_PAYLOAD_TYPES))
         {
@@ -78,9 +102,14 @@ final class DefaultChangeProcessorOrchestrator
         }
     }
 
+    /// @return all change processors in the order they are executed.
     List<ChangeProcessor> changeProcessors()
     {
-        return changeProcessors;
+        var processors = orderedProcessors;
+        var result = new ArrayList<ChangeProcessor>(reservedProcessors.size() + processors.size());
+        result.addAll(reservedProcessors);
+        result.addAll(processors);
+        return unmodifiableList(result);
     }
 
     /// Order the available set of change processors in accordance to the requirements of the
@@ -97,13 +126,12 @@ final class DefaultChangeProcessorOrchestrator
     /// dependency that can never be satisfied. That is a programming error.
     ///
     /// The list of [#RESERVED_CHANGE_PROCESSORS_CLASSES] is special: instances of these classes are
-    /// not ordered dynamically, but instead placed in front of the list after it has been ordered,
-    /// in the order they have been declared in.
+    /// not ordered dynamically, but instead always run first, in the order they have been declared
+    /// in. They are not part of the set passed to this method.
     private List<ChangeProcessor> orderChangeProcessors(Set<ChangeProcessor> changeProcessors)
     {
         var availablePayloadTypes = new HashSet<>(RESERVED_PAYLOAD_TYPES);
         var queue = new ArrayDeque<>(changeProcessors.stream()
-            .filter(processor -> !RESERVED_CHANGE_PROCESSORS_CLASSES.contains(processor.getClass()))
             .sorted(comparing(c -> c.getClass().getSimpleName()))
             .toList());
         var size = changeProcessors.size();
@@ -119,8 +147,7 @@ final class DefaultChangeProcessorOrchestrator
                     "Dependency cycle or unsatisfied consumer(s). The following change " +
                     "processor(s) cannot be put in order: " +
                     queue.stream()
-                        .map(Object::getClass)
-                        .map(Class::getSimpleName)
+                        .map(ChangeProcessor::name)
                         .collect(joining(", "))
                 );
             }
@@ -140,17 +167,13 @@ final class DefaultChangeProcessorOrchestrator
                 availablePayloadTypes.addAll(processor.producedPayloadTypes());
             }
         }
-        RESERVED_CHANGE_PROCESSORS_CLASSES.reversed().stream()
-            .map(reservedClass -> changeProcessors.stream()
-                .filter(processor -> processor.getClass().equals(reservedClass))
-                .findAny())
-            .filter(Optional::isPresent)
-            .map(Optional::get)
-            .forEach(result::addFirst);
         if (LOGGER.isDebugEnabled())
         {
-            LOGGER.debug("{} change processors will be refreshed in this order: {}", result.size(),
-                result.stream().map(ChangeProcessor::name).collect(Collectors.joining(", "))
+            LOGGER.debug("{} change processors will be refreshed in this order: {}",
+                reservedProcessors.size() + result.size(),
+                Stream.concat(reservedProcessors.stream(), result.stream())
+                    .map(ChangeProcessor::name)
+                    .collect(Collectors.joining(", "))
             );
         }
         return copyOf(result);
@@ -169,7 +192,29 @@ final class DefaultChangeProcessorOrchestrator
     {
         var changelog = changelogFor(changes);
         resetIfNeeded(changelog);
-        for (ChangeProcessor processor : changeProcessors)
+        changelog = runProcessors(reservedProcessors, changelog);
+        if (changelog.changes().anyMatch(isPayloadType(Reset.class)))
+        {
+            activateStagedExtensions();
+        }
+        var processors = orderedProcessors;
+        changelog = runProcessors(processors, changelog);
+        LOGGER.info(
+            "Executed {} change processors on {} change(s).",
+            reservedProcessors.size() + processors.size(),
+            changes.size()
+        );
+        statistics.logTo(
+            LOGGER,
+            changelog.changes().anyMatch(isPayloadType(Reset.class)) ? Level.INFO : Level.TRACE
+        );
+        LOGGER.info("Produced changelog with {} change(s).", changelog.size());
+        return changelog;
+    }
+
+    private Changelog runProcessors(List<ChangeProcessor> processors, Changelog changelog)
+    {
+        for (ChangeProcessor processor : processors)
         {
             var processorName = processor.name();
             var filteredChangelog = changelog.changelogFor(processor.consumedPayloadTypes());
@@ -197,17 +242,43 @@ final class DefaultChangeProcessorOrchestrator
             }
             LOGGER.trace("Executed change processor {}.", processorName);
         }
-        LOGGER.info(
-            "Executed {} change processors on {} change(s).",
-            changeProcessors.size(),
-            changes.size()
-        );
-        statistics.logTo(
-            LOGGER,
-            changelog.changes().anyMatch(isPayloadType(Reset.class)) ? Level.INFO : Level.TRACE
-        );
-        LOGGER.info("Produced changelog with {} change(s).", changelog.size());
         return changelog;
+    }
+
+    /// Activates the extensions staged by the [ExtensionLoader], if any.
+    ///
+    /// This happens only during a [Reset], after the reserved processors have run and before all
+    /// other processors run. At that moment all processors have been reset and the vault
+    /// initialization changes are in the changelog, so the change processors in the new extensions
+    /// will receive the complete state of the vault, as will all existing processors.
+    ///
+    /// If the new set of change processors is invalid - for example because an extension consumes
+    /// a payload type nobody produces, or because a query name is already taken - then the new
+    /// configuration is rejected as a whole and the current one stays active.
+    private void activateStagedExtensions()
+    {
+        extensionRegistry.takeStaged().ifPresent(extensions -> {
+            try
+            {
+                // Ordered sets and maps make the ordering of change processors predictable.
+                var processors = new LinkedHashSet<>(staticProcessors);
+                new TreeMap<>(extensions).values().forEach(extension ->
+                    processors.addAll(extension.changeProcessors()));
+                verifyPayloadTypeConsumers(processors);
+                verifyReservedPayloadTypeProducers(processors);
+                var ordered = orderChangeProcessors(processors);
+                extensionRegistry.activate(extensions);
+                orderedProcessors = ordered;
+                LOGGER.info("Activated {} extension(s) with {} change processor(s) in total.",
+                    extensions.size(), reservedProcessors.size() + ordered.size()
+                );
+            }
+            catch (RuntimeException e)
+            {
+                LOGGER.error("Rejecting the new extensions. Keeping the current extensions.", e);
+                extensionRegistry.reject(e.getMessage());
+            }
+        });
     }
 
     private boolean resetIfNeeded(Changelog changelog)
@@ -217,7 +288,8 @@ final class DefaultChangeProcessorOrchestrator
             return false;
         }
         LOGGER.info("Resetting all change processors.");
-        changeProcessors.forEach(DefaultChangeProcessorOrchestrator::safelyReset);
+        reservedProcessors.forEach(DefaultChangeProcessorOrchestrator::safelyReset);
+        orderedProcessors.forEach(DefaultChangeProcessorOrchestrator::safelyReset);
         return true;
     }
 

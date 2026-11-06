@@ -11,14 +11,22 @@ import java.util.*;
 
 @Singleton
 final class DefaultStatistics
-    implements Statistics
+    implements Statistics, MeasurementTrackerRegistry
 {
     private final Set<MeasurementTracker> trackers;
+    private volatile List<MeasurementTracker> dynamicTrackers;
 
     @Inject
     public DefaultStatistics(Set<MeasurementTracker> trackers)
     {
         this.trackers = trackers;
+        this.dynamicTrackers = List.of();
+    }
+
+    @Override
+    public void replaceDynamicTrackers(Collection<MeasurementTracker> trackers)
+    {
+        this.dynamicTrackers = List.copyOf(trackers);
     }
 
     @Override
@@ -36,6 +44,7 @@ final class DefaultStatistics
     {
         var collector = new DefaultMeasurementCollector();
         trackers.forEach(tracker -> tracker.collectMeasurements(collector));
+        dynamicTrackers.forEach(tracker -> tracker.collectMeasurements(collector));
         writeStatistics(collector.measurements(), writer);
     }
 

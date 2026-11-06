@@ -14,6 +14,9 @@ public abstract class QueryModule
     abstract QueryCatalog bindQueryCatalog(DefaultQueryCatalog queryCatalog);
 
     @Binds
+    abstract DynamicQueryCatalog bindDynamicQueryCatalog(DefaultQueryCatalog queryCatalog);
+
+    @Binds
     abstract QueryResultFormatterRegistry bindQueryResultFormatterRegistry(
         DefaultQueryResultFormatterRegistry registry);
 

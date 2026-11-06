@@ -16,7 +16,10 @@ import static java.util.Collections.emptySet;
 /// are not allowed to produce changes of types they do not declare to produce
 /// ([#producedPayloadTypes()]).
 ///
-/// **Important**: change processors must be singletons (marked with [Singleton]).
+/// **Important**: change processors must exist only once in their lifecycle: statically configured
+/// processors must be singletons (marked with [Singleton]); processors in an
+/// [nl.ulso.curator.extension.Extension] must be marked with
+/// [nl.ulso.curator.extension.ExtensionScope].
 ///
 /// The change processors in the system are orchestrated such that all processors run in the correct
 /// order: all producers of a payload type before all consumers of that payload type.
@@ -43,9 +46,10 @@ public interface ChangeProcessor
     /// When processing a changelog, all payload types that do not satisfy this set are filtered
     /// out. If the resulting changelog is empty, the processor is not called at all.
     ///
-    /// At application startup all change processors are inspected on what they consume and ordered
-    /// after the producers of these payload types. If a required payload type is missing, the
-    /// application fails to start.
+    /// At application startup, and whenever extensions are loaded, all change processors are
+    /// inspected on what they consume and ordered after the producers of these payload types. If a
+    /// required payload type is missing, the application fails to start, or the extensions are
+    /// rejected.
     Set<Class<?>> consumedPayloadTypes();
 
     /// Returns the set of payload types this change processor will produce to changelogs; this
@@ -62,7 +66,8 @@ public interface ChangeProcessor
     /// This is a weaker form of the [#consumedPayloadTypes()] method, in the sense that the payload
     /// types returned by this method will not be offered to this change processor for consumption.
     ///
-    /// The system calls this method only at startup to order all change processors.
+    /// The system calls this method only at startup and when extensions are loaded, to order all
+    /// change processors.
     default Set<Class<?>> requiredPayloadTypes()
     {
         return emptySet();

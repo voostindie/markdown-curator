@@ -43,6 +43,55 @@ class DefaultQueryCatalogTest
         assertThat(catalog.queries()).hasSize(2);
     }
 
+    @Test
+    void replaceDynamicQueries()
+    {
+        var catalog = new DefaultQueryCatalog(
+            Set.of(new DummyQuery("static")), new DefaultQueryResultFactory());
+        catalog.replaceDynamicQueries(List.of(new DummyQuery("dynamic1")));
+        softly.assertThat(catalog.query("dynamic1")).isInstanceOf(DummyQuery.class);
+        catalog.replaceDynamicQueries(List.of(new DummyQuery("dynamic2")));
+        softly.assertThat(catalog.query("dynamic1")).isInstanceOf(UnknownQuery.class);
+        softly.assertThat(catalog.query("dynamic2")).isInstanceOf(DummyQuery.class);
+        softly.assertThat(catalog.query("static")).isInstanceOf(DummyQuery.class);
+        softly.assertThat(catalog.queries()).hasSize(3);
+        catalog.replaceDynamicQueries(List.of());
+        softly.assertThat(catalog.queries()).hasSize(2);
+    }
+
+    @Test
+    void rejectDynamicQueryThatClashesWithStaticQuery()
+    {
+        var catalog = new DefaultQueryCatalog(
+            Set.of(new DummyQuery("static")), new DefaultQueryResultFactory());
+        catalog.replaceDynamicQueries(List.of(new DummyQuery("dynamic")));
+        var clash = List.<Query>of(new DummyQuery("other"), new DummyQuery("static"));
+        softly.assertThatThrownBy(() -> catalog.replaceDynamicQueries(clash))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessageContaining("static");
+        softly.assertThat(catalog.query("dynamic")).isInstanceOf(DummyQuery.class);
+        softly.assertThat(catalog.query("other")).isInstanceOf(UnknownQuery.class);
+    }
+
+    @Test
+    void rejectDuplicateDynamicQueries()
+    {
+        var catalog = new DefaultQueryCatalog(emptySet(), new DefaultQueryResultFactory());
+        var duplicates = List.<Query>of(new DummyQuery("q"), new DummyQuery("q"));
+        softly.assertThatThrownBy(() -> catalog.replaceDynamicQueries(duplicates))
+            .isInstanceOf(IllegalArgumentException.class);
+        softly.assertThat(catalog.isEmpty()).isTrue();
+    }
+
+    @Test
+    void helpQueryCannotBeReplaced()
+    {
+        var catalog = new DefaultQueryCatalog(emptySet(), new DefaultQueryResultFactory());
+        var help = List.<Query>of(new DummyQuery("help"));
+        softly.assertThatThrownBy(() -> catalog.replaceDynamicQueries(help))
+            .isInstanceOf(IllegalArgumentException.class);
+    }
+
     record DummyQuery(String name)
         implements Query
     {

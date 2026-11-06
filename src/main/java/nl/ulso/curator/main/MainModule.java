@@ -33,6 +33,14 @@ public abstract class MainModule
 
     @Binds
     @IntoSet
+    abstract ChangeProcessor bindExtensionLoader(ExtensionLoader extensionLoader);
+
+    @Binds
+    @IntoSet
+    abstract Query bindExtensionsQuery(ExtensionsQuery extensionsQuery);
+
+    @Binds
+    @IntoSet
     abstract ChangeProcessor bindFrontMatterProcessor(FrontMatterRepository frontMatterRepository);
 
     @Binds

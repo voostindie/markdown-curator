@@ -23,6 +23,10 @@ public abstract class StatisticsModule
     abstract Statistics bindStatistics(DefaultStatistics statistics);
 
     @Binds
+    abstract MeasurementTrackerRegistry bindMeasurementTrackerRegistry(
+        DefaultStatistics statistics);
+
+    @Binds
     @IntoSet
     abstract Query bindQuery(StatisticsQuery query);
 }

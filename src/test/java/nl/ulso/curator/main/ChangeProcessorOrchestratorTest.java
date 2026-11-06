@@ -14,6 +14,7 @@ import java.io.PrintWriter;
 import java.util.*;
 
 import static nl.ulso.curator.change.Changelog.emptyChangelog;
+import static nl.ulso.curator.main.ExtensionTestSupport.newExtensionRegistry;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
@@ -27,7 +28,7 @@ class ChangeProcessorOrchestratorTest
         var model3 = new ChangeProcessorStub(3).consuming(Integer.class);
         var model4 = new ChangeProcessorStub(4).consuming(Folder.class).producing(Integer.class);
         var models = createModelSet(model1, model2, model3, model4);
-        var orchestrator = new DefaultChangeProcessorOrchestrator(models, new NullStatistics());
+        var orchestrator = new DefaultChangeProcessorOrchestrator(models, new NullStatistics(), newExtensionRegistry());
         assertThat(orchestrator.changeProcessors()).containsExactly(model2, model4, model1, model3);
     }
 
@@ -37,7 +38,7 @@ class ChangeProcessorOrchestratorTest
         var model1 = new ChangeProcessorStub(1).consuming(Document.class).requiring(Integer.class);
         var model2 = new ChangeProcessorStub(2).consuming(Document.class).producing(Integer.class);
         var models = createModelSet(model1, model2);
-        var orchestrator = new DefaultChangeProcessorOrchestrator(models, new NullStatistics());
+        var orchestrator = new DefaultChangeProcessorOrchestrator(models, new NullStatistics(), newExtensionRegistry());
         assertThat(orchestrator.changeProcessors()).containsExactly(model2, model1);
     }
 
@@ -48,7 +49,7 @@ class ChangeProcessorOrchestratorTest
         var model2 = new ChangeProcessorStub(2).consuming(Document.class);
         var model3 = new ChangeProcessorStub(3).consuming(Folder.class);
         var models = createModelSet(model1, model2, model3);
-        var orchestrator = new DefaultChangeProcessorOrchestrator(models, new NullStatistics());
+        var orchestrator = new DefaultChangeProcessorOrchestrator(models, new NullStatistics(), newExtensionRegistry());
         assertThat(orchestrator.changeProcessors()).containsExactly(model1, model2, model3);
     }
 
@@ -59,7 +60,7 @@ class ChangeProcessorOrchestratorTest
         var model = new ChangeProcessorStub(1).consuming(Integer.class).producing(payloadType);
         var models = createModelSet(model);
         var statistics = new NullStatistics();
-        assertThatThrownBy(() -> new DefaultChangeProcessorOrchestrator(models, statistics))
+        assertThatThrownBy(() -> new DefaultChangeProcessorOrchestrator(models, statistics, newExtensionRegistry()))
             .isInstanceOf(IllegalArgumentException.class)
             .hasMessageContaining("reserved payload type");
 
@@ -72,7 +73,7 @@ class ChangeProcessorOrchestratorTest
         var model2 = new ChangeProcessorStub(2).producing(Integer.class).consuming(String.class);
         var models = createModelSet(model1, model2);
         var statistics = new NullStatistics();
-        assertThatThrownBy(() -> new DefaultChangeProcessorOrchestrator(models, statistics))
+        assertThatThrownBy(() -> new DefaultChangeProcessorOrchestrator(models, statistics, newExtensionRegistry()))
             .isInstanceOf(IllegalStateException.class)
             .hasMessageContaining("Dependency cycle");
     }
@@ -83,7 +84,7 @@ class ChangeProcessorOrchestratorTest
         var model = new ChangeProcessorStub(1);
         var models = createModelSet(model);
         var statistics = new NullStatistics();
-        assertThatThrownBy(() -> new DefaultChangeProcessorOrchestrator(models, statistics))
+        assertThatThrownBy(() -> new DefaultChangeProcessorOrchestrator(models, statistics, newExtensionRegistry()))
             .isInstanceOf(IllegalArgumentException.class)
             .hasMessageContaining("must consume at least one payload type");
     }
@@ -94,7 +95,7 @@ class ChangeProcessorOrchestratorTest
         var model = new ChangeProcessorStub(1).consuming(Integer.class);
         var models = createModelSet(model);
         var statistics = new NullStatistics();
-        assertThatThrownBy(() -> new DefaultChangeProcessorOrchestrator(models, statistics))
+        assertThatThrownBy(() -> new DefaultChangeProcessorOrchestrator(models, statistics, newExtensionRegistry()))
             .isInstanceOf(IllegalStateException.class)
             .hasMessageContaining("unsatisfied consumer");
     }
@@ -180,7 +181,7 @@ class ChangeProcessorOrchestratorTest
         }
     }
 
-    private static final class NullStatistics
+    static final class NullStatistics
         implements Statistics
     {
         @Override
