@@ -17,6 +17,7 @@ import static java.util.Collections.unmodifiableSequencedSet;
 import static java.util.Comparator.comparing;
 import static java.util.List.copyOf;
 import static java.util.stream.Collectors.joining;
+import static java.util.stream.Collectors.toCollection;
 import static java.util.stream.Collectors.toSet;
 import static nl.ulso.curator.change.Change.isPayloadType;
 import static nl.ulso.curator.change.Changelog.changelogFor;
@@ -143,13 +144,7 @@ final class DefaultChangeProcessorOrchestrator
             iteration++;
             if (iteration > maxIterations)
             {
-                throw new IllegalStateException(
-                    "Dependency cycle or unsatisfied consumer(s). The following change " +
-                    "processor(s) cannot be put in order: " +
-                    queue.stream()
-                        .map(ChangeProcessor::name)
-                        .collect(joining(", "))
-                );
+                throw new UnorderableChangeProcessorsException(List.copyOf(queue));
             }
             var processor = queue.pollFirst();
             var neededPayloadTypes = HashSet.<Class<?>>newHashSet(
@@ -177,6 +172,26 @@ final class DefaultChangeProcessorOrchestrator
             );
         }
         return copyOf(result);
+    }
+
+    /// Thrown when change processors can't be put in order.
+    static final class UnorderableChangeProcessorsException
+        extends IllegalStateException
+    {
+        private final List<ChangeProcessor> processors;
+
+        UnorderableChangeProcessorsException(List<ChangeProcessor> processors)
+        {
+            super("Dependency cycle or unsatisfied consumer(s). The following change " +
+                  "processor(s) cannot be put in order: " +
+                  processors.stream().map(ChangeProcessor::name).collect(joining(", ")));
+            this.processors = processors;
+        }
+
+        List<ChangeProcessor> processors()
+        {
+            return processors;
+        }
     }
 
     /// Checks if any of the processors in the collection produce any of the given payload types.
@@ -245,32 +260,25 @@ final class DefaultChangeProcessorOrchestrator
         return changelog;
     }
 
-    /// Activates the extensions staged by the [ExtensionLoader], if any.
+    /// Activates the generation of extensions staged by the [ExtensionLoader], if any.
     ///
     /// This happens only during a [Reset], after the reserved processors have run and before all
     /// other processors run. At that moment all processors have been reset and the vault
     /// initialization changes are in the changelog, so the change processors in the new extensions
     /// will receive the complete state of the vault, as will all existing processors.
     ///
-    /// If the new set of change processors is invalid - for example because an extension consumes
-    /// a payload type nobody produces, or because a query name is already taken - then the new
-    /// configuration is rejected as a whole and the current one stays active.
+    /// Extensions that don't fit are dropped from the generation, together with the extensions
+    /// that depend on their services; see [#fitExtensions(Generation)].
     private void activateStagedExtensions()
     {
-        extensionRegistry.takeStaged().ifPresent(extensions -> {
+        extensionRegistry.takeStaged().ifPresent(generation -> {
             try
             {
-                // Ordered sets and maps make the ordering of change processors predictable.
-                var processors = new LinkedHashSet<>(staticProcessors);
-                new TreeMap<>(extensions).values().forEach(extension ->
-                    processors.addAll(extension.changeProcessors()));
-                verifyPayloadTypeConsumers(processors);
-                verifyReservedPayloadTypeProducers(processors);
-                var ordered = orderChangeProcessors(processors);
-                extensionRegistry.activate(extensions);
+                var ordered = fitExtensions(generation);
+                extensionRegistry.activate(generation);
                 orderedProcessors = ordered;
                 LOGGER.info("Activated {} extension(s) with {} change processor(s) in total.",
-                    extensions.size(), reservedProcessors.size() + ordered.size()
+                    generation.extensions().size(), reservedProcessors.size() + ordered.size()
                 );
             }
             catch (RuntimeException e)
@@ -279,6 +287,107 @@ final class DefaultChangeProcessorOrchestrator
                 extensionRegistry.reject(e.getMessage());
             }
         });
+    }
+
+    /// Drops extensions from the generation until all change processors - static and from
+    /// extensions - can be put in order, and all queries have unique names. Extensions are dropped
+    /// if:
+    ///
+    /// - One of their change processors consumes nothing, or produces a reserved payload type.
+    /// - One of their queries has a name that is already taken.
+    /// - One of their change processors consumes or requires a payload type that nothing produces.
+    /// - One of their change processors is part of a dependency cycle.
+    ///
+    /// @return the ordered list of change processors, excluding the reserved ones.
+    private List<ChangeProcessor> fitExtensions(Generation generation)
+    {
+        while (true)
+        {
+            for (var entry : List.copyOf(generation.extensions().entrySet()))
+            {
+                try
+                {
+                    verifyPayloadTypeConsumers(entry.getValue().changeProcessors());
+                    verifyReservedPayloadTypeProducers(entry.getValue().changeProcessors());
+                }
+                catch (IllegalArgumentException e)
+                {
+                    generation.drop(entry.getKey(), e.getMessage());
+                }
+            }
+            extensionRegistry.dropConflictingQueries(generation);
+            var processors = new LinkedHashSet<>(staticProcessors);
+            var owners = new HashMap<ChangeProcessor, String>();
+            generation.extensions().forEach((name, extension) ->
+                extension.changeProcessors().forEach(processor -> {
+                    processors.add(processor);
+                    owners.put(processor, name);
+                }));
+            try
+            {
+                return orderChangeProcessors(processors);
+            }
+            catch (UnorderableChangeProcessorsException e)
+            {
+                dropUnorderableExtensions(generation, e, processors, owners);
+            }
+        }
+    }
+
+    /// Drops the extensions whose change processors couldn't be ordered. Processors that need
+    /// payload types that nothing produces are the root cause; if there are any, only their
+    /// extensions are dropped. The next round will tell if that was enough. If there are none, the
+    /// processors are in a dependency cycle, and all extensions involved are dropped.
+    private void dropUnorderableExtensions(
+        Generation generation,
+        UnorderableChangeProcessorsException exception,
+        Set<ChangeProcessor> allProcessors,
+        Map<ChangeProcessor, String> owners)
+    {
+        var producedPayloadTypes = new HashSet<>(RESERVED_PAYLOAD_TYPES);
+        allProcessors.forEach(processor ->
+            producedPayloadTypes.addAll(processor.producedPayloadTypes()));
+        var culprits = new TreeMap<String, List<String>>();
+        for (var processor : exception.processors())
+        {
+            var owner = owners.get(processor);
+            if (owner == null)
+            {
+                continue;
+            }
+            var missing = new TreeSet<String>();
+            processor.consumedPayloadTypes().stream()
+                .filter(type -> !producedPayloadTypes.contains(type))
+                .forEach(type -> missing.add(type.getSimpleName()));
+            processor.requiredPayloadTypes().stream()
+                .filter(type -> !producedPayloadTypes.contains(type))
+                .forEach(type -> missing.add(type.getSimpleName()));
+            if (!missing.isEmpty())
+            {
+                culprits.computeIfAbsent(owner, _ -> new ArrayList<>())
+                    .add(processor.name() + " needs " + String.join(", ", missing));
+            }
+        }
+        if (!culprits.isEmpty())
+        {
+            culprits.forEach((name, problems) -> generation.drop(name,
+                "Payload type(s) not produced by any change processor: " +
+                String.join("; ", problems) + "."));
+            return;
+        }
+        var cycle = exception.processors().stream()
+            .map(owners::get)
+            .filter(Objects::nonNull)
+            .collect(toCollection(TreeSet::new));
+        if (cycle.isEmpty())
+        {
+            throw exception;
+        }
+        var names = exception.processors().stream()
+            .map(ChangeProcessor::name)
+            .collect(joining(", "));
+        cycle.forEach(name -> generation.drop(name,
+            "Change processors in a dependency cycle: " + names + "."));
     }
 
     private boolean resetIfNeeded(Changelog changelog)

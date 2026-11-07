@@ -3,8 +3,6 @@ package nl.ulso.curator.main;
 import jakarta.inject.*;
 import nl.ulso.curator.CuratorModule;
 import nl.ulso.curator.change.*;
-import nl.ulso.curator.extension.Extension;
-import nl.ulso.curator.extension.ExtensionFactory;
 import nl.ulso.curator.vault.Document;
 import nl.ulso.curator.vault.Vault;
 import nl.ulso.dictionary.Dictionary;
@@ -12,7 +10,6 @@ import org.slf4j.Logger;
 
 import java.util.*;
 
-import static java.util.stream.Collectors.joining;
 import static nl.ulso.curator.CuratorModule.CONFIGURATION_DOCUMENT_KEY;
 import static nl.ulso.curator.change.Change.Kind.DELETE;
 import static nl.ulso.curator.change.Change.isPayloadType;
@@ -45,6 +42,10 @@ import static org.slf4j.LoggerFactory.getLogger;
 /// In this case the loader publishes a [Reset], which triggers a complete rebuild of all state in
 /// all change processors, including the new ones.
 ///
+/// Extensions that can't be loaded - unknown extensions, invalid settings, missing services, and so
+/// on - are left out; see the [ExtensionResolver]. The configuration is only rejected as a whole if
+/// it can't be parsed.
+///
 /// The loader doesn't activate the extensions itself. It stages them in the [ExtensionRegistry];
 /// the [DefaultChangeProcessorOrchestrator] activates them.
 @Singleton
@@ -57,7 +58,7 @@ final class ExtensionLoader
 
     private final String configurationDocumentName;
     private final Vault vault;
-    private final Map<String, ExtensionFactory> extensionFactories;
+    private final ExtensionResolver resolver;
     private final ExtensionRegistry registry;
     private Object lastConfiguration;
 
@@ -66,12 +67,12 @@ final class ExtensionLoader
     ExtensionLoader(
         @Named(CONFIGURATION_DOCUMENT_KEY) Optional<String> configurationDocumentName,
         Vault vault,
-        Map<String, ExtensionFactory> extensionFactories,
+        ExtensionResolver resolver,
         ExtensionRegistry registry)
     {
         this.configurationDocumentName = configurationDocumentName.orElse(null);
         this.vault = vault;
-        this.extensionFactories = Map.copyOf(extensionFactories);
+        this.resolver = resolver;
         this.registry = registry;
         this.lastConfiguration = null;
         if (this.configurationDocumentName != null)
@@ -80,7 +81,7 @@ final class ExtensionLoader
                 this.configurationDocumentName
             );
         }
-        else if (!extensionFactories.isEmpty())
+        else if (!resolver.factories().isEmpty())
         {
             LOGGER.warn("Extensions are available, but no configuration document is configured. " +
                         "No extensions will be loaded.");
@@ -144,20 +145,22 @@ final class ExtensionLoader
             .orElse(null);
     }
 
-    /// Creates all extensions from the configuration and stages them in the registry.
+    /// Resolves the configuration into a new generation of extensions and stages it in the
+    /// registry. Extensions that can't be loaded are left out of the generation.
     ///
-    /// @return `true` if the extensions were staged, `false` if the configuration was rejected.
+    /// @return `true` if a generation was staged, `false` if the configuration was rejected as a
+    /// whole, because it can't be parsed.
     private boolean loadConfiguration(Object configuration)
     {
         lastConfiguration = configuration;
         try
         {
-            var extensions = createExtensions(parseConfiguration(configuration));
-            registry.stage(extensions);
+            var generation = resolver.resolve(parseConfiguration(configuration));
+            registry.stage(generation);
             if (LOGGER.isInfoEnabled())
             {
-                LOGGER.info("Staged {} extension(s): {}.", extensions.size(),
-                    String.join(", ", new TreeSet<>(extensions.keySet())));
+                LOGGER.info("Staged {} extension(s): {}.", generation.extensions().size(),
+                    String.join(", ", generation.extensions().keySet()));
             }
             return true;
         }
@@ -206,31 +209,5 @@ final class ExtensionLoader
             default -> throw new IllegalArgumentException(
                 "Configuration of extension '" + extensionName + "' must be a map.");
         };
-    }
-
-    private Map<String, Extension> createExtensions(SortedMap<String, Dictionary> configuration)
-    {
-        var unknown = configuration.keySet().stream()
-            .filter(name -> !extensionFactories.containsKey(name))
-            .toList();
-        if (!unknown.isEmpty())
-        {
-            throw new IllegalArgumentException(
-                "Unknown extension(s): " + String.join(", ", unknown) + ". Available: " +
-                extensionFactories.keySet().stream().sorted().collect(joining(", ")) + ".");
-        }
-        var extensions = new HashMap<String, Extension>(configuration.size());
-        configuration.forEach((name, settings) -> {
-            try
-            {
-                extensions.put(name, extensionFactories.get(name).create(settings));
-            }
-            catch (RuntimeException e)
-            {
-                throw new IllegalArgumentException(
-                    "Could not create extension '" + name + "': " + e.getMessage(), e);
-            }
-        });
-        return extensions;
     }
 }

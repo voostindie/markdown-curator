@@ -71,6 +71,12 @@ final class DefaultQueryCatalog
         logAvailableQueries();
     }
 
+    @Override
+    public Set<String> staticQueryNames()
+    {
+        return staticQueries.keySet();
+    }
+
     private void logAvailableQueries()
     {
         if (LOGGER.isDebugEnabled())

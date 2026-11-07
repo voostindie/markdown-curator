@@ -9,6 +9,7 @@ import nl.ulso.curator.vault.Document;
 import java.util.*;
 
 import static java.lang.System.lineSeparator;
+import static java.util.stream.Collectors.joining;
 import static nl.ulso.curator.CuratorModule.CONFIGURATION_DOCUMENT_KEY;
 import static nl.ulso.curator.change.Change.isPayloadType;
 
@@ -43,7 +44,7 @@ final class ExtensionsQuery
     @Override
     public String description()
     {
-        return "Lists all available extensions and their status.";
+        return "Lists all available extensions, their status and their dependencies.";
     }
 
     @Override
@@ -61,6 +62,19 @@ final class ExtensionsQuery
                     change.value().name().equals(configurationDocumentName)));
     }
 
+    private static void appendDetail(StringBuilder builder, String label, String value)
+    {
+        if (!value.isBlank())
+        {
+            builder.append("    - ").append(label).append(": ").append(value).append(lineSeparator());
+        }
+    }
+
+    private static String typeNames(Set<Class<?>> types)
+    {
+        return types.stream().map(Class::getSimpleName).sorted().collect(joining(", "));
+    }
+
     @Override
     public QueryResult run(QueryDefinition definition)
     {
@@ -71,16 +85,35 @@ final class ExtensionsQuery
             builder.append("No configuration document is configured; extensions can't be loaded.")
                 .append(lineSeparator());
         }
-        if (status.available().isEmpty())
+        var names = new TreeSet<>(status.available().keySet());
+        names.addAll(status.failures().keySet());
+        if (names.isEmpty())
         {
             builder.append("No extensions are available.").append(lineSeparator());
         }
-        else
+        for (var name : names)
         {
-            status.available().forEach(name -> builder.append("- ")
-                .append(status.active().contains(name) ? "✅ " : "⬜️ ")
-                .append(name)
-                .append(lineSeparator()));
+            var failure = status.failures().get(name);
+            builder.append("- ")
+                .append(failure != null ? "❌ " : status.active().contains(name) ? "✅ " : "⬜️ ")
+                .append("**").append(name).append("**");
+            var factory = status.available().get(name);
+            if (factory != null && !factory.description().isBlank())
+            {
+                builder.append(": ").append(factory.description());
+            }
+            builder.append(lineSeparator());
+            if (failure != null)
+            {
+                appendDetail(builder, "not loaded", failure);
+            }
+            if (factory != null)
+            {
+                appendDetail(builder, "requires", typeNames(factory.requires()));
+                appendDetail(builder, "provides", typeNames(factory.provides()));
+                appendDetail(builder, "settings",
+                    String.join(", ", new TreeSet<>(factory.supportedConfiguration().keySet())));
+            }
         }
         status.lastError().ifPresent(error -> builder.append(lineSeparator())
             .append("**The last configuration was rejected**: ")

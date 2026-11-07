@@ -3,7 +3,6 @@ package nl.ulso.curator.main;
 import dagger.Lazy;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
-import nl.ulso.curator.extension.Extension;
 import nl.ulso.curator.extension.ExtensionFactory;
 import nl.ulso.curator.query.DynamicQueryCatalog;
 import nl.ulso.curator.query.Query;
@@ -12,20 +11,19 @@ import nl.ulso.curator.statistics.MeasurementTrackerRegistry;
 
 import java.util.*;
 
-import static java.util.Collections.unmodifiableSortedSet;
+import static java.util.Collections.*;
 
-/// Keeps track of the [Extension]s that are loaded into the curator.
+/// Keeps track of the [Generation] of extensions that is active in the curator.
 ///
-/// Loading a new set of extensions is a two-step process:
+/// Loading a new generation is a two-step process:
 ///
-/// 1. The [ExtensionLoader] reads the configuration, creates the extensions and stages them here.
-/// 2. The [DefaultChangeProcessorOrchestrator] picks up the staged extensions at a safe moment -
-/// while processing a [nl.ulso.curator.change.Reset] - verifies them, orders their change
-/// processors and then activates them. That registers their queries in the query catalog and
-/// their trackers in the statistics.
-///
-/// If anything goes wrong in either step, the new configuration is rejected as a whole and the
-/// current set of extensions stays active.
+/// 1. The [ExtensionLoader] reads the configuration, resolves it into a new generation through the
+/// [ExtensionResolver] and stages it here.
+/// 2. The [DefaultChangeProcessorOrchestrator] picks up the staged generation at a safe moment -
+/// while processing a [nl.ulso.curator.change.Reset] - drops extensions whose change processors
+/// or queries don't fit, and then activates the generation. That registers its queries in the
+/// query catalog and its trackers in the statistics, stops the previous generation and starts the
+/// new one.
 ///
 /// Staging and activation happen on the curator thread. The [#status()] can be read from any
 /// thread.
@@ -34,8 +32,9 @@ final class ExtensionRegistry
 {
     private final Lazy<DynamicQueryCatalog> queryCatalog;
     private final MeasurementTrackerRegistry trackerRegistry;
-    private final SortedSet<String> availableExtensions;
-    private Map<String, Extension> staged;
+    private final SortedMap<String, ExtensionFactory> availableExtensions;
+    private Generation staged;
+    private Generation active;
     private volatile Status status;
 
     /// The query catalog is injected lazily, to break the dependency cycle: the catalog contains
@@ -48,51 +47,86 @@ final class ExtensionRegistry
     {
         this.queryCatalog = queryCatalog;
         this.trackerRegistry = trackerRegistry;
-        this.availableExtensions = unmodifiableSortedSet(new TreeSet<>(extensionFactories.keySet()));
+        this.availableExtensions = unmodifiableSortedMap(new TreeMap<>(extensionFactories));
         this.staged = null;
-        this.status = new Status(availableExtensions, Collections.emptySortedSet(), null);
+        this.active = Generation.EMPTY;
+        this.status = new Status(availableExtensions, emptySortedSet(), emptySortedMap(), null);
     }
 
-    /// Stages a new set of extensions, replacing any previously staged set.
-    void stage(Map<String, Extension> extensions)
+    /// Stages a new generation, replacing any previously staged one.
+    void stage(Generation generation)
     {
-        staged = Map.copyOf(extensions);
+        staged = generation;
     }
 
-    /// @return the staged extensions, if any; the staged set is cleared.
-    Optional<Map<String, Extension>> takeStaged()
+    /// @return the staged generation, if any; the staged generation is cleared.
+    Optional<Generation> takeStaged()
     {
         var result = Optional.ofNullable(staged);
         staged = null;
         return result;
     }
 
-    /// Activates a set of extensions, replacing the currently active set.
-    ///
-    /// @throws IllegalArgumentException if the queries of the extensions clash with existing
-    ///                                  queries. Nothing is changed in that case.
-    void activate(Map<String, Extension> extensions)
+    /// Drops extensions from the generation whose queries have names that are already taken, by
+    /// the curator or by extensions earlier in the generation.
+    void dropConflictingQueries(Generation generation)
+    {
+        var taken = new HashSet<>(queryCatalog.get().staticQueryNames());
+        for (var entry : List.copyOf(generation.extensions().entrySet()))
+        {
+            var name = entry.getKey();
+            if (!generation.extensions().containsKey(name))
+            {
+                continue;   // Dropped as a dependent of an earlier extension.
+            }
+            var queryNames = entry.getValue().queries().stream().map(Query::name).toList();
+            var conflicts = queryNames.stream()
+                .filter(queryName -> taken.contains(queryName) ||
+                                     queryNames.indexOf(queryName) !=
+                                     queryNames.lastIndexOf(queryName))
+                .distinct()
+                .sorted()
+                .toList();
+            if (conflicts.isEmpty())
+            {
+                taken.addAll(queryNames);
+            }
+            else
+            {
+                generation.drop(name, "Query name(s) already in use: " +
+                                      String.join(", ", conflicts) + ".");
+            }
+        }
+    }
+
+    /// Activates a generation, replacing the currently active one, which is stopped. The new
+    /// generation is started.
+    void activate(Generation generation)
     {
         var queries = new ArrayList<Query>();
         var trackers = new ArrayList<MeasurementTracker>();
-        extensions.values().forEach(extension -> {
+        generation.extensions().values().forEach(extension -> {
             queries.addAll(extension.queries());
             trackers.addAll(extension.measurementTrackers());
         });
         queryCatalog.get().replaceDynamicQueries(queries);
         trackerRegistry.replaceDynamicTrackers(trackers);
+        active.stop();
+        active = generation;
+        active.start();
         status = new Status(
             availableExtensions,
-            unmodifiableSortedSet(new TreeSet<>(extensions.keySet())),
+            unmodifiableSortedSet(new TreeSet<>(generation.extensions().keySet())),
+            generation.failures(),
             null
         );
     }
 
-    /// Records that a new configuration was rejected; the active set of extensions stays as is.
+    /// Records that a new configuration was rejected as a whole; the active generation stays.
     void reject(String reason)
     {
         staged = null;
-        status = new Status(status.available(), status.active(), reason);
+        status = new Status(status.available(), status.active(), status.failures(), reason);
     }
 
     Status status()
@@ -102,11 +136,16 @@ final class ExtensionRegistry
 
     /// Snapshot of the state of the registry, for reporting.
     ///
-    /// @param available the names of all extensions that can be enabled.
-    /// @param active    the names of all extensions that are currently enabled.
-    /// @param error     the reason the last configuration was rejected, or `null` if the last
-    ///                  configuration was accepted.
-    record Status(SortedSet<String> available, SortedSet<String> active, String error)
+    /// @param available the factories of all extensions that can be enabled, by name.
+    /// @param active    the names of all extensions that are currently loaded.
+    /// @param failures  for each enabled extension that couldn't be loaded, the reason.
+    /// @param error     the reason the last configuration was rejected as a whole, or `null` if
+    ///                  it was accepted.
+    record Status(
+        SortedMap<String, ExtensionFactory> available,
+        SortedSet<String> active,
+        SortedMap<String, String> failures,
+        String error)
     {
         Optional<String> lastError()
         {

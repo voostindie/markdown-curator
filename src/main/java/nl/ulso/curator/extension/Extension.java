@@ -17,9 +17,9 @@ import java.util.Set;
 /// An extension instance has a single lifecycle: it is created when the configuration is loaded,
 /// and dropped when the configuration changes. Instances are never reused across configurations.
 ///
-/// Extensions can inject anything from the curator they are loaded into, but the curator - and
-/// other extensions - cannot inject anything from an extension. Extensions can only interact with
-/// the rest of the system through payload types in the changelog.
+/// Extensions can inject anything from the curator they are loaded into, but the curator cannot
+/// inject anything from an extension. Extensions interact with each other through payload types in
+/// the changelog, through [ServiceRegistration]s and through [Contribution]s.
 ///
 /// @see ExtensionFactory
 public interface Extension
@@ -32,4 +32,13 @@ public interface Extension
 
     @ExtensionBinding
     Set<MeasurementTracker> measurementTrackers();
+
+    /// @return the services this extension provides to other extensions; must match
+    /// [ExtensionFactory#provides()] exactly.
+    @ExtensionBinding
+    Set<ServiceRegistration> services();
+
+    /// @return the parts of this extension that need to be started and stopped.
+    @ExtensionBinding
+    Set<ExtensionLifecycle> lifecycles();
 }

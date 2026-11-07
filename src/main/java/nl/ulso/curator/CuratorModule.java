@@ -7,7 +7,9 @@ import dagger.multibindings.IntoSet;
 import dagger.multibindings.Multibinds;
 import jakarta.inject.Named;
 import nl.ulso.curator.change.ChangeProcessor;
+import nl.ulso.curator.extension.Contribution;
 import nl.ulso.curator.extension.ExtensionFactory;
+import nl.ulso.curator.extension.ServiceRegistration;
 import nl.ulso.curator.main.MainModule;
 import nl.ulso.curator.query.Query;
 import nl.ulso.curator.query.QueryResultFormatter;
@@ -66,6 +68,14 @@ public abstract class CuratorModule
     /// [ExtensionFactory], with a [dagger.multibindings.StringKey] as the name of the extension.
     @Multibinds
     abstract Map<String, ExtensionFactory> bindAllAvailableExtensionFactories();
+
+    /// To publish a service for extensions to require, bind a [ServiceRegistration] [IntoSet].
+    @Multibinds
+    abstract Set<ServiceRegistration> bindAllCuratorServices();
+
+    /// To contribute to an extension point, bind a [Contribution] [IntoSet].
+    @Multibinds
+    abstract Set<Contribution> bindAllCuratorContributions();
 
     /// Bind a custom [WatchService]; the default is optimized for macOS.
     @BindsOptionalOf

@@ -33,6 +33,12 @@ public final class DynamicQueryCatalogStub
     }
 
     @Override
+    public Set<String> staticQueryNames()
+    {
+        return staticQueryNames;
+    }
+
+    @Override
     public boolean isEmpty()
     {
         return dynamicQueries.isEmpty();

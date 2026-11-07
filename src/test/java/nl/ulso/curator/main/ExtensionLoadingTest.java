@@ -1,7 +1,7 @@
 package nl.ulso.curator.main;
 
 import nl.ulso.curator.change.*;
-import nl.ulso.curator.extension.ExtensionFactory;
+import nl.ulso.curator.extension.*;
 import nl.ulso.curator.main.ChangeProcessorOrchestratorTest.ChangeProcessorStub;
 import nl.ulso.curator.main.ChangeProcessorOrchestratorTest.NullStatistics;
 import nl.ulso.curator.query.*;
@@ -18,6 +18,9 @@ import java.util.*;
 
 import static nl.ulso.curator.change.Change.isPayloadType;
 import static nl.ulso.curator.change.Reset.RESET;
+import static nl.ulso.curator.extension.Contribution.contribution;
+import static nl.ulso.curator.extension.ServiceRegistration.service;
+import static nl.ulso.curator.main.ExtensionFactoryStub.factory;
 import static nl.ulso.curator.main.ExtensionStub.extension;
 import static nl.ulso.curator.main.ExtensionTestSupport.newExtensionRegistry;
 import static nl.ulso.curator.query.QueryTestModule.createQueryResultFactory;
@@ -26,7 +29,8 @@ import static nl.ulso.curator.vault.QueryBlockTest.emptyQueryBlock;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /// Tests the complete flow of loading and unloading extensions: the [ExtensionLoader] reads the
-/// configuration document, the [DefaultChangeProcessorOrchestrator] activates the extensions.
+/// configuration document, the [ExtensionResolver] creates the extensions, the
+/// [DefaultChangeProcessorOrchestrator] activates them.
 @ExtendWith(SoftAssertionsExtension.class)
 class ExtensionLoadingTest
 {
@@ -38,8 +42,42 @@ class ExtensionLoadingTest
     private VaultStub vault;
     private List<DocumentRecorder> recorders;
     private DynamicQueryCatalogStub catalog;
+    private Map<String, ExtensionFactory> factories;
+    private Set<ServiceRegistration> curatorServices;
+    private Set<Contribution> curatorContributions;
     private ExtensionRegistry registry;
     private DefaultChangeProcessorOrchestrator orchestrator;
+
+    /// Simple service for testing.
+    interface Greeter
+    {
+        String greet();
+    }
+
+    /// Extension point for testing.
+    record Topping(String name)
+    {
+    }
+
+    /// Records the lifecycle of an extension.
+    static final class LifecycleRecorder
+        implements ExtensionLifecycle
+    {
+        private int starts = 0;
+        private int stops = 0;
+
+        @Override
+        public void start()
+        {
+            starts++;
+        }
+
+        @Override
+        public void stop()
+        {
+            stops++;
+        }
+    }
 
     @BeforeEach
     void setUp()
@@ -50,24 +88,35 @@ class ExtensionLoadingTest
         vault.addDocumentInPath("b/doc3", "");
         recorders = new ArrayList<>();
         catalog = new DynamicQueryCatalogStub("static");
-        var factories = Map.<String, ExtensionFactory>of(
-            "recorder", configuration -> {
-                var recorder = new DocumentRecorder(configuration.string("folder", "none"));
-                recorders.add(recorder);
-                return extension(recorder);
-            },
-            "query", _ -> extension(new DocumentRecorder("q"))
-                .withQueries(new QueryStub("dynamic")),
-            "clash", _ -> extension(new DocumentRecorder("c"))
-                .withQueries(new QueryStub("static")),
-            "orphan", _ -> extension(new ChangeProcessorStub(99).consuming(Integer.class)),
-            "broken", _ -> {
-                throw new IllegalStateException("Broken on purpose");
-            }
-        );
+        curatorServices = new HashSet<>();
+        curatorContributions = new HashSet<>();
+        factories = new HashMap<>();
+        factories.put("recorder", factory((configuration, _) -> {
+            var recorder = new DocumentRecorder(configuration.string("folder", "none"));
+            recorders.add(recorder);
+            return extension(recorder);
+        }).withSettings("folder"));
+        factories.put("query", factory((_, _) ->
+            extension(new DocumentRecorder("q")).withQueries(new QueryStub("dynamic"))));
+        factories.put("clash", factory((_, _) ->
+            extension(new DocumentRecorder("c")).withQueries(new QueryStub("static"))));
+        factories.put("orphan", factory((_, _) ->
+            extension(new ChangeProcessorStub(99).consuming(Integer.class))));
+        factories.put("broken", factory((_, _) -> {
+            throw new IllegalStateException("Broken on purpose");
+        }));
+    }
+
+    private void build()
+    {
+        if (orchestrator != null)
+        {
+            return;
+        }
         registry = newExtensionRegistry(catalog, factories);
+        var resolver = new ExtensionResolver(factories, curatorServices, curatorContributions);
         var loader =
-            new ExtensionLoader(Optional.of(CONFIGURATION_DOCUMENT), vault, factories, registry);
+            new ExtensionLoader(Optional.of(CONFIGURATION_DOCUMENT), vault, resolver, registry);
         orchestrator = new DefaultChangeProcessorOrchestrator(
             Set.of(new VaultInitializer(vault), loader),
             new NullStatistics(),
@@ -83,6 +132,7 @@ class ExtensionLoadingTest
 
     private Changelog startUp()
     {
+        build();
         return orchestrator.runFor(List.of(RESET));
     }
 
@@ -97,6 +147,15 @@ class ExtensionLoadingTest
         return changelog.changes().anyMatch(isPayloadType(Reset.class));
     }
 
+    private void assertFailure(String extension, String reasonFragment)
+    {
+        softly.assertThat(registry.status().failures()).containsKey(extension);
+        softly.assertThat(registry.status().failures().get(extension)).contains(reasonFragment);
+        softly.assertThat(registry.status().active()).doesNotContain(extension);
+    }
+
+    // Basic loading and unloading
+
     @Test
     void loadExtensionsAtStartup()
     {
@@ -107,6 +166,7 @@ class ExtensionLoadingTest
         softly.assertThat(recorder.documents()).containsExactly("doc1", "doc2");
         softly.assertThat(orchestrator.changeProcessors()).contains(recorder);
         softly.assertThat(registry.status().active()).containsExactly("recorder");
+        softly.assertThat(registry.status().failures()).isEmpty();
         softly.assertThat(registry.status().lastError()).isEmpty();
     }
 
@@ -125,7 +185,7 @@ class ExtensionLoadingTest
         startUp();
         softly.assertThat(recorders).isEmpty();
         softly.assertThat(registry.status().active()).isEmpty();
-        softly.assertThat(registry.status().available())
+        softly.assertThat(registry.status().available().keySet())
             .containsExactly("broken", "clash", "orphan", "query", "recorder");
     }
 
@@ -177,89 +237,338 @@ class ExtensionLoadingTest
     }
 
     @Test
-    void rejectUnknownExtension()
+    void stagedExtensionsAreOnlyActivatedOnReset()
     {
-        configure("  bogus:");
         startUp();
+        registry.stage(new Generation(
+            new LinkedHashMap<>(Map.of("recorder", extension(new DocumentRecorder("a")))),
+            Map.of(),
+            new TreeMap<>()
+        ));
+        var document = vault.addDocumentInPath("a/doc4", "");
+        orchestrator.runFor(List.of(Change.create(document, Document.class)));
         softly.assertThat(registry.status().active()).isEmpty();
-        softly.assertThat(registry.status().lastError()).hasValueSatisfying(error ->
-            assertThat(error).contains("Unknown extension(s): bogus"));
+    }
+
+    // Partial loading: extensions that don't fit are dropped, the others are loaded.
+
+    @Test
+    void dropUnknownExtension()
+    {
+        configure("  recorder:\n    folder: a\n  bogus:");
+        startUp();
+        softly.assertThat(registry.status().active()).containsExactly("recorder");
+        assertFailure("bogus", "Unknown extension");
     }
 
     @Test
-    void rejectExtensionThatFailsToCreate()
+    void dropExtensionWithUnsupportedSetting()
+    {
+        configure("  recorder:\n    folder: a\n    colour: blue\n  query:\n    any: thing");
+        startUp();
+        assertFailure("recorder", "Unsupported setting(s): colour. Supported: folder.");
+        assertFailure("query", "This extension has no settings.");
+    }
+
+    @Test
+    void dropExtensionThatFailsToCreate()
     {
         configure("  recorder:\n    folder: a");
         startUp();
-        var changelog = configurationChanged("  broken:");
-        softly.assertThat(hasReset(changelog)).isFalse();
+        var changelog = configurationChanged("  recorder:\n    folder: a\n  broken:");
+        softly.assertThat(hasReset(changelog)).isTrue();
         softly.assertThat(registry.status().active()).containsExactly("recorder");
-        softly.assertThat(registry.status().lastError()).hasValueSatisfying(error ->
-            assertThat(error).contains("Broken on purpose"));
+        assertFailure("broken", "Broken on purpose");
     }
 
     @Test
-    void rejectExtensionWithUnsatisfiedConsumerAndKeepCurrentExtensions()
+    void dropExtensionWithUnsatisfiedConsumer()
     {
-        configure("  recorder:\n    folder: a");
+        configure("  recorder:\n    folder: a\n  orphan:");
         startUp();
-        var recorder = recorders.getFirst();
-        configurationChanged("  recorder:\n    folder: b\n  orphan:");
         softly.assertThat(registry.status().active()).containsExactly("recorder");
-        softly.assertThat(registry.status().lastError()).hasValueSatisfying(error ->
-            assertThat(error).contains("unsatisfied consumer"));
-        softly.assertThat(orchestrator.changeProcessors()).contains(recorder);
-        // The current extensions were reset, and received the complete vault again.
-        softly.assertThat(recorder.resetCount()).isPositive();
-        softly.assertThat(recorder.documents()).containsExactly("doc1", "doc2");
+        assertFailure("orphan", "Stub-99 needs Integer");
+        softly.assertThat(recorders.getFirst().documents()).containsExactly("doc1", "doc2");
     }
 
     @Test
-    void rejectExtensionWithClashingQueryAndKeepCurrentExtensions()
+    void dropExtensionWithClashingQuery()
     {
-        configure("  query:");
+        configure("  query:\n  clash:");
         startUp();
-        configurationChanged("  clash:");
         softly.assertThat(registry.status().active()).containsExactly("query");
-        softly.assertThat(registry.status().lastError()).isPresent();
+        assertFailure("clash", "Query name(s) already in use: static.");
         softly.assertThat(catalog.query("dynamic")).isInstanceOf(QueryStub.class);
     }
 
     @Test
-    void acceptValidConfigurationAfterRejection()
+    void rejectUnparseableConfigurationAndKeepCurrentExtensions()
+    {
+        configure("  recorder:\n    folder: a");
+        startUp();
+        var changelog = configurationChanged("  42");
+        softly.assertThat(hasReset(changelog)).isFalse();
+        softly.assertThat(registry.status().active()).containsExactly("recorder");
+        softly.assertThat(registry.status().lastError()).isPresent();
+    }
+
+    @Test
+    void acceptValidConfigurationAfterFailure()
     {
         configure("  bogus:");
         startUp();
         configurationChanged("  recorder:\n    folder: a");
         softly.assertThat(registry.status().active()).containsExactly("recorder");
-        softly.assertThat(registry.status().lastError()).isEmpty();
+        softly.assertThat(registry.status().failures()).isEmpty();
+    }
+
+    // Services
+
+    @Test
+    void providerIsCreatedBeforeConsumerAndServiceIsInjected()
+    {
+        var greetings = new ArrayList<String>();
+        factories.put("a-consumer", factory((_, services) -> {
+            greetings.add(services.get(Greeter.class).greet());
+            return extension(new DocumentRecorder("consumer"));
+        }).requiring(Greeter.class));
+        factories.put("z-provider", factory((_, _) ->
+            extension(new DocumentRecorder("provider"))
+                .withService(Greeter.class, () -> "Hello")).providing(Greeter.class));
+        configure("  a-consumer:\n  z-provider:");
+        startUp();
+        softly.assertThat(registry.status().active()).containsExactly("a-consumer", "z-provider");
+        softly.assertThat(greetings).containsExactly("Hello");
     }
 
     @Test
-    void stagedExtensionsAreOnlyActivatedOnReset()
+    void curatorProvidesServices()
     {
+        var greetings = new ArrayList<String>();
+        curatorServices.add(service(Greeter.class, () -> "Hi"));
+        factories.put("consumer", factory((_, services) -> {
+            greetings.add(services.get(Greeter.class).greet());
+            return extension(new DocumentRecorder("consumer"));
+        }).requiring(Greeter.class));
+        configure("  consumer:");
         startUp();
-        registry.stage(Map.of("recorder", extension(new DocumentRecorder("a"))));
-        var document = vault.addDocumentInPath("a/doc4", "");
-        orchestrator.runFor(List.of(Change.create(document, Document.class)));
-        softly.assertThat(registry.status().active()).isEmpty();
-        orchestrator.runFor(List.of(RESET));
-        softly.assertThat(registry.status().active()).isEmpty();
+        softly.assertThat(greetings).containsExactly("Hi");
     }
+
+    @Test
+    void dropConsumerOfMissingServiceWithHint()
+    {
+        factories.put("consumer", factory((_, _) -> extension(new DocumentRecorder("c")))
+            .requiring(Greeter.class));
+        factories.put("provider", factory((_, _) -> extension(new DocumentRecorder("p"))
+            .withService(Greeter.class, () -> "Hello")).providing(Greeter.class));
+        configure("  consumer:");
+        startUp();
+        assertFailure("consumer", "Missing required service(s): Greeter (enable 'provider').");
+    }
+
+    @Test
+    void dropConsumerOfServiceWithoutProvider()
+    {
+        factories.put("consumer", factory((_, _) -> extension(new DocumentRecorder("c")))
+            .requiring(Greeter.class));
+        configure("  consumer:");
+        startUp();
+        assertFailure("consumer", "Greeter (no extension provides it)");
+    }
+
+    @Test
+    void dropConsumerWhenProviderFailsToCreate()
+    {
+        factories.put("consumer", factory((_, _) -> extension(new DocumentRecorder("c")))
+            .requiring(Greeter.class));
+        factories.put("provider", factory((_, _) -> {
+            throw new IllegalStateException("Broken on purpose");
+        }).providing(Greeter.class));
+        configure("  consumer:\n  provider:");
+        startUp();
+        assertFailure("provider", "Broken on purpose");
+        assertFailure("consumer", "provided by 'provider', which failed to load");
+    }
+
+    @Test
+    void dropConsumerWhenProviderIsDroppedAtActivation()
+    {
+        factories.put("consumer", factory((_, _) -> extension(new DocumentRecorder("c")))
+            .requiring(Greeter.class));
+        factories.put("provider", factory((_, _) ->
+            extension(new ChangeProcessorStub(99).consuming(Integer.class))
+                .withService(Greeter.class, () -> "Hello")).providing(Greeter.class));
+        configure("  consumer:\n  provider:");
+        startUp();
+        assertFailure("provider", "Integer");
+        assertFailure("consumer", "Requires services of extension 'provider'");
+    }
+
+    @Test
+    void dropAllProvidersOfTheSameService()
+    {
+        factories.put("one", factory((_, _) -> extension(new DocumentRecorder("1"))
+            .withService(Greeter.class, () -> "1")).providing(Greeter.class));
+        factories.put("two", factory((_, _) -> extension(new DocumentRecorder("2"))
+            .withService(Greeter.class, () -> "2")).providing(Greeter.class));
+        configure("  one:\n  two:\n  recorder:");
+        startUp();
+        softly.assertThat(registry.status().active()).containsExactly("recorder");
+        assertFailure("one", "provided by more than one extension: one, two");
+        assertFailure("two", "provided by more than one extension: one, two");
+    }
+
+    @Test
+    void dropExtensionProvidingCuratorService()
+    {
+        curatorServices.add(service(Greeter.class, () -> "Hi"));
+        factories.put("provider", factory((_, _) -> extension(new DocumentRecorder("p"))
+            .withService(Greeter.class, () -> "Hello")).providing(Greeter.class));
+        configure("  provider:");
+        startUp();
+        assertFailure("provider", "which the curator already provides");
+    }
+
+    @Test
+    void dropExtensionsInServiceDependencyCycle()
+    {
+        factories.put("one", factory((_, _) -> extension(new DocumentRecorder("1"))
+            .withService(Greeter.class, () -> "1"))
+            .providing(Greeter.class).requiring(Topping.class));
+        factories.put("two", factory((_, _) -> extension(new DocumentRecorder("2"))
+            .withService(Topping.class, new Topping("2")))
+            .providing(Topping.class).requiring(Greeter.class));
+        configure("  one:\n  two:\n  recorder:");
+        startUp();
+        softly.assertThat(registry.status().active()).containsExactly("recorder");
+        assertFailure("one", "Circular service dependency between extensions: one, two.");
+        assertFailure("two", "Circular service dependency between extensions: one, two.");
+    }
+
+    @Test
+    void dropExtensionThatRegistersUndeclaredService()
+    {
+        factories.put("liar", factory((_, _) -> extension(new DocumentRecorder("l"))
+            .withService(Greeter.class, () -> "Hello")));
+        configure("  liar:");
+        startUp();
+        assertFailure("liar",
+            "Registered services (Greeter) don't match the declared services (none).");
+    }
+
+    @Test
+    void dropExtensionThatGetsUndeclaredService()
+    {
+        curatorServices.add(service(Greeter.class, () -> "Hi"));
+        factories.put("sneaky", factory((_, services) -> {
+            services.get(Greeter.class);
+            return extension(new DocumentRecorder("s"));
+        }));
+        configure("  sneaky:");
+        startUp();
+        assertFailure("sneaky", "doesn't declare that it requires service Greeter");
+    }
+
+    // Contributions (whiteboard)
+
+    @Test
+    void ownerOfExtensionPointCollectsContributionsFromItsConsumers()
+    {
+        var toppings = new ArrayList<Topping>();
+        // The pizza owns the extension point and provides a service...
+        factories.put("pizza", factory((_, services) -> {
+            toppings.addAll(services.all(Topping.class));
+            return extension(new DocumentRecorder("pizza"))
+                .withService(Greeter.class, () -> "Pizza!");
+        }).providing(Greeter.class));
+        // ...that the cheese requires, while contributing to the extension point.
+        factories.put("cheese", factory((_, services) -> {
+            services.get(Greeter.class);
+            return extension(new DocumentRecorder("cheese"));
+        }).requiring(Greeter.class).contributing(Topping.class, new Topping("cheese")));
+        curatorContributions.add(contribution(Topping.class, new Topping("tomato")));
+        configure("  pizza:\n  cheese:");
+        startUp();
+        softly.assertThat(registry.status().active()).containsExactly("cheese", "pizza");
+        softly.assertThat(toppings)
+            .containsExactlyInAnyOrder(new Topping("tomato"), new Topping("cheese"));
+    }
+
+    @Test
+    void contributionsOfDroppedExtensionsAreNotCollected()
+    {
+        var toppings = new ArrayList<Topping>();
+        factories.put("pizza", factory((_, services) -> {
+            toppings.clear();
+            toppings.addAll(services.all(Topping.class));
+            return extension(new DocumentRecorder("pizza"));
+        }));
+        factories.put("anchovies", factory((_, _) -> {
+            throw new IllegalStateException("Nobody likes anchovies");
+        }).contributing(Topping.class, new Topping("anchovies")));
+        configure("  pizza:\n  anchovies:");
+        startUp();
+        softly.assertThat(registry.status().active()).containsExactly("pizza");
+        softly.assertThat(toppings).isEmpty();
+    }
+
+    // Lifecycle
+
+    @Test
+    void startExtensionsOnActivationAndStopThemWhenReplaced()
+    {
+        var lifecycles = new ArrayList<LifecycleRecorder>();
+        factories.put("lifecycle", factory((_, _) -> {
+            var lifecycle = new LifecycleRecorder();
+            lifecycles.add(lifecycle);
+            return extension(new DocumentRecorder("l")).withLifecycle(lifecycle);
+        }).withSettings("version"));
+        configure("  lifecycle:\n    version: 1");
+        startUp();
+        assertThat(lifecycles).hasSize(1);
+        softly.assertThat(lifecycles.getFirst().starts).isEqualTo(1);
+        softly.assertThat(lifecycles.getFirst().stops).isZero();
+        configurationChanged("  lifecycle:\n    version: 2");
+        assertThat(lifecycles).hasSize(2);
+        softly.assertThat(lifecycles.getFirst().stops).isEqualTo(1);
+        softly.assertThat(lifecycles.getLast().starts).isEqualTo(1);
+        softly.assertThat(lifecycles.getLast().stops).isZero();
+    }
+
+    @Test
+    void droppedExtensionsAreNeverStarted()
+    {
+        var lifecycle = new LifecycleRecorder();
+        factories.put("lifecycle", factory((_, _) ->
+            extension(new ChangeProcessorStub(99).consuming(Integer.class))
+                .withLifecycle(lifecycle)));
+        configure("  lifecycle:");
+        startUp();
+        assertFailure("lifecycle", "Integer");
+        softly.assertThat(lifecycle.starts).isZero();
+    }
+
+    // Reporting
 
     @Test
     void extensionsQueryReportsStatus()
     {
-        configure("  recorder:\n    folder: a");
+        factories.put("consumer", factory((_, _) -> extension(new DocumentRecorder("c")))
+            .requiring(Greeter.class));
+        configure("  recorder:\n    folder: a\n  bogus:\n  consumer:");
         startUp();
-        configurationChanged("  bogus:");
         var query = new ExtensionsQuery(
             registry, createQueryResultFactory(), Optional.of(CONFIGURATION_DOCUMENT));
         var output = createQueryResultFormatterRegistry()
             .format(query.run(emptyQueryBlock()), OutputFormat.MARKDOWN);
-        softly.assertThat(output).contains("- ✅ recorder");
-        softly.assertThat(output).contains("- ⬜️ query");
-        softly.assertThat(output).contains("rejected**: Unknown extension(s): bogus");
+        softly.assertThat(output).contains("- ✅ **recorder**: Stub");
+        softly.assertThat(output).contains("    - settings: folder");
+        softly.assertThat(output).contains("- ⬜️ **query**: Stub");
+        softly.assertThat(output).contains("- ❌ **bogus**");
+        softly.assertThat(output).contains("    - not loaded: Unknown extension.");
+        softly.assertThat(output).contains("- ❌ **consumer**: Stub");
+        softly.assertThat(output).contains("    - requires: Greeter");
     }
 
     record QueryStub(String name)
