@@ -1,10 +1,10 @@
 package nl.ulso.curator.addon.projectjournal;
 
 import jakarta.inject.Inject;
-import jakarta.inject.Singleton;
+import nl.ulso.curator.extension.ExtensionScope;
 
 /// Repository for [ProjectLeadMarker]s.
-@Singleton
+@ExtensionScope
 final class ProjectLeadMarkerRepository
     extends ProjectMarkerRepository<ProjectLeadMarker>
 {

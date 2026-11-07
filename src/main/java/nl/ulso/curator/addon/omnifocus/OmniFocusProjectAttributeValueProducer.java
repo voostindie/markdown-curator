@@ -1,7 +1,7 @@
 package nl.ulso.curator.addon.omnifocus;
 
 import jakarta.inject.Inject;
-import jakarta.inject.Singleton;
+import nl.ulso.curator.extension.ExtensionScope;
 import nl.ulso.curator.addon.project.*;
 import nl.ulso.curator.change.*;
 import nl.ulso.curator.statistics.MeasurementCollector;
@@ -22,7 +22,7 @@ import static nl.ulso.curator.change.ChangeHandler.newChangeHandler;
 ///
 /// - Priority of the project in OmniFocus
 /// - URL to the OmniFocus project
-@Singleton
+@ExtensionScope
 final class OmniFocusProjectAttributeValueProducer
     extends ChangeProcessorTemplate
     implements MeasurementTracker

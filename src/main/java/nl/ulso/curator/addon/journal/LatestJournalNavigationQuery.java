@@ -1,7 +1,7 @@
 package nl.ulso.curator.addon.journal;
 
 import jakarta.inject.Inject;
-import jakarta.inject.Singleton;
+import nl.ulso.curator.extension.ExtensionScope;
 import nl.ulso.curator.change.Changelog;
 import nl.ulso.curator.query.*;
 
@@ -11,7 +11,7 @@ import static nl.ulso.curator.change.Change.isCreate;
 import static nl.ulso.curator.change.Change.isDelete;
 import static nl.ulso.curator.change.Change.isPayloadType;
 
-@Singleton
+@ExtensionScope
 final class LatestJournalNavigationQuery
     extends NavigationQueryTemplate
 {

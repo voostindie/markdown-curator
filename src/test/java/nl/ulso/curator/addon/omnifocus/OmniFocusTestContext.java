@@ -5,14 +5,19 @@ import jakarta.inject.Singleton;
 import nl.ulso.curator.addon.project.*;
 import nl.ulso.curator.main.ChangeProcessorOrchestrator;
 import nl.ulso.curator.main.ChangeProcessorTestModule;
+import nl.ulso.curator.main.ExtensionTestHarness;
 import nl.ulso.curator.query.DaggerQueryTestModule;
 import nl.ulso.curator.vault.VaultStub;
 
+import java.util.Map;
+
+/// Loads the project and OmniFocus extensions; OmniFocus projects are fetched from the folder
+/// "Area".
 @Singleton
 @Component(modules = {
     ChangeProcessorTestModule.class,
     DaggerQueryTestModule.class,
-    ProjectModule.class,
+    ProjectExtensionModule.class,
     OmniFocusTestModule.class}
 )
 interface OmniFocusTestContext
@@ -21,19 +26,40 @@ interface OmniFocusTestContext
 
     OmniFocusDatabaseStub omniFocusDatabaseStub();
 
-    ExternalChangeHandlerStub externalChangeHandlerStub();
-
     JavaScriptForAutomationStub javascriptForAutomationStub();
 
     ChangeProcessorOrchestrator changeProcessorOrchestrator();
 
-    ProjectRepository projectRepository();
+    ExtensionTestHarness harness();
 
-    ProjectAttributeRepository projectAttributeRepository();
+    /// Loads all extensions and processes the complete vault.
+    default void start()
+    {
+        harness().enable("project").enable("omnifocus", Map.of("folder", "Area")).start();
+    }
 
-    DefaultOmniFocusRepository omniFocusRepository();
+    default ProjectRepository projectRepository()
+    {
+        return harness().find(ProjectRepository.class);
+    }
 
-    OmniFocusProjectAttributeValueProducer omniFocusProjectAttributeValueProducer();
+    default ProjectAttributeRepository projectAttributeRepository()
+    {
+        return harness().find(ProjectAttributeRepository.class);
+    }
 
-    OmniFocusQuery omniFocusQuery();
+    default DefaultOmniFocusRepository omniFocusRepository()
+    {
+        return harness().find(DefaultOmniFocusRepository.class);
+    }
+
+    default OmniFocusProjectAttributeValueProducer omniFocusProjectAttributeValueProducer()
+    {
+        return harness().find(OmniFocusProjectAttributeValueProducer.class);
+    }
+
+    default OmniFocusQuery omniFocusQuery()
+    {
+        return harness().find(OmniFocusQuery.class);
+    }
 }

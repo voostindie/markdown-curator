@@ -1,7 +1,7 @@
 package nl.ulso.curator.addon.journal;
 
 import jakarta.inject.Inject;
-import jakarta.inject.Singleton;
+import nl.ulso.curator.extension.ExtensionScope;
 
 import java.text.MessageFormat;
 import java.time.LocalDate;
@@ -12,7 +12,7 @@ import java.util.*;
 import static java.lang.Character.toTitleCase;
 import static java.util.ResourceBundle.getBundle;
 
-@Singleton
+@ExtensionScope
 final class ResourceBundleJournalMessages
     implements JournalMessages
 {

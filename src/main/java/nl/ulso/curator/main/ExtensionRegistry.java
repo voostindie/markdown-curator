@@ -3,6 +3,7 @@ package nl.ulso.curator.main;
 import dagger.Lazy;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
+import nl.ulso.curator.extension.Extension;
 import nl.ulso.curator.extension.ExtensionFactory;
 import nl.ulso.curator.query.DynamicQueryCatalog;
 import nl.ulso.curator.query.Query;
@@ -127,6 +128,12 @@ final class ExtensionRegistry
     {
         staged = null;
         status = new Status(status.available(), status.active(), status.failures(), reason);
+    }
+
+    /// @return the extensions in the active generation, in creation order.
+    Collection<Extension> activeExtensions()
+    {
+        return active.extensions().values();
     }
 
     Status status()

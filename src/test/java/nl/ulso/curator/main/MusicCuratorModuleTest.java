@@ -54,18 +54,23 @@ class MusicCuratorModuleTest
         var statistics = countAll(vault);
         softly.assertThat(statistics.vaults()).isEqualTo(1);
         softly.assertThat(statistics.folders()).isEqualTo(4);
-        softly.assertThat(statistics.documents()).isEqualTo(14);
-        softly.assertThat(statistics.frontMatters()).isEqualTo(14);
+        softly.assertThat(statistics.documents()).isEqualTo(15);
+        softly.assertThat(statistics.frontMatters()).isEqualTo(15);
         softly.assertThat(statistics.sections()).isEqualTo(38);
         softly.assertThat(statistics.queries()).isEqualTo(14);
         softly.assertThat(statistics.codeBlocks()).isEqualTo(5);
-        softly.assertThat(statistics.texts()).isEqualTo(54);
+        softly.assertThat(statistics.texts()).isEqualTo(55);
     }
 
     @Test
     void queryCatalog()
     {
+        // Before the curator runs, the journal extension isn't loaded yet.
+        softly.assertThat(queryCatalog.queries().size()).isEqualTo(12);
+        musicCurator.run(RunMode.ONCE);
         softly.assertThat(queryCatalog.queries().size()).isEqualTo(19);
+        softly.assertThat(queryCatalog.query("timeline").description())
+            .doesNotContain("Does nothing");
         var dummy = queryCatalog.query("dummy");
         var result = dummy.run(emptyQueryBlock());
         var markdown = queryResultFormatterRegistry.format(result, MARKDOWN);

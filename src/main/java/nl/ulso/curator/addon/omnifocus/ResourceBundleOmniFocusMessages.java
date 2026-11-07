@@ -1,11 +1,11 @@
 package nl.ulso.curator.addon.omnifocus;
 
 import jakarta.inject.Inject;
-import jakarta.inject.Singleton;
+import nl.ulso.curator.extension.ExtensionScope;
 
 import java.util.*;
 
-@Singleton
+@ExtensionScope
 final class ResourceBundleOmniFocusMessages
     implements OmniFocusMessages
 {

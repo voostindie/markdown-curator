@@ -1,7 +1,7 @@
 package nl.ulso.curator.addon.journal;
 
 import jakarta.inject.Inject;
-import jakarta.inject.Singleton;
+import nl.ulso.curator.extension.ExtensionScope;
 import nl.ulso.curator.change.SetBasedEntityRepository;
 
 import java.time.LocalDate;
@@ -10,7 +10,7 @@ import java.util.*;
 
 import static java.time.ZoneId.systemDefault;
 
-@Singleton
+@ExtensionScope
 final class DefaultWeeklyRepository
     extends SetBasedEntityRepository<Weekly>
     implements WeeklyRepository

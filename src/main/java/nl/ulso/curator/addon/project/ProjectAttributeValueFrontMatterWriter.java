@@ -1,7 +1,7 @@
 package nl.ulso.curator.addon.project;
 
 import jakarta.inject.Inject;
-import jakarta.inject.Singleton;
+import nl.ulso.curator.extension.ExtensionScope;
 import nl.ulso.curator.change.*;
 import nl.ulso.curator.main.FrontMatterCollector;
 import org.slf4j.Logger;
@@ -22,7 +22,7 @@ import static org.slf4j.LoggerFactory.getLogger;
 /// Note that the attribute value that is part of the [ProjectAttributeValue] that is consumed might
 /// not be the final and correct value for the attribute. For example, the update might have been
 /// irrelevant because there is another value with a higher weight that did not change.
-@Singleton
+@ExtensionScope
 public final class ProjectAttributeValueFrontMatterWriter
     extends ChangeProcessorTemplate
 {

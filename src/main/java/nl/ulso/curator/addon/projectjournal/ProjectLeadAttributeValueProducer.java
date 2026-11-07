@@ -1,7 +1,7 @@
 package nl.ulso.curator.addon.projectjournal;
 
 import jakarta.inject.Inject;
-import jakarta.inject.Singleton;
+import nl.ulso.curator.extension.ExtensionScope;
 import nl.ulso.curator.addon.journal.Journal;
 import nl.ulso.curator.addon.project.ProjectAttributeDefinition;
 import nl.ulso.curator.addon.project.ProjectRepository;
@@ -14,7 +14,7 @@ import static nl.ulso.curator.addon.project.ProjectAttributeDefinition.LEAD;
 
 /// Resolves the status of projects from the most recent daily journal entry they were mentioned
 /// in.
-@Singleton
+@ExtensionScope
 final class ProjectLeadAttributeValueProducer
     extends ProjectMarkerBasedAttributeValueProducer<ProjectLeadMarker>
 {

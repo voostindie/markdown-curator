@@ -1,7 +1,7 @@
 package nl.ulso.curator.addon.omnifocus;
 
 import jakarta.inject.Inject;
-import jakarta.inject.Singleton;
+import nl.ulso.curator.extension.ExtensionScope;
 import nl.ulso.curator.change.*;
 
 import java.util.Set;
@@ -10,7 +10,7 @@ import static nl.ulso.curator.change.Changelog.changelogFor;
 
 /// OmniFocus projects are fetched in a background process; this processor blocks until the initial
 /// fetch is complete. It is triggered only on [Reset].
-@Singleton
+@ExtensionScope
 final class OmniFocusInitializer
     implements ChangeProcessor
 {

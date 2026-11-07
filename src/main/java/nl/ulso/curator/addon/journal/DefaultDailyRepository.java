@@ -1,7 +1,7 @@
 package nl.ulso.curator.addon.journal;
 
 import jakarta.inject.Inject;
-import jakarta.inject.Singleton;
+import nl.ulso.curator.extension.ExtensionScope;
 import nl.ulso.curator.change.MapBasedEntityRepository;
 import nl.ulso.curator.vault.Document;
 
@@ -14,7 +14,7 @@ import static java.util.Comparator.reverseOrder;
 import static java.util.stream.Collectors.toUnmodifiableSet;
 import static nl.ulso.curator.addon.journal.Daily.parseDateFrom;
 
-@Singleton
+@ExtensionScope
 final class DefaultDailyRepository
     extends MapBasedEntityRepository<LocalDate, Daily>
     implements DailyRepository

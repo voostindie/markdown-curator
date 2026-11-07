@@ -1,13 +1,13 @@
 package nl.ulso.curator.addon.project;
 
 import jakarta.inject.Inject;
-import jakarta.inject.Singleton;
+import nl.ulso.curator.extension.ExtensionScope;
 
 import java.util.*;
 
 import static java.util.ResourceBundle.getBundle;
 
-@Singleton
+@ExtensionScope
 final class ResourceBundleProjectMessages
     implements ProjectMessages
 {

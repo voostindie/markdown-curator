@@ -20,7 +20,7 @@ import static java.util.regex.Pattern.compile;
 /// links from the timeline marked by a specific marker.
 ///
 /// Links are extracted from one section in each document. The default name is "Links". It can be
-/// overridden by providing a `@Named String("documentLinkSectionName")`.
+/// overridden with the `links-section` setting of the extension; see [AlfredExtensionFactory].
 ///
 /// Links are extracted for those markers that have their `export-links` property set to `true`.
 final class ExternalLinksQuery

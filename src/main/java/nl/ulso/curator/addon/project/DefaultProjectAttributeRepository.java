@@ -1,7 +1,7 @@
 package nl.ulso.curator.addon.project;
 
 import jakarta.inject.Inject;
-import jakarta.inject.Singleton;
+import nl.ulso.curator.extension.ExtensionScope;
 import nl.ulso.curator.change.*;
 import nl.ulso.curator.statistics.MeasurementCollector;
 import nl.ulso.curator.statistics.MeasurementTracker;
@@ -26,7 +26,7 @@ import static org.slf4j.LoggerFactory.getLogger;
 /// anywhere — and that stores them in an internal map; There can be multiple attribute values for a
 /// single attribute definition, with different weights; the repository tracks them all in a sorted
 /// set.
-@Singleton
+@ExtensionScope
 final class DefaultProjectAttributeRepository
     extends ChangeProcessorTemplate
     implements ProjectAttributeRepository, MeasurementTracker

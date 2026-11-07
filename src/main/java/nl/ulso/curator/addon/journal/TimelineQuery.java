@@ -1,7 +1,7 @@
 package nl.ulso.curator.addon.journal;
 
 import jakarta.inject.Inject;
-import jakarta.inject.Singleton;
+import nl.ulso.curator.extension.ExtensionScope;
 import nl.ulso.curator.addon.newday.NewDayAlarm;
 import nl.ulso.curator.change.Changelog;
 import nl.ulso.curator.query.*;
@@ -13,7 +13,7 @@ import static java.util.stream.Collectors.joining;
 import static nl.ulso.curator.change.Change.isPayloadType;
 
 /// Generates a timeline for a document, extracted from the daily logs, Logseq-style.
-@Singleton
+@ExtensionScope
 public class TimelineQuery
     implements Query
 {

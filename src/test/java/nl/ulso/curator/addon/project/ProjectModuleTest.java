@@ -1,10 +1,13 @@
 package nl.ulso.curator.addon.project;
 
-import dagger.*;
+import dagger.Component;
 import dagger.Module;
+import dagger.Provides;
 import jakarta.inject.Singleton;
 import nl.ulso.curator.CuratorFactory;
 import nl.ulso.curator.CuratorModule;
+import nl.ulso.curator.main.ExtensionTestHarness;
+
 import org.assertj.core.api.SoftAssertions;
 import org.assertj.core.api.junit.jupiter.InjectSoftAssertions;
 import org.assertj.core.api.junit.jupiter.SoftAssertionsExtension;
@@ -15,6 +18,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Map;
 
+/// Loads the extension(s) into a real curator, on top of the music vault.
 @ExtendWith(SoftAssertionsExtension.class)
 class ProjectModuleTest
 {
@@ -22,29 +26,23 @@ class ProjectModuleTest
     private SoftAssertions softly;
 
     @Test
-    void createModuleWithInjector()
+    void loadExtensionsIntoCurator()
     {
         var factory = DaggerProjectModuleTest_FactoryStub.create();
-        var curator = factory.createCurator();
-        softly.assertThat(curator).isNotNull();
-    }
-
-    @Test
-    void eachPropertyHasOneResolver()
-    {
-        var factory = DaggerProjectModuleTest_FactoryStub.create();
-        var producer = factory.frontMatterAttributeProducer();
-        softly.assertThat(producer).isNotNull();
-        var repository = factory.attributeRegistry();
-        softly.assertThat(repository).isNotNull();
-        var attributes = factory.attributeDefinitions();
-        softly.assertThat(attributes).hasSize(4);
+        softly.assertThat(factory.createCurator()).isNotNull();
+        var harness = factory.harness();
+        harness.enable("project").start();
+        softly.assertThat(harness.failures()).isEmpty();
+        softly.assertThat(harness.activeExtensions()).containsExactly("project");
+        softly.assertThat(harness.find(FrontMatterProjectAttributeValueProducer.class)).isNotNull();
+        softly.assertThat(harness.find(ProjectAttributeRepository.class).attributeDefinitions())
+            .hasSize(4);
     }
 
     @Singleton
     @Component(modules = ModuleStub.class)
     public interface FactoryStub
-            extends CuratorFactory
+        extends CuratorFactory
     {
         @Override
         default String name()
@@ -52,28 +50,18 @@ class ProjectModuleTest
             return "Stub";
         }
 
-        FrontMatterProjectAttributeValueProducer frontMatterAttributeProducer();
-
-        Map<String, ProjectAttributeDefinition> attributeDefinitions();
-
-        ProjectAttributeRepository attributeRegistry();
+        ExtensionTestHarness harness();
     }
 
     @Module(includes = {
-            CuratorModule.class,
-            ProjectModule.class})
+        CuratorModule.class,
+        ProjectExtensionModule.class})
     static class ModuleStub
     {
         @Provides
         public Path vaultPath()
         {
             return Paths.get("").toAbsolutePath().resolve("src/test/resources/music");
-        }
-
-        @Provides
-        public ProjectSettings provideProjectSettings()
-        {
-            return new ProjectSettings("Projects");
         }
     }
 }

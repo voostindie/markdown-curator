@@ -43,7 +43,7 @@ class OmniFocusModuleTest
         var vault = testContext.vaultStub();
         vault.addDocumentInPath("Projects/Project 1", "Project also in OmniFocus");
         vault.addDocumentInPath("Projects/Project 3", "Project not in OmniFocus");
-        testContext.changeProcessorOrchestrator().runFor(List.of(RESET));
+        testContext.start();
     }
 
     @Test

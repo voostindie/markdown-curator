@@ -1,7 +1,7 @@
 package nl.ulso.curator.addon.journal;
 
 import jakarta.inject.Inject;
-import jakarta.inject.Singleton;
+import nl.ulso.curator.extension.ExtensionScope;
 import nl.ulso.curator.change.EntityTransformer;
 import nl.ulso.curator.vault.*;
 
@@ -10,7 +10,7 @@ import java.util.Optional;
 import static nl.ulso.date.LocalDates.parseDateOrNull;
 
 /// Creates dailies from documents in the journal folder.
-@Singleton
+@ExtensionScope
 final class DailyProducer
     extends EntityTransformer<Document, Daily>
 {

@@ -1,7 +1,7 @@
 package nl.ulso.curator.addon.journal;
 
 import jakarta.inject.Inject;
-import jakarta.inject.Singleton;
+import nl.ulso.curator.extension.ExtensionScope;
 import nl.ulso.curator.change.Changelog;
 import nl.ulso.curator.query.*;
 
@@ -13,7 +13,7 @@ import static java.lang.System.lineSeparator;
 import static nl.ulso.curator.change.Change.isPayloadType;
 
 /// Generates an overview of marked lines for a document, one section per marker
-@Singleton
+@ExtensionScope
 public class MarkedQuery
     implements Query
 {

@@ -1,11 +1,12 @@
 package nl.ulso.curator.addon.omnifocus;
 
 import jakarta.inject.Inject;
-import jakarta.inject.Singleton;
 import jakarta.json.JsonArray;
 import jakarta.json.JsonValue;
 import nl.ulso.curator.RunMode;
 import nl.ulso.curator.change.ExternalChangeHandler;
+import nl.ulso.curator.extension.ExtensionLifecycle;
+import nl.ulso.curator.extension.ExtensionScope;
 import nl.ulso.jxa.JavaScriptForAutomation;
 import org.slf4j.*;
 
@@ -15,7 +16,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
 
-import static java.lang.Runtime.getRuntime;
 import static java.util.Collections.emptyMap;
 import static java.util.concurrent.Executors.newSingleThreadScheduledExecutor;
 import static java.util.concurrent.TimeUnit.MINUTES;
@@ -33,11 +33,12 @@ import static org.slf4j.MDC.getCopyOfContextMap;
 /// skipped. If, after a refresh, a change is detected to the set of projects in memory, a change
 /// object is published, requesting the system to process the update.
 ///
-/// If the application is not run as a daemon, but just once, then no thread is scheduled and
-/// projects are fetched once in the main application thread.
-@Singleton
+/// Fetching starts when the extension is started, and stops when it is stopped. If the application
+/// is not run as a daemon, but just once, then no thread is scheduled and projects are fetched once
+/// in the main application thread.
+@ExtensionScope
 final class DefaultOmniFocusRepository
-    implements OmniFocusRepository
+    implements OmniFocusRepository, ExtensionLifecycle
 {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultOmniFocusRepository.class);
 
@@ -45,7 +46,6 @@ final class DefaultOmniFocusRepository
     public static final int IMMEDIATELY = 0;
     private static final int REFRESH_DELAY_MINUTES = 5;
 
-    private final ScheduledExecutorService refreshExecutor;
     /// Because fetching projects from OmniFocus is a scheduled activity, it might run in parallel
     /// with access in the [OmniFocusProjectAttributeValueProducer]. In practice this can't happen
     /// as the access from the [OmniFocusProjectAttributeValueProducer] always comes after the
@@ -58,6 +58,12 @@ final class DefaultOmniFocusRepository
     /// The filtering on statuses is ideally done in the JXA script to limit the data pulled from
     /// OmniFocus, but this broke in OmniFocus 4.3.3. Now the filtering is in here, in the client.
     private static final Set<Status> SELECTED_STATUSES = Set.of(ACTIVE, ON_HOLD);
+
+    private final OmniFocusDatabase omniFocusDatabase;
+    private final ExternalChangeHandler externalChangeHandler;
+    private final JavaScriptForAutomation javaScriptForAutomation;
+    private final OmniFocusSettings settings;
+    private ScheduledExecutorService refreshExecutor;
 
     @Inject
     public DefaultOmniFocusRepository(
@@ -72,50 +78,47 @@ final class DefaultOmniFocusRepository
                 "OmniFocus database is inaccessible: " + omniFocusDatabase.path());
 
         }
+        this.omniFocusDatabase = omniFocusDatabase;
+        this.externalChangeHandler = externalChangeHandler;
+        this.javaScriptForAutomation = javaScriptForAutomation;
+        this.settings = settings;
         this.cache = new AtomicReference<>();
+        this.refreshExecutor = null;
+    }
+
+    /// Starts fetching projects from OmniFocus: in the background, every few minutes, when running
+    /// as a daemon, or once, immediately, otherwise.
+    @Override
+    public void start()
+    {
         switch (RunMode.get())
         {
-            case DAEMON ->
-            {
-                this.refreshExecutor = newSingleThreadScheduledExecutor();
-                scheduleBackgroundRefresh(
-                    omniFocusDatabase,
-                    externalChangeHandler,
-                    javaScriptForAutomation,
-                    settings
-                );
-            }
-            case ONCE ->
-            {
-                this.refreshExecutor = null;
-                reloadProjects(
-                    omniFocusDatabase,
-                    externalChangeHandler,
-                    javaScriptForAutomation,
-                    settings
-                );
-            }
+            case DAEMON -> scheduleBackgroundRefresh();
+            case ONCE -> reloadProjects();
             default -> throw new IllegalArgumentException(
                 "Unsupported run mode: " + RunMode.get());
         }
     }
 
-    private void scheduleBackgroundRefresh(
-        OmniFocusDatabase omniFocusDatabase,
-        ExternalChangeHandler externalChangeHandler,
-        JavaScriptForAutomation javaScriptForAutomation,
-        OmniFocusSettings settings)
+    @Override
+    public void stop()
+    {
+        if (refreshExecutor != null)
+        {
+            LOGGER.debug("Shutting down OmniFocus refresh scheduler.");
+            refreshExecutor.shutdownNow();
+            refreshExecutor = null;
+        }
+    }
+
+    private void scheduleBackgroundRefresh()
     {
         var contextMap = getCopyOfContextMap();
-        var task = refreshExecutor.scheduleAtFixedRate(() ->
+        refreshExecutor = newSingleThreadScheduledExecutor();
+        refreshExecutor.scheduleAtFixedRate(() ->
             {
                 MDC.setContextMap(contextMap);
-                reloadProjects(
-                    omniFocusDatabase,
-                    externalChangeHandler,
-                    javaScriptForAutomation,
-                    settings
-                );
+                reloadProjects();
             },
             IMMEDIATELY,
             REFRESH_DELAY_MINUTES,
@@ -125,26 +128,16 @@ final class DefaultOmniFocusRepository
             "Scheduled background refresh of OmniFocus projects every {} minutes.",
             REFRESH_DELAY_MINUTES
         );
-        getRuntime().addShutdownHook(
-            new Thread(() ->
-            {
-                MDC.setContextMap(contextMap);
-                LOGGER.debug("Shutting down OmniFocus refresh scheduler.");
-                task.cancel(true);
-            })
-        );
     }
 
-    private void reloadProjects(
-        OmniFocusDatabase omniFocusDatabase, ExternalChangeHandler externalChangeHandler,
-        JavaScriptForAutomation javaScriptForAutomation, OmniFocusSettings settings)
+    private void reloadProjects()
     {
         if (lastModified == omniFocusDatabase.lastModified())
         {
             LOGGER.debug("No changes in the OmniFocus database; skipping fetch.");
             return;
         }
-        var newProjects = fetchProjects(javaScriptForAutomation, settings);
+        var newProjects = fetchProjects();
         var oldProjects = cache.getAndSet(newProjects);
         lastModified = omniFocusDatabase.lastModified();
         if (oldProjects == null)
@@ -161,8 +154,7 @@ final class DefaultOmniFocusRepository
         externalChangeHandler.process(OMNIFOCUS_CHANGE);
     }
 
-    private Map<String, OmniFocusProject> fetchProjects(
-        JavaScriptForAutomation javaScriptForAutomation, OmniFocusSettings settings)
+    private Map<String, OmniFocusProject> fetchProjects()
     {
         LOGGER.debug("Fetching OmniFocus projects in folder '{}'.", settings.omniFocusFolder());
         var priorityCounter = new AtomicInteger(IMMEDIATELY);

@@ -17,7 +17,7 @@ class ProjectStatusAttributeValueProducerTest
     {
         testContext = DaggerProjectJournalTestContext.create();
         createTestDocuments();
-        testContext.changeProcessorOrchestrator().runFor(List.of(RESET));
+        testContext.start();
     }
 
     @Test

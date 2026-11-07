@@ -1,7 +1,7 @@
 package nl.ulso.curator.addon.journal;
 
 import jakarta.inject.Inject;
-import jakarta.inject.Singleton;
+import nl.ulso.curator.extension.ExtensionScope;
 import nl.ulso.curator.change.MapBasedEntityRepository;
 import nl.ulso.dictionary.Dictionary;
 
@@ -9,7 +9,7 @@ import java.util.Map;
 
 import static nl.ulso.dictionary.Dictionary.emptyDictionary;
 
-@Singleton
+@ExtensionScope
 final class DefaultMarkerRepository
     extends MapBasedEntityRepository<String, Marker>
     implements MarkerRepository

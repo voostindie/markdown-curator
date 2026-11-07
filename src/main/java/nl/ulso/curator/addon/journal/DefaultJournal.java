@@ -1,7 +1,7 @@
 package nl.ulso.curator.addon.journal;
 
 import jakarta.inject.Inject;
-import jakarta.inject.Singleton;
+import nl.ulso.curator.extension.ExtensionScope;
 import nl.ulso.curator.vault.Document;
 import nl.ulso.dictionary.Dictionary;
 
@@ -11,7 +11,7 @@ import java.util.stream.Stream;
 
 import static java.util.stream.Collectors.toMap;
 
-@Singleton
+@ExtensionScope
 final class DefaultJournal
     implements Journal
 {

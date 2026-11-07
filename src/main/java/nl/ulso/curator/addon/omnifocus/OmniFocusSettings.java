@@ -2,7 +2,7 @@ package nl.ulso.curator.addon.omnifocus;
 
 import java.util.function.Predicate;
 
-/// Settings for the [OmniFocusModule].
+/// Settings for the OmniFocus extension; see [OmniFocusExtensionFactory].
 ///
 /// At the least you must specify the folder in OmniFocus that holds the projects to fetch and
 /// compare. Additionally, you can specify a predicate that each project name from OmniFocus is

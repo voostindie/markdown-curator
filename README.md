@@ -82,7 +82,7 @@ A separate [Markdown Curator workflow](https://github.com/voostindie/alfred-mark
 
 The workflow is built with shell scripting, using `curl` and `jq`, for maximum compatibility. A stock macOS installation will work. The scripts can be used from the command line, outside Alfred.
 
-To make it work, the curator must run as a daemon with the server enabled, and have the `AlfredModule` included.
+To make it work, the curator must run as a daemon with the server enabled, and have the `alfred` extension loaded: include the `AlfredExtensionModule` in your curator module, and enable `alfred` (and the `journal` extension it requires) in the configuration document. Its settings are the paths of the folders Alfred needs: `contacts-path`, `projects-path`, `reminders-path`, `systems-path`, `teams-path`, `third-parties-path`, and the `links-section`.
 
 ## Obsidian users: Ye be warned!
 
@@ -227,7 +227,7 @@ As an example of a custom change processor, see the built-in `Journal` or `Proje
 
 ### Load and unload extensions at runtime
 
-Statically registered change processors and queries are fixed when the application starts. An *extension* is a set of change processors, queries and measurement trackers that can be loaded into and unloaded from a running curator, as configured in a document in the vault.
+Statically registered change processors and queries are fixed when the application starts. An *extension* is a set of change processors, queries and measurement trackers that can be loaded into and unloaded from a running curator, as configured in a document in the vault. The built-in project, journal, project journal, OmniFocus and Alfred modules are all extensions.
 
 To enable extensions in your curator:
 
@@ -237,25 +237,44 @@ To enable extensions in your curator:
 @Provides @Named(CuratorModule.CONFIGURATION_DOCUMENT_KEY) static String configurationDocument() { return "CONFIG"; }
 ```
 
-- Turn a module into an extension:
-  - Define a public Dagger `@Subcomponent`, annotated with `@ExtensionScope`, that extends `Extension` and includes the `ExtensionModule` and your own module. (It must be public, because Dagger generates its implementation in the package of the curator that loads it.)
-  - In your module, qualify all change processor, query and tracker bindings with `@ExtensionBinding`.
-  - Annotate all classes in your module with `@ExtensionScope` instead of `@Singleton`.
-  - Implement an `ExtensionFactory` that turns the configuration (a `Dictionary`) into the settings of your extension, and creates the subcomponent.
-  - Register the subcomponent and the factory in your curator module: `@Module(subcomponents = MyExtension.class)` and `@Binds @IntoMap @StringKey("my-extension") abstract ExtensionFactory bindMyExtensionFactory(MyExtensionFactory factory);`.
-- Enable extensions in the front matter of the configuration document, either as a list of names, or as a map of names to their configuration:
+- Include the modules of the extensions you want to make available, like the `JournalExtensionModule`.
+- Enable extensions in the front matter of the configuration document, either as a list of names, or as a map of names to their settings:
 
 ```yaml
 ---
 extensions:
-  my-extension:
-    some-setting: some value
+  project:
+    folder: Projects
+  journal:
+  projectjournal:
 ---
 ```
 
-Whenever the `extensions` property in the configuration document changes, the curator loads the new set of extensions and performs a complete refresh, exactly like touching the watch document does. If the new configuration is invalid - an unknown extension, a change processor that consumes a payload type nobody produces, a duplicate query name - it is rejected as a whole and the current extensions stay active. Use the `extensions` query to see which extensions are available and active, and why the last configuration was rejected, if it was.
+Whenever the `extensions` property in the configuration document changes, the curator loads the new set of extensions and performs a complete refresh, exactly like touching the watch document does.
 
-Extensions can inject anything from the curator they are loaded into, but not the other way around: the curator and other extensions can't inject anything from an extension. They can only interact through payload types in the changelog.
+Extensions that can't be loaded are left out, together with the extensions that depend on them; the others are loaded. Reasons for an extension not to load are: it's unknown, it has unsupported settings, it requires a service that no other loaded extension provides, its change processors consume a payload type nobody produces, or its queries have names that are already taken. Use the `extensions` query to see which extensions are available and active, what they require and provide, what settings they support, and why extensions weren't loaded. Only if the configuration can't be parsed at all is it rejected as a whole, keeping the current extensions.
+
+#### Creating an extension
+
+- Define a public Dagger `@Subcomponent`, annotated with `@ExtensionScope`, that extends `Extension` and includes the `ExtensionModule` and your own module. (It must be public, because Dagger generates its implementation in the package of the curator that loads it.)
+- In your module, qualify all change processor, query, tracker, service and lifecycle bindings with `@ExtensionBinding`.
+- Annotate all classes in your module with `@ExtensionScope` instead of `@Singleton`.
+- Implement an `ExtensionFactory` that describes the extension - its description, supported settings, required and provided services, and contributions - and that creates the subcomponent.
+- Register the subcomponent and the factory in a module for curators to include: `@Module(subcomponents = MyExtension.class)` and `@Binds @IntoMap @StringKey("my-extension") abstract ExtensionFactory bindMyExtensionFactory(MyExtensionFactory factory);`.
+
+#### Dependencies between extensions
+
+Extensions interact in three ways:
+
+- **Payload types** in the changelog, exactly like statically configured change processors.
+- **Services**: an extension can provide services to other extensions, and require services from them. There's only ever one provider of a service. Extensions declare what they provide and require in their factory; the curator creates providers before their consumers. The factory gets the required services through `Services.get` and passes them into the subcomponent with `@BindsInstance`, so that the classes in the extension can inject them as usual. Extensions publish services by binding a `ServiceRegistration` into a set.
+- **Contributions** (the whiteboard pattern): an extension can own an extension point - a type - that other extensions contribute values to. The owner collects all of them through `Services.all`. Contributions are collected from all factories before any extension is created, so they don't impose an order: the OmniFocus extension contributes a project attribute definition to the project extension, while requiring the project extension's `ProjectRepository`.
+
+The curator itself can publish services and contributions too, by binding a `ServiceRegistration` or `Contribution` into a set in its module. Extensions can also inject anything the curator binds, like the `Vault`. Infrastructure that is shared with static code, like the `NewDayAlarm` and JavaScript for Automation, is best kept that way: the module of the extension includes the module that binds it. Note that a type that the curator binds can't be passed into an extension with `@BindsInstance` as well; Dagger reports that as a duplicate binding.
+
+#### Lifecycle
+
+Extensions are created whenever the configuration changes, but they are not necessarily loaded. Their constructors must therefore not acquire resources, like threads. Instead, bind an `ExtensionLifecycle` into the set of lifecycles of the extension. It's started when the extension is loaded, before its change processors run for the first time, and stopped when it's unloaded. See the OmniFocus extension for an example.
 
 ## Query collections
 
@@ -317,25 +336,25 @@ For example, here is the template I currently use for my daily notes:
 
 ```
 
-To enable the module in your Curator, you have to include it:  
+The journal is an extension named `journal`. To make it available, include its module in your curator module:
 
 ```java
-@Module(includes = {CuratorModule.class, JournalModule.class})
+@Module(includes = {CuratorModule.class, JournalExtensionModule.class})
 abstract class MyCuratorModule
 {
-    @Provides
-    static JournalSettings journalSettings() 
-	{
-        return new JournalSettings(
-            "Journal",      // Where daily journal pages are kept 
-            "Markers",      // Where marker descriptions are kept
-            "Activities",   // Name of the section with the outline
-            "Projects"      // Where project notes are kept
-		);
-	}
-    
     // Your code here
 }
+```
+
+Then enable it in the configuration document. All settings are optional; these are the defaults:
+
+```yaml
+extensions:
+  journal:
+    folder: Journal                 # Where daily journal pages are kept
+    markers-folder: Markers         # Where marker descriptions are kept
+    activities-section: Activities  # Name of the section with the outline
+    projects-folder: Projects       # Where project notes are kept
 ```
 
 #### `timeline`
@@ -448,23 +467,25 @@ Apart from being a normal document, a project has a number of additional propert
 
 By default, these properties are read from and written to front matter in the project document, using the properties mentioned above, but their source can be overruled by providing custom plugins to resolve these values from wherever you want. See below.
 
-To enable the module in your Curator, you have to include it:
+The project model is an extension named `project`. To make it available, include its module in your curator module:
 
 ```java
-@Module(includes = {CuratorModule.class, ProjectModule.class})
+@Module(includes = {CuratorModule.class, ProjectExtensionModule.class})
 abstract class MyCuratorModule
 {
-    @Provides
-    static ProjectSettings projectSettings() 
-	{
-        return new ProjectSettings(
-            "Projects"      // Where project notes are kept
-		);
-	}
-    
     // Your code here
 }
 ```
+
+Then enable it in the configuration document:
+
+```yaml
+extensions:
+  project:
+    folder: Projects    # Where project notes are kept; this is the default
+```
+
+The extension provides the `ProjectRepository` and `ProjectAttributeRepository` services to other extensions. The set of project attributes is an extension point: other extensions can contribute a `ProjectAttributeDefinition`.
 
 #### `projectlist`
 
@@ -487,17 +508,29 @@ This updates the last modification date and the status of project `Project` to `
 
 The module ensures that properties are always in line with the journal, no matter how the journal is modified. 
 
-To use this module, you have to include it:
+The project journal is an extension named `projectjournal`. It requires the services of both the `project` and the `journal` extensions. Include all three modules in your curator module:
 
 ```java
-@Module(includes = {CuratorModule.class, ProjectJournalModule.class})
+@Module(includes = {
+    CuratorModule.class,
+    ProjectExtensionModule.class,
+    JournalExtensionModule.class,
+    ProjectJournalExtensionModule.class
+})
 abstract class MyCuratorModule
 {
     // Your code here
 }
 ```
 
-The module includes the `ProjectModule` and the `JournalModule`, which means you have to provide the settings for both modules, as described above.
+Then enable all three in the configuration document. The project journal has no settings of its own:
+
+```yaml
+extensions:
+  project:
+  journal:
+  projectjournal:
+```
 
 #### Last modification date
 
@@ -569,27 +602,30 @@ The OmniFocus module adds:
 
 If you use OmniFocus and you store projects that match the projects in the vault in a folder, then you can use this module to keep your projects in sync.
 
-To use this module, you have to include it and configure it:
+OmniFocus support is an extension named `omnifocus`, which requires the `project` extension. Include both modules in your curator module:
 
 ```java
-import nl.ulso.curator.addon.omnifocus.OmniFocusSettings;
-
-@Module(includes = {CuratorModule.class, OmniFocusModule.class})
+@Module(includes = {CuratorModule.class, ProjectExtensionModule.class, OmniFocusExtensionModule.class})
 abstract class MyCuratorModule
 {
-	@Provides
-	static OmniFocusSettings omniFocusSettings()
-	{
-		return new OmniFocusSettings(
-				"Work" // The OmniFocus folder that has the projects to sync
-		);
-	}
-
-	// Your code here
+    // Your code here
 }
 ```
 
-This is all that's needed to get the module to work. Suddenly the `projects` query will sort the projects in the same order as OmniFocus does, and each project will have an `omnifocus` property in its front matter that links to the same project in  OmniFocus.
+Then enable both in the configuration document:
+
+```yaml
+extensions:
+  project:
+  omnifocus:
+    folder: Work          # The OmniFocus folder that has the projects to sync; required
+    exclude-prefixes:     # Optional: ignore OmniFocus projects whose names start with these
+      - ⚡️
+    exclude:              # Optional: ignore OmniFocus projects with these names
+      - 🤖 Routine
+```
+
+This is all that's needed to get the extension to work. Suddenly the `projects` query will sort the projects in the same order as OmniFocus does, and each project will have an `omnifocus` property in its front matter that links to the same project in  OmniFocus.
 
 #### `omnifocus`
 

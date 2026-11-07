@@ -3,15 +3,16 @@ package nl.ulso.curator.main;
 import dagger.*;
 import dagger.Module;
 import dagger.multibindings.IntoSet;
+import jakarta.inject.Named;
 import nl.ulso.curator.CuratorModule;
-import nl.ulso.curator.addon.journal.JournalModule;
-import nl.ulso.curator.addon.journal.JournalSettings;
+import nl.ulso.curator.addon.journal.JournalExtensionModule;
 import nl.ulso.curator.query.Query;
 
 import java.nio.file.*;
 import java.util.Locale;
 
 import static java.util.Locale.ENGLISH;
+import static nl.ulso.curator.CuratorModule.CONFIGURATION_DOCUMENT_KEY;
 
 /**
  * Module for testing. All testing is done in memory. All files in the "music" directory from this
@@ -19,7 +20,7 @@ import static java.util.Locale.ENGLISH;
  * on top of this file system. This ensures that the real file system stays intact. The vault on
  * disk is there to make it easy to maintain and use: just fire up Obsidian on top of it.
  */
-@Module(includes = {CuratorModule.class, JournalModule.class})
+@Module(includes = {CuratorModule.class, JournalExtensionModule.class})
 abstract class MusicCuratorModule
         extends InMemoryCuratorModule
 {
@@ -43,14 +44,10 @@ abstract class MusicCuratorModule
     }
 
     @Provides
-    static JournalSettings journalSettings()
+    @Named(CONFIGURATION_DOCUMENT_KEY)
+    static String configurationDocument()
     {
-        return new JournalSettings(
-                "journal",
-                "markers",
-                "Log",
-                "projects"
-        );
+        return "CONFIG";
     }
 
     @Binds

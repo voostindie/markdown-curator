@@ -1,7 +1,7 @@
 package nl.ulso.curator.addon.project;
 
 import jakarta.inject.Inject;
-import jakarta.inject.Singleton;
+import nl.ulso.curator.extension.ExtensionScope;
 import nl.ulso.curator.change.EntityTransformer;
 import nl.ulso.curator.vault.Document;
 
@@ -14,7 +14,7 @@ import java.util.Optional;
 ///
 /// For each project that is created, updated, or deleted, this repository publishes a change with
 /// the relevant [Project] as its payload.
-@Singleton
+@ExtensionScope
 final class ProjectProducer
     extends EntityTransformer<Document, Project>
 {

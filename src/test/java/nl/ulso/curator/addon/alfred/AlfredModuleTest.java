@@ -1,13 +1,13 @@
 package nl.ulso.curator.addon.alfred;
 
-import dagger.*;
+import dagger.Component;
 import dagger.Module;
+import dagger.Provides;
 import jakarta.inject.Singleton;
 import nl.ulso.curator.CuratorFactory;
 import nl.ulso.curator.CuratorModule;
-import nl.ulso.curator.addon.journal.JournalSettings;
-import nl.ulso.curator.addon.project.ProjectSettings;
-import nl.ulso.curator.query.Query;
+import nl.ulso.curator.main.ExtensionTestHarness;
+import nl.ulso.curator.addon.journal.JournalExtensionModule;
 import org.assertj.core.api.SoftAssertions;
 import org.assertj.core.api.junit.jupiter.InjectSoftAssertions;
 import org.assertj.core.api.junit.jupiter.SoftAssertionsExtension;
@@ -16,8 +16,9 @@ import org.junit.jupiter.api.extension.ExtendWith;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Set;
+import java.util.Map;
 
+/// Loads the extension(s) into a real curator, on top of the music vault.
 @ExtendWith(SoftAssertionsExtension.class)
 class AlfredModuleTest
 {
@@ -25,13 +26,16 @@ class AlfredModuleTest
     private SoftAssertions softly;
 
     @Test
-    void createModuleWithInjector()
+    void loadExtensionsIntoCurator()
     {
         var factory = DaggerAlfredModuleTest_FactoryStub.create();
-        var curator = factory.createCurator();
-        softly.assertThat(curator).isNotNull();
-        var queries = factory.queries();
-        softly.assertThat(queries).anyMatch(AlfredQuery.class::isInstance);
+        softly.assertThat(factory.createCurator()).isNotNull();
+        var harness = factory.harness();
+        harness.enable("journal").enable("alfred", Map.of("projects-path", "Projects")).start();
+        softly.assertThat(harness.failures()).isEmpty();
+        softly.assertThat(harness.activeExtensions()).containsExactly("alfred", "journal");
+        softly.assertThat(harness.find(AlfredQuery.class)).isNotNull();
+        softly.assertThat(harness.query("links")).isInstanceOf(ExternalLinksQuery.class);
     }
 
     @Singleton
@@ -45,43 +49,19 @@ class AlfredModuleTest
             return "Stub";
         }
 
-        Set<Query> queries();
+        ExtensionTestHarness harness();
     }
 
     @Module(includes = {
         CuratorModule.class,
-        AlfredModule.class})
+        JournalExtensionModule.class,
+        AlfredExtensionModule.class})
     static class ModuleStub
     {
         @Provides
         public Path vaultPath()
         {
             return Paths.get("").toAbsolutePath().resolve("src/test/resources/music");
-        }
-
-        @Provides
-        static JournalSettings provideJournalSettings()
-        {
-            return new JournalSettings(
-                "Journal",
-                "Markers",
-                "Activities",
-                "Projects"
-            );
-        }
-
-        @Provides
-        static ProjectSettings provideProjectSettings()
-        {
-            return new ProjectSettings("Projects");
-        }
-
-        @Provides
-        static AlfredSettings provideAlfredSettings()
-        {
-            return AlfredSettings.builder()
-                .projectsPath("Projects")
-                .build();
         }
     }
 }

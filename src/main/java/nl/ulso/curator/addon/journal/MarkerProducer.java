@@ -1,14 +1,14 @@
 package nl.ulso.curator.addon.journal;
 
 import jakarta.inject.Inject;
-import jakarta.inject.Singleton;
+import nl.ulso.curator.extension.ExtensionScope;
 import nl.ulso.curator.change.EntityTransformer;
 import nl.ulso.curator.vault.Document;
 
 import java.util.Optional;
 
 /// Creates markers from documents in a special subfolder of the journal folder.
-@Singleton
+@ExtensionScope
 final class MarkerProducer
     extends EntityTransformer<Document, Marker>
 {

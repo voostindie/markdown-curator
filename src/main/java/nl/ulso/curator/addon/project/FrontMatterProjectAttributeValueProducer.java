@@ -1,7 +1,7 @@
 package nl.ulso.curator.addon.project;
 
 import jakarta.inject.Inject;
-import jakarta.inject.Singleton;
+import nl.ulso.curator.extension.ExtensionScope;
 import nl.ulso.curator.change.ChangeCollector;
 import nl.ulso.curator.change.EntityProcessor;
 import nl.ulso.curator.vault.Document;
@@ -16,7 +16,7 @@ import java.util.*;
 /// Is the default, built-in mechanism for resolving attribute values. All values set by this
 /// producer have a weight of 0 and are expected to be overruled by other attribute producers that
 /// use larger weights.
-@Singleton
+@ExtensionScope
 public final class FrontMatterProjectAttributeValueProducer
     extends EntityProcessor<Project>
 {

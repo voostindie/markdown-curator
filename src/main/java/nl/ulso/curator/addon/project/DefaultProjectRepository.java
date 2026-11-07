@@ -1,7 +1,7 @@
 package nl.ulso.curator.addon.project;
 
 import jakarta.inject.Inject;
-import jakarta.inject.Singleton;
+import nl.ulso.curator.extension.ExtensionScope;
 import nl.ulso.curator.change.MapBasedEntityRepository;
 import nl.ulso.curator.vault.Document;
 
@@ -9,7 +9,7 @@ import java.util.*;
 
 /// Represents a repository of projects on top of a single folder in the vault, excluding its
 /// subfolders.
-@Singleton
+@ExtensionScope
 final class DefaultProjectRepository
     extends MapBasedEntityRepository<String, Project>
     implements ProjectRepository
