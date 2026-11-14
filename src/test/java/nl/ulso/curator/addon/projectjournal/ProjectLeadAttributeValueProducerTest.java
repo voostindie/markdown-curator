@@ -3,9 +3,6 @@ package nl.ulso.curator.addon.projectjournal;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import java.util.List;
-
-import static nl.ulso.curator.change.Reset.RESET;
 import static org.assertj.core.api.Assertions.assertThat;
 
 class ProjectLeadAttributeValueProducerTest

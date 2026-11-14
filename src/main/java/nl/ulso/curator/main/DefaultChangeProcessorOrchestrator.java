@@ -9,6 +9,7 @@ import org.slf4j.Logger;
 import org.slf4j.event.Level;
 
 import java.util.*;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -39,7 +40,7 @@ final class DefaultChangeProcessorOrchestrator
     private final SequencedSet<ChangeProcessor> staticProcessors;
     private final Statistics statistics;
     private final ExtensionRegistry extensionRegistry;
-    private volatile List<ChangeProcessor> orderedProcessors;
+    private final AtomicReference<List<ChangeProcessor>> orderedProcessors;
 
     @Inject
     DefaultChangeProcessorOrchestrator(
@@ -58,7 +59,7 @@ final class DefaultChangeProcessorOrchestrator
             .filter(processor -> !isReserved(processor))
             .forEach(nonReservedProcessors::add);
         this.staticProcessors = unmodifiableSequencedSet(nonReservedProcessors);
-        this.orderedProcessors = orderChangeProcessors(staticProcessors);
+        this.orderedProcessors = new AtomicReference<>(orderChangeProcessors(staticProcessors));
         this.statistics = statistics;
         this.extensionRegistry = extensionRegistry;
     }
@@ -106,7 +107,7 @@ final class DefaultChangeProcessorOrchestrator
     /// @return all change processors in the order they are executed.
     List<ChangeProcessor> changeProcessors()
     {
-        var processors = orderedProcessors;
+        var processors = orderedProcessors.get();
         var result = new ArrayList<ChangeProcessor>(reservedProcessors.size() + processors.size());
         result.addAll(reservedProcessors);
         result.addAll(processors);
@@ -178,7 +179,7 @@ final class DefaultChangeProcessorOrchestrator
     static final class UnorderableChangeProcessorsException
         extends IllegalStateException
     {
-        private final List<ChangeProcessor> processors;
+        private final transient List<ChangeProcessor> processors;
 
         UnorderableChangeProcessorsException(List<ChangeProcessor> processors)
         {
@@ -212,7 +213,7 @@ final class DefaultChangeProcessorOrchestrator
         {
             activateStagedExtensions();
         }
-        var processors = orderedProcessors;
+        var processors = orderedProcessors.get();
         changelog = runProcessors(processors, changelog);
         LOGGER.info(
             "Executed {} change processors on {} change(s).",
@@ -276,7 +277,7 @@ final class DefaultChangeProcessorOrchestrator
             {
                 var ordered = fitExtensions(generation);
                 extensionRegistry.activate(generation);
-                orderedProcessors = ordered;
+                orderedProcessors.set(ordered);
                 LOGGER.info("Activated {} extension(s) with {} change processor(s) in total.",
                     generation.extensions().size(), reservedProcessors.size() + ordered.size()
                 );
@@ -415,7 +416,7 @@ final class DefaultChangeProcessorOrchestrator
         }
         LOGGER.info("Resetting all change processors.");
         reservedProcessors.forEach(DefaultChangeProcessorOrchestrator::safelyReset);
-        orderedProcessors.forEach(DefaultChangeProcessorOrchestrator::safelyReset);
+        orderedProcessors.get().forEach(DefaultChangeProcessorOrchestrator::safelyReset);
         return true;
     }
 

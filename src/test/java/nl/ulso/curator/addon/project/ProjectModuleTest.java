@@ -16,7 +16,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Map;
 
 /// Loads the extension(s) into a real curator, on top of the music vault.
 @ExtendWith(SoftAssertionsExtension.class)

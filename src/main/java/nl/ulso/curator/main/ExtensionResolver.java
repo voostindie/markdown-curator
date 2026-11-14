@@ -132,52 +132,68 @@ final class ExtensionResolver
         var changed = true;
         while (changed)
         {
-            changed = false;
-            var providers = providersOf(candidates);
-            for (var entry : providers.entrySet())
+            changed = dropConflictingProviders(candidates, failures);
+            if (!changed)
             {
-                var type = entry.getKey();
-                var names = entry.getValue();
-                if (curatorServices.containsKey(type))
-                {
-                    names.forEach(name -> fail(failures, name, "Provides service " +
-                        type.getSimpleName() + ", which the curator already provides."));
-                }
-                else if (names.size() > 1)
-                {
-                    names.forEach(name -> fail(failures, name, "Service " +
-                        type.getSimpleName() + " is provided by more than one extension: " +
-                        String.join(", ", names) + "."));
-                }
-                else
-                {
-                    continue;
-                }
-                names.forEach(candidates::remove);
-                changed = true;
+                changed = dropCandidatesWithMissingServices(candidates, failures);
             }
-            if (changed)
+        }
+    }
+
+    /// @return `true` if any candidate was dropped because it provides a service that is taken.
+    private boolean dropConflictingProviders(
+        SortedMap<String, Candidate> candidates, SortedMap<String, String> failures)
+    {
+        var changed = false;
+        for (var entry : providersOf(candidates).entrySet())
+        {
+            var type = entry.getKey();
+            var names = entry.getValue();
+            if (curatorServices.containsKey(type))
+            {
+                names.forEach(name -> fail(failures, name, "Provides service " +
+                    type.getSimpleName() + ", which the curator already provides."));
+            }
+            else if (names.size() > 1)
+            {
+                names.forEach(name -> fail(failures, name, "Service " +
+                    type.getSimpleName() + " is provided by more than one extension: " +
+                    String.join(", ", names) + "."));
+            }
+            else
             {
                 continue;
             }
-            for (var candidate : List.copyOf(candidates.values()))
+            names.forEach(candidates::remove);
+            changed = true;
+        }
+        return changed;
+    }
+
+    /// @return `true` if any candidate was dropped because it requires a service nobody provides.
+    private boolean dropCandidatesWithMissingServices(
+        SortedMap<String, Candidate> candidates, SortedMap<String, String> failures)
+    {
+        var changed = false;
+        var providers = providersOf(candidates);
+        for (var candidate : List.copyOf(candidates.values()))
+        {
+            var missing = candidate.factory().requires().stream()
+                .filter(type -> !curatorServices.containsKey(type) &&
+                                !providers.containsKey(type))
+                .sorted(Comparator.comparing(Class::getSimpleName))
+                .toList();
+            if (!missing.isEmpty())
             {
-                var missing = candidate.factory().requires().stream()
-                    .filter(type -> !curatorServices.containsKey(type) &&
-                                    !providers.containsKey(type))
-                    .sorted(Comparator.comparing(Class::getSimpleName))
-                    .toList();
-                if (!missing.isEmpty())
-                {
-                    fail(failures, candidate.name(), "Missing required service(s): " +
-                        missing.stream()
-                            .map(type -> type.getSimpleName() + " (" + hintFor(type, failures) + ")")
-                            .collect(joining(", ")) + ".");
-                    candidates.remove(candidate.name());
-                    changed = true;
-                }
+                fail(failures, candidate.name(), "Missing required service(s): " +
+                    missing.stream()
+                        .map(type -> type.getSimpleName() + " (" + hintFor(type, failures) + ")")
+                        .collect(joining(", ")) + ".");
+                candidates.remove(candidate.name());
+                changed = true;
             }
         }
+        return changed;
     }
 
     private SortedMap<Class<?>, SortedSet<String>> providersOf(Map<String, Candidate> candidates)

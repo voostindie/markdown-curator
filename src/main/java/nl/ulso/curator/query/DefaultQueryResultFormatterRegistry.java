@@ -5,6 +5,7 @@ import jakarta.inject.Singleton;
 import org.slf4j.Logger;
 
 import java.util.*;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Stream;
 
 import static java.util.Collections.unmodifiableMap;
@@ -29,21 +30,21 @@ final class DefaultQueryResultFormatterRegistry
 
     private final List<QueryResultFormatter<?>> staticFormatters;
     private final Set<OutputFormat> staticOutputFormats;
-    private volatile Snapshot snapshot;
+    private final AtomicReference<Snapshot> snapshot;
 
     @Inject
     DefaultQueryResultFormatterRegistry(Set<QueryResultFormatter<?>> formatters)
     {
         this.staticFormatters = List.copyOf(formatters);
-        this.snapshot = Snapshot.of(staticFormatters.stream());
-        this.staticOutputFormats = snapshot.outputFormats();
+        this.snapshot = new AtomicReference<>(Snapshot.of(staticFormatters.stream()));
+        this.staticOutputFormats = snapshot.get().outputFormats();
     }
 
     @Override
     public void replaceDynamicFormatters(Collection<QueryResultFormatter<?>> dynamicFormatters)
     {
-        snapshot = Snapshot.of(
-            Stream.concat(staticFormatters.stream(), List.copyOf(dynamicFormatters).stream()));
+        snapshot.set(Snapshot.of(
+            Stream.concat(staticFormatters.stream(), List.copyOf(dynamicFormatters).stream())));
     }
 
     @Override
@@ -55,7 +56,7 @@ final class DefaultQueryResultFormatterRegistry
     @Override
     public Set<OutputFormat> outputFormats()
     {
-        return snapshot.outputFormats();
+        return snapshot.get().outputFormats();
     }
 
     @Override
@@ -65,20 +66,20 @@ final class DefaultQueryResultFormatterRegistry
         {
             return Optional.empty();
         }
-        return Optional.ofNullable(snapshot.groups().get(name.strip().toLowerCase(Locale.ROOT)))
-            .map(FormatGroup::outputFormat);
+        var group = snapshot.get().groups().get(name.strip().toLowerCase(Locale.ROOT));
+        return Optional.ofNullable(group).map(FormatGroup::outputFormat);
     }
 
     @Override
     public boolean supports(QueryResult queryResult, OutputFormat outputFormat)
     {
-        return snapshot.findFormatter(queryResult, outputFormat.name()).isPresent();
+        return snapshot.get().findFormatter(queryResult, outputFormat.name()).isPresent();
     }
 
     @Override
     public FormattedResult formatResult(QueryResult queryResult, OutputFormat outputFormat)
     {
-        var current = snapshot;
+        var current = snapshot.get();
         return current.findFormatter(queryResult, outputFormat.name())
             .or(() -> fallBackToMarkdown(current, queryResult, outputFormat))
             .map(selection -> selection.apply(queryResult))

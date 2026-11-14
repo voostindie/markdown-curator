@@ -22,7 +22,7 @@ public record Weekly(int year, int week)
     public int compareTo(Weekly o)
     {
         var c = compare(year, o.year);
-        return c != 0 ? c : compare(week, o.week);
+        return c == 0 ? compare(week, o.week) : c;
     }
 
     @Override

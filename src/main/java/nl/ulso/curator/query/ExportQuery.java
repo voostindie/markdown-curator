@@ -191,25 +191,21 @@ final class ExportQuery
             }
             var builder = new StringBuilder();
             var index = 0;
-            while (true)
+            var start = text.indexOf("[[");
+            while (start != -1)
             {
-                var start = text.indexOf("[[", index);
-                if (start == -1)
-                {
-                    builder.append(text.substring(index));
-                    break;
-                }
                 var end = text.indexOf("]]", start + 2);
                 if (end == -1)
                 {
-                    builder.append(text.substring(index));
                     break;
                 }
                 builder.append(text, index, start);
                 var link = text.substring(start + 2, end);
                 builder.append(convertWikilink(link, stripEmojisFromLinks));
                 index = end + 2;
+                start = text.indexOf("[[", index);
             }
+            builder.append(text.substring(index));
             return builder.toString();
         }
 

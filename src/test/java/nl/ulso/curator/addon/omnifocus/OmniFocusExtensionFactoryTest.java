@@ -27,7 +27,8 @@ class OmniFocusExtensionFactoryTest
     {
         var extensionFactory = new OmniFocusExtensionFactory(
             (configuration, projectRepository, attributeDefinitions) -> null);
-        assertThatThrownBy(() -> extensionFactory.create(emptyDictionary(), null))
+        var configuration = emptyDictionary();
+        assertThatThrownBy(() -> extensionFactory.create(configuration, null))
             .isInstanceOf(IllegalArgumentException.class)
             .hasMessageContaining("'folder' is required");
     }

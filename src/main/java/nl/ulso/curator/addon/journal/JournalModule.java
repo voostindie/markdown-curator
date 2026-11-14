@@ -8,7 +8,6 @@ import nl.ulso.curator.change.ChangeProcessor;
 import nl.ulso.curator.extension.ExtensionBinding;
 import nl.ulso.curator.extension.ExtensionScope;
 import nl.ulso.curator.extension.ServiceRegistration;
-import nl.ulso.curator.query.Query;
 import nl.ulso.curator.statistics.MeasurementTracker;
 import nl.ulso.dictionary.Dictionary;
 
@@ -30,7 +29,7 @@ import static nl.ulso.curator.extension.ServiceRegistration.service;
 /// These are the bindings of the journal extension; see [JournalExtension] and
 /// [JournalExtensionFactory]. The [Journal] is published as a service for other extensions to
 /// require.
-@Module
+@Module(includes = JournalQueryModule.class)
 abstract class JournalModule
 {
     @Provides
@@ -107,39 +106,4 @@ abstract class JournalModule
 
     @Binds
     abstract Journal bindJournal(DefaultJournal journal);
-
-    @Binds
-    @IntoSet
-    @ExtensionBinding
-    abstract Query bindTimelineQuery(TimelineQuery timelineQuery);
-
-    @Binds
-    @IntoSet
-    @ExtensionBinding
-    abstract Query bindPeriodQuery(PeriodQuery periodQuery);
-
-    @Binds
-    @IntoSet
-    @ExtensionBinding
-    abstract Query bindWeeklyQuery(WeeklyQuery weeklyQuery);
-
-    @Binds
-    @IntoSet
-    @ExtensionBinding
-    abstract Query bindDayNavigationQuery(DayNavigationQuery dayNavigationQuery);
-
-    @Binds
-    @IntoSet
-    @ExtensionBinding
-    abstract Query bindWeekNavigationQuery(WeekNavigationQuery weekNavigationQuery);
-
-    @Binds
-    @IntoSet
-    @ExtensionBinding
-    abstract Query bindLatestJournalNavigationQuery(LatestJournalNavigationQuery markedQuery);
-
-    @Binds
-    @IntoSet
-    @ExtensionBinding
-    abstract Query bindMarkedQuery(MarkedQuery markedQuery);
 }

@@ -8,25 +8,26 @@ import org.slf4j.spi.LoggingEventBuilder;
 
 import java.io.PrintWriter;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicReference;
 
 @Singleton
 final class DefaultStatistics
     implements Statistics, MeasurementTrackerRegistry
 {
     private final Set<MeasurementTracker> trackers;
-    private volatile List<MeasurementTracker> dynamicTrackers;
+    private final AtomicReference<List<MeasurementTracker>> dynamicTrackers;
 
     @Inject
     public DefaultStatistics(Set<MeasurementTracker> trackers)
     {
         this.trackers = trackers;
-        this.dynamicTrackers = List.of();
+        this.dynamicTrackers = new AtomicReference<>(List.of());
     }
 
     @Override
     public void replaceDynamicTrackers(Collection<MeasurementTracker> trackers)
     {
-        this.dynamicTrackers = List.copyOf(trackers);
+        this.dynamicTrackers.set(List.copyOf(trackers));
     }
 
     @Override
@@ -44,21 +45,21 @@ final class DefaultStatistics
     {
         var collector = new DefaultMeasurementCollector();
         trackers.forEach(tracker -> tracker.collectMeasurements(collector));
-        dynamicTrackers.forEach(tracker -> tracker.collectMeasurements(collector));
+        dynamicTrackers.get().forEach(tracker -> tracker.collectMeasurements(collector));
         writeStatistics(collector.measurements(), writer);
     }
 
     private void writeStatistics(Map<String, Map<String, Long>> measurements, PrintWriter writer)
     {
         var modules = new ArrayList<>(measurements.keySet());
-        Collections.sort(modules);
+        modules.sort(null);
         writer.println("totals:");
         modules.forEach(module ->
         {
             writer.println("  " + module + ":");
             var totals = measurements.get(module);
             var entities = new ArrayList<>(totals.keySet());
-            Collections.sort(entities);
+            entities.sort(null);
             entities.forEach(entity ->
             {
                 var total = totals.get(entity);

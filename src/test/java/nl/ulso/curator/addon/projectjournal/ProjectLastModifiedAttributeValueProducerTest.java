@@ -14,7 +14,6 @@ import static nl.ulso.curator.change.Change.create;
 import static nl.ulso.curator.change.Change.delete;
 import static nl.ulso.curator.change.Change.update;
 import static nl.ulso.curator.change.ChangeCollector.newChangeCollector;
-import static nl.ulso.curator.change.Reset.RESET;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /// This is an extensive test case for the last modification attribute alone. The reason is that it

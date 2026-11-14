@@ -876,10 +876,13 @@ class ExtensionLoadingTest
         configure("  csv:");
         startUp();
         var output = runConfigurationQuery();
-        softly.assertThat(output).contains("### Output formats\n\n" +
-                                           "- **csv**: `text/csv`, fenced, from csv\n" +
-                                           "- **json**: `application/json`, fenced\n" +
-                                           "- **markdown**: `text/markdown`, inline\n");
+        softly.assertThat(output).contains("""
+            ### Output formats
+
+            - **csv**: `text/csv`, fenced, from csv
+            - **json**: `application/json`, fenced
+            - **markdown**: `text/markdown`, inline
+            """);
     }
 
     private String runConfigurationQuery()

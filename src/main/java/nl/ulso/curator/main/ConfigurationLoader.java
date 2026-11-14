@@ -216,7 +216,10 @@ final class ConfigurationLoader
             .orElse(DEFAULT_LOCALE));
         if (!locale.equals(settings.locale()))
         {
-            LOGGER.info("Setting the locale to '{}'.", locale.toLanguageTag());
+            if (LOGGER.isInfoEnabled())
+            {
+                LOGGER.info("Setting the locale to '{}'.", locale.toLanguageTag());
+            }
             settings.setLocale(locale);
             return true;
         }

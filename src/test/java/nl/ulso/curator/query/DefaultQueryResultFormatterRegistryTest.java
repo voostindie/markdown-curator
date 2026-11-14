@@ -191,19 +191,19 @@ class DefaultQueryResultFormatterRegistryTest
     @Test
     void mostSpecificDynamicFormatterWinsOverStaticFormatter()
     {
-        var registry = new DefaultQueryResultFormatterRegistry(Set.of(new AnimalFormatter()));
-        registry.replaceDynamicFormatters(Set.of(new DogFormatter()));
-        assertThat(registry.format(new Dog(), MARKDOWN)).isEqualTo("dog");
-        assertThat(registry.format(new Cat(), MARKDOWN)).isEqualTo("animal");
+        var customRegistry = new DefaultQueryResultFormatterRegistry(Set.of(new AnimalFormatter()));
+        customRegistry.replaceDynamicFormatters(Set.of(new DogFormatter()));
+        assertThat(customRegistry.format(new Dog(), MARKDOWN)).isEqualTo("dog");
+        assertThat(customRegistry.format(new Cat(), MARKDOWN)).isEqualTo("animal");
     }
 
     @Test
     void mostSpecificStaticFormatterWins()
     {
-        var registry = new DefaultQueryResultFormatterRegistry(
+        var customRegistry = new DefaultQueryResultFormatterRegistry(
             Set.of(new AnimalFormatter(), new DogFormatter()));
-        assertThat(registry.format(new Dog(), MARKDOWN)).isEqualTo("dog");
-        assertThat(registry.format(new Cat(), MARKDOWN)).isEqualTo("animal");
+        assertThat(customRegistry.format(new Dog(), MARKDOWN)).isEqualTo("dog");
+        assertThat(customRegistry.format(new Cat(), MARKDOWN)).isEqualTo("animal");
     }
 
     private static final class DummyQueryResult

@@ -14,6 +14,7 @@ import nl.ulso.curator.statistics.MeasurementTracker;
 import nl.ulso.curator.statistics.MeasurementTrackerRegistry;
 
 import java.util.*;
+import java.util.concurrent.atomic.AtomicReference;
 
 import static java.util.Collections.*;
 import static java.util.stream.Collectors.toSet;
@@ -41,7 +42,7 @@ final class ExtensionRegistry
     private final SortedMap<String, ExtensionFactory> availableExtensions;
     private Generation staged;
     private Generation active;
-    private volatile Status status;
+    private final AtomicReference<Status> status;
 
     /// The query catalog is injected lazily, to break the dependency cycle: the catalog contains
     /// all queries, some of which depend - indirectly - on this registry.
@@ -58,8 +59,8 @@ final class ExtensionRegistry
         this.availableExtensions = unmodifiableSortedMap(new TreeMap<>(extensionFactories));
         this.staged = null;
         this.active = Generation.EMPTY;
-        this.status = new Status(
-            availableExtensions, emptySortedSet(), emptySortedMap(), emptySortedMap(), null);
+        this.status = new AtomicReference<>(new Status(
+            availableExtensions, emptySortedSet(), emptySortedMap(), emptySortedMap(), null));
     }
 
     /// Stages a new generation, replacing any previously staged one.
@@ -111,47 +112,68 @@ final class ExtensionRegistry
                 return;     // Depends on an extension that lost a conflict.
             }
             var queryNames = extension.queries().stream().map(Query::name).toList();
-            var queryConflicts = queryNames.stream()
-                .filter(queryName -> takenQueries.contains(queryName) ||
-                                     queryNames.indexOf(queryName) !=
-                                     queryNames.lastIndexOf(queryName))
-                .distinct()
-                .sorted()
-                .toList();
+            var queryConflicts = findQueryConflicts(queryNames, takenQueries);
             var declaredFormats = new HashMap<String, OutputFormat>();
-            var formatConflicts = new TreeSet<String>();
-            for (var formatter : extension.queryResultFormatters())
-            {
-                var format = formatter.outputFormat();
-                var existing =
-                    takenFormats.getOrDefault(format.name(), declaredFormats.get(format.name()));
-                if (existing != null && !existing.equals(format))
-                {
-                    formatConflicts.add(format.name());
-                }
-                declaredFormats.putIfAbsent(format.name(), format);
-            }
+            var formats = extension.queryResultFormatters().stream()
+                .map(QueryResultFormatter::outputFormat)
+                .toList();
+            var formatConflicts = findFormatConflicts(formats, takenFormats, declaredFormats);
             if (queryConflicts.isEmpty() && formatConflicts.isEmpty())
             {
                 takenQueries.addAll(queryNames);
                 takenFormats.putAll(declaredFormats);
                 return;
             }
-            var reasons = new ArrayList<String>();
-            if (!queryConflicts.isEmpty())
-            {
-                reasons.add("Query name(s) already in use: " +
-                            String.join(", ", queryConflicts) + ".");
-            }
-            if (!formatConflicts.isEmpty())
-            {
-                reasons.add("Output format(s) already in use with a different definition: " +
-                            String.join(", ", formatConflicts) + ".");
-            }
-            conflicts.put(name, String.join(" ", reasons));
+            conflicts.put(name, conflictReason(queryConflicts, formatConflicts));
             excluded.addAll(generation.withDependents(name));
         });
         return unmodifiableSequencedMap(conflicts);
+    }
+
+    private static List<String> findQueryConflicts(
+        List<String> queryNames, Set<String> takenQueries)
+    {
+        return queryNames.stream()
+            .filter(queryName -> takenQueries.contains(queryName) ||
+                                 queryNames.indexOf(queryName) !=
+                                 queryNames.lastIndexOf(queryName))
+            .distinct()
+            .sorted()
+            .toList();
+    }
+
+    private static SortedSet<String> findFormatConflicts(
+        List<OutputFormat> formats, Map<String, OutputFormat> takenFormats,
+        Map<String, OutputFormat> declaredFormats)
+    {
+        var formatConflicts = new TreeSet<String>();
+        for (var format : formats)
+        {
+            var existing =
+                takenFormats.getOrDefault(format.name(), declaredFormats.get(format.name()));
+            if (existing != null && !existing.equals(format))
+            {
+                formatConflicts.add(format.name());
+            }
+            declaredFormats.putIfAbsent(format.name(), format);
+        }
+        return formatConflicts;
+    }
+
+    private static String conflictReason(List<String> queryConflicts, Set<String> formatConflicts)
+    {
+        var reasons = new ArrayList<String>();
+        if (!queryConflicts.isEmpty())
+        {
+            reasons.add("Query name(s) already in use: " +
+                        String.join(", ", queryConflicts) + ".");
+        }
+        if (!formatConflicts.isEmpty())
+        {
+            reasons.add("Output format(s) already in use with a different definition: " +
+                        String.join(", ", formatConflicts) + ".");
+        }
+        return String.join(" ", reasons);
     }
 
     /// Activates a generation, replacing the currently active one, which is stopped. The new
@@ -174,13 +196,13 @@ final class ExtensionRegistry
         active.stop();
         active = generation;
         active.start();
-        status = new Status(
+        status.set(new Status(
             availableExtensions,
             unmodifiableSortedSet(new TreeSet<>(generation.extensions().keySet())),
             generation.failures(),
             outputFormatProviders(generation),
             null
-        );
+        ));
     }
 
     /// @return for each output format that is introduced by extensions - so not a static one - the
@@ -206,8 +228,9 @@ final class ExtensionRegistry
     void reject(String reason)
     {
         staged = null;
-        status = new Status(status.available(), status.active(), status.failures(),
-            status.outputFormatProviders(), reason);
+        var current = status.get();
+        status.set(new Status(current.available(), current.active(), current.failures(),
+            current.outputFormatProviders(), reason));
     }
 
     /// @return the extensions in the active generation, in creation order.
@@ -218,7 +241,7 @@ final class ExtensionRegistry
 
     Status status()
     {
-        return status;
+        return status.get();
     }
 
     /// Snapshot of the state of the registry, for reporting.

@@ -146,7 +146,7 @@ final class ConfigurationQuery
         {
             var failure = status.failures().get(name);
             builder.append("- ")
-                .append(failure != null ? "🔴 " : status.active().contains(name) ? "🟢 " : "⚪️️")
+                .append(statusIcon(failure != null, status.active().contains(name)))
                 .append("**").append(name).append("**");
             var factory = status.available().get(name);
             if (factory != null && !factory.description().isBlank())
@@ -169,6 +169,15 @@ final class ConfigurationQuery
             .append("**The last configuration was rejected**: ")
             .append(error)
             .append(lineSeparator()));
+    }
+
+    private static String statusIcon(boolean failed, boolean active)
+    {
+        if (failed)
+        {
+            return "🔴 ";
+        }
+        return active ? "🟢 " : "⚪️️";
     }
 
     private void appendQueries(StringBuilder builder)

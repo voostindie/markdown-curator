@@ -178,6 +178,13 @@ public final class ContentNegotiation
             {
                 return Optional.empty();
             }
+            return parseQuality(parts).map(quality -> new MediaRange(
+                type, subtype, quality, specificityOf(type, subtype), position));
+        }
+
+        /// @return the quality value of the media range, or nothing if it is invalid.
+        private static Optional<Double> parseQuality(String[] parts)
+        {
             var quality = 1.0;
             for (var i = 1; i < parts.length; i++)
             {
@@ -199,8 +206,16 @@ public final class ContentNegotiation
                     }
                 }
             }
-            var specificity = type.equals("*") ? 0 : subtype.equals("*") ? 1 : 2;
-            return Optional.of(new MediaRange(type, subtype, quality, specificity, position));
+            return Optional.of(quality);
+        }
+
+        private static int specificityOf(String type, String subtype)
+        {
+            if (type.equals("*"))
+            {
+                return 0;
+            }
+            return subtype.equals("*") ? 1 : 2;
         }
 
         /// Splits the value on the separator, except where the separator is inside a quoted string;
@@ -210,12 +225,17 @@ public final class ContentNegotiation
             var parts = new ArrayList<String>();
             var start = 0;
             var quoted = false;
+            var escaped = false;
             for (var i = 0; i < value.length(); i++)
             {
                 var c = value.charAt(i);
-                if (quoted && c == '\\')
+                if (escaped)
                 {
-                    i++;
+                    escaped = false;
+                }
+                else if (quoted && c == '\\')
+                {
+                    escaped = true;
                 }
                 else if (c == '"')
                 {
