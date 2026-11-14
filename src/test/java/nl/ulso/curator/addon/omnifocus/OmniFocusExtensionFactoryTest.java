@@ -2,6 +2,7 @@ package nl.ulso.curator.addon.omnifocus;
 
 import org.junit.jupiter.api.Test;
 
+import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
 
@@ -27,6 +28,17 @@ class OmniFocusExtensionFactoryTest
         var settings = settingsFrom(mapDictionary(Map.of("folder", "Work")));
         assertThat(settings.omniFocusFolder()).isEqualTo("Work");
         assertThat(settings.includePredicate().test("⚡️ Anything")).isTrue();
+        assertThat(settings.database()).isEqualTo(OmniFocusSettings.DEFAULT_DATABASE);
+    }
+
+    @Test
+    void customDatabase()
+    {
+        var settings = settingsFrom(mapDictionary(Map.of(
+            "folder", "Work",
+            "database", "/tmp/OmniFocus.ofocus"
+        )));
+        assertThat(settings.database()).isEqualTo(Path.of("/tmp/OmniFocus.ofocus"));
     }
 
     @Test

@@ -10,6 +10,7 @@ import nl.ulso.curator.extension.ExtensionScope;
 import nl.ulso.jxa.JavaScriptForAutomation;
 import org.slf4j.*;
 
+import java.io.File;
 import java.util.*;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -59,7 +60,7 @@ final class DefaultOmniFocusRepository
     /// OmniFocus, but this broke in OmniFocus 4.3.3. Now the filtering is in here, in the client.
     private static final Set<Status> SELECTED_STATUSES = Set.of(ACTIVE, ON_HOLD);
 
-    private final OmniFocusDatabase omniFocusDatabase;
+    private final File database;
     private final ExternalChangeHandler externalChangeHandler;
     private final JavaScriptForAutomation javaScriptForAutomation;
     private final OmniFocusSettings settings;
@@ -67,18 +68,16 @@ final class DefaultOmniFocusRepository
 
     @Inject
     public DefaultOmniFocusRepository(
-        OmniFocusDatabase omniFocusDatabase,
         ExternalChangeHandler externalChangeHandler,
         JavaScriptForAutomation javaScriptForAutomation,
         OmniFocusSettings settings)
     {
-        if (!omniFocusDatabase.isAccessible())
+        this.database = settings.database().toFile();
+        if (!database.canRead())
         {
             throw new IllegalStateException(
-                "OmniFocus database is inaccessible: " + omniFocusDatabase.path());
-
+                "OmniFocus database is inaccessible: " + database.getAbsolutePath());
         }
-        this.omniFocusDatabase = omniFocusDatabase;
         this.externalChangeHandler = externalChangeHandler;
         this.javaScriptForAutomation = javaScriptForAutomation;
         this.settings = settings;
@@ -132,14 +131,17 @@ final class DefaultOmniFocusRepository
 
     private void reloadProjects()
     {
-        if (lastModified == omniFocusDatabase.lastModified())
+        // Read the timestamp once, before fetching: a change during the fetch then triggers
+        // another fetch on the next refresh, instead of being marked as seen.
+        var databaseLastModified = database.lastModified();
+        if (lastModified == databaseLastModified)
         {
             LOGGER.debug("No changes in the OmniFocus database; skipping fetch.");
             return;
         }
         var newProjects = fetchProjects();
         var oldProjects = cache.getAndSet(newProjects);
-        lastModified = omniFocusDatabase.lastModified();
+        lastModified = databaseLastModified;
         if (oldProjects == null)
         {
             LOGGER.debug("Initial fetch from OmniFocus completed.");

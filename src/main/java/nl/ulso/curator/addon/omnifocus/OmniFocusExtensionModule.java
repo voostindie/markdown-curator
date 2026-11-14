@@ -12,16 +12,12 @@ import nl.ulso.jxa.JavaScriptForAutomationModule;
 /// document, together with the `project` extension it requires.
 ///
 /// OmniFocus is accessed through JavaScript for Automation, which the curator provides; this
-/// module includes the [JavaScriptForAutomationModule] for that reason. The [OmniFocusDatabase] is
-/// bound in the curator as well, so that tests can replace it.
+/// module includes the [JavaScriptForAutomationModule] for that reason.
 ///
 /// @see OmniFocusExtensionFactory
 @Module(includes = JavaScriptForAutomationModule.class, subcomponents = OmniFocusExtension.class)
 public abstract class OmniFocusExtensionModule
 {
-    @Binds
-    abstract OmniFocusDatabase bindOmniFocusDatabase(DefaultOmniFocusDatabase database);
-
     @Binds
     @IntoMap
     @StringKey("omnifocus")

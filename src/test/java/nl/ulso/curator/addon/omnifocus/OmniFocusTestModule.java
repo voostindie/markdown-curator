@@ -13,9 +13,6 @@ import nl.ulso.jxa.JavaScriptForAutomation;
 abstract class OmniFocusTestModule
 {
     @Binds
-    abstract OmniFocusDatabase bindOmniFocusDatabase(OmniFocusDatabaseStub omniFocusDatabase);
-
-    @Binds
     abstract JavaScriptForAutomation bindJavaScriptForAutomation(
         JavaScriptForAutomationStub javascriptForAutomation);
 

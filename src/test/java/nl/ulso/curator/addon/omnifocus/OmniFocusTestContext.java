@@ -12,7 +12,7 @@ import nl.ulso.curator.vault.VaultStub;
 import java.util.Map;
 
 /// Loads the project and OmniFocus extensions; OmniFocus projects are fetched from the folder
-/// "Area".
+/// "Area". The OmniFocus database is this project's README, which is guaranteed to exist.
 @Singleton
 @Component(modules = {
     ChangeProcessorTestModule.class,
@@ -24,8 +24,6 @@ interface OmniFocusTestContext
 {
     VaultStub vaultStub();
 
-    OmniFocusDatabaseStub omniFocusDatabaseStub();
-
     JavaScriptForAutomationStub javascriptForAutomationStub();
 
     ChangeProcessorOrchestrator changeProcessorOrchestrator();
@@ -35,7 +33,7 @@ interface OmniFocusTestContext
     /// Loads all extensions and processes the complete vault.
     default void start()
     {
-        harness().enable("project").enable("omnifocus", Map.of("folder", "Area")).start();
+        harness().enable("project").enable("omnifocus", Map.of("folder", "Area", "database", "README.md")).start();
     }
 
     default ProjectRepository projectRepository()

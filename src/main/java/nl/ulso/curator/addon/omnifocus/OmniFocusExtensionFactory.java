@@ -6,8 +6,10 @@ import nl.ulso.curator.addon.project.ProjectRepository;
 import nl.ulso.curator.extension.*;
 import nl.ulso.dictionary.Dictionary;
 
+import java.nio.file.Path;
 import java.util.*;
 
+import static nl.ulso.curator.addon.omnifocus.OmniFocusSettings.DEFAULT_DATABASE;
 import static nl.ulso.curator.addon.omnifocus.OmniFocusProjectAttributeValueProducer.OMNIFOCUS_URL_ATTRIBUTE;
 import static nl.ulso.curator.addon.project.ProjectAttributeDefinition.byFrontMatterProperty;
 import static nl.ulso.curator.addon.project.ProjectAttributeDefinition.newAttributeDefinition;
@@ -24,6 +26,7 @@ import static nl.ulso.curator.extension.Contribution.contribution;
 ///       - ⚡️
 ///     exclude:
 ///       - 🤖 Routine
+///     database: /path/to/OmniFocus.ofocus
 /// ```
 final class OmniFocusExtensionFactory
     implements ExtensionFactory
@@ -31,6 +34,7 @@ final class OmniFocusExtensionFactory
     static final String FOLDER = "folder";
     static final String EXCLUDE_PREFIXES = "exclude-prefixes";
     static final String EXCLUDE = "exclude";
+    static final String DATABASE = "database";
 
     private final OmniFocusExtension.Factory factory;
 
@@ -52,7 +56,8 @@ final class OmniFocusExtensionFactory
         return Map.of(
             FOLDER, "Folder in OmniFocus with the projects; required.",
             EXCLUDE_PREFIXES, "List of prefixes of OmniFocus projects to ignore.",
-            EXCLUDE, "List of names of OmniFocus projects to ignore."
+            EXCLUDE, "List of names of OmniFocus projects to ignore.",
+            DATABASE, "Path to the OmniFocus database; defaults to the OmniFocus 4 location."
         );
     }
 
@@ -88,8 +93,10 @@ final class OmniFocusExtensionFactory
         }
         var excludedPrefixes = List.copyOf(configuration.listOfStrings(EXCLUDE_PREFIXES));
         var excludedNames = Set.copyOf(configuration.listOfStrings(EXCLUDE));
+        var database = configuration.string(DATABASE, null);
         return new OmniFocusSettings(folder, name ->
             excludedPrefixes.stream().noneMatch(name::startsWith) &&
-            !excludedNames.contains(name));
+            !excludedNames.contains(name),
+            database == null || database.isBlank() ? DEFAULT_DATABASE : Path.of(database));
     }
 }

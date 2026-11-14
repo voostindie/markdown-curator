@@ -602,6 +602,7 @@ extensions:
       - ⚡️
     exclude:              # Optional: ignore OmniFocus projects with these names
       - 🤖 Routine
+    database: /path/to/OmniFocus.ofocus  # Optional: defaults to the OmniFocus 4 location
 ```
 
 This is all that's needed to get the extension to work. Suddenly the `projects` query will sort the projects in the same order as OmniFocus does, and each project will have an `omnifocus` property in its front matter that links to the same project in  OmniFocus.
