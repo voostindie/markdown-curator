@@ -53,9 +53,7 @@ class ProjectModuleTest
         ExtensionTestHarness harness();
     }
 
-    @Module(includes = {
-        CuratorModule.class,
-        ProjectExtensionModule.class})
+    @Module(includes = CuratorModule.class)
     static class ModuleStub
     {
         @Provides

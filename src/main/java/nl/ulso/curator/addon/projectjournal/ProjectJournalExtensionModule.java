@@ -6,9 +6,9 @@ import dagger.multibindings.IntoMap;
 import dagger.multibindings.StringKey;
 import nl.ulso.curator.extension.ExtensionFactory;
 
-/// Makes the project journal available as an extension named `projectjournal`. Include this module
-/// in a curator module, and enable the extension in the configuration document, together with the
-/// `project` and `journal` extensions it requires.
+/// Makes the project journal available as an extension named `projectjournal`. The
+/// [nl.ulso.curator.CuratorModule] includes this module; enable the extension in the configuration
+/// document, together with the `project` and `journal` extensions it requires.
 ///
 /// @see ProjectJournalExtensionFactory
 @Module(subcomponents = ProjectJournalExtension.class)

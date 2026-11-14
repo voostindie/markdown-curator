@@ -7,7 +7,6 @@ import jakarta.inject.Singleton;
 import nl.ulso.curator.CuratorFactory;
 import nl.ulso.curator.CuratorModule;
 import nl.ulso.curator.main.ExtensionTestHarness;
-import nl.ulso.curator.addon.journal.JournalExtensionModule;
 import org.assertj.core.api.SoftAssertions;
 import org.assertj.core.api.junit.jupiter.InjectSoftAssertions;
 import org.assertj.core.api.junit.jupiter.SoftAssertionsExtension;
@@ -52,10 +51,7 @@ class AlfredModuleTest
         ExtensionTestHarness harness();
     }
 
-    @Module(includes = {
-        CuratorModule.class,
-        JournalExtensionModule.class,
-        AlfredExtensionModule.class})
+    @Module(includes = CuratorModule.class)
     static class ModuleStub
     {
         @Provides

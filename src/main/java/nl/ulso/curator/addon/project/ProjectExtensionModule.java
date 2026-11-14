@@ -6,8 +6,9 @@ import dagger.multibindings.IntoMap;
 import dagger.multibindings.StringKey;
 import nl.ulso.curator.extension.ExtensionFactory;
 
-/// Makes the project model available as an extension named `project`. Include this module in a
-/// curator module, and enable the extension in the configuration document.
+/// Makes the project model available as an extension named `project`. The
+/// [nl.ulso.curator.CuratorModule] includes this module; enable the extension in the configuration
+/// document.
 ///
 /// @see ProjectExtensionFactory
 @Module(subcomponents = ProjectExtension.class)

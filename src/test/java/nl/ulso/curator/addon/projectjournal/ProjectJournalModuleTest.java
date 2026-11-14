@@ -8,8 +8,6 @@ import nl.ulso.curator.CuratorFactory;
 import nl.ulso.curator.CuratorModule;
 import nl.ulso.curator.main.ExtensionTestHarness;
 import nl.ulso.curator.addon.journal.Journal;
-import nl.ulso.curator.addon.journal.JournalExtensionModule;
-import nl.ulso.curator.addon.project.ProjectExtensionModule;
 import nl.ulso.curator.addon.project.ProjectRepository;
 import org.assertj.core.api.SoftAssertions;
 import org.assertj.core.api.junit.jupiter.InjectSoftAssertions;
@@ -56,11 +54,7 @@ class ProjectJournalModuleTest
         ExtensionTestHarness harness();
     }
 
-    @Module(includes = {
-        CuratorModule.class,
-        ProjectExtensionModule.class,
-        JournalExtensionModule.class,
-        ProjectJournalExtensionModule.class})
+    @Module(includes = CuratorModule.class)
     static class ModuleStub
     {
         @Provides

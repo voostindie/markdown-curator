@@ -82,7 +82,7 @@ A separate [Markdown Curator workflow](https://github.com/voostindie/alfred-mark
 
 The workflow is built with shell scripting, using `curl` and `jq`, for maximum compatibility. A stock macOS installation will work. The scripts can be used from the command line, outside Alfred.
 
-To make it work, the curator must run as a daemon with the server enabled, and have the `alfred` extension loaded: include the `AlfredExtensionModule` in your curator module, and enable `alfred` (and the `journal` extension it requires) in the configuration document. Its settings are the paths of the folders Alfred needs: `contacts-path`, `projects-path`, `reminders-path`, `systems-path`, `teams-path`, `third-parties-path`, and the `links-section`.
+To make it work, the curator must run as a daemon with the server enabled, and have the `alfred` extension loaded: enable `alfred` (and the `journal` extension it requires) in the configuration document. Its settings are the paths of the folders Alfred needs: `contacts-path`, `projects-path`, `reminders-path`, `systems-path`, `teams-path`, `third-parties-path`, and the `links-section`.
 
 ## Obsidian users: Ye be warned!
 
@@ -237,7 +237,7 @@ To enable extensions in your curator:
 @Provides @Named(CuratorModule.CONFIGURATION_DOCUMENT_KEY) static String configurationDocument() { return "CONFIG"; }
 ```
 
-- Include the modules of the extensions you want to make available, like the `JournalExtensionModule`.
+- All built-in extensions (`project`, `journal`, `projectjournal`, `omnifocus` and `alfred`) are registered by the `CuratorModule`, so there's nothing to include for those. To make a custom extension available, include its module in your curator module.
 - Enable extensions in the first YAML code block (language `yaml` or `yml`) of the configuration document, either as a list of names, or as a map of names to their settings. The front matter and any other code blocks in the document are ignored, so you're free to document your configuration around it:
 
 ````markdown
@@ -358,17 +358,7 @@ For example, here is the template I currently use for my daily notes:
 
 ```
 
-The journal is an extension named `journal`. To make it available, include its module in your curator module:
-
-```java
-@Module(includes = {CuratorModule.class, JournalExtensionModule.class})
-abstract class MyCuratorModule
-{
-    // Your code here
-}
-```
-
-Then enable it in the configuration document. All settings are optional; these are the defaults:
+The journal is an extension named `journal`. The `CuratorModule` makes it available; enable it in the configuration document. All settings are optional; these are the defaults:
 
 ```yaml
 extensions:
@@ -489,17 +479,7 @@ Apart from being a normal document, a project has a number of additional propert
 
 By default, these properties are read from and written to front matter in the project document, using the properties mentioned above, but their source can be overruled by providing custom plugins to resolve these values from wherever you want. See below.
 
-The project model is an extension named `project`. To make it available, include its module in your curator module:
-
-```java
-@Module(includes = {CuratorModule.class, ProjectExtensionModule.class})
-abstract class MyCuratorModule
-{
-    // Your code here
-}
-```
-
-Then enable it in the configuration document:
+The project model is an extension named `project`. The `CuratorModule` makes it available; enable it in the configuration document:
 
 ```yaml
 extensions:
@@ -530,20 +510,7 @@ This updates the last modification date and the status of project `Project` to `
 
 The module ensures that properties are always in line with the journal, no matter how the journal is modified. 
 
-The project journal is an extension named `projectjournal`. It requires the services of both the `project` and the `journal` extensions. Include all three modules in your curator module:
-
-```java
-@Module(includes = {
-    CuratorModule.class,
-    ProjectExtensionModule.class,
-    JournalExtensionModule.class,
-    ProjectJournalExtensionModule.class
-})
-abstract class MyCuratorModule
-{
-    // Your code here
-}
-```
+The project journal is an extension named `projectjournal`. It requires the services of both the `project` and the `journal` extensions. The `CuratorModule` makes all three available.
 
 Then enable all three in the configuration document. The project journal has no settings of its own:
 
@@ -624,17 +591,7 @@ The OmniFocus module adds:
 
 If you use OmniFocus and you store projects that match the projects in the vault in a folder, then you can use this module to keep your projects in sync.
 
-OmniFocus support is an extension named `omnifocus`, which requires the `project` extension. Include both modules in your curator module:
-
-```java
-@Module(includes = {CuratorModule.class, ProjectExtensionModule.class, OmniFocusExtensionModule.class})
-abstract class MyCuratorModule
-{
-    // Your code here
-}
-```
-
-Then enable both in the configuration document:
+OmniFocus support is an extension named `omnifocus`, which requires the `project` extension. The `CuratorModule` makes both available; enable both in the configuration document:
 
 ```yaml
 extensions:

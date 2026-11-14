@@ -6,6 +6,11 @@ import dagger.multibindings.IntoMap;
 import dagger.multibindings.IntoSet;
 import dagger.multibindings.Multibinds;
 import jakarta.inject.Named;
+import nl.ulso.curator.addon.alfred.AlfredExtensionModule;
+import nl.ulso.curator.addon.journal.JournalExtensionModule;
+import nl.ulso.curator.addon.omnifocus.OmniFocusExtensionModule;
+import nl.ulso.curator.addon.project.ProjectExtensionModule;
+import nl.ulso.curator.addon.projectjournal.ProjectJournalExtensionModule;
 import nl.ulso.curator.change.ChangeProcessor;
 import nl.ulso.curator.extension.Contribution;
 import nl.ulso.curator.extension.ExtensionFactory;
@@ -35,14 +40,23 @@ import java.util.Set;
 /// optimized for macOS. Other platforms are not tested.
 /// - Provide the name of a "watch document". This is a file in the root of the vault that, when
 /// changed, will trigger a re-run of all queries.
-/// - Register [ExtensionFactory]s, and provide the name of a "configuration document". Extensions
-/// are sets of change processors, queries, query result formatters and trackers that are loaded
-/// and unloaded at runtime, as configured in the first YAML code block of the configuration
-/// document. See [ExtensionFactory].
+/// - Provide the name of a "configuration document" to enable extensions, and register custom
+/// [ExtensionFactory]s. Extensions are sets of change processors, queries, query result formatters
+/// and trackers that are loaded and unloaded at runtime, as configured in the first YAML code block
+/// of the configuration document. See [ExtensionFactory]. All built-in extensions (`project`,
+/// `journal`, `projectjournal`, `omnifocus` and `alfred`) are registered by this module; they only
+/// have to be enabled in the configuration document.
 /// The same code block holds the settings of the curator itself, like the `delay` before queries
 /// run after a change, and the `locale` for translations in query output.
 /// - Include other modules and their configurations to extend the functionality of the curator.
-@Module(includes = {MainModule.class})
+@Module(includes = {
+    MainModule.class,
+    ProjectExtensionModule.class,
+    JournalExtensionModule.class,
+    ProjectJournalExtensionModule.class,
+    OmniFocusExtensionModule.class,
+    AlfredExtensionModule.class
+})
 public abstract class CuratorModule
 {
     /// Name of the key to bind the watch document to in the Dagger module, as a [String].

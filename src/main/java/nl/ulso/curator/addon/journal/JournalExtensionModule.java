@@ -7,8 +7,9 @@ import dagger.multibindings.StringKey;
 import nl.ulso.curator.addon.newday.NewDayModule;
 import nl.ulso.curator.extension.ExtensionFactory;
 
-/// Makes the journal available as an extension named `journal`. Include this module in a curator
-/// module, and enable the extension in the configuration document.
+/// Makes the journal available as an extension named `journal`. The
+/// [nl.ulso.curator.CuratorModule] includes this module; enable the extension in the configuration
+/// document.
 ///
 /// The journal needs the [nl.ulso.curator.addon.newday.NewDayAlarm] from the curator; this module
 /// includes the [NewDayModule] for that reason.

@@ -7,9 +7,9 @@ import dagger.multibindings.StringKey;
 import nl.ulso.curator.extension.ExtensionFactory;
 import nl.ulso.jxa.JavaScriptForAutomationModule;
 
-/// Makes OmniFocus available as an extension named `omnifocus`. Include this module in a curator
-/// module, and enable the extension in the configuration document, together with the `project`
-/// extension it requires.
+/// Makes OmniFocus available as an extension named `omnifocus`. The
+/// [nl.ulso.curator.CuratorModule] includes this module; enable the extension in the configuration
+/// document, together with the `project` extension it requires.
 ///
 /// OmniFocus is accessed through JavaScript for Automation, which the curator provides; this
 /// module includes the [JavaScriptForAutomationModule] for that reason. The [OmniFocusDatabase] is
