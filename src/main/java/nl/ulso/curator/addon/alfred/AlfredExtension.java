@@ -2,13 +2,11 @@ package nl.ulso.curator.addon.alfred;
 
 import dagger.BindsInstance;
 import dagger.Subcomponent;
-import jakarta.inject.Named;
 import nl.ulso.curator.addon.journal.Journal;
 import nl.ulso.curator.extension.Extension;
 import nl.ulso.curator.extension.ExtensionModule;
 import nl.ulso.curator.extension.ExtensionScope;
-
-import java.util.Optional;
+import nl.ulso.dictionary.Dictionary;
 
 /// Alfred support as an extension; see [AlfredModule].
 @ExtensionScope
@@ -20,9 +18,7 @@ public interface AlfredExtension
     interface Factory
     {
         AlfredExtension create(
-            @BindsInstance AlfredSettings settings,
-            @BindsInstance Journal journal,
-            @BindsInstance @Named("documentLinkSectionName")
-            Optional<String> documentLinkSectionName);
+            @BindsInstance Dictionary configuration,
+            @BindsInstance Journal journal);
     }
 }

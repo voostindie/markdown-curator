@@ -1,7 +1,6 @@
 package nl.ulso.curator.addon.alfred;
 
 import jakarta.inject.Inject;
-import jakarta.inject.Named;
 import nl.ulso.curator.addon.journal.*;
 import nl.ulso.curator.change.Changelog;
 import nl.ulso.curator.query.*;
@@ -30,7 +29,6 @@ final class ExternalLinksQuery
 {
     private static final Logger LOGGER = LoggerFactory.getLogger(ExternalLinksQuery.class);
     private static final String EXPORT_LINKS_MARKER_PROPERTY = "export-links";
-    private static final String DEFAULT_DOCUMENT_LINK_SECTION_NAME = "Links";
     private static final Pattern LINK_PATTERN = compile("\\[([^]]+)]\\(([^)]+)\\)");
     private static final String LINK_NAME = "name";
     private static final String LINK_URL = "url";
@@ -39,17 +37,12 @@ final class ExternalLinksQuery
     private final Journal journal;
     private final String documentLinkSectionName;
 
-    @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
     @Inject
-    ExternalLinksQuery(
-        Vault vault,
-        Journal journal,
-        @Named("documentLinkSectionName") Optional<String> documentLinkSectionName)
+    ExternalLinksQuery(Vault vault, Journal journal, AlfredSettings settings)
     {
         this.vault = vault;
         this.journal = journal;
-        this.documentLinkSectionName = documentLinkSectionName.orElse(
-            DEFAULT_DOCUMENT_LINK_SECTION_NAME);
+        this.documentLinkSectionName = settings.linksSection();
     }
 
     @Override

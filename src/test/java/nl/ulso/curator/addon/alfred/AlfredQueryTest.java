@@ -22,7 +22,7 @@ class AlfredQueryTest
     void setUp()
     {
         query = new AlfredQuery(
-            AlfredSettings.builder().projectsPath("Projects").build()
+            new AlfredSettings(null, "Projects", null, null, null, null, null)
         );
     }
 

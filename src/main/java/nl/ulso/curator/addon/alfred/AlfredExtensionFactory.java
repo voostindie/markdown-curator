@@ -6,7 +6,6 @@ import nl.ulso.curator.extension.*;
 import nl.ulso.dictionary.Dictionary;
 
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 
 /// Creates the Alfred extension. It requires the journal extension. All settings are optional:
@@ -70,18 +69,6 @@ final class AlfredExtensionFactory
     @Override
     public Extension create(Dictionary configuration, ExtensionContext context)
     {
-        var settings = AlfredSettings.builder()
-            .contactsPath(configuration.string(CONTACTS_PATH, null))
-            .projectsPath(configuration.string(PROJECTS_PATH, null))
-            .remindersPath(configuration.string(REMINDERS_PATH, null))
-            .systemsPath(configuration.string(SYSTEMS_PATH, null))
-            .teamsPath(configuration.string(TEAMS_PATH, null))
-            .thirdPartiesPath(configuration.string(THIRD_PARTIES_PATH, null))
-            .build();
-        return factory.create(
-            settings,
-            context.service(Journal.class),
-            Optional.ofNullable(configuration.string(LINKS_SECTION, null))
-        );
+        return factory.create(configuration, context.service(Journal.class));
     }
 }

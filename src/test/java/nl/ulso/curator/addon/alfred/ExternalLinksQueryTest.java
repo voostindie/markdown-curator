@@ -280,7 +280,7 @@ class ExternalLinksQueryTest
         var query = new ExternalLinksQuery(
             vault,
             stubJournal,
-            Optional.empty()
+            settings(null)
         );
         var definition = new QueryDefinitionStub(query, null)
             .withConfiguration("document", "Zeta");
@@ -323,7 +323,7 @@ class ExternalLinksQueryTest
         var query = new ExternalLinksQuery(
             vault,
             stubJournal,
-            Optional.empty()
+            settings(null)
         );
         var definition = new QueryDefinitionStub(query, null)
             .withConfiguration("document", "Multiple");
@@ -366,7 +366,7 @@ class ExternalLinksQueryTest
         var query = new ExternalLinksQuery(
             vault,
             stubJournal,
-            Optional.empty()
+            settings(null)
         );
         var definition = new QueryDefinitionStub(query, null)
             .withConfiguration("document", "Eta");
@@ -401,7 +401,7 @@ class ExternalLinksQueryTest
         var query = new ExternalLinksQuery(
             vault,
             stubJournal,
-            Optional.empty()
+            settings(null)
         );
         var definition = new QueryDefinitionStub(query, null)
             .withConfiguration("document", "Theta");
@@ -437,7 +437,7 @@ class ExternalLinksQueryTest
         var query = new ExternalLinksQuery(
             vault,
             stubJournal,
-            Optional.empty()
+            settings(null)
         );
         var definition = new QueryDefinitionStub(query, null)
             .withConfiguration("document", "Iota");
@@ -456,7 +456,16 @@ class ExternalLinksQueryTest
 
     private ExternalLinksQuery createQuery(String documentLinkSectionName)
     {
-        return new ExternalLinksQuery(vault, journal, Optional.ofNullable(documentLinkSectionName));
+        return new ExternalLinksQuery(
+            vault,
+            journal,
+            settings(documentLinkSectionName)
+        );
+    }
+
+    private static AlfredSettings settings(String linksSection)
+    {
+        return new AlfredSettings(null, null, null, null, null, null, linksSection);
     }
 
     private static Marker createMarker(String name, boolean exportLinks)
