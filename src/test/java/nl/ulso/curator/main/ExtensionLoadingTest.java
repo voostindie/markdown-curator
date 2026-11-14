@@ -42,6 +42,7 @@ class ExtensionLoadingTest
     private VaultStub vault;
     private List<DocumentRecorder> recorders;
     private DynamicQueryCatalogStub catalog;
+    private DynamicQueryResultFormatterRegistry formatterRegistry;
     private Map<String, ExtensionFactory> factories;
     private Set<ServiceRegistration> curatorServices;
     private Set<Contribution> curatorContributions;
@@ -89,6 +90,7 @@ class ExtensionLoadingTest
         vault.addDocumentInPath("b/doc3", "");
         recorders = new ArrayList<>();
         catalog = new DynamicQueryCatalogStub("static");
+        formatterRegistry = createQueryResultFormatterRegistry();
         curatorServices = new HashSet<>();
         curatorContributions = new HashSet<>();
         factories = new HashMap<>();
@@ -99,6 +101,8 @@ class ExtensionLoadingTest
         }).withSettings("folder"));
         factories.put("query", factory((_, _) ->
             extension(new DocumentRecorder("q")).withQueries(new QueryStub("dynamic"))));
+        factories.put("formatter", factory((_, _) ->
+            extension(new DocumentRecorder("f")).withFormatters(new ShoutFormatter())));
         factories.put("clash", factory((_, _) ->
             extension(new DocumentRecorder("c")).withQueries(new QueryStub("static"))));
         factories.put("orphan", factory((_, _) ->
@@ -114,7 +118,7 @@ class ExtensionLoadingTest
         {
             return;
         }
-        registry = newExtensionRegistry(catalog, factories);
+        registry = newExtensionRegistry(catalog, formatterRegistry, factories);
         settings = new CuratorSettings();
         var resolver = new ExtensionResolver(factories, curatorServices, curatorContributions);
         var loader =
@@ -270,7 +274,7 @@ class ExtensionLoadingTest
         softly.assertThat(recorders).isEmpty();
         softly.assertThat(registry.status().active()).isEmpty();
         softly.assertThat(registry.status().available().keySet())
-            .containsExactly("broken", "clash", "orphan", "query", "recorder");
+            .containsExactly("broken", "clash", "formatter", "orphan", "query", "recorder");
     }
 
     @Test
@@ -338,6 +342,19 @@ class ExtensionLoadingTest
         softly.assertThat(catalog.query("dynamic")).isInstanceOf(QueryStub.class);
         configurationChanged("  recorder:");
         softly.assertThat(catalog.queries()).isEmpty();
+    }
+
+    @Test
+    void registerAndUnregisterQueryResultFormatters()
+    {
+        configure("  formatter:");
+        startUp();
+        var shout = new Shout("hello");
+        softly.assertThat(formatterRegistry.supports(shout, OutputFormat.MARKDOWN)).isTrue();
+        softly.assertThat(formatterRegistry.format(shout, OutputFormat.MARKDOWN))
+            .isEqualTo("HELLO!");
+        configurationChanged("  recorder:");
+        softly.assertThat(formatterRegistry.supports(shout, OutputFormat.MARKDOWN)).isFalse();
     }
 
     @Test
@@ -719,6 +736,33 @@ class ExtensionLoadingTest
             Optional.of(CONFIGURATION_DOCUMENT));
         return createQueryResultFormatterRegistry()
             .format(query.run(emptyQueryBlock()), OutputFormat.MARKDOWN);
+    }
+
+    record Shout(String text)
+        implements QueryResult
+    {
+    }
+
+    static final class ShoutFormatter
+        implements QueryResultFormatter<Shout>
+    {
+        @Override
+        public Class<Shout> queryResultType()
+        {
+            return Shout.class;
+        }
+
+        @Override
+        public OutputFormat outputFormat()
+        {
+            return OutputFormat.MARKDOWN;
+        }
+
+        @Override
+        public String format(Shout result)
+        {
+            return result.text().toUpperCase(Locale.ROOT) + "!";
+        }
     }
 
     record QueryStub(String name)

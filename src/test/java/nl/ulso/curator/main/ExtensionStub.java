@@ -5,6 +5,7 @@ import nl.ulso.curator.extension.Extension;
 import nl.ulso.curator.extension.ExtensionLifecycle;
 import nl.ulso.curator.extension.ServiceRegistration;
 import nl.ulso.curator.query.Query;
+import nl.ulso.curator.query.QueryResultFormatter;
 import nl.ulso.curator.statistics.MeasurementTracker;
 
 import java.util.HashSet;
@@ -17,6 +18,7 @@ final class ExtensionStub
 {
     private final Set<ChangeProcessor> changeProcessors = new HashSet<>();
     private final Set<Query> queries = new HashSet<>();
+    private final Set<QueryResultFormatter<?>> formatters = new HashSet<>();
     private final Set<ServiceRegistration> services = new HashSet<>();
     private final Set<ExtensionLifecycle> lifecycles = new HashSet<>();
 
@@ -30,6 +32,12 @@ final class ExtensionStub
     ExtensionStub withQueries(Query... queries)
     {
         this.queries.addAll(Set.of(queries));
+        return this;
+    }
+
+    ExtensionStub withFormatters(QueryResultFormatter<?>... formatters)
+    {
+        this.formatters.addAll(Set.of(formatters));
         return this;
     }
 
@@ -55,6 +63,12 @@ final class ExtensionStub
     public Set<Query> queries()
     {
         return queries;
+    }
+
+    @Override
+    public Set<QueryResultFormatter<?>> queryResultFormatters()
+    {
+        return formatters;
     }
 
     @Override

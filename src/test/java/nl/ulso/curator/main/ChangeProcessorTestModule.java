@@ -11,6 +11,8 @@ import nl.ulso.curator.extension.Contribution;
 import nl.ulso.curator.extension.ExtensionFactory;
 import nl.ulso.curator.extension.ServiceRegistration;
 import nl.ulso.curator.query.DynamicQueryCatalog;
+import nl.ulso.curator.query.DynamicQueryResultFormatterRegistry;
+import nl.ulso.curator.query.QueryTestModule;
 import nl.ulso.curator.statistics.StatisticsModule;
 import nl.ulso.curator.vault.Vault;
 import nl.ulso.curator.vault.VaultStub;
@@ -57,6 +59,15 @@ public abstract class ChangeProcessorTestModule
     static DynamicQueryCatalog provideEmptyQueryCatalog()
     {
         return new DynamicQueryCatalogStub();
+    }
+
+    /// The extension registry also needs a formatter registry, to register the formatters of
+    /// extensions in.
+    @Provides
+    @Singleton
+    static DynamicQueryResultFormatterRegistry provideQueryResultFormatterRegistry()
+    {
+        return QueryTestModule.createQueryResultFormatterRegistry();
     }
 
     @Provides

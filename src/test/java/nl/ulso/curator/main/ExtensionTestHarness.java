@@ -97,7 +97,7 @@ public final class ExtensionTestHarness
     }
 
     /// Finds the one object of a specific type in the active extensions: a service, change
-    /// processor, query, tracker or lifecycle.
+    /// processor, query, query result formatter, tracker or lifecycle.
     public <T> T find(Class<T> type)
     {
         var matches = registry.activeExtensions().stream()
@@ -120,6 +120,7 @@ public final class ExtensionTestHarness
             extension.services().stream().map(ServiceRegistration::instance),
             extension.changeProcessors().stream(),
             extension.queries().stream(),
+            extension.queryResultFormatters().stream(),
             extension.measurementTrackers().stream(),
             extension.lifecycles().stream()
         ).flatMap(stream -> stream.map(Object.class::cast));

@@ -30,14 +30,15 @@ import java.util.Set;
 /// processor must be a singleton.
 /// - Register custom [Query]s. Create an abstract method for every concrete implementation that
 /// binds it to the `Query` interface.
-/// - Reqister custom [QueryResultFormatter]s.
+/// - Register custom [QueryResultFormatter]s.
 /// - Provide a [WatchService] to detect changes to the vault. The default implementation is
 /// optimized for macOS. Other platforms are not tested.
 /// - Provide the name of a "watch document". This is a file in the root of the vault that, when
 /// changed, will trigger a re-run of all queries.
 /// - Register [ExtensionFactory]s, and provide the name of a "configuration document". Extensions
-/// are sets of change processors, queries and trackers that are loaded and unloaded at runtime,
-/// as configured in the first YAML code block of the configuration document. See [ExtensionFactory].
+/// are sets of change processors, queries, query result formatters and trackers that are loaded
+/// and unloaded at runtime, as configured in the first YAML code block of the configuration
+/// document. See [ExtensionFactory].
 /// The same code block holds the settings of the curator itself, like the `delay` before queries
 /// run after a change, and the `locale` for translations in query output.
 /// - Include other modules and their configurations to extend the functionality of the curator.

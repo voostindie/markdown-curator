@@ -6,7 +6,9 @@ import jakarta.inject.Singleton;
 import nl.ulso.curator.extension.Extension;
 import nl.ulso.curator.extension.ExtensionFactory;
 import nl.ulso.curator.query.DynamicQueryCatalog;
+import nl.ulso.curator.query.DynamicQueryResultFormatterRegistry;
 import nl.ulso.curator.query.Query;
+import nl.ulso.curator.query.QueryResultFormatter;
 import nl.ulso.curator.statistics.MeasurementTracker;
 import nl.ulso.curator.statistics.MeasurementTrackerRegistry;
 
@@ -23,8 +25,8 @@ import static java.util.Collections.*;
 /// 2. The [DefaultChangeProcessorOrchestrator] picks up the staged generation at a safe moment -
 /// while processing a [nl.ulso.curator.change.Reset] - drops extensions whose change processors
 /// or queries don't fit, and then activates the generation. That registers its queries in the
-/// query catalog and its trackers in the statistics, stops the previous generation and starts the
-/// new one.
+/// query catalog, its query result formatters in the formatter registry and its trackers in the
+/// statistics, stops the previous generation and starts the new one.
 ///
 /// Staging and activation happen on the curator thread. The [#status()] can be read from any
 /// thread.
@@ -32,6 +34,7 @@ import static java.util.Collections.*;
 final class ExtensionRegistry
 {
     private final Lazy<DynamicQueryCatalog> queryCatalog;
+    private final DynamicQueryResultFormatterRegistry formatterRegistry;
     private final MeasurementTrackerRegistry trackerRegistry;
     private final SortedMap<String, ExtensionFactory> availableExtensions;
     private Generation staged;
@@ -43,10 +46,12 @@ final class ExtensionRegistry
     @Inject
     ExtensionRegistry(
         Lazy<DynamicQueryCatalog> queryCatalog,
+        DynamicQueryResultFormatterRegistry formatterRegistry,
         MeasurementTrackerRegistry trackerRegistry,
         Map<String, ExtensionFactory> extensionFactories)
     {
         this.queryCatalog = queryCatalog;
+        this.formatterRegistry = formatterRegistry;
         this.trackerRegistry = trackerRegistry;
         this.availableExtensions = unmodifiableSortedMap(new TreeMap<>(extensionFactories));
         this.staged = null;
@@ -105,11 +110,16 @@ final class ExtensionRegistry
     void activate(Generation generation)
     {
         var queries = new ArrayList<Query>();
+        var formatters = new ArrayList<QueryResultFormatter<?>>();
         var trackers = new ArrayList<MeasurementTracker>();
         generation.extensions().values().forEach(extension -> {
             queries.addAll(extension.queries());
+            formatters.addAll(extension.queryResultFormatters());
             trackers.addAll(extension.measurementTrackers());
         });
+        // Formatters first, so that HTTP requests never run a new query before its formatters are
+        // registered.
+        formatterRegistry.replaceDynamicFormatters(formatters);
         queryCatalog.get().replaceDynamicQueries(queries);
         trackerRegistry.replaceDynamicTrackers(trackers);
         active.stop();

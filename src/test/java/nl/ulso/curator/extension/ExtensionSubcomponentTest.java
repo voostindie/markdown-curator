@@ -61,10 +61,14 @@ class ExtensionSubcomponentTest
         assertThat(extension.queries()).hasSize(1).first().isInstanceOf(GreetingQuery.class);
         assertThat(extension.changeProcessors()).hasSize(1)
             .first().isInstanceOf(GreetingProcessor.class);
+        assertThat(extension.queryResultFormatters()).hasSize(1)
+            .first().isInstanceOf(GreetingFormatter.class);
         assertThat(extension.measurementTrackers()).isEmpty();
         assertThat(extension.services()).isEmpty();
         assertThat(extension.lifecycles()).isEmpty();
         assertThat(component.queries()).hasSize(1).first().isInstanceOf(StaticQuery.class);
+        assertThat(component.queryResultFormatters()).hasSize(1)
+            .first().isInstanceOf(StaticFormatter.class);
     }
 
     @Test
@@ -96,6 +100,8 @@ class ExtensionSubcomponentTest
         Map<String, ExtensionFactory> extensionFactories();
 
         Set<Query> queries();
+
+        Set<QueryResultFormatter<?>> queryResultFormatters();
     }
 
     @Module(subcomponents = GreetingExtension.class)
@@ -110,6 +116,10 @@ class ExtensionSubcomponentTest
         @Binds
         @IntoSet
         abstract Query bindStaticQuery(StaticQuery query);
+
+        @Binds
+        @IntoSet
+        abstract QueryResultFormatter<?> bindStaticFormatter(StaticFormatter formatter);
 
         @Binds
         @IntoMap
@@ -169,6 +179,71 @@ class ExtensionSubcomponentTest
         @IntoSet
         @ExtensionBinding
         abstract ChangeProcessor bindGreetingProcessor(GreetingProcessor processor);
+
+        @Binds
+        @IntoSet
+        @ExtensionBinding
+        abstract QueryResultFormatter<?> bindGreetingFormatter(GreetingFormatter formatter);
+    }
+
+    record GreetingResult(String greeting)
+        implements QueryResult
+    {
+    }
+
+    static final class StaticFormatter
+        implements QueryResultFormatter<GreetingResult>
+    {
+        @Inject
+        StaticFormatter()
+        {
+        }
+
+        @Override
+        public Class<GreetingResult> queryResultType()
+        {
+            return GreetingResult.class;
+        }
+
+        @Override
+        public OutputFormat outputFormat()
+        {
+            return OutputFormat.JSON;
+        }
+
+        @Override
+        public String format(GreetingResult result)
+        {
+            return "{}";
+        }
+    }
+
+    @ExtensionScope
+    static final class GreetingFormatter
+        implements QueryResultFormatter<GreetingResult>
+    {
+        @Inject
+        GreetingFormatter()
+        {
+        }
+
+        @Override
+        public Class<GreetingResult> queryResultType()
+        {
+            return GreetingResult.class;
+        }
+
+        @Override
+        public OutputFormat outputFormat()
+        {
+            return OutputFormat.MARKDOWN;
+        }
+
+        @Override
+        public String format(GreetingResult result)
+        {
+            return "**" + result.greeting() + "**";
+        }
     }
 
     @ExtensionScope

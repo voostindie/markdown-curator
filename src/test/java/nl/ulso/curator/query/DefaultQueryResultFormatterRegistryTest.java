@@ -11,7 +11,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 class DefaultQueryResultFormatterRegistryTest
 {
-    private QueryResultFormatterRegistry registry;
+    private DynamicQueryResultFormatterRegistry registry;
 
     @BeforeEach
     void setUp()
@@ -84,8 +84,188 @@ class DefaultQueryResultFormatterRegistryTest
         assertThat(output).contains("Hello, world");
     }
 
+    @Test
+    void dynamicFormatterForNewResultType()
+    {
+        registry.replaceDynamicFormatters(Set.of(new DummyMarkdownFormatter("dynamic")));
+        assertThat(registry.supports(new DummyQueryResult(), MARKDOWN)).isTrue();
+        assertThat(registry.format(new DummyQueryResult(), MARKDOWN)).isEqualTo("dynamic");
+    }
+
+    @Test
+    void replacingDynamicFormattersRemovesPreviousOnes()
+    {
+        registry.replaceDynamicFormatters(Set.of(new DummyMarkdownFormatter("dynamic")));
+        registry.replaceDynamicFormatters(Set.of());
+        assertThat(registry.supports(new DummyQueryResult(), MARKDOWN)).isFalse();
+        assertThat(registry.format(new StringResult("static"), MARKDOWN)).contains("static");
+    }
+
+    @Test
+    void dynamicFormatterAddsOutputFormat()
+    {
+        var format = new OutputFormat("DUMMY", "application/x-dummy");
+        registry.replaceDynamicFormatters(Set.of(new DummyFormatter(format, "dummy")));
+        assertThat(registry.outputFormats()).contains(MARKDOWN, format);
+        assertThat(registry.format(new DummyQueryResult(), format)).isEqualTo("dummy");
+        registry.replaceDynamicFormatters(Set.of());
+        assertThat(registry.outputFormats()).containsExactly(MARKDOWN);
+    }
+
+    @Test
+    void staticFormatterWinsOverDynamicFormatterForSameResultType()
+    {
+        registry.replaceDynamicFormatters(Set.of(new StringOverrideFormatter()));
+        assertThat(registry.format(new StringResult("Hello"), MARKDOWN))
+            .isNotEqualTo("override");
+    }
+
+    @Test
+    void mostSpecificDynamicFormatterWinsOverStaticFormatter()
+    {
+        var registry = new DefaultQueryResultFormatterRegistry(Set.of(new AnimalFormatter()));
+        registry.replaceDynamicFormatters(Set.of(new DogFormatter()));
+        assertThat(registry.format(new Dog(), MARKDOWN)).isEqualTo("dog");
+        assertThat(registry.format(new Cat(), MARKDOWN)).isEqualTo("animal");
+    }
+
+    @Test
+    void mostSpecificStaticFormatterWins()
+    {
+        var registry = new DefaultQueryResultFormatterRegistry(
+            Set.of(new AnimalFormatter(), new DogFormatter()));
+        assertThat(registry.format(new Dog(), MARKDOWN)).isEqualTo("dog");
+        assertThat(registry.format(new Cat(), MARKDOWN)).isEqualTo("animal");
+    }
+
     private static final class DummyQueryResult
         implements QueryResult
     {
+    }
+
+    private record DummyFormatter(OutputFormat outputFormat, String output)
+        implements QueryResultFormatter<DummyQueryResult>
+    {
+        @Override
+        public Class<DummyQueryResult> queryResultType()
+        {
+            return DummyQueryResult.class;
+        }
+
+        @Override
+        public String format(DummyQueryResult result)
+        {
+            return output;
+        }
+    }
+
+    private static final class DummyMarkdownFormatter
+        implements QueryResultFormatter<DummyQueryResult>
+    {
+        private final String output;
+
+        DummyMarkdownFormatter(String output)
+        {
+            this.output = output;
+        }
+
+        @Override
+        public Class<DummyQueryResult> queryResultType()
+        {
+            return DummyQueryResult.class;
+        }
+
+        @Override
+        public OutputFormat outputFormat()
+        {
+            return MARKDOWN;
+        }
+
+        @Override
+        public String format(DummyQueryResult result)
+        {
+            return output;
+        }
+    }
+
+    private static final class StringOverrideFormatter
+        implements QueryResultFormatter<StringResult>
+    {
+        @Override
+        public Class<StringResult> queryResultType()
+        {
+            return StringResult.class;
+        }
+
+        @Override
+        public OutputFormat outputFormat()
+        {
+            return MARKDOWN;
+        }
+
+        @Override
+        public String format(StringResult result)
+        {
+            return "override";
+        }
+    }
+
+    private interface Animal
+        extends QueryResult
+    {
+    }
+
+    private record Dog()
+        implements Animal
+    {
+    }
+
+    private record Cat()
+        implements Animal
+    {
+    }
+
+    private static final class AnimalFormatter
+        implements QueryResultFormatter<Animal>
+    {
+        @Override
+        public Class<Animal> queryResultType()
+        {
+            return Animal.class;
+        }
+
+        @Override
+        public OutputFormat outputFormat()
+        {
+            return MARKDOWN;
+        }
+
+        @Override
+        public String format(Animal result)
+        {
+            return "animal";
+        }
+    }
+
+    private static final class DogFormatter
+        implements QueryResultFormatter<Dog>
+    {
+        @Override
+        public Class<Dog> queryResultType()
+        {
+            return Dog.class;
+        }
+
+        @Override
+        public OutputFormat outputFormat()
+        {
+            return MARKDOWN;
+        }
+
+        @Override
+        public String format(Dog result)
+        {
+            return "dog";
+        }
     }
 }

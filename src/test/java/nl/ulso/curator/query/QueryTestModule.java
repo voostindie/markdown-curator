@@ -28,7 +28,7 @@ public class QueryTestModule
         return new ResourceBundleGeneralMessages(locale);
     }
 
-    public static QueryResultFormatterRegistry createQueryResultFormatterRegistry()
+    public static DynamicQueryResultFormatterRegistry createQueryResultFormatterRegistry()
     {
         return createQueryResultFormatterRegistry(Set.of(
             new EmptyMarkdownFormatter(new ResourceBundleGeneralMessages(ENGLISH)),
@@ -45,7 +45,7 @@ public class QueryTestModule
         ));
     }
 
-    public static QueryResultFormatterRegistry createQueryResultFormatterRegistry(
+    public static DynamicQueryResultFormatterRegistry createQueryResultFormatterRegistry(
         Set<QueryResultFormatter<?>> formatters)
     {
         return new DefaultQueryResultFormatterRegistry(formatters);

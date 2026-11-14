@@ -21,6 +21,10 @@ public abstract class QueryModule
         DefaultQueryResultFormatterRegistry registry);
 
     @Binds
+    abstract DynamicQueryResultFormatterRegistry bindDynamicQueryResultFormatterRegistry(
+        DefaultQueryResultFormatterRegistry registry);
+
+    @Binds
     abstract QueryResultFactory bindQueryResultFactory(
         DefaultQueryResultFactory queryResultFactory);
 

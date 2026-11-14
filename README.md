@@ -227,7 +227,7 @@ As an example of a custom change processor, see the built-in `Journal` or `Proje
 
 ### Load and unload extensions at runtime
 
-Statically registered change processors and queries are fixed when the application starts. An *extension* is a set of change processors, queries and measurement trackers that can be loaded into and unloaded from a running curator, as configured in a document in the vault. The built-in project, journal, project journal, OmniFocus and Alfred modules are all extensions.
+Statically registered change processors and queries are fixed when the application starts. An *extension* is a set of change processors, queries, query result formatters and measurement trackers that can be loaded into and unloaded from a running curator, as configured in a document in the vault. The built-in project, journal, project journal, OmniFocus and Alfred modules are all extensions.
 
 To enable extensions in your curator:
 
@@ -275,7 +275,7 @@ Changes to the settings apply immediately. A change of the `locale` changes the 
 #### Creating an extension
 
 - Define a public Dagger `@Subcomponent`, annotated with `@ExtensionScope`, that extends `Extension` and includes the `ExtensionModule` and your own module. (It must be public, because Dagger generates its implementation in the package of the curator that loads it.)
-- In your module, qualify all change processor, query, tracker, service and lifecycle bindings with `@ExtensionBinding`.
+- In your module, qualify all change processor, query, query result formatter, tracker, service and lifecycle bindings with `@ExtensionBinding`. Formatters of the curator take precedence over those of extensions, unless an extension's formatter handles a more specific query result type.
 - Annotate all classes in your module with `@ExtensionScope` instead of `@Singleton`.
 - Implement an `ExtensionFactory` that describes the extension - its description, supported settings, required and provided services, and contributions - and that creates the subcomponent.
 - Register the subcomponent and the factory in a module for curators to include: `@Module(subcomponents = MyExtension.class)` and `@Binds @IntoMap @StringKey("my-extension") abstract ExtensionFactory bindMyExtensionFactory(MyExtensionFactory factory);`.

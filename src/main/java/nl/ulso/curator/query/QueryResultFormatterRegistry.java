@@ -6,10 +6,11 @@ import java.util.Set;
 /// [OutputFormat] and applying it.
 ///
 /// [QueryResultFormatter]s support both a [QueryResult] type and an [OutputFormat]. Given a result,
-/// the registry looks for the first formatter that supports this combination. The provided query
-/// result must be assignable (be an "instance of") the supported query result type. If multiple
-/// formatters for the same format support a query result, the effect is undefined: one will be
-/// chosen arbitrarily.
+/// the registry looks for the formatters that support this combination: the provided query result
+/// must be assignable (be an "instance of") the supported query result type. If multiple formatters
+/// for the same format support a query result, the one with the most specific query result type
+/// wins. If that still leaves more than one, statically configured formatters take precedence over
+/// dynamically registered ones; beyond that, the effect is undefined.
 public interface QueryResultFormatterRegistry
 {
     Set<OutputFormat> outputFormats();
