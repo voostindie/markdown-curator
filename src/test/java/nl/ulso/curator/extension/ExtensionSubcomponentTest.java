@@ -9,6 +9,7 @@ import nl.ulso.curator.change.ChangeProcessor;
 import nl.ulso.curator.change.Changelog;
 import nl.ulso.curator.query.*;
 import nl.ulso.curator.vault.Document;
+import nl.ulso.dictionary.Dictionary;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -23,7 +24,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 /// Verifies that the recommended way of building extensions - Dagger subcomponents - works.
 class ExtensionSubcomponentTest
 {
-    private static final Services NO_SERVICES = new Services()
+    private static final ServiceRegistry NO_SERVICES = new ServiceRegistry()
     {
         @Override
         public <T> T get(Class<T> type)
@@ -137,6 +138,12 @@ class ExtensionSubcomponentTest
     {
         private final GreetingExtension.Factory factory;
 
+        @Override
+        public String description()
+        {
+            return "";
+        }
+
         @Inject
         GreetingExtensionFactory(GreetingExtension.Factory factory)
         {
@@ -144,7 +151,7 @@ class ExtensionSubcomponentTest
         }
 
         @Override
-        public Extension create(nl.ulso.dictionary.Dictionary configuration, Services services)
+        public Extension create(Dictionary configuration, ServiceRegistry serviceRegistry)
         {
             return factory.create(new GreetingSettings(configuration.string("name", "world")));
         }
