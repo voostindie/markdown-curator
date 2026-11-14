@@ -562,12 +562,12 @@ class ExtensionLoadingTest
             registry, createQueryResultFactory(), Optional.of(CONFIGURATION_DOCUMENT));
         var output = createQueryResultFormatterRegistry()
             .format(query.run(emptyQueryBlock()), OutputFormat.MARKDOWN);
-        softly.assertThat(output).contains("- ✅ **recorder**: Stub");
+        softly.assertThat(output).contains("- 🟢 **recorder**: Stub");
         softly.assertThat(output).contains("    - settings: folder");
-        softly.assertThat(output).contains("- ⬜️ **query**: Stub");
-        softly.assertThat(output).contains("- ❌ **bogus**");
+        softly.assertThat(output).contains("- ⚪️️ **query**: Stub");
+        softly.assertThat(output).contains("- 🔴 **bogus**");
         softly.assertThat(output).contains("    - not loaded: Unknown extension.");
-        softly.assertThat(output).contains("- ❌ **consumer**: Stub");
+        softly.assertThat(output).contains("- 🔴 **consumer**: Stub");
         softly.assertThat(output).contains("    - requires: Greeter");
     }
 

@@ -95,7 +95,7 @@ final class ExtensionsQuery
         {
             var failure = status.failures().get(name);
             builder.append("- ")
-                .append(failure != null ? "❌ " : status.active().contains(name) ? "✅ " : "⬜️ ")
+                .append(failure != null ? "🔴 " : status.active().contains(name) ? "🟢 " : "⚪️️ ")
                 .append("**").append(name).append("**");
             var factory = status.available().get(name);
             if (factory != null && !factory.description().isBlank())
