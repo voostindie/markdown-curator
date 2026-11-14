@@ -70,12 +70,12 @@ final class OmniFocusExtensionFactory
     }
 
     @Override
-    public Extension create(Dictionary configuration, Services services)
+    public Extension create(Dictionary configuration, ServiceRegistry serviceRegistry)
     {
         return factory.create(
             settingsFrom(configuration),
-            services.get(ProjectRepository.class),
-            byFrontMatterProperty(services.all(ProjectAttributeDefinition.class))
+            serviceRegistry.get(ProjectRepository.class),
+            byFrontMatterProperty(serviceRegistry.all(ProjectAttributeDefinition.class))
         );
     }
 

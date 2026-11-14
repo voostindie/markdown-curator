@@ -4,7 +4,7 @@ import static java.util.Objects.requireNonNull;
 
 /// A contribution to an extension point, following the whiteboard pattern: the owner of an
 /// extension point doesn't look for contributors; contributors publish their contributions, and
-/// the owner collects all of them through [Services#all(Class)].
+/// the owner collects all of them through [ServiceRegistry#all(Class)].
 ///
 /// Unlike services, there can be any number of contributions of a type, and contributions don't
 /// determine the order in which extensions are loaded. That's because contributions are collected

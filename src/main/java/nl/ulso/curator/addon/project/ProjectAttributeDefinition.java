@@ -1,5 +1,7 @@
 package nl.ulso.curator.addon.project;
 
+import nl.ulso.curator.extension.ServiceRegistry;
+
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
@@ -16,7 +18,7 @@ import java.util.function.UnaryOperator;
 ///
 /// Attribute definitions are an extension point: extensions contribute them through
 /// [nl.ulso.curator.extension.ExtensionFactory#contributions(nl.ulso.dictionary.Dictionary)], and
-/// collect them through [nl.ulso.curator.extension.Services#all(Class)]. The project extension
+/// collect them through [ServiceRegistry#all(Class)]. The project extension
 /// contributes the following default attribute definitions:
 ///
 /// - [#LAST_MODIFIED].

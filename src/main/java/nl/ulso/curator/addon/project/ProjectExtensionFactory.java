@@ -76,11 +76,11 @@ final class ProjectExtensionFactory
     }
 
     @Override
-    public Extension create(Dictionary configuration, Services services)
+    public Extension create(Dictionary configuration, ServiceRegistry serviceRegistry)
     {
         return factory.create(
             new ProjectSettings(configuration.string(FOLDER, "Projects")),
-            byFrontMatterProperty(services.all(ProjectAttributeDefinition.class))
+            byFrontMatterProperty(serviceRegistry.all(ProjectAttributeDefinition.class))
         );
     }
 }

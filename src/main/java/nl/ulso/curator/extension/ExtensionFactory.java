@@ -2,9 +2,11 @@ package nl.ulso.curator.extension;
 
 import nl.ulso.dictionary.Dictionary;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
+
+import static java.util.Collections.emptyList;
+import static java.util.Collections.emptyMap;
+import static java.util.Collections.emptySet;
 
 /// Creates [Extension]s from configuration, and describes them, so that the curator can decide
 /// whether and in what order to create them.
@@ -25,36 +27,33 @@ import java.util.Set;
 /// require and provide are resolved, and their [Contribution]s are collected. Extensions whose
 /// requirements can't be met are dropped.
 /// 2. The remaining extensions are created, providers before consumers, through
-/// [#create(Dictionary, Services)].
+/// [#create(Dictionary, ServiceRegistry)].
 ///
 /// @see nl.ulso.curator.CuratorModule#CONFIGURATION_DOCUMENT_KEY
 public interface ExtensionFactory
 {
     /// @return A short, one-line description of the extension, in Markdown.
-    default String description()
-    {
-        return "";
-    }
+    String description();
 
     /// @return Map of name-description pairs of configuration settings; each description is a
     /// Markdown one-liner. Any other setting in the configuration is rejected.
     default Map<String, String> supportedConfiguration()
     {
-        return Map.of();
+        return emptyMap();
     }
 
     /// @return The types of services this extension needs from the curator or other extensions;
-    /// available through [Services#get(Class)].
+    /// available through [ServiceRegistry#get(Class)].
     default Set<Class<?>> requires()
     {
-        return Set.of();
+        return emptySet();
     }
 
     /// @return The types of services this extension provides; the extension must register exactly
     /// these through [Extension#services()].
     default Set<Class<?>> provides()
     {
-        return Set.of();
+        return emptySet();
     }
 
     /// Returns the contributions of this extension to extension points of other extensions. This
@@ -64,15 +63,15 @@ public interface ExtensionFactory
     /// @return the contributions; empty by default.
     default List<Contribution> contributions(Dictionary configuration)
     {
-        return List.of();
+        return emptyList();
     }
 
     /// Creates a new, fresh extension instance.
     ///
     /// @param configuration the configuration of the extension, from the configuration document;
     ///                      may be empty.
-    /// @param services      the services this extension requires and all contributions.
+    /// @param serviceRegistry      the serviceRegistry this extension requires and all contributions.
     /// @return a new extension.
     /// @throws RuntimeException if the extension can't be created; it's then dropped.
-    Extension create(Dictionary configuration, Services services);
+    Extension create(Dictionary configuration, ServiceRegistry serviceRegistry);
 }

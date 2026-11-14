@@ -4,7 +4,7 @@ import java.util.List;
 
 /// Gives an [ExtensionFactory] access to the services and contributions of the curator and of
 /// other extensions, while creating an extension.
-public interface Services
+public interface ServiceRegistry
 {
     /// @param type the type of service.
     /// @return the one and only provider of the service.

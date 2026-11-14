@@ -277,7 +277,7 @@ final class ExtensionResolver
         {
             var name = candidate.name();
             var factory = candidate.factory();
-            var services = new ExtensionServices(
+            var services = new ExtensionServiceRegistry(
                 name, factory.requires(), publishedServices, contributions);
             final Extension extension;
             try
@@ -330,15 +330,15 @@ final class ExtensionResolver
     }
 
     /// The services available to a single extension while it is being created.
-    private final class ExtensionServices
-        implements Services
+    private final class ExtensionServiceRegistry
+        implements ServiceRegistry
     {
         private final String extensionName;
         private final Set<Class<?>> required;
         private final Map<Class<?>, Object> publishedServices;
         private final List<Contribution> contributions;
 
-        ExtensionServices(
+        ExtensionServiceRegistry(
             String extensionName,
             Set<Class<?>> required,
             Map<Class<?>, Object> publishedServices,

@@ -57,7 +57,7 @@ final class JournalExtensionFactory
     }
 
     @Override
-    public Extension create(Dictionary configuration, Services services)
+    public Extension create(Dictionary configuration, ServiceRegistry serviceRegistry)
     {
         return factory.create(new JournalSettings(
             configuration.string(FOLDER, "Journal"),

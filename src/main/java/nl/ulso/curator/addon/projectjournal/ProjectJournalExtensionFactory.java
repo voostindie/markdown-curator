@@ -37,12 +37,12 @@ final class ProjectJournalExtensionFactory
     }
 
     @Override
-    public Extension create(Dictionary configuration, Services services)
+    public Extension create(Dictionary configuration, ServiceRegistry serviceRegistry)
     {
         return factory.create(
-            services.get(ProjectRepository.class),
-            services.get(Journal.class),
-            byFrontMatterProperty(services.all(ProjectAttributeDefinition.class))
+            serviceRegistry.get(ProjectRepository.class),
+            serviceRegistry.get(Journal.class),
+            byFrontMatterProperty(serviceRegistry.all(ProjectAttributeDefinition.class))
         );
     }
 }

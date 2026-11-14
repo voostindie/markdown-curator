@@ -68,7 +68,7 @@ final class AlfredExtensionFactory
     }
 
     @Override
-    public Extension create(Dictionary configuration, Services services)
+    public Extension create(Dictionary configuration, ServiceRegistry serviceRegistry)
     {
         var settings = AlfredSettings.builder()
             .contactsPath(configuration.string(CONTACTS_PATH, null))
@@ -80,7 +80,7 @@ final class AlfredExtensionFactory
             .build();
         return factory.create(
             settings,
-            services.get(Journal.class),
+            serviceRegistry.get(Journal.class),
             Optional.ofNullable(configuration.string(LINKS_SECTION, null))
         );
     }
