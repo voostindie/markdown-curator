@@ -58,4 +58,10 @@ class EmptyDictionaryTest
     {
         assertThat(emptyDictionary().listOfDates("foo")).isEmpty();
     }
+
+    @Test
+    void dictionaryIsEmpty()
+    {
+        assertThat(emptyDictionary().dictionary("foo").isEmpty()).isTrue();
+    }
 }

@@ -205,16 +205,21 @@ final class DocumentRequestProcessor
             var builder = createObjectBuilder();
             for (var propertyName : dictionary.propertyNames())
             {
-                var value = dictionary.getProperty(propertyName).orElseThrow();
-                if (value instanceof List<?> values)
+                var value = dictionary.getProperty(propertyName).orElse(null);
+                switch (value)
                 {
-                    var listBuilder = createArrayBuilder();
-                    values.forEach(listValue -> listBuilder.add(createValue(listValue.toString())));
-                    builder.add(propertyName, listBuilder);
-                }
-                else
-                {
-                    builder.add(propertyName, createValue(value.toString()));
+                    case null ->
+                        // Nested dictionaries may contain properties without a value.
+                        builder.addNull(propertyName);
+                    case Dictionary nested -> builder.add(propertyName, toJson(nested));
+                    case List<?> values ->
+                    {
+                        var listBuilder = createArrayBuilder();
+                        values.forEach(
+                            listValue -> listBuilder.add(createValue(listValue.toString())));
+                        builder.add(propertyName, listBuilder);
+                    }
+                    default -> builder.add(propertyName, createValue(value.toString()));
                 }
             }
             return builder;

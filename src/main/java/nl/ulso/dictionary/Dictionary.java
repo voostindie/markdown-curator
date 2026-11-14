@@ -7,7 +7,10 @@ import static java.util.Objects.requireNonNull;
 
 /// Simple read-only map of key-value pairs.
 ///
-/// Keys are always strings. Values are strings, integers, dates or lists of these. That's it!
+/// Keys are always strings. Values are strings, integers, dates, lists of these, or nested
+/// dictionaries. That's it!
+///
+/// [#getProperty(String)] returns nested dictionaries as [Dictionary] objects, never as raw maps.
 ///
 /// There are no ways to in(tro)spect the dictionary. You need to know what you want to ask for,
 /// and you are guaranteed to always get a valid answer.
@@ -67,15 +70,14 @@ public interface Dictionary
     {
         if (source instanceof MapDictionary sourceMap)
         {
-            return new MapDictionary(Map.copyOf(sourceMap.map()));
+            return new MapDictionary(sourceMap.map());
         }
         else
         {
             var dictionary = new MapDictionary();
-            source.propertyNames().forEach(propertyName -> {
-                var propertyValue = source.getProperty(propertyName);
-                dictionary.setProperty(propertyName, propertyValue);
-            });
+            source.propertyNames().forEach(propertyName ->
+                source.getProperty(propertyName).ifPresent(propertyValue ->
+                    dictionary.setProperty(propertyName, propertyValue)));
             return dictionary;
         }
     }
@@ -84,6 +86,8 @@ public interface Dictionary
 
     boolean isEmpty();
 
+    /// @return the raw value of the property, if any; nested dictionaries are returned as
+    /// [Dictionary] objects.
     Optional<Object> getProperty(String name);
 
     String string(String property, String defaultValue);
@@ -99,6 +103,10 @@ public interface Dictionary
     List<Integer> listOfIntegers(String property);
 
     List<LocalDate> listOfDates(String property);
+
+    /// @return the nested dictionary for the property; never `null`. If the property has no value
+    /// or its value is not a dictionary, the result is an empty dictionary.
+    Dictionary dictionary(String property);
 
     boolean hasProperty(String property);
 

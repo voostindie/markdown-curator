@@ -135,6 +135,12 @@ public final class FrontMatter
     }
 
     @Override
+    public Dictionary dictionary(String property)
+    {
+        return dictionary.dictionary(property);
+    }
+
+    @Override
     public Optional<Object> getProperty(String name)
     {
         return dictionary.getProperty(name);

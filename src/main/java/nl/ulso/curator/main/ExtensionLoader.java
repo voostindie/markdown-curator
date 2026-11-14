@@ -3,6 +3,7 @@ package nl.ulso.curator.main;
 import jakarta.inject.*;
 import nl.ulso.curator.CuratorModule;
 import nl.ulso.curator.change.*;
+import nl.ulso.curator.extension.Extension;
 import nl.ulso.curator.vault.Document;
 import nl.ulso.curator.vault.Vault;
 import nl.ulso.dictionary.Dictionary;
@@ -17,7 +18,6 @@ import static nl.ulso.curator.change.Changelog.changelogFor;
 import static nl.ulso.curator.change.Changelog.emptyChangelog;
 import static nl.ulso.curator.change.Reset.RESET;
 import static nl.ulso.dictionary.Dictionary.emptyDictionary;
-import static nl.ulso.dictionary.Dictionary.mapDictionary;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /// Special change processor that loads [Extension]s based on the configuration document, which
@@ -187,8 +187,8 @@ final class ExtensionLoader
             }
             case Collection<?> list -> list.forEach(name ->
                 result.put(String.valueOf(name), emptyDictionary()));
-            case Map<?, ?> map -> map.forEach((name, value) ->
-                result.put(String.valueOf(name), toDictionary(String.valueOf(name), value)));
+            case Dictionary dictionary -> dictionary.propertyNames().forEach(name ->
+                result.put(name, toDictionary(name, dictionary.getProperty(name).orElse(null))));
             default -> throw new IllegalArgumentException(
                 "Property '" + EXTENSIONS_PROPERTY + "' must be a list or a map.");
         }
@@ -200,12 +200,7 @@ final class ExtensionLoader
         return switch (value)
         {
             case null -> emptyDictionary();
-            case Map<?, ?> map ->
-            {
-                var copy = new HashMap<String, Object>();
-                map.forEach((key, v) -> copy.put(String.valueOf(key), v));
-                yield mapDictionary(copy);
-            }
+            case Dictionary dictionary -> dictionary;
             default -> throw new IllegalArgumentException(
                 "Configuration of extension '" + extensionName + "' must be a map.");
         };

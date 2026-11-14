@@ -14,7 +14,11 @@ import static java.util.Objects.requireNonNull;
 
 /// Dictionary implementation on top of a map. Even though the map may contain many different types
 /// of values, the dictionary only supports scalars ([String], [Integer],
-/// [Boolean], [LocalDate]) and lists of those.
+/// [Boolean], [LocalDate]), lists of those, and nested dictionaries.
+///
+/// Nested dictionaries are stored as raw maps internally, so that serialization and equality work
+/// as expected. They are exposed as [Dictionary] objects, through both [#getProperty(String)] and
+/// [#dictionary(String)].
 ///
 /// Trying to read a value that has a different type than then the type being requested results in
 /// default values: either the value provided by the user (for scalars), or the empty lists (for
@@ -81,7 +85,51 @@ class MapDictionary
     @Override
     public Optional<Object> getProperty(String property)
     {
-        return Optional.ofNullable(map.get(property));
+        var value = map.get(property);
+        if (value instanceof Map<?, ?> nestedMap)
+        {
+            return Optional.of(nestedDictionary(nestedMap));
+        }
+        return Optional.ofNullable(value);
+    }
+
+    @Override
+    public Dictionary dictionary(String property)
+    {
+        if (map.get(property) instanceof Map<?, ?> nestedMap)
+        {
+            return nestedDictionary(nestedMap);
+        }
+        return Dictionary.emptyDictionary();
+    }
+
+    /// Wraps a raw map as a dictionary. YAML allows non-string keys; these are converted to
+    /// strings. Values are kept as is, including `null`s, so that the set of property names is
+    /// preserved.
+    private static Dictionary nestedDictionary(Map<?, ?> nestedMap)
+    {
+        if (nestedMap.isEmpty())
+        {
+            return Dictionary.emptyDictionary();
+        }
+        var copy = new HashMap<String, Object>();
+        nestedMap.forEach((key, value) -> copy.put(String.valueOf(key), value));
+        return new MapDictionary(copy);
+    }
+
+    /// Converts a dictionary to a raw map, recursively, so that it can be stored as a property
+    /// value.
+    private static Map<String, Object> toMap(Dictionary dictionary)
+    {
+        if (dictionary instanceof MapDictionary mapDictionary)
+        {
+            return new TreeMap<>(mapDictionary.map);
+        }
+        var result = new TreeMap<String, Object>();
+        dictionary.propertyNames().forEach(name ->
+            dictionary.getProperty(name).ifPresent(value ->
+                result.put(name, value instanceof Dictionary nested ? toMap(nested) : value)));
+        return result;
     }
 
     @Override
@@ -205,6 +253,13 @@ class MapDictionary
     @Override
     public void setProperty(String property, Object value)
     {
-        map.put(property, requireNonNull(value));
+        if (requireNonNull(value) instanceof Dictionary dictionary)
+        {
+            map.put(property, toMap(dictionary));
+        }
+        else
+        {
+            map.put(property, value);
+        }
     }
 }

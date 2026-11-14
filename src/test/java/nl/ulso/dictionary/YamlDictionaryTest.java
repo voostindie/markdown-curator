@@ -154,4 +154,20 @@ class YamlDictionaryTest
     {
         return yamlDictionary(yaml.lines().toList());
     }
+
+    @Test
+    void nestedDictionaries()
+    {
+        var dictionary = dictionary("""
+            outer:
+              inner:
+                foo: 42
+              bar: baz
+            """);
+        var outer = dictionary.dictionary("outer");
+        softly.assertThat(outer.string("bar", null)).isEqualTo("baz");
+        softly.assertThat(outer.dictionary("inner").integer("foo", -1)).isEqualTo(42);
+        softly.assertThat(dictionary.dictionary("missing").isEmpty()).isTrue();
+        softly.assertThat(outer.dictionary("bar").isEmpty()).isTrue();
+    }
 }

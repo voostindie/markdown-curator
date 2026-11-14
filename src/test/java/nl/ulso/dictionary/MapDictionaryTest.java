@@ -84,4 +84,66 @@ class MapDictionaryTest
         assertThat(value).isNull();
         assertThat(dictionary.hasProperty("date")).isTrue();
     }
+
+    @Test
+    void nestedDictionary()
+    {
+        var dictionary = new MapDictionary(Map.of("nested", Map.of("foo", 42)));
+        assertThat(dictionary.dictionary("nested").integer("foo", -1)).isEqualTo(42);
+    }
+
+    @Test
+    void nestedDictionaryMissing()
+    {
+        var dictionary = new MapDictionary(emptyMap());
+        assertThat(dictionary.dictionary("nested")).isNotNull();
+        assertThat(dictionary.dictionary("nested").isEmpty()).isTrue();
+    }
+
+    @Test
+    void nestedDictionaryOfWrongType()
+    {
+        var dictionary = new MapDictionary(Map.of("nested", "foo"));
+        assertThat(dictionary.dictionary("nested").isEmpty()).isTrue();
+    }
+
+    @Test
+    void nestedDictionaryWithNonStringKeys()
+    {
+        var dictionary = new MapDictionary(Map.of("nested", Map.of(1, "one")));
+        assertThat(dictionary.dictionary("nested").string("1", null)).isEqualTo("one");
+    }
+
+    @Test
+    void getPropertyReturnsNestedDictionary()
+    {
+        var dictionary = new MapDictionary(Map.of("nested", Map.of("foo", "bar")));
+        assertThat(dictionary.getProperty("nested"))
+            .containsInstanceOf(Dictionary.class)
+            .contains(Dictionary.mapDictionary(Map.of("foo", "bar")));
+    }
+
+    @Test
+    void setPropertyWithDictionaryValue()
+    {
+        var dictionary = new MapDictionary();
+        dictionary.setProperty("nested", Dictionary.mapDictionary(Map.of("foo", "bar")));
+        assertThat(dictionary.dictionary("nested").string("foo", null)).isEqualTo("bar");
+        assertThat(dictionary.toYamlString()).isEqualTo("""
+            nested:
+              foo: bar
+            """);
+    }
+
+    @Test
+    void mutableCopyKeepsNestedDictionary()
+    {
+        var source = Dictionary.yamlDictionary("""
+            nested:
+              foo: bar
+            """);
+        var copy = Dictionary.mutableDictionary(source);
+        assertThat(copy).isEqualTo(source);
+        assertThat(copy.dictionary("nested").string("foo", null)).isEqualTo("bar");
+    }
 }

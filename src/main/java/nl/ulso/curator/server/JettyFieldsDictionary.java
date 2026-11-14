@@ -123,6 +123,13 @@ final class JettyFieldsDictionary
             .toList();
     }
 
+    /// Form fields are flat; they never contain nested dictionaries.
+    @Override
+    public Dictionary dictionary(String property)
+    {
+        return Dictionary.emptyDictionary();
+    }
+
     @Override
     public boolean hasProperty(String property)
     {

@@ -43,6 +43,10 @@ public abstract class JsonFormatter
             {
                 return boolValue ? JsonValue.TRUE : JsonValue.FALSE;
             }
+            case Dictionary dictionary ->
+            {
+                return jsonObjectFor(dictionary);
+            }
             case List<?> list ->
             {
                 var listBuilder = createArrayBuilder();
@@ -72,7 +76,8 @@ public abstract class JsonFormatter
         dictionary.propertyNames().forEach(property ->
             {
                 var propertyName = jsonPropertyName(property);
-                var value = dictionary.getProperty(property).orElseThrow(); // Can't throw
+                // Nested dictionaries may contain properties without a value.
+                var value = dictionary.getProperty(property).orElse(null);
                 builder.add(propertyName, jsonValueFor(value));
             }
         );

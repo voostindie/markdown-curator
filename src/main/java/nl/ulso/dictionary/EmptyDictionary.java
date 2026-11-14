@@ -81,6 +81,12 @@ final class EmptyDictionary
     }
 
     @Override
+    public Dictionary dictionary(String property)
+    {
+        return this;
+    }
+
+    @Override
     public Optional<Object> getProperty(String name)
     {
         return Optional.empty();
