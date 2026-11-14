@@ -58,7 +58,7 @@ class MusicCuratorModuleTest
         softly.assertThat(statistics.frontMatters()).isEqualTo(15);
         softly.assertThat(statistics.sections()).isEqualTo(38);
         softly.assertThat(statistics.queries()).isEqualTo(14);
-        softly.assertThat(statistics.codeBlocks()).isEqualTo(5);
+        softly.assertThat(statistics.codeBlocks()).isEqualTo(6);
         softly.assertThat(statistics.texts()).isEqualTo(55);
     }
 

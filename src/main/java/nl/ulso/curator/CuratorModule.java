@@ -40,7 +40,7 @@ import java.util.Set;
 /// changed, will trigger a re-run of all queries.
 /// - Register [ExtensionFactory]s, and provide the name of a "configuration document". Extensions
 /// are sets of change processors, queries and trackers that are loaded and unloaded at runtime,
-/// as configured in the front matter of the configuration document. See [ExtensionFactory].
+/// as configured in the first YAML code block of the configuration document. See [ExtensionFactory].
 /// - Include other modules and their configurations to extend the functionality of the curator.
 @Module(includes = {MainModule.class})
 public abstract class CuratorModule

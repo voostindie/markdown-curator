@@ -4,8 +4,7 @@ import jakarta.inject.*;
 import nl.ulso.curator.CuratorModule;
 import nl.ulso.curator.change.*;
 import nl.ulso.curator.extension.Extension;
-import nl.ulso.curator.vault.Document;
-import nl.ulso.curator.vault.Vault;
+import nl.ulso.curator.vault.*;
 import nl.ulso.dictionary.Dictionary;
 import org.slf4j.Logger;
 
@@ -18,22 +17,26 @@ import static nl.ulso.curator.change.Changelog.changelogFor;
 import static nl.ulso.curator.change.Changelog.emptyChangelog;
 import static nl.ulso.curator.change.Reset.RESET;
 import static nl.ulso.dictionary.Dictionary.emptyDictionary;
+import static nl.ulso.dictionary.Dictionary.yamlDictionary;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /// Special change processor that loads [Extension]s based on the configuration document, which
 /// is only enabled if it is configured in the curator module, under the name
 /// [CuratorModule#CONFIGURATION_DOCUMENT_KEY].
 ///
-/// The configuration is read from the `extensions` property in the front matter of the
-/// configuration document. It's either a list of extension names, or a map of extension names to
-/// their configuration:
+/// The configuration is read from the `extensions` property in the first YAML code block (a code
+/// block with language `yaml` or `yml`) in the configuration document; other code blocks and the
+/// front matter are ignored. The property is either a list of extension names, or a map of
+/// extension names to their configuration:
 ///
+/// ````markdown
 /// ```yaml
 /// extensions:
 ///   directory:
 ///     teams-folder: Teams
 ///   another-extension:
 /// ```
+/// ````
 ///
 /// The configuration is (re)loaded:
 ///
@@ -141,8 +144,48 @@ final class ExtensionLoader
     private Object readConfiguration(Optional<Document> document)
     {
         return document
-            .flatMap(d -> d.frontMatter().getProperty(EXTENSIONS_PROPERTY))
+            .flatMap(ExtensionLoader::findFirstYamlCodeBlock)
+            .flatMap(codeBlock -> yamlDictionary(codeBlock.code()).getProperty(EXTENSIONS_PROPERTY))
             .orElse(null);
+    }
+
+    /// Finds the first YAML code block in the document, in document order, at any section level.
+    private static Optional<CodeBlock> findFirstYamlCodeBlock(Document document)
+    {
+        var finder = new YamlCodeBlockFinder();
+        document.accept(finder);
+        return Optional.ofNullable(finder.result);
+    }
+
+    private static final class YamlCodeBlockFinder
+        extends BreadthFirstVaultVisitor
+    {
+        private CodeBlock result;
+
+        @Override
+        public void visit(Section section)
+        {
+            if (result == null)
+            {
+                super.visit(section);
+            }
+        }
+
+        @Override
+        public void visit(CodeBlock codeBlock)
+        {
+            if (result == null && isYaml(codeBlock))
+            {
+                result = codeBlock;
+            }
+        }
+
+        private static boolean isYaml(CodeBlock codeBlock)
+        {
+            var info = codeBlock.language().strip();
+            var language = info.split("\\s+", 2)[0];
+            return language.equalsIgnoreCase("yaml") || language.equalsIgnoreCase("yml");
+        }
     }
 
     /// Resolves the configuration into a new generation of extensions and stages it in the
@@ -174,7 +217,7 @@ final class ExtensionLoader
         }
     }
 
-    /// Parses the raw configuration from the front matter into a map of extension names to their
+    /// Parses the raw configuration from the YAML code block into a map of extension names to their
     /// configuration; the map is ordered for predictability.
     private static SortedMap<String, Dictionary> parseConfiguration(Object configuration)
     {

@@ -127,7 +127,7 @@ class ExtensionLoadingTest
     private Document configure(String extensionsYaml)
     {
         return vault.addDocument(CONFIGURATION_DOCUMENT,
-            "---\nextensions:\n" + extensionsYaml + "\n---\n\nSome text.\n");
+            "Some text.\n\n```yaml\nextensions:\n" + extensionsYaml + "\n```\n");
     }
 
     private Changelog startUp()
@@ -177,6 +177,76 @@ class ExtensionLoadingTest
         startUp();
         assertThat(recorders).hasSize(1);
         softly.assertThat(recorders.getFirst().name()).isEqualTo("DocumentRecorder-none");
+    }
+
+    @Test
+    void ignoreConfigurationInFrontMatter()
+    {
+        vault.addDocument(CONFIGURATION_DOCUMENT, """
+            ---
+            extensions:
+              recorder:
+            ---
+            Some text.
+            """);
+        startUp();
+        softly.assertThat(recorders).isEmpty();
+        softly.assertThat(registry.status().active()).isEmpty();
+    }
+
+    @Test
+    void readConfigurationFromFirstYamlCodeBlockOnly()
+    {
+        vault.addDocument(CONFIGURATION_DOCUMENT, """
+            # Configuration
+
+            ```java
+            extensions:
+              query:
+            ```
+
+            ## Extensions
+
+            ```yaml
+            extensions:
+              recorder:
+                folder: a
+            ```
+
+            ```yaml
+            extensions:
+              query:
+            ```
+            """);
+        startUp();
+        softly.assertThat(registry.status().active()).containsExactly("recorder");
+        assertThat(recorders).hasSize(1);
+        softly.assertThat(recorders.getFirst().documents()).containsExactly("doc1", "doc2");
+    }
+
+    @Test
+    void readConfigurationFromYmlCodeBlock()
+    {
+        vault.addDocument(CONFIGURATION_DOCUMENT, """
+            ```yml
+            extensions:
+              - recorder
+            ```
+            """);
+        startUp();
+        softly.assertThat(registry.status().active()).containsExactly("recorder");
+    }
+
+    @Test
+    void changingTextOutsideCodeBlockDoesNotReload()
+    {
+        configure("  recorder:\n    folder: a");
+        startUp();
+        var document = vault.addDocument(CONFIGURATION_DOCUMENT,
+            "Other text.\n\n```yaml\nextensions:\n  recorder:\n    folder: a\n```\n");
+        var changelog = orchestrator.runFor(List.of(Change.update(document, Document.class)));
+        softly.assertThat(hasReset(changelog)).isFalse();
+        softly.assertThat(recorders).hasSize(1);
     }
 
     @Test

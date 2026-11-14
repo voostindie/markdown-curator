@@ -238,19 +238,19 @@ To enable extensions in your curator:
 ```
 
 - Include the modules of the extensions you want to make available, like the `JournalExtensionModule`.
-- Enable extensions in the front matter of the configuration document, either as a list of names, or as a map of names to their settings:
+- Enable extensions in the first YAML code block (language `yaml` or `yml`) of the configuration document, either as a list of names, or as a map of names to their settings. The front matter and any other code blocks in the document are ignored, so you're free to document your configuration around it:
 
+````markdown
 ```yaml
----
 extensions:
   project:
     folder: Projects
   journal:
   projectjournal:
----
 ```
+````
 
-Whenever the `extensions` property in the configuration document changes, the curator loads the new set of extensions and performs a complete refresh, exactly like touching the watch document does.
+Whenever the `extensions` property in that code block changes, the curator loads the new set of extensions and performs a complete refresh, exactly like touching the watch document does.
 
 Extensions that can't be loaded are left out, together with the extensions that depend on them; the others are loaded. Reasons for an extension not to load are: it's unknown, it has unsupported settings, it requires a service that no other loaded extension provides, its change processors consume a payload type nobody produces, or its queries have names that are already taken. Use the `extensions` query to see which extensions are available and active, what they require and provide, what settings they support, and why extensions weren't loaded. Only if the configuration can't be parsed at all is it rejected as a whole, keeping the current extensions.
 
