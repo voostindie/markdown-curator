@@ -42,8 +42,9 @@ import static org.slf4j.LoggerFactory.getLogger;
 ///
 /// - On every [Reset]; that is: at startup, and when the watch document is touched.
 /// - Whenever the configuration document changes, but only if the `extensions` property changed.
-/// In this case the loader publishes a [Reset], which triggers a complete rebuild of all state in
-/// all change processors, including the new ones.
+/// In this case the loader reloads the vault from disk and publishes a [Reset], which triggers a
+/// complete rebuild of all state in all change processors, including the new ones. This is the
+/// same as touching the watch document; see [VaultReloader].
 ///
 /// Extensions that can't be loaded - unknown extensions, invalid settings, missing services, and so
 /// on - are left out; see the [ExtensionResolver]. The configuration is only rejected as a whole if
@@ -136,6 +137,11 @@ final class ExtensionLoader
         LOGGER.info("Configuration of extensions has changed. Forcing a complete refresh.");
         if (loadConfiguration(configuration))
         {
+            // Like the VaultReloader, reload the vault before publishing the Reset. The in-memory
+            // vault might have drifted from what's on disk, for example because a file system
+            // event was missed. Query output is only written if it differs from the output in the
+            // in-memory document, so without a reload, stale documents are never repaired.
+            vault.reload();
             return changelogFor(RESET);
         }
         return emptyChangelog();

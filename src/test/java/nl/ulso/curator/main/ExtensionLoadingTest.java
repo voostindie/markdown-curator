@@ -294,6 +294,26 @@ class ExtensionLoadingTest
         var changelog = configurationChanged("  recorder:\n    folder: a");
         softly.assertThat(hasReset(changelog)).isFalse();
         softly.assertThat(recorders).hasSize(1);
+        softly.assertThat(vault.reloadCount()).isZero();
+    }
+
+    @Test
+    void configurationChangeReloadsVault()
+    {
+        configure("  recorder:\n    folder: a");
+        startUp();
+        softly.assertThat(vault.reloadCount()).isZero();
+        configurationChanged("  recorder:\n    folder: b");
+        softly.assertThat(vault.reloadCount()).isEqualTo(1);
+    }
+
+    @Test
+    void rejectedConfigurationDoesNotReloadVault()
+    {
+        configure("  recorder:\n    folder: a");
+        startUp();
+        configurationChanged("  42");
+        softly.assertThat(vault.reloadCount()).isZero();
     }
 
     @Test
