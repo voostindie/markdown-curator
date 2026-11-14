@@ -283,7 +283,7 @@ final class FileSystemVault
     {
         var fileName = absolutePath.getFileName().toString();
         var extensionIndex = fileName.lastIndexOf('.');
-        var endIndex = extensionIndex != -1 ? extensionIndex : fileName.length();
+        var endIndex = extensionIndex == -1 ? fileName.length() : extensionIndex;
         return normalize(fileName.substring(0, endIndex), NFC);
     }
 

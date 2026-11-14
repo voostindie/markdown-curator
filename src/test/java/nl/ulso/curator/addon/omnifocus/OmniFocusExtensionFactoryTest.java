@@ -17,7 +17,8 @@ class OmniFocusExtensionFactoryTest
     @Test
     void folderIsRequired()
     {
-        assertThatThrownBy(() -> from(emptyDictionary()))
+        var dictionary = emptyDictionary();
+        assertThatThrownBy(() -> from(dictionary))
             .isInstanceOf(IllegalArgumentException.class)
             .hasMessageContaining("'folder' is required");
     }
