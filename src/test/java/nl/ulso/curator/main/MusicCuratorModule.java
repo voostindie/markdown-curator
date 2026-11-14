@@ -9,9 +9,7 @@ import nl.ulso.curator.addon.journal.JournalExtensionModule;
 import nl.ulso.curator.query.Query;
 
 import java.nio.file.*;
-import java.util.Locale;
 
-import static java.util.Locale.ENGLISH;
 import static nl.ulso.curator.CuratorModule.CONFIGURATION_DOCUMENT_KEY;
 
 /**
@@ -35,12 +33,6 @@ abstract class MusicCuratorModule
     static WatchService watchService(Path vaultPath)
     {
         return createWatchService(vaultPath);
-    }
-
-    @Provides
-    static Locale locale()
-    {
-        return ENGLISH;
     }
 
     @Provides

@@ -8,7 +8,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 import java.util.Locale;
-import java.util.Optional;
 
 import static java.util.Locale.ENGLISH;
 import static nl.ulso.curator.addon.project.ProjectTestData.createAttributeRegistry;
@@ -84,6 +83,6 @@ class ProjectLeadQueryTest
 
     private ProjectMessages createMessages(Locale locale)
     {
-        return new ResourceBundleProjectMessages(Optional.of(locale));
+        return new ResourceBundleProjectMessages(locale);
     }
 }

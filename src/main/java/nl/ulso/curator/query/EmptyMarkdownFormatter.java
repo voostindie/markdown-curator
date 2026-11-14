@@ -6,12 +6,12 @@ final class EmptyMarkdownFormatter
     extends MarkdownFormatter
     implements QueryResultFormatter<EmptyResult>
 {
-    private final String message;
+    private final GeneralMessages messages;
 
     @Inject
     EmptyMarkdownFormatter(GeneralMessages messages)
     {
-        this.message = messages.noResults();
+        this.messages = messages;
     }
 
     @Override
@@ -23,6 +23,7 @@ final class EmptyMarkdownFormatter
     @Override
     public String format(EmptyResult result)
     {
-        return message;
+        // Not cached: the locale can change at runtime.
+        return messages.noResults();
     }
 }

@@ -11,7 +11,6 @@ import org.junit.jupiter.params.provider.MethodSource;
 
 import java.time.LocalDate;
 import java.util.Locale;
-import java.util.Optional;
 import java.util.stream.Stream;
 
 import static java.util.Locale.ENGLISH;
@@ -146,6 +145,6 @@ class LatestJournalNavigationQueryTest
 
     private static JournalMessages createMessages(Locale locale)
     {
-        return new ResourceBundleJournalMessages(Optional.of(locale));
+        return new ResourceBundleJournalMessages(locale);
     }
 }

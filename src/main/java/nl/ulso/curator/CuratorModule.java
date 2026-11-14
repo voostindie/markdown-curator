@@ -15,7 +15,6 @@ import nl.ulso.curator.query.Query;
 import nl.ulso.curator.query.QueryResultFormatter;
 
 import java.nio.file.WatchService;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
@@ -34,13 +33,13 @@ import java.util.Set;
 /// - Reqister custom [QueryResultFormatter]s.
 /// - Provide a [WatchService] to detect changes to the vault. The default implementation is
 /// optimized for macOS. Other platforms are not tested.
-/// - Provide a [Locale]. This will be used for translations in output. The default is English.
-/// (Instructions and error messages are all in English, hard-coded.)
 /// - Provide the name of a "watch document". This is a file in the root of the vault that, when
 /// changed, will trigger a re-run of all queries.
 /// - Register [ExtensionFactory]s, and provide the name of a "configuration document". Extensions
 /// are sets of change processors, queries and trackers that are loaded and unloaded at runtime,
 /// as configured in the first YAML code block of the configuration document. See [ExtensionFactory].
+/// The same code block holds the settings of the curator itself, like the `delay` before queries
+/// run after a change, and the `locale` for translations in query output.
 /// - Include other modules and their configurations to extend the functionality of the curator.
 @Module(includes = {MainModule.class})
 public abstract class CuratorModule
@@ -80,10 +79,6 @@ public abstract class CuratorModule
     /// Bind a custom [WatchService]; the default is optimized for macOS.
     @BindsOptionalOf
     abstract WatchService bindOptionalWatchService();
-
-    /// Bind a custom [Locale]; the default is English.
-    @BindsOptionalOf
-    abstract Locale bindOptionalLocale();
 
     /// Bind a watch document; by default, there is none.
     @BindsOptionalOf

@@ -29,8 +29,11 @@ public abstract class ChangeProcessorTestModule
     @Multibinds
     abstract Map<String, ExtensionFactory> bindAllAvailableExtensionFactories();
 
-    @BindsOptionalOf
-    abstract Locale bindOptionalLocale();
+    @Provides
+    static Locale provideLocale(CuratorSettings settings)
+    {
+        return settings.locale();
+    }
 
     /// Changes from outside the system are ignored in tests.
     @Provides

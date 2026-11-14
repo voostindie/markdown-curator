@@ -39,7 +39,8 @@ import static org.slf4j.LoggerFactory.getLogger;
 /// delay new changes come in, the task is rescheduled. This prevents superfluous query execution
 /// and writes to disk, at the cost of the user having to wait a few seconds after saving the last
 /// change. This is especially useful when using Obsidian, which automatically writes changes to
-/// disk, every few seconds.
+/// disk, every few seconds. The delay is configurable through the `delay` property in the
+/// configuration document; see [ConfigurationLoader].
 ///
 /// The query run is performed with the changelog that has been built up from processing all
 /// incoming changes. After the queries have finally run and updated documents are written to disk,
@@ -48,13 +49,13 @@ final class DefaultCurator
     implements Curator, VaultChangedCallback
 {
     private static final Logger LOGGER = getLogger(DefaultCurator.class);
-    private static final long SCHEDULE_TIMEOUT_IN_SECONDS = 3;
 
     private final String curatorName;
     private final Vault vault;
     private final ChangeProcessorOrchestrator changeProcessorOrchestrator;
     private final QueryOrchestrator queryOrchestrator;
     private final DocumentPathResolver documentPathResolver;
+    private final CuratorSettings settings;
     private final ScheduledExecutorService delayedExecutor;
     private final Set<String> expectedDocumentUpdates;
     private final List<Change<?>> changeQueue;
@@ -65,13 +66,15 @@ final class DefaultCurator
         Vault vault,
         ChangeProcessorOrchestrator changeProcessorOrchestrator,
         QueryOrchestrator queryOrchestrator,
-        DocumentPathResolver documentPathResolver)
+        DocumentPathResolver documentPathResolver,
+        CuratorSettings settings)
     {
         this.curatorName = Thread.currentThread().getName();
         this.vault = vault;
         this.changeProcessorOrchestrator = changeProcessorOrchestrator;
         this.queryOrchestrator = queryOrchestrator;
         this.documentPathResolver = documentPathResolver;
+        this.settings = settings;
         this.delayedExecutor = newScheduledThreadPool(1);
         this.expectedDocumentUpdates = new HashSet<>();
         this.changeQueue = new ArrayList<>();
@@ -241,18 +244,16 @@ final class DefaultCurator
     }
 
     /// A change was detected, which means the queries need to be executed, and changes written to
-    /// disk. That work is scheduled for a few seconds from now. If new changes come in in the
-    /// meantime, the task will be cancelled and replaced by a new one.
+    /// disk. That work is scheduled for a few seconds from now, as configured in the
+    /// [CuratorSettings]. If new changes come in in the meantime, the task will be cancelled and
+    /// replaced by a new one.
     private void scheduleChangeQueueProcessing()
     {
+        var delay = settings.delayInSeconds();
         LOGGER.debug("Scheduling query processing and document writing task to run in {} seconds.",
-            SCHEDULE_TIMEOUT_IN_SECONDS
+            delay
         );
-        runTask = delayedExecutor.schedule(
-            this::processChangeQueue,
-            SCHEDULE_TIMEOUT_IN_SECONDS,
-            SECONDS
-        );
+        runTask = delayedExecutor.schedule(this::processChangeQueue, delay, SECONDS);
     }
 
     /// This method is synchronized to ensure it doesn't run concurrently with

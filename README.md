@@ -34,7 +34,7 @@ THE OUTPUT WILL GO HERE
 
 Put this snippet (without the code block) in a document in a directory tracked by this tool, save it, and watch `THE OUTPUT WILL GO HERE` be magically replaced with a sorted list of links to documents in the `Articles` subdirectory. Add a new article there, delete one, or update an existing one, and watch the list get updated instantly. 
 
-> Or, I should say: after 3 seconds. This is the built-in delay for processing files after changes are detected. This delay is needed for Obsidian, which automatically saves files every few seconds when you're typing in them. If in the space of the 3-second delay another change is detected, the scheduled processing run is aborted, and a new one is scheduled to run, again in 3 seconds. This little trick ensures the processing doesn't happen unnecessarily often.  
+> Or, I should say: after 3 seconds. This is the default delay for processing files after changes are detected; it can be changed with the `delay` setting in the configuration document (see [Curator settings](#curator-settings)). This delay is needed for Obsidian, which automatically saves files every few seconds when you're typing in them. If in the space of the 3-second delay another change is detected, the scheduled processing run is aborted, and a new one is scheduled to run, again in 3 seconds. This little trick ensures the processing doesn't happen unnecessarily often.  
 
 The query syntax may weird at first, but notice that it is built up of HTML comment tags. That means that the query definitions disappear from view when you preview the Markdown, or when you export it to another format using the tool of your choice, leaving you with nothing but the query output. In effect, the query syntax is invisible to any tool that processes Markdown correctly.
 
@@ -253,6 +253,24 @@ extensions:
 Whenever the `extensions` property in that code block changes, the curator loads the new set of extensions and performs a complete refresh, exactly like touching the watch document does.
 
 Extensions that can't be loaded are left out, together with the extensions that depend on them; the others are loaded. Reasons for an extension not to load are: it's unknown, it has unsupported settings, it requires a service that no other loaded extension provides, its change processors consume a payload type nobody produces, or its queries have names that are already taken. Use the `extensions` query to see which extensions are available and active, what they require and provide, what settings they support, and why extensions weren't loaded. Only if the configuration can't be parsed at all is it rejected as a whole, keeping the current extensions.
+
+#### Curator settings
+
+The same YAML code block also holds the settings of the curator itself. All of them are optional:
+
+- `delay`: the number of seconds the curator waits after the last detected change before it runs the queries and writes documents to disk; the default is `3`. Changes coming in during this delay restart it. It must be a non-negative integer; for invalid values the default applies.
+- `locale`: the language of the query output, as a language tag like `nl` or `en-GB`; the default is `en-US`. Translations are available in English and Dutch; for other languages the output is in English, but dates are still formatted in the configured language. For an unknown language the default applies.
+
+````markdown
+```yaml
+delay: 5
+locale: nl
+extensions:
+  journal:
+```
+````
+
+Changes to the settings apply immediately. A change of the `locale` changes the output of all queries, so it also triggers a complete refresh.
 
 #### Creating an extension
 

@@ -1,4 +1,4 @@
-# Extensions loaded at runtime
+# Configuration loaded at runtime
 
 ## Status
 
@@ -6,7 +6,9 @@ Adopted
 
 ## Decision
 
-Change processors, queries and measurement trackers can be bundled in *extensions* that are loaded and unloaded at runtime, as configured in the first YAML code block of a configuration document in the vault. Extensions are Dagger subcomponents, compiled into the application; the configuration selects and parameterizes them. Loading or unloading extensions always triggers a complete reset of the curator.
+Configuration settings like the delay for the curator and the locale for messages can be (re)configured dynamically through the first YAML code block of a configuration document in the vault.
+
+Change processors, queries and measurement trackers can be bundled in *extensions* that are loaded and unloaded at runtime, as configured in the configuration document.  Extensions are Dagger subcomponents, compiled into the application; the configuration selects and parameterizes them. Loading or unloading extensions always triggers a complete reset of the curator.
 
 ## Context
 

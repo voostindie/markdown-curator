@@ -31,7 +31,7 @@ final class DefaultChangeProcessorOrchestrator
     private static final Set<Class<?>> RESERVED_PAYLOAD_TYPES =
         Set.of(Reset.class, Vault.class, Folder.class, Document.class);
     private static final List<Class<?>> RESERVED_CHANGE_PROCESSORS_CLASSES =
-        List.of(VaultReloader.class, ExtensionLoader.class, VaultInitializer.class);
+        List.of(VaultReloader.class, ConfigurationLoader.class, VaultInitializer.class);
 
     private static final Logger LOGGER = getLogger(DefaultChangeProcessorOrchestrator.class);
 
@@ -260,7 +260,7 @@ final class DefaultChangeProcessorOrchestrator
         return changelog;
     }
 
-    /// Activates the generation of extensions staged by the [ExtensionLoader], if any.
+    /// Activates the generation of extensions staged by the [ConfigurationLoader], if any.
     ///
     /// This happens only during a [Reset], after the reserved processors have run and before all
     /// other processors run. At that moment all processors have been reset and the vault

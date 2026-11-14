@@ -28,7 +28,7 @@ import static nl.ulso.curator.query.QueryTestModule.createQueryResultFormatterRe
 import static nl.ulso.curator.vault.QueryBlockTest.emptyQueryBlock;
 import static org.assertj.core.api.Assertions.assertThat;
 
-/// Tests the complete flow of loading and unloading extensions: the [ExtensionLoader] reads the
+/// Tests the complete flow of loading and unloading extensions: the [ConfigurationLoader] reads the
 /// configuration document, the [ExtensionResolver] creates the extensions, the
 /// [DefaultChangeProcessorOrchestrator] activates them.
 @ExtendWith(SoftAssertionsExtension.class)
@@ -116,7 +116,8 @@ class ExtensionLoadingTest
         registry = newExtensionRegistry(catalog, factories);
         var resolver = new ExtensionResolver(factories, curatorServices, curatorContributions);
         var loader =
-            new ExtensionLoader(Optional.of(CONFIGURATION_DOCUMENT), vault, resolver, registry);
+            new ConfigurationLoader(Optional.of(CONFIGURATION_DOCUMENT), vault, resolver, registry,
+                new CuratorSettings());
         orchestrator = new DefaultChangeProcessorOrchestrator(
             Set.of(new VaultInitializer(vault), loader),
             new NullStatistics(),

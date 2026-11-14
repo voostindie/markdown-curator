@@ -18,8 +18,8 @@ import static java.util.Collections.*;
 ///
 /// Loading a new generation is a two-step process:
 ///
-/// 1. The [ExtensionLoader] reads the configuration, resolves it into a new generation through the
-/// [ExtensionResolver] and stages it here.
+/// 1. The [ConfigurationLoader] reads the configuration, resolves it into a new generation through
+/// the [ExtensionResolver] and stages it here.
 /// 2. The [DefaultChangeProcessorOrchestrator] picks up the staged generation at a safe moment -
 /// while processing a [nl.ulso.curator.change.Reset] - drops extensions whose change processors
 /// or queries don't fit, and then activates the generation. That registers its queries in the
