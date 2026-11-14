@@ -13,7 +13,6 @@ import java.util.stream.Stream;
 
 import static java.util.Collections.emptyMap;
 import static nl.ulso.curator.query.OutputFormat.MARKDOWN;
-import static nl.ulso.curator.query.QueryTestModule.createQueryResultFactory;
 import static nl.ulso.curator.query.QueryTestModule.createQueryResultFormatterRegistry;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -23,7 +22,7 @@ class TableOfContentsQueryTest
     @Test
     void configurationOptions()
     {
-        var query = new TableOfContentsQuery(createQueryResultFactory());
+        var query = new TableOfContentsQuery();
         assertThat(query.supportedConfiguration()).containsOnlyKeys("minimum-level",
             "maximum-level"
         );
@@ -48,7 +47,7 @@ class TableOfContentsQueryTest
             ## Six
             """
         );
-        var query = new TableOfContentsQuery(createQueryResultFactory());
+        var query = new TableOfContentsQuery();
         QueryDefinitionStub definition = new QueryDefinitionStub(query, document);
         configuration.forEach(definition::withConfiguration);
         var result = query.run(definition);

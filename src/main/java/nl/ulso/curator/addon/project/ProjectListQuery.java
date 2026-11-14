@@ -18,6 +18,7 @@ import static nl.ulso.curator.addon.project.ProjectAttributeDefinition.STATUS;
 import static nl.ulso.curator.change.Change.isCreate;
 import static nl.ulso.curator.change.Change.isDelete;
 import static nl.ulso.curator.change.Change.isPayloadType;
+import static nl.ulso.curator.query.QueryResult.error;
 
 /// Lists all active projects, either in a simple list or in a table.
 final class ProjectListQuery
@@ -26,7 +27,6 @@ final class ProjectListQuery
     private final ProjectRepository projectRepository;
     private final ProjectAttributeRepository projectAttributeRepository;
     private final ProjectMessages messages;
-    private final QueryResultFactory resultFactory;
 
     private enum Format
     {
@@ -41,13 +41,11 @@ final class ProjectListQuery
     ProjectListQuery(
         ProjectRepository projectRepository,
         ProjectAttributeRepository projectAttributeRepository,
-        ProjectMessages messages,
-        QueryResultFactory resultFactory)
+        ProjectMessages messages)
     {
         this.projectRepository = projectRepository;
         this.projectAttributeRepository = projectAttributeRepository;
         this.messages = messages;
-        this.resultFactory = resultFactory;
     }
 
     @Override
@@ -82,7 +80,7 @@ final class ProjectListQuery
         var format = FORMATS.get(definition.configuration().string("format", "list"));
         if (format == null)
         {
-            return resultFactory.error("Unsupported format");
+            return error("Unsupported format");
         }
         var projects = projectRepository.projects().stream()
             .sorted(comparingInt(p -> projectAttributeRepository.valueOf(p, PRIORITY)
@@ -90,10 +88,10 @@ final class ProjectListQuery
                 .orElse(MAX_VALUE)));
         return switch (format)
         {
-            case LIST -> resultFactory.unorderedList(projects
+            case LIST -> QueryResult.unorderedList(projects
                 .map((Project project) -> project.document().link())
                 .toList());
-            case TABLE -> resultFactory.table(
+            case TABLE -> QueryResult.table(
                 List.of(messages.projectPriority(),
                     messages.projectName(),
                     messages.projectLead(),

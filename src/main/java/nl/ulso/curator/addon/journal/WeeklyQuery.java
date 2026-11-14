@@ -2,7 +2,6 @@ package nl.ulso.curator.addon.journal;
 
 import jakarta.inject.Inject;
 import nl.ulso.curator.query.QueryDefinition;
-import nl.ulso.curator.query.QueryResultFactory;
 import nl.ulso.curator.vault.Vault;
 
 import java.time.LocalDate;
@@ -15,9 +14,9 @@ public class WeeklyQuery
     extends PeriodQuery
 {
     @Inject
-    WeeklyQuery(Journal journal, Vault vault, JournalSettings settings, QueryResultFactory resultFactory)
+    WeeklyQuery(Journal journal, Vault vault, JournalSettings settings)
     {
-        super(journal, vault, settings, resultFactory);
+        super(journal, vault, settings);
     }
 
     @Override

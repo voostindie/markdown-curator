@@ -15,7 +15,6 @@ import static nl.ulso.curator.addon.project.ProjectTestData.createAttributeRegis
 import static nl.ulso.curator.addon.project.ProjectTestData.createProjectRepository;
 import static nl.ulso.curator.addon.project.ProjectTestData.createTestVault;
 import static nl.ulso.curator.query.OutputFormat.MARKDOWN;
-import static nl.ulso.curator.query.QueryTestModule.createQueryResultFactory;
 import static nl.ulso.curator.query.QueryTestModule.createQueryResultFormatterRegistry;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -34,8 +33,7 @@ class ProjectListQueryTest
         query = new ProjectListQuery(
             createProjectRepository(vault),
             createAttributeRegistry(vault),
-            createMessages(ENGLISH),
-            createQueryResultFactory()
+            createMessages(ENGLISH)
         );
     }
 

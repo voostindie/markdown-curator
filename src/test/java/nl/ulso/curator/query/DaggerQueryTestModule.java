@@ -7,8 +7,5 @@ import dagger.Module;
 public abstract class DaggerQueryTestModule
 {
     @Binds
-    abstract QueryResultFactory bindQueryResultFactory(DefaultQueryResultFactory factory);
-
-    @Binds
     abstract GeneralMessages bindMessages(ResourceBundleGeneralMessages messages);
 }

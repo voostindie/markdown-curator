@@ -21,6 +21,7 @@ import static java.util.stream.Collectors.toSet;
 import static nl.ulso.curator.change.Change.isCreateOrUpdate;
 import static nl.ulso.curator.change.Change.isPayloadType;
 import static nl.ulso.curator.query.OutputFormat.MARKDOWN;
+import static nl.ulso.curator.query.QueryResult.error;
 import static nl.ulso.dictionary.Dictionary.emptyDictionary;
 import static nl.ulso.hash.ShortHasher.shortHashOf;
 import static org.slf4j.LoggerFactory.getLogger;
@@ -38,7 +39,6 @@ final class DefaultQueryOrchestrator
     private final Vault vault;
     private final QueryCatalog queryCatalog;
     private final QueryResultFormatterRegistry queryResultFormatterRegistry;
-    private final QueryResultFactory queryResultFactory;
     private final FrontMatterRewriteResolver frontMatterRewriteResolver;
     private final ExecutorService parallelExecutor;
 
@@ -47,13 +47,11 @@ final class DefaultQueryOrchestrator
         Vault vault,
         QueryCatalog queryCatalog,
         QueryResultFormatterRegistry queryResultFormatterRegistry,
-        QueryResultFactory queryResultFactory,
         FrontMatterRewriteResolver frontMatterRewriteResolver)
     {
         this.vault = vault;
         this.queryCatalog = queryCatalog;
         this.queryResultFormatterRegistry = queryResultFormatterRegistry;
-        this.queryResultFactory = queryResultFactory;
         this.frontMatterRewriteResolver = frontMatterRewriteResolver;
         this.parallelExecutor = newVirtualThreadPerTaskExecutor();
     }
@@ -263,8 +261,8 @@ final class DefaultQueryOrchestrator
             requestedFormat, queryBlock.queryName(), queryBlock.document().name(), available
         );
         return queryResultFormatterRegistry.formatResult(
-            queryResultFactory.error("Unknown output format '" + requestedFormat.strip() +
-                                     "'. Available formats: " + available + "."),
+            error("Unknown output format '" + requestedFormat.strip() +
+                              "'. Available formats: " + available + "."),
             MARKDOWN
         );
     }

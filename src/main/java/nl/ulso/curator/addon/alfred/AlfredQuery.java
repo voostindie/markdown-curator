@@ -6,18 +6,18 @@ import nl.ulso.curator.query.*;
 
 import java.util.*;
 
+import static nl.ulso.curator.query.QueryResult.table;
+
 /// Exposes settings for the Alfred workflow
 final class AlfredQuery
     implements Query
 {
     private final AlfredSettings settings;
-    private final QueryResultFactory queryResultFactory;
 
     @Inject
-    AlfredQuery(AlfredSettings settings, QueryResultFactory queryResultFactory)
+    AlfredQuery(AlfredSettings settings)
     {
         this.settings = settings;
-        this.queryResultFactory = queryResultFactory;
     }
 
     @Override
@@ -54,7 +54,7 @@ final class AlfredQuery
         addTo(features, "projects", settings.projectsPath());
         addTo(features, "reminders", settings.remindersPath());
         addTo(features, "systems", settings.systemsPath());
-        return queryResultFactory.table(
+        return table(
             List.of("name", "value"),
             features
         );

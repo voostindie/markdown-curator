@@ -9,18 +9,16 @@ import java.util.Map;
 
 import static java.util.Collections.reverse;
 import static java.util.Comparator.comparing;
+import static nl.ulso.curator.query.QueryResult.unorderedList;
 
 final class ListQuery
     extends FolderQuery
     implements Query
 {
-    private final QueryResultFactory resultFactory;
-
     @Inject
-    ListQuery(Vault vault, QueryResultFactory resultFactory)
+    ListQuery(Vault vault)
     {
         super(vault);
-        this.resultFactory = resultFactory;
     }
 
     @Override
@@ -63,6 +61,6 @@ final class ListQuery
         {
             reverse(list);
         }
-        return resultFactory.unorderedList(list);
+        return unorderedList(list);
     }
 }

@@ -16,6 +16,8 @@ import static java.net.URLEncoder.encode;
 import static java.util.Collections.emptyMap;
 import static java.util.stream.Collectors.toSet;
 import static nl.ulso.curator.change.Change.isPayloadType;
+import static nl.ulso.curator.query.QueryResult.empty;
+import static nl.ulso.curator.query.QueryResult.string;
 
 /// Reports on inconsistencies between OmniFocus and the projects in this vault.
 public final class OmniFocusQuery
@@ -25,20 +27,17 @@ public final class OmniFocusQuery
     private final ProjectRepository projectRepository;
     private final OmniFocusSettings settings;
     private final OmniFocusMessages messages;
-    private final QueryResultFactory queryResultFactory;
 
     @Inject
     public OmniFocusQuery(
         OmniFocusRepository omniFocusRepository, ProjectRepository projectRepository,
         OmniFocusSettings settings,
-        OmniFocusMessages messages,
-        QueryResultFactory queryResultFactory)
+        OmniFocusMessages messages)
     {
         this.omniFocusRepository = omniFocusRepository;
         this.projectRepository = projectRepository;
         this.settings = settings;
         this.messages = messages;
-        this.queryResultFactory = queryResultFactory;
     }
 
     @Override
@@ -74,9 +73,9 @@ public final class OmniFocusQuery
         var documentsWithoutProjects = collectDocumentsWithoutOmniFocusProjects();
         if (projectsWithoutDocuments.isEmpty() && documentsWithoutProjects.isEmpty())
         {
-            return queryResultFactory.empty();
+            return empty();
         }
-        return queryResultFactory.string(
+        return string(
             generateReport(projectsWithoutDocuments, documentsWithoutProjects)
         );
     }

@@ -11,6 +11,7 @@ import java.util.stream.Stream;
 
 import static java.util.Comparator.comparing;
 import static nl.ulso.curator.change.Change.isPayloadType;
+import static nl.ulso.curator.query.QueryResult.unorderedList;
 
 public class PeriodQuery
     implements Query
@@ -18,15 +19,13 @@ public class PeriodQuery
     private final Journal journal;
     private final Vault vault;
     private final String defaultFolder;
-    private final QueryResultFactory resultFactory;
 
     @Inject
-    PeriodQuery(Journal journal, Vault vault, JournalSettings settings, QueryResultFactory resultFactory)
+    PeriodQuery(Journal journal, Vault vault, JournalSettings settings)
     {
         this.journal = journal;
         this.vault = vault;
         this.defaultFolder = settings.projectFolderName();
-        this.resultFactory = resultFactory;
     }
 
     @Override
@@ -79,7 +78,7 @@ public class PeriodQuery
         var folder = definition.configuration().string("folder", defaultFolder);
         var finder = new DocumentFinder(documentNames, folder);
         vault.accept(finder);
-        return resultFactory.unorderedList(
+        return unorderedList(
             finder.selectedDocuments.stream()
                 .sorted(comparing(Document::sortableTitle))
                 .map(Document::link)

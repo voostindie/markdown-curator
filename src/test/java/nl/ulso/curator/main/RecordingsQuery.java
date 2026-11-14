@@ -8,18 +8,17 @@ import nl.ulso.curator.vault.*;
 import java.util.*;
 
 import static java.util.Comparator.comparing;
+import static nl.ulso.curator.query.QueryResult.unorderedList;
 
 public class RecordingsQuery
     implements Query
 {
     private final Vault vault;
-    private final QueryResultFactory resultFactory;
 
     @Inject
-    public RecordingsQuery(Vault vault, QueryResultFactory resultFactory)
+    public RecordingsQuery(Vault vault)
     {
         this.vault = vault;
-        this.resultFactory = resultFactory;
     }
 
     @Override
@@ -52,7 +51,7 @@ public class RecordingsQuery
         var song = definition.configuration().string("song", definition.document().name());
         var finder = new RecordingsFinder(song);
         vault.accept(finder);
-        return resultFactory.unorderedList(finder.recordings.stream()
+        return unorderedList(finder.recordings.stream()
             .map(row ->
                 "Track " + row.get("Index") + " on [[" + row.get("Album") + "]]").toList());
     }

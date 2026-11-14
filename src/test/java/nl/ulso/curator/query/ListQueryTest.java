@@ -13,7 +13,6 @@ import java.util.stream.Stream;
 
 import static java.util.Collections.emptyMap;
 import static nl.ulso.curator.query.OutputFormat.MARKDOWN;
-import static nl.ulso.curator.query.QueryTestModule.createQueryResultFactory;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @ExtendWith(SoftAssertionsExtension.class)
@@ -25,7 +24,7 @@ class ListQueryTest
     @Test
     void configurationOptions()
     {
-        var query = new ListQuery(null, createQueryResultFactory());
+        var query = new ListQuery(null);
         assertThat(query.supportedConfiguration()).containsOnlyKeys("folder", "recurse", "reverse");
     }
 
@@ -35,7 +34,7 @@ class ListQueryTest
     {
         var vault = testVault();
         var document = vault.resolveDocumentInPath("A/1");
-        var query = new ListQuery(vault, createQueryResultFactory());
+        var query = new ListQuery(vault);
         QueryDefinitionStub definition = new QueryDefinitionStub(query, document);
         configuration.forEach(definition::withConfiguration);
         var result = query.run(definition);

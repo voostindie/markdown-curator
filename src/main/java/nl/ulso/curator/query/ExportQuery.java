@@ -12,6 +12,8 @@ import java.util.Map;
 
 import static java.lang.System.lineSeparator;
 import static nl.ulso.curator.query.OutputFormat.MARKDOWN;
+import static nl.ulso.curator.query.QueryResult.error;
+import static nl.ulso.curator.query.QueryResult.string;
 import static nl.ulso.emoji.EmojiStripper.stripEmojisFrom;
 
 /// Exports a document from the vault to vanilla Markdown.
@@ -25,28 +27,24 @@ final class ExportQuery
     private final Vault vault;
     private final Provider<QueryCatalog> queryCatalogProvider;
     private final QueryResultFormatterRegistry formatterRegistry;
-    private final QueryResultFactory resultFactory;
 
     @Inject
     ExportQuery(
         Vault vault,
         Provider<QueryCatalog> queryCatalogProvider,
-        QueryResultFormatterRegistry formatterRegistry,
-        QueryResultFactory resultFactory)
+        QueryResultFormatterRegistry formatterRegistry)
     {
         this.vault = vault;
         this.queryCatalogProvider = queryCatalogProvider;
         this.formatterRegistry = formatterRegistry;
-        this.resultFactory = resultFactory;
     }
 
     ExportQuery(
         Vault vault,
         QueryCatalog queryCatalog,
-        QueryResultFormatterRegistry formatterRegistry,
-        QueryResultFactory resultFactory)
+        QueryResultFormatterRegistry formatterRegistry)
     {
-        this(vault, () -> queryCatalog, formatterRegistry, resultFactory);
+        this(vault, () -> queryCatalog, formatterRegistry);
     }
 
     @Override
@@ -91,7 +89,7 @@ final class ExportQuery
         var documentName = definition.configuration().string("document", null);
         if (documentName == null || documentName.isBlank())
         {
-            return resultFactory.error("No document specified in query configuration.");
+            return error("No document specified in query configuration.");
         }
         var stripEmojis = definition.configuration().bool("strip-emojis-from-links", true);
         var addTitle = definition.configuration().bool("add-title", true);
@@ -107,10 +105,10 @@ final class ExportQuery
             {
                 output = "# " + document.title() + lineSeparator() + lineSeparator() + output;
             }
-            return resultFactory.string(output);
+            return string(output);
 
         }).orElseGet(() ->
-            resultFactory.error("Document not found: " + documentName)
+            error("Document not found: " + documentName)
         );
     }
 

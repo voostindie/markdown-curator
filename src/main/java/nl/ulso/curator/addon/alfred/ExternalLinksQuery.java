@@ -15,6 +15,8 @@ import java.util.stream.Collectors;
 
 import static java.util.Comparator.comparing;
 import static java.util.regex.Pattern.compile;
+import static nl.ulso.curator.query.QueryResult.error;
+import static nl.ulso.curator.query.QueryResult.table;
 
 /// Gathers all external links for a document, combining links in specific links sections with any
 /// links from the timeline marked by a specific marker.
@@ -36,21 +38,18 @@ final class ExternalLinksQuery
     private final Vault vault;
     private final Journal journal;
     private final String documentLinkSectionName;
-    private final QueryResultFactory queryResultFactory;
 
     @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
     @Inject
     ExternalLinksQuery(
         Vault vault,
         Journal journal,
-        @Named("documentLinkSectionName") Optional<String> documentLinkSectionName,
-        QueryResultFactory queryResultFactory)
+        @Named("documentLinkSectionName") Optional<String> documentLinkSectionName)
     {
         this.vault = vault;
         this.journal = journal;
         this.documentLinkSectionName = documentLinkSectionName.orElse(
             DEFAULT_DOCUMENT_LINK_SECTION_NAME);
-        this.queryResultFactory = queryResultFactory;
     }
 
     @Override
@@ -92,18 +91,18 @@ final class ExternalLinksQuery
         var documentName = definition.configuration().string("document", null);
         if (documentName == null)
         {
-            return queryResultFactory.error("No document name specified");
+            return error("No document name specified");
         }
         return vault.findDocument(documentName).map(document ->
         {
             List<Link> links = new ArrayList<>();
             collectDocumentLinks(document, links);
             collectJournalLinks(document, links);
-            return queryResultFactory.table(
+            return table(
                 List.of(LINK_NAME, LINK_URL),
                 links.stream().map(Link::toMap).toList()
             );
-        }).orElseGet(queryResultFactory::empty);
+        }).orElseGet(QueryResult::empty);
     }
 
     private void collectDocumentLinks(Document document, Collection<Link> links)

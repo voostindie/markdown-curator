@@ -10,19 +10,18 @@ import java.io.StringWriter;
 import java.util.Map;
 
 import static java.util.Collections.emptyMap;
+import static nl.ulso.curator.query.QueryResult.string;
 
 @Singleton
 final class StatisticsQuery
     implements Query
 {
     private final Statistics statistics;
-    private final QueryResultFactory queryResultFactory;
 
     @Inject
-    StatisticsQuery(Statistics statistics, QueryResultFactory queryResultFactory)
+    StatisticsQuery(Statistics statistics)
     {
         this.statistics = statistics;
-        this.queryResultFactory = queryResultFactory;
     }
 
     @Override
@@ -57,6 +56,6 @@ final class StatisticsQuery
         writer.println("```yaml");
         statistics.logTo(writer);
         writer.println("```");
-        return queryResultFactory.string(output.toString());
+        return string(output.toString());
     }
 }

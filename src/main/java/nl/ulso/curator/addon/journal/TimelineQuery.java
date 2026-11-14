@@ -11,6 +11,7 @@ import java.util.Map;
 import static java.lang.System.lineSeparator;
 import static java.util.stream.Collectors.joining;
 import static nl.ulso.curator.change.Change.isPayloadType;
+import static nl.ulso.curator.query.QueryResult.string;
 
 /// Generates a timeline for a document, extracted from the daily logs, Logseq-style.
 @ExtensionScope
@@ -19,14 +20,12 @@ public class TimelineQuery
 {
     private final Journal journal;
     private final NewDayAlarm newDayAlarm;
-    private final QueryResultFactory resultFactory;
 
     @Inject
-    TimelineQuery(Journal journal, NewDayAlarm newDayAlarm, QueryResultFactory resultFactory)
+    TimelineQuery(Journal journal, NewDayAlarm newDayAlarm)
     {
         this.journal = journal;
         this.newDayAlarm = newDayAlarm;
-        this.resultFactory = resultFactory;
     }
 
     @Override
@@ -72,7 +71,7 @@ public class TimelineQuery
             .map(entry -> "- **[[" + entry.getKey() + "]]**:" + lineSeparator() +
                           entry.getValue().indent(4))
             .collect(joining());
-        return resultFactory.string(result + lineSeparator());
+        return string(result + lineSeparator());
     }
 
     private String resolveDocumentName(QueryDefinition definition)

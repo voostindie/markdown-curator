@@ -15,14 +15,12 @@ import java.util.stream.Stream;
 import static java.util.Collections.emptyMap;
 import static nl.ulso.curator.query.OutputFormat.MARKDOWN;
 import static nl.ulso.curator.query.QueryTestModule.createQueryCatalog;
-import static nl.ulso.curator.query.QueryTestModule.createQueryResultFactory;
 import static nl.ulso.curator.query.QueryTestModule.createQueryResultFormatterRegistry;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @ExtendWith(SoftAssertionsExtension.class)
 class ExportQueryTest
 {
-    private final QueryResultFactory resultFactory = createQueryResultFactory();
     private final QueryResultFormatterRegistry formatterRegistry =
         createQueryResultFormatterRegistry();
 
@@ -30,7 +28,7 @@ class ExportQueryTest
     void name()
     {
         var query = new ExportQuery(new VaultStub(), QueryTestModule.createEmptyCatalog(),
-            formatterRegistry, resultFactory
+            formatterRegistry
         );
         assertThat(query.name()).isEqualTo("export");
     }
@@ -39,7 +37,7 @@ class ExportQueryTest
     void description()
     {
         var query = new ExportQuery(new VaultStub(), QueryTestModule.createEmptyCatalog(),
-            formatterRegistry, resultFactory
+            formatterRegistry
         );
         assertThat(query.description()).isNotBlank();
     }
@@ -48,7 +46,7 @@ class ExportQueryTest
     void supportedConfiguration()
     {
         var query = new ExportQuery(new VaultStub(), QueryTestModule.createEmptyCatalog(),
-            formatterRegistry, resultFactory
+            formatterRegistry
         );
         assertThat(query.supportedConfiguration())
             .containsOnlyKeys("document", "strip-emojis-from-links", "add-title");
@@ -58,7 +56,7 @@ class ExportQueryTest
     void isImpactedByAlwaysReturnsFalse()
     {
         var query = new ExportQuery(new VaultStub(), QueryTestModule.createEmptyCatalog(),
-            formatterRegistry, resultFactory
+            formatterRegistry
         );
         assertThat(query.isImpactedBy(null, null)).isFalse();
     }
@@ -68,7 +66,7 @@ class ExportQueryTest
     {
         var vault = new VaultStub();
         var query = new ExportQuery(vault, QueryTestModule.createEmptyCatalog(),
-            formatterRegistry, resultFactory
+            formatterRegistry
         );
         var definition = new QueryDefinitionStub(query, null);
         var result = query.run(definition);
@@ -82,7 +80,7 @@ class ExportQueryTest
     {
         var vault = new VaultStub();
         var query = new ExportQuery(vault, QueryTestModule.createEmptyCatalog(),
-            formatterRegistry, resultFactory
+            formatterRegistry
         );
         var definition = new QueryDefinitionStub(query, null)
             .withConfiguration("document", "NonExistentDoc");
@@ -108,7 +106,7 @@ class ExportQueryTest
             """
         );
         var query = new ExportQuery(vault, QueryTestModule.createEmptyCatalog(),
-            formatterRegistry, resultFactory
+            formatterRegistry
         );
         var definition = new QueryDefinitionStub(query, null)
             .withConfiguration("document", "doc1");
@@ -129,7 +127,7 @@ class ExportQueryTest
         var vault = new VaultStub();
         vault.addDocument("testDoc", inputContent);
         var query = new ExportQuery(vault, QueryTestModule.createEmptyCatalog(),
-            formatterRegistry, resultFactory
+            formatterRegistry
         );
         var definition = new QueryDefinitionStub(query, null)
             .withConfiguration("document", "testDoc");
@@ -196,7 +194,7 @@ class ExportQueryTest
             """
         );
         var query = new ExportQuery(vault, QueryTestModule.createEmptyCatalog(),
-            formatterRegistry, resultFactory
+            formatterRegistry
         );
         var definition = new QueryDefinitionStub(query, null)
             .withConfiguration("document", "docWithCode");
@@ -238,9 +236,9 @@ class ExportQueryTest
             """
         );
 
-        var listQuery = new ListQuery(vault, resultFactory);
+        var listQuery = new ListQuery(vault);
         var catalog = createQueryCatalog(Set.of(listQuery));
-        var exportQuery = new ExportQuery(vault, catalog, formatterRegistry, resultFactory);
+        var exportQuery = new ExportQuery(vault, catalog, formatterRegistry);
         var definition = new QueryDefinitionStub(exportQuery, null)
             .withConfiguration("document", "overview");
 
@@ -305,7 +303,7 @@ class ExportQueryTest
         };
 
         var catalog = createQueryCatalog(Set.of(failingQuery));
-        var exportQuery = new ExportQuery(vault, catalog, formatterRegistry, resultFactory);
+        var exportQuery = new ExportQuery(vault, catalog, formatterRegistry);
         var definition = new QueryDefinitionStub(exportQuery, null)
             .withConfiguration("document", "docWithFailingQuery");
 
@@ -328,7 +326,7 @@ class ExportQueryTest
             See [[🚀 Rocket Document|🔥 Rocket Alias]] and [[💡 Idea#📌 Pin]].
             """);
         var query = new ExportQuery(vault, QueryTestModule.createEmptyCatalog(),
-            formatterRegistry, resultFactory
+            formatterRegistry
         );
         var definition = new QueryDefinitionStub(query, null)
             .withConfiguration("document", "docWithEmojis");
@@ -353,7 +351,7 @@ class ExportQueryTest
             See [[🚀 Rocket Document]].
             """);
         var query = new ExportQuery(vault, QueryTestModule.createEmptyCatalog(),
-            formatterRegistry, resultFactory
+            formatterRegistry
         );
         var definition = new QueryDefinitionStub(query, null)
             .withConfiguration("document", "docWithEmojis")
@@ -383,7 +381,7 @@ class ExportQueryTest
             Link 4: [[💡 Idea#📌 Pin|🔥 Rocket Alias]]
             """);
         var query = new ExportQuery(vault, QueryTestModule.createEmptyCatalog(),
-            formatterRegistry, resultFactory
+            formatterRegistry
         );
         var definition = new QueryDefinitionStub(query, null)
             .withConfiguration("document", "docWithEmojis")
@@ -411,7 +409,7 @@ class ExportQueryTest
             Body text without any header.
             """);
         var query = new ExportQuery(vault, QueryTestModule.createEmptyCatalog(),
-            formatterRegistry, resultFactory
+            formatterRegistry
         );
         var definition = new QueryDefinitionStub(query, null)
             .withConfiguration("document", "noHeaderDoc");
@@ -434,7 +432,7 @@ class ExportQueryTest
             Body text without any header.
             """);
         var query = new ExportQuery(vault, QueryTestModule.createEmptyCatalog(),
-            formatterRegistry, resultFactory
+            formatterRegistry
         );
         var definition = new QueryDefinitionStub(query, null)
             .withConfiguration("document", "noHeaderDoc")
@@ -456,7 +454,7 @@ class ExportQueryTest
             Body text without any header.
             """);
         var query = new ExportQuery(vault, QueryTestModule.createEmptyCatalog(),
-            formatterRegistry, resultFactory
+            formatterRegistry
         );
         var definition = new QueryDefinitionStub(query, null)
             .withConfiguration("document", "myDocument")
@@ -483,7 +481,7 @@ class ExportQueryTest
             Body text without any header.
             """);
         var query = new ExportQuery(vault, QueryTestModule.createEmptyCatalog(),
-            formatterRegistry, resultFactory
+            formatterRegistry
         );
         var definition = new QueryDefinitionStub(query, null)
             .withConfiguration("document", "myDocument")
@@ -509,7 +507,7 @@ class ExportQueryTest
             Body text below header.
             """);
         var query = new ExportQuery(vault, QueryTestModule.createEmptyCatalog(),
-            formatterRegistry, resultFactory
+            formatterRegistry
         );
         var definition = new QueryDefinitionStub(query, null)
             .withConfiguration("document", "myDocument")
@@ -535,7 +533,7 @@ class ExportQueryTest
             Body text below level 2 header.
             """);
         var query = new ExportQuery(vault, QueryTestModule.createEmptyCatalog(),
-            formatterRegistry, resultFactory
+            formatterRegistry
         );
         var definition = new QueryDefinitionStub(query, null)
             .withConfiguration("document", "myDocument")
@@ -559,7 +557,7 @@ class ExportQueryTest
         var vault = new VaultStub();
         vault.addDocument("emptyDoc", "");
         var query = new ExportQuery(vault, QueryTestModule.createEmptyCatalog(),
-            formatterRegistry, resultFactory
+            formatterRegistry
         );
         var definition = new QueryDefinitionStub(query, null)
             .withConfiguration("document", "emptyDoc")

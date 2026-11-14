@@ -15,12 +15,7 @@ public class QueryTestModule
 
     public static QueryCatalog createQueryCatalog(Set<Query> queries)
     {
-        return new DefaultQueryCatalog(queries, new DefaultQueryResultFactory());
-    }
-
-    public static QueryResultFactory createQueryResultFactory()
-    {
-        return new DefaultQueryResultFactory();
+        return new DefaultQueryCatalog(queries);
     }
 
     public static GeneralMessages createMessages(Locale locale)

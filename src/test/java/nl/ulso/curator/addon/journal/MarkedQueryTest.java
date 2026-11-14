@@ -11,7 +11,6 @@ import java.util.List;
 
 import static nl.ulso.curator.addon.journal.JournalTest.createTestJournal;
 import static nl.ulso.curator.query.OutputFormat.MARKDOWN;
-import static nl.ulso.curator.query.QueryTestModule.createQueryResultFactory;
 import static nl.ulso.curator.query.QueryTestModule.createQueryResultFormatterRegistry;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -126,6 +125,6 @@ class MarkedQueryTest
 
     private MarkedQuery createQuery()
     {
-        return new MarkedQuery(journal, createQueryResultFactory());
+        return new MarkedQuery(journal);
     }
 }

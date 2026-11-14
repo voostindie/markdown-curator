@@ -21,7 +21,6 @@ import static java.util.Optional.empty;
 import static nl.ulso.curator.change.Changelog.emptyChangelog;
 import static nl.ulso.curator.query.OutputFormat.JSON;
 import static nl.ulso.curator.query.OutputFormat.MARKDOWN;
-import static nl.ulso.curator.query.QueryTestModule.createQueryResultFactory;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @ExtendWith(SoftAssertionsExtension.class)
@@ -281,8 +280,7 @@ class ExternalLinksQueryTest
         var query = new ExternalLinksQuery(
             vault,
             stubJournal,
-            Optional.empty(),
-            createQueryResultFactory()
+            Optional.empty()
         );
         var definition = new QueryDefinitionStub(query, null)
             .withConfiguration("document", "Zeta");
@@ -325,8 +323,7 @@ class ExternalLinksQueryTest
         var query = new ExternalLinksQuery(
             vault,
             stubJournal,
-            Optional.empty(),
-            createQueryResultFactory()
+            Optional.empty()
         );
         var definition = new QueryDefinitionStub(query, null)
             .withConfiguration("document", "Multiple");
@@ -369,8 +366,7 @@ class ExternalLinksQueryTest
         var query = new ExternalLinksQuery(
             vault,
             stubJournal,
-            Optional.empty(),
-            createQueryResultFactory()
+            Optional.empty()
         );
         var definition = new QueryDefinitionStub(query, null)
             .withConfiguration("document", "Eta");
@@ -405,8 +401,7 @@ class ExternalLinksQueryTest
         var query = new ExternalLinksQuery(
             vault,
             stubJournal,
-            Optional.empty(),
-            createQueryResultFactory()
+            Optional.empty()
         );
         var definition = new QueryDefinitionStub(query, null)
             .withConfiguration("document", "Theta");
@@ -442,8 +437,7 @@ class ExternalLinksQueryTest
         var query = new ExternalLinksQuery(
             vault,
             stubJournal,
-            Optional.empty(),
-            createQueryResultFactory()
+            Optional.empty()
         );
         var definition = new QueryDefinitionStub(query, null)
             .withConfiguration("document", "Iota");
@@ -462,9 +456,7 @@ class ExternalLinksQueryTest
 
     private ExternalLinksQuery createQuery(String documentLinkSectionName)
     {
-        return new ExternalLinksQuery(vault, journal, Optional.ofNullable(documentLinkSectionName),
-            createQueryResultFactory()
-        );
+        return new ExternalLinksQuery(vault, journal, Optional.ofNullable(documentLinkSectionName));
     }
 
     private static Marker createMarker(String name, boolean exportLinks)

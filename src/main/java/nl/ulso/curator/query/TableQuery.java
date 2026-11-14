@@ -6,18 +6,16 @@ import nl.ulso.curator.vault.Vault;
 import java.util.*;
 
 import static java.util.Collections.reverse;
+import static nl.ulso.curator.query.QueryResult.table;
 
 final class TableQuery
     extends FolderQuery
     implements Query
 {
-    private final QueryResultFactory resultFactory;
-
     @Inject
-    TableQuery(Vault vault, QueryResultFactory resultFactory)
+    TableQuery(Vault vault)
     {
         super(vault);
-        this.resultFactory = resultFactory;
     }
 
     @Override
@@ -83,6 +81,6 @@ final class TableQuery
             columns.remove(i);
             columns.addFirst(sort);
         }
-        return resultFactory.table(columns, table);
+        return table(columns, table);
     }
 }

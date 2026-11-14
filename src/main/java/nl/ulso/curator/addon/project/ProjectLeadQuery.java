@@ -18,6 +18,7 @@ import static nl.ulso.curator.addon.project.ProjectAttributeDefinition.STATUS;
 import static nl.ulso.curator.change.Change.isCreate;
 import static nl.ulso.curator.change.Change.isDelete;
 import static nl.ulso.curator.change.Change.isPayloadType;
+import static nl.ulso.curator.query.QueryResult.table;
 
 /// Lists all projects lead by a specific party (contact, team, ...document).
 final class ProjectLeadQuery
@@ -26,19 +27,16 @@ final class ProjectLeadQuery
     private final ProjectRepository projectRepository;
     private final ProjectAttributeRepository projectAttributeRepository;
     private final ProjectMessages messages;
-    private final QueryResultFactory resultFactory;
 
     @Inject
     ProjectLeadQuery(
         ProjectRepository projectRepository,
         ProjectAttributeRepository projectAttributeRepository,
-        ProjectMessages messages,
-        QueryResultFactory resultFactory)
+        ProjectMessages messages)
     {
         this.projectRepository = projectRepository;
         this.projectAttributeRepository = projectAttributeRepository;
         this.messages = messages;
-        this.resultFactory = resultFactory;
     }
 
     @Override
@@ -81,7 +79,7 @@ final class ProjectLeadQuery
             .sorted(comparingInt(p -> projectAttributeRepository.valueOf(p, PRIORITY)
                 .map(i -> (Integer) i).orElse(MAX_VALUE)))
             .toList();
-        return resultFactory.table(
+        return table(
             List.of(messages.projectPriority(),
                 messages.projectName(),
                 messages.projectLastModified(),

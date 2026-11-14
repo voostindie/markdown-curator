@@ -15,7 +15,6 @@ import java.util.stream.Stream;
 import static java.time.LocalDate.now;
 import static nl.ulso.curator.addon.journal.JournalTest.createTestJournal;
 import static nl.ulso.curator.query.OutputFormat.MARKDOWN;
-import static nl.ulso.curator.query.QueryTestModule.createQueryResultFactory;
 import static nl.ulso.curator.query.QueryTestModule.createQueryResultFormatterRegistry;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -32,21 +31,21 @@ class TimelineQueryTest
     @Test
     void name()
     {
-        var query = new TimelineQuery(null, null, createQueryResultFactory());
+        var query = new TimelineQuery(null, null);
         assertThat(query.name()).isEqualTo("timeline");
     }
 
     @Test
     void description()
     {
-        var query = new TimelineQuery(null, null, createQueryResultFactory());
+        var query = new TimelineQuery(null, null);
         assertThat(query.description()).isNotBlank();
     }
 
     @Test
     void supportedConfiguration()
     {
-        var query = new TimelineQuery(null, null, createQueryResultFactory());
+        var query = new TimelineQuery(null, null);
         assertThat(query.supportedConfiguration()).hasSize(2);
     }
 
@@ -56,7 +55,7 @@ class TimelineQueryTest
     {
         var vault = new VaultStub();
         var journal = createTestJournal(vault);
-        var query = new TimelineQuery(journal, null, createQueryResultFactory());
+        var query = new TimelineQuery(journal, null);
         var definition = new QueryDefinitionStub(query, vault.addDocument("query", ""))
             .withConfiguration("document", documentName)
             .withConfiguration("limit", limit);

@@ -23,7 +23,6 @@ import static nl.ulso.curator.extension.ServiceRegistration.service;
 import static nl.ulso.curator.main.ExtensionFactoryStub.factory;
 import static nl.ulso.curator.main.ExtensionStub.extension;
 import static nl.ulso.curator.main.ExtensionTestSupport.newExtensionRegistry;
-import static nl.ulso.curator.query.QueryTestModule.createQueryResultFactory;
 import static nl.ulso.curator.query.QueryTestModule.createQueryResultFormatterRegistry;
 import static nl.ulso.curator.vault.QueryBlockTest.emptyQueryBlock;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -886,8 +885,7 @@ class ExtensionLoadingTest
     private String runConfigurationQuery()
     {
         var query = new ConfigurationQuery(
-            settings, registry, () -> catalog, formatterRegistry, createQueryResultFactory(),
-            Optional.of(CONFIGURATION_DOCUMENT));
+            settings, registry, () -> catalog, formatterRegistry, Optional.of(CONFIGURATION_DOCUMENT));
         return formatterRegistry
             .format(query.run(emptyQueryBlock()), OutputFormat.MARKDOWN);
     }

@@ -22,7 +22,6 @@ import static nl.ulso.curator.change.Change.delete;
 import static nl.ulso.curator.change.Change.update;
 import static nl.ulso.curator.change.Changelog.changelogFor;
 import static nl.ulso.curator.query.OutputFormat.MARKDOWN;
-import static nl.ulso.curator.query.QueryTestModule.createQueryResultFactory;
 import static org.assertj.core.api.Assertions.assertThat;
 
 class WeekNavigationQueryTest
@@ -33,27 +32,21 @@ class WeekNavigationQueryTest
     @Test
     void name()
     {
-        var query = new WeekNavigationQuery(null, createQueryResultFactory(),
-            createMessages(ENGLISH)
-        );
+        var query = new WeekNavigationQuery(null, createMessages(ENGLISH));
         assertThat(query.name()).isEqualTo("weeknav");
     }
 
     @Test
     void description()
     {
-        var query = new WeekNavigationQuery(null, createQueryResultFactory(),
-            createMessages(ENGLISH)
-        );
+        var query = new WeekNavigationQuery(null, createMessages(ENGLISH));
         assertThat(query.description()).isNotBlank();
     }
 
     @Test
     void supportedConfiguration()
     {
-        var query = new WeekNavigationQuery(null, createQueryResultFactory(),
-            createMessages(ENGLISH)
-        );
+        var query = new WeekNavigationQuery(null, createMessages(ENGLISH));
         assertThat(query.supportedConfiguration()).isEmpty();
     }
 
@@ -62,9 +55,7 @@ class WeekNavigationQueryTest
     {
         var vault = new VaultStub();
         var journal = createTestJournal(vault);
-        var query = new WeekNavigationQuery(journal, createQueryResultFactory(),
-            createMessages(ENGLISH)
-        );
+        var query = new WeekNavigationQuery(journal, createMessages(ENGLISH));
         var result = query.run(new QueryDefinitionStub(query,
             vault.folder("Journal").orElseThrow().folder("2023").orElseThrow()
                 .document("2023 Week 04").orElseThrow()
@@ -81,9 +72,7 @@ class WeekNavigationQueryTest
     {
         var vault = new VaultStub();
         var journal = createTestJournal(vault);
-        var query = new WeekNavigationQuery(journal, createQueryResultFactory(),
-            createMessages(ENGLISH)
-        );
+        var query = new WeekNavigationQuery(journal, createMessages(ENGLISH));
         var result = query.run(new QueryDefinitionStub(query,
             vault.folder("Journal").orElseThrow().folder("2023").orElseThrow()
                 .document("2023-01-25").orElseThrow()
@@ -100,9 +89,7 @@ class WeekNavigationQueryTest
     {
         var vault = new VaultStub();
         var journal = createTestJournal(vault);
-        var query = new WeekNavigationQuery(journal, createQueryResultFactory(),
-            createMessages(ENGLISH)
-        );
+        var query = new WeekNavigationQuery(journal, createMessages(ENGLISH));
         var definition = new QueryDefinitionStub(
             query, vault.findDocument(currentWeeklyName).orElseThrow());
         var changedDaily = journal.toDaily(
@@ -139,9 +126,7 @@ class WeekNavigationQueryTest
     {
         var vault = new VaultStub();
         var journal = createTestJournal(vault);
-        var query = new WeekNavigationQuery(journal, createQueryResultFactory(),
-            createMessages(ENGLISH)
-        );
+        var query = new WeekNavigationQuery(journal, createMessages(ENGLISH));
         var definition = new QueryDefinitionStub(
             query, vault.findDocument(currentWeeklyName).orElseThrow());
         var changedWeekly = parseWeeklyFrom(

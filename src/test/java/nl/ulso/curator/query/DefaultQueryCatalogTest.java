@@ -23,7 +23,7 @@ class DefaultQueryCatalogTest
     @Test
     void emptyCatalog()
     {
-        var catalog = new DefaultQueryCatalog(emptySet(), new DefaultQueryResultFactory());
+        var catalog = new DefaultQueryCatalog(emptySet());
         softly.assertThat(catalog.isEmpty()).isTrue();
         var specification = catalog.query("invalid");
         softly.assertThat(specification.name()).isEqualTo("invalid");
@@ -39,7 +39,7 @@ class DefaultQueryCatalogTest
         Set<Query> set = new HashSet<>();
         set.add(new DummyQuery("q"));
         set.add(new DummyQuery("q"));
-        var catalog = new DefaultQueryCatalog(set, new DefaultQueryResultFactory());
+        var catalog = new DefaultQueryCatalog(set);
         assertThat(catalog.queries()).hasSize(2);
     }
 
@@ -47,7 +47,7 @@ class DefaultQueryCatalogTest
     void replaceDynamicQueries()
     {
         var catalog = new DefaultQueryCatalog(
-            Set.of(new DummyQuery("static")), new DefaultQueryResultFactory());
+            Set.of(new DummyQuery("static")));
         catalog.replaceDynamicQueries(List.of(new DummyQuery("dynamic1")));
         softly.assertThat(catalog.query("dynamic1")).isInstanceOf(DummyQuery.class);
         catalog.replaceDynamicQueries(List.of(new DummyQuery("dynamic2")));
@@ -63,7 +63,7 @@ class DefaultQueryCatalogTest
     void rejectDynamicQueryThatClashesWithStaticQuery()
     {
         var catalog = new DefaultQueryCatalog(
-            Set.of(new DummyQuery("static")), new DefaultQueryResultFactory());
+            Set.of(new DummyQuery("static")));
         catalog.replaceDynamicQueries(List.of(new DummyQuery("dynamic")));
         var clash = List.<Query>of(new DummyQuery("other"), new DummyQuery("static"));
         softly.assertThatThrownBy(() -> catalog.replaceDynamicQueries(clash))
@@ -76,7 +76,7 @@ class DefaultQueryCatalogTest
     @Test
     void rejectDuplicateDynamicQueries()
     {
-        var catalog = new DefaultQueryCatalog(emptySet(), new DefaultQueryResultFactory());
+        var catalog = new DefaultQueryCatalog(emptySet());
         var duplicates = List.<Query>of(new DummyQuery("q"), new DummyQuery("q"));
         softly.assertThatThrownBy(() -> catalog.replaceDynamicQueries(duplicates))
             .isInstanceOf(IllegalArgumentException.class);
@@ -86,7 +86,7 @@ class DefaultQueryCatalogTest
     @Test
     void helpQueryCannotBeReplaced()
     {
-        var catalog = new DefaultQueryCatalog(emptySet(), new DefaultQueryResultFactory());
+        var catalog = new DefaultQueryCatalog(emptySet());
         var help = List.<Query>of(new DummyQuery("help"));
         softly.assertThatThrownBy(() -> catalog.replaceDynamicQueries(help))
             .isInstanceOf(IllegalArgumentException.class);

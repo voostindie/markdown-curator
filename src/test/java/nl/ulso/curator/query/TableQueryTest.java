@@ -14,7 +14,6 @@ import java.util.stream.Stream;
 
 import static java.util.Collections.emptyMap;
 import static nl.ulso.curator.query.OutputFormat.MARKDOWN;
-import static nl.ulso.curator.query.QueryTestModule.createQueryResultFactory;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @ExtendWith(SoftAssertionsExtension.class)
@@ -26,7 +25,7 @@ class TableQueryTest
     @Test
     void configurationOptions()
     {
-        var query = new TableQuery(null, createQueryResultFactory());
+        var query = new TableQuery(null);
         assertThat(query.supportedConfiguration())
             .containsOnlyKeys("folder", "recurse", "reverse", "columns", "sort");
     }
@@ -37,7 +36,7 @@ class TableQueryTest
     {
         var vault = testVault();
         var document = vault.resolveDocumentInPath("C/V");
-        var query = new TableQuery(vault, createQueryResultFactory());
+        var query = new TableQuery(vault);
         QueryDefinitionStub definition = new QueryDefinitionStub(query, document);
         configuration.forEach(definition::withConfiguration);
         var result = query.run(definition);

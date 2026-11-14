@@ -11,6 +11,7 @@ import java.util.Map;
 
 import static java.lang.System.lineSeparator;
 import static nl.ulso.curator.change.Change.isPayloadType;
+import static nl.ulso.curator.query.QueryResult.string;
 
 /// Generates an overview of marked lines for a document, one section per marker
 @ExtensionScope
@@ -18,13 +19,11 @@ public class MarkedQuery
     implements Query
 {
     private final Journal journal;
-    private final QueryResultFactory resultFactory;
 
     @Inject
-    MarkedQuery(Journal journal, QueryResultFactory resultFactory)
+    MarkedQuery(Journal journal)
     {
         this.journal = journal;
-        this.resultFactory = resultFactory;
     }
 
     @Override
@@ -106,7 +105,7 @@ public class MarkedQuery
             }
             result.append(lineSeparator());
         }
-        return resultFactory.string(result.toString());
+        return string(result.toString());
     }
 
     private String resolveDocumentName(QueryDefinition definition)

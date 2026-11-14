@@ -6,40 +6,38 @@ import java.util.List;
 import java.util.Map;
 
 import static java.util.Collections.emptyList;
-import static nl.ulso.curator.query.QueryResultFactory.Alignment.CENTER;
-import static nl.ulso.curator.query.QueryResultFactory.Alignment.LEFT;
-import static nl.ulso.curator.query.QueryResultFactory.Alignment.RIGHT;
+import static nl.ulso.curator.query.QueryResult.Alignment.CENTER;
+import static nl.ulso.curator.query.QueryResult.Alignment.LEFT;
+import static nl.ulso.curator.query.QueryResult.Alignment.RIGHT;
 import static org.assertj.core.api.Assertions.assertThat;
 
 class QueryResultTest
 {
-    private final DefaultQueryResultFactory factory = new DefaultQueryResultFactory();
-
     @Test
     void error()
     {
-        var error = (ErrorResult) factory.error("error");
+        var error = (ErrorResult) QueryResult.error("error");
         assertThat(error.errorMessage()).contains("error");
     }
 
     @Test
     void empty()
     {
-        var empty = (EmptyResult) factory.empty();
+        var empty = (EmptyResult) QueryResult.empty();
         assertThat(empty).isNotNull();
     }
 
     @Test
     void tableNoResults()
     {
-        var table = factory.table(List.of("1", "2"), emptyList());
+        var table = QueryResult.table(List.of("1", "2"), emptyList());
         assertThat(table).isInstanceOf(EmptyResult.class);
     }
 
     @Test
     void tableWithResults()
     {
-        var table = (TableResult) factory.table(List.of("Title", "Year"),
+        var table = (TableResult) QueryResult.table(List.of("Title", "Year"),
             List.of(Map.of("Title", "No Time To Die", "Year", "2021"),
                 Map.of("Title", "Spectre", "Year", "2015"),
                 Map.of("Title", "Skyfall", "Year", "2012")
@@ -60,7 +58,7 @@ class QueryResultTest
     @Test
     void tableWithMissingColumn()
     {
-        var table = (TableResult) factory.table(
+        var table = (TableResult) QueryResult.table(
             List.of("Title"),
             List.of(Map.of("Name", "No Time To Die"))
         );
@@ -77,7 +75,7 @@ class QueryResultTest
     @Test
     void tableWithAlignments()
     {
-        var table = (TableResult) factory.table(
+        var table = (TableResult) QueryResult.table(
             List.of("Title", "Year", "Rating"),
             List.of(LEFT, CENTER, RIGHT),
             List.of(Map.of("Title", "No Time To Die", "Year", "2021", "Rating", "7.3"),
@@ -100,14 +98,14 @@ class QueryResultTest
     @Test
     void listNoResults()
     {
-        var list = factory.unorderedList(emptyList());
+        var list = QueryResult.unorderedList(emptyList());
         assertThat(list).isInstanceOf(EmptyResult.class);
     }
 
     @Test
     void listWithResults()
     {
-        var list = (UnorderedListResult) factory.unorderedList(List.of("Foo", "Bar"));
+        var list = (UnorderedListResult) QueryResult.unorderedList(List.of("Foo", "Bar"));
         var output = new UnorderedListMarkdownFormatter().format(list);
         assertThat(output).isEqualTo("""
             - Foo

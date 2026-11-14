@@ -13,16 +13,16 @@ import static nl.ulso.curator.addon.journal.Weekly.parseWeeklyFrom;
 import static nl.ulso.curator.change.Change.isCreate;
 import static nl.ulso.curator.change.Change.isDelete;
 import static nl.ulso.curator.change.Change.isPayloadType;
+import static nl.ulso.curator.query.QueryResult.string;
 
 @ExtensionScope
 final class WeekNavigationQuery
     extends NavigationQueryTemplate
 {
     @Inject
-    WeekNavigationQuery(
-        Journal journal, QueryResultFactory resultFactory, JournalMessages messages)
+    WeekNavigationQuery(Journal journal, JournalMessages messages)
     {
-        super(journal, resultFactory, messages);
+        super(journal, messages);
     }
 
     @Override
@@ -101,10 +101,10 @@ final class WeekNavigationQuery
                 .filter(Optional::isPresent)
                 .map(Optional::get)
                 .collect(Collectors.joining(" | "));
-            return resultFactory.string("**" + title + " " + subtitle + "**");
+            return string("**" + title + " " + subtitle + "**");
 
         }).orElseGet(() ->
-            resultFactory.error("Document is not a weekly journal!")
+            QueryResult.error("Document is not a weekly journal!")
         );
     }
 }

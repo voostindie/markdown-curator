@@ -12,7 +12,6 @@ import java.util.*;
 
 import static java.util.Collections.emptyMap;
 import static nl.ulso.curator.query.OutputFormat.MARKDOWN;
-import static nl.ulso.curator.query.QueryTestModule.createQueryResultFactory;
 import static nl.ulso.curator.query.QueryTestModule.createQueryResultFormatterRegistry;
 import static nl.ulso.curator.main.ExtensionTestSupport.newExtensionRegistry;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -43,8 +42,7 @@ class ChangeProcessorGraphQueryTest
         ));
         var orchestrator =
             new DefaultChangeProcessorOrchestrator(processors, null, newExtensionRegistry());
-        this.query =
-            new ChangeProcessorGraphQuery(orchestrator, new StringOnlyQueryResultFactory());
+        this.query = new ChangeProcessorGraphQuery(orchestrator);
         formatterRegistry = createQueryResultFormatterRegistry();
     }
 
@@ -182,48 +180,6 @@ class ChangeProcessorGraphQueryTest
         public Document document()
         {
             return null;
-        }
-    }
-
-    private static class StringOnlyQueryResultFactory
-        implements QueryResultFactory
-    {
-        @Override
-        public QueryResult empty()
-        {
-            return null;
-        }
-
-        @Override
-        public QueryResult error(String errorMessage)
-        {
-            return null;
-        }
-
-        @Override
-        public QueryResult table(List<String> columns, List<Map<String, String>> rows)
-        {
-            return null;
-        }
-
-        @Override
-        public QueryResult table(
-            List<String> columns, List<Alignment> alignments,
-            List<Map<String, String>> rows)
-        {
-            return null;
-        }
-
-        @Override
-        public QueryResult unorderedList(List<String> rows)
-        {
-            return null;
-        }
-
-        @Override
-        public QueryResult string(String output)
-        {
-            return createQueryResultFactory().string(output);
         }
     }
 }

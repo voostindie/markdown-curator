@@ -17,6 +17,7 @@ import static nl.ulso.curator.main.ConfigurationLoader.DELAY_PROPERTY;
 import static nl.ulso.curator.main.ConfigurationLoader.LOCALE_PROPERTY;
 import static nl.ulso.curator.main.CuratorSettings.DEFAULT_DELAY_IN_SECONDS;
 import static nl.ulso.curator.main.CuratorSettings.DEFAULT_LOCALE;
+import static nl.ulso.curator.query.QueryResult.string;
 
 /// Shows the active configuration of the curator, as loaded from the configuration document by the
 /// [ConfigurationLoader]:
@@ -38,7 +39,6 @@ final class ConfigurationQuery
     private final ExtensionRegistry registry;
     private final Provider<QueryCatalog> queryCatalogProvider;
     private final DynamicQueryResultFormatterRegistry formatterRegistry;
-    private final QueryResultFactory queryResultFactory;
     private final String configurationDocumentName;
 
     @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
@@ -48,14 +48,12 @@ final class ConfigurationQuery
         ExtensionRegistry registry,
         Provider<QueryCatalog> queryCatalogProvider,
         DynamicQueryResultFormatterRegistry formatterRegistry,
-        QueryResultFactory queryResultFactory,
         @Named(CONFIGURATION_DOCUMENT_KEY) Optional<String> configurationDocumentName)
     {
         this.settings = settings;
         this.registry = registry;
         this.queryCatalogProvider = queryCatalogProvider;
         this.formatterRegistry = formatterRegistry;
-        this.queryResultFactory = queryResultFactory;
         this.configurationDocumentName = configurationDocumentName.orElse(null);
     }
 
@@ -105,7 +103,7 @@ final class ConfigurationQuery
         appendQueries(builder);
         builder.append(lineSeparator());
         appendOutputFormats(builder);
-        return queryResultFactory.string(builder.toString());
+        return string(builder.toString());
     }
 
     private void appendSettings(StringBuilder builder)

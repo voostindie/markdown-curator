@@ -13,15 +13,16 @@ import static nl.ulso.curator.addon.journal.Daily.parseDateFrom;
 import static nl.ulso.curator.change.Change.isCreate;
 import static nl.ulso.curator.change.Change.isDelete;
 import static nl.ulso.curator.change.Change.isPayloadType;
+import static nl.ulso.curator.query.QueryResult.string;
 
 @ExtensionScope
 final class DayNavigationQuery
     extends NavigationQueryTemplate
 {
     @Inject
-    DayNavigationQuery(Journal journal, QueryResultFactory resultFactory, JournalMessages messages)
+    DayNavigationQuery(Journal journal, JournalMessages messages)
     {
-        super(journal, resultFactory, messages);
+        super(journal, messages);
     }
 
     @Override
@@ -95,10 +96,10 @@ final class DayNavigationQuery
                 .filter(Optional::isPresent)
                 .map(Optional::get)
                 .collect(joining(" "));
-            return resultFactory.string("**" + title + "**");
+            return string("**" + title + "**");
 
         }).orElseGet(() ->
-            resultFactory.error("Document is not a daily journal!")
+            QueryResult.error("Document is not a daily journal!")
         );
     }
 }

@@ -9,18 +9,17 @@ import java.util.*;
 import java.util.regex.Pattern;
 
 import static java.util.regex.Pattern.compile;
+import static nl.ulso.curator.query.QueryResult.unorderedList;
 
 public class AlbumsQuery
     implements Query
 {
     private final Vault vault;
-    private final QueryResultFactory resultFactory;
 
     @Inject
-    public AlbumsQuery(Vault vault, QueryResultFactory resultFactory)
+    public AlbumsQuery(Vault vault)
     {
         this.vault = vault;
-        this.resultFactory = resultFactory;
     }
 
     @Override
@@ -56,7 +55,7 @@ public class AlbumsQuery
         var reverse = definition.configuration().bool("reverse", false);
         var finder = new AlbumFinder(artist, reverse);
         vault.accept(finder);
-        return resultFactory.unorderedList(finder.albums.stream()
+        return unorderedList(finder.albums.stream()
             .map(row -> "[[" + row.get("Title") + "]], " + row.get("Year")).toList());
     }
 

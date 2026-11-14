@@ -8,17 +8,15 @@ import java.util.*;
 
 import static java.lang.System.lineSeparator;
 import static nl.ulso.curator.change.Change.isPayloadType;
+import static nl.ulso.curator.query.QueryResult.string;
 
 /// Generates a table of contents from the current document.
 final class TableOfContentsQuery
     implements Query
 {
-    private final QueryResultFactory factory;
-
     @Inject
-    TableOfContentsQuery(QueryResultFactory factory)
+    TableOfContentsQuery()
     {
-        this.factory = factory;
     }
 
     @Override
@@ -66,7 +64,7 @@ final class TableOfContentsQuery
                     .append(lineSeparator());
             }
         );
-        return factory.string(builder.toString());
+        return string(builder.toString());
     }
 
     private static class TableOfContentsBuilder

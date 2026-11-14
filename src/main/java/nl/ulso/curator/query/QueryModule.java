@@ -25,10 +25,6 @@ public abstract class QueryModule
         DefaultQueryResultFormatterRegistry registry);
 
     @Binds
-    abstract QueryResultFactory bindQueryResultFactory(
-        DefaultQueryResultFactory queryResultFactory);
-
-    @Binds
     abstract GeneralMessages bindGeneralMessages(ResourceBundleGeneralMessages messages);
 
     @Binds

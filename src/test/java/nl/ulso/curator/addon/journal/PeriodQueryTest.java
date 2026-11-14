@@ -13,7 +13,6 @@ import java.util.stream.Stream;
 
 import static nl.ulso.curator.addon.journal.JournalTest.createTestJournal;
 import static nl.ulso.curator.query.OutputFormat.MARKDOWN;
-import static nl.ulso.curator.query.QueryTestModule.createQueryResultFactory;
 import static org.assertj.core.api.Assertions.assertThat;
 
 class PeriodQueryTest
@@ -90,8 +89,7 @@ class PeriodQueryTest
     private PeriodQuery createQuery()
     {
         return new PeriodQuery(journal, vault,
-            new JournalSettings("Journal", "Markers", "Activities", "Projects", WeekFields.ISO),
-            createQueryResultFactory()
+            new JournalSettings("Journal", "Markers", "Activities", "Projects", WeekFields.ISO)
         );
     }
 }

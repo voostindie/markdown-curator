@@ -28,7 +28,7 @@ class TableJsonFormatterTest
     {
         var table = new TableResult(
             List.of("Title", "Year"),
-            List.of(QueryResultFactory.Alignment.LEFT, QueryResultFactory.Alignment.LEFT),
+            List.of(QueryResult.Alignment.LEFT, QueryResult.Alignment.LEFT),
             List.of(
                 Map.of("Title", "No Time To Die", "Year", "2021"),
                 Map.of("Title", "Spectre", "Year", "2015")
@@ -43,7 +43,7 @@ class TableJsonFormatterTest
     {
         var table = new TableResult(
             List.of("Title", "Year"),
-            List.of(QueryResultFactory.Alignment.LEFT, QueryResultFactory.Alignment.LEFT),
+            List.of(QueryResult.Alignment.LEFT, QueryResult.Alignment.LEFT),
             Collections.emptyList()
         );
         var json = formatter.format(table);

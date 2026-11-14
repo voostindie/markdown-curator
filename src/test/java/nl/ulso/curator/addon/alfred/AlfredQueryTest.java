@@ -9,7 +9,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import static nl.ulso.curator.change.Changelog.emptyChangelog;
 import static nl.ulso.curator.query.OutputFormat.JSON;
 import static nl.ulso.curator.query.OutputFormat.MARKDOWN;
-import static nl.ulso.curator.query.QueryTestModule.createQueryResultFactory;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @ExtendWith(SoftAssertionsExtension.class)
@@ -23,7 +22,7 @@ class AlfredQueryTest
     void setUp()
     {
         query = new AlfredQuery(
-            AlfredSettings.builder().projectsPath("Projects").build(), createQueryResultFactory()
+            AlfredSettings.builder().projectsPath("Projects").build()
         );
     }
 

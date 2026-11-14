@@ -26,15 +26,13 @@ final class DefaultQueryCatalog
     private static final Logger LOGGER = getLogger(DefaultQueryCatalog.class);
 
     private final Map<String, Query> staticQueries;
-    private final DefaultQueryResultFactory resultFactory;
     private volatile Map<String, Query> queries;
 
     @Inject
-    DefaultQueryCatalog(Set<Query> querySet, DefaultQueryResultFactory resultFactory)
+    DefaultQueryCatalog(Set<Query> querySet)
     {
-        this.resultFactory = resultFactory;
         Map<String, Query> map = new HashMap<>();
-        var help = new HelpQuery(this, resultFactory);
+        var help = new HelpQuery(this);
         map.put(help.name(), help);
         for (Query query : querySet)
         {
@@ -112,6 +110,6 @@ final class DefaultQueryCatalog
         {
             return query;
         }
-        return new UnknownQuery(this, name, resultFactory);
+        return new UnknownQuery(this, name);
     }
 }

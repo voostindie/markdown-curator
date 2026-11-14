@@ -22,7 +22,6 @@ import static nl.ulso.curator.change.Change.create;
 import static nl.ulso.curator.change.Change.delete;
 import static nl.ulso.curator.change.Change.update;
 import static nl.ulso.curator.query.OutputFormat.MARKDOWN;
-import static nl.ulso.curator.query.QueryTestModule.createQueryResultFactory;
 import static org.assertj.core.api.Assertions.assertThat;
 
 class LatestJournalNavigationQueryTest
@@ -37,27 +36,21 @@ class LatestJournalNavigationQueryTest
     @Test
     void name()
     {
-        var query = new LatestJournalNavigationQuery(null, createQueryResultFactory(),
-            createMessages(ENGLISH)
-        );
+        var query = new LatestJournalNavigationQuery(null, createMessages(ENGLISH));
         assertThat(query.name()).isEqualTo("latestnav");
     }
 
     @Test
     void description()
     {
-        var query = new LatestJournalNavigationQuery(null, createQueryResultFactory(),
-            createMessages(ENGLISH)
-        );
+        var query = new LatestJournalNavigationQuery(null, createMessages(ENGLISH));
         assertThat(query.description()).isNotBlank();
     }
 
     @Test
     void supportedConfiguration()
     {
-        var query = new LatestJournalNavigationQuery(null, createQueryResultFactory(),
-            createMessages(ENGLISH)
-        );
+        var query = new LatestJournalNavigationQuery(null, createMessages(ENGLISH));
         assertThat(query.supportedConfiguration()).containsOnlyKeys("prefix", "postfix");
     }
 
@@ -65,9 +58,7 @@ class LatestJournalNavigationQueryTest
     void latestInTestJournal()
     {
         var journal = createTestJournal(new VaultStub());
-        var query = new LatestJournalNavigationQuery(journal, createQueryResultFactory(),
-            createMessages(ENGLISH)
-        );
+        var query = new LatestJournalNavigationQuery(journal, createMessages(ENGLISH));
         var result = query.run(new QueryDefinitionStub(query, null));
         var output = formatterRegistry.format(result, MARKDOWN);
         var today = LocalDate.now().minusDays(1);
@@ -78,9 +69,7 @@ class LatestJournalNavigationQueryTest
     void latestInTestJournalPrefixAndPostfix()
     {
         var journal = createTestJournal(new VaultStub());
-        var query = new LatestJournalNavigationQuery(journal, createQueryResultFactory(),
-            createMessages(ENGLISH)
-        );
+        var query = new LatestJournalNavigationQuery(journal, createMessages(ENGLISH));
         var result = query.run(
             new QueryDefinitionStub(query, null).withConfiguration("prefix", ">> ")
                 .withConfiguration("postfix", " <<"));
@@ -98,9 +87,7 @@ class LatestJournalNavigationQueryTest
             new DefaultMarkerRepository(),
             new MarkerProducer(settings)
         );
-        var query = new LatestJournalNavigationQuery(journal, createQueryResultFactory(),
-            createMessages(ENGLISH)
-        );
+        var query = new LatestJournalNavigationQuery(journal, createMessages(ENGLISH));
         var result = query.run(new QueryDefinitionStub(query, null));
         var output = formatterRegistry.format(result, MARKDOWN);
         assertThat(output).isEqualTo("No results");
@@ -112,9 +99,7 @@ class LatestJournalNavigationQueryTest
     {
         var vault = new VaultStub();
         var journal = createTestJournal(vault);
-        var query = new LatestJournalNavigationQuery(journal, createQueryResultFactory(),
-            createMessages(ENGLISH)
-        );
+        var query = new LatestJournalNavigationQuery(journal, createMessages(ENGLISH));
         var daily = journal.toDaily(vault.findDocument(dailyName).orElseThrow())
             .orElseThrow();
         var change = switch (kind)

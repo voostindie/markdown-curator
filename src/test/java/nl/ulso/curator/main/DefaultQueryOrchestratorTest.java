@@ -14,13 +14,11 @@ import static java.util.Collections.emptyMap;
 import static nl.ulso.curator.change.Changelog.changelogFor;
 import static nl.ulso.curator.change.Reset.RESET;
 import static nl.ulso.curator.query.QueryTestModule.createQueryCatalog;
-import static nl.ulso.curator.query.QueryTestModule.createQueryResultFactory;
 import static nl.ulso.curator.query.QueryTestModule.createQueryResultFormatterRegistry;
 import static org.assertj.core.api.Assertions.assertThat;
 
 class DefaultQueryOrchestratorTest
 {
-    private static final QueryResultFactory RESULT_FACTORY = createQueryResultFactory();
     private VaultStub vault;
 
     @BeforeEach
@@ -36,7 +34,7 @@ class DefaultQueryOrchestratorTest
             <!--query:dummy-->
             <!--/query-->
             """);
-        var orchestrator = createOrchestrator(new DummyQuery("dummy", RESULT_FACTORY.string("Hello, world!")));
+        var orchestrator = createOrchestrator(new DummyQuery("dummy", QueryResult.string("Hello, world!")));
         var updates = orchestrator.runFor(changelogFor(RESET));
 
         assertThat(updates).hasSize(1);
@@ -56,7 +54,7 @@ class DefaultQueryOrchestratorTest
             -->
             <!--/query-->
             """);
-        var orchestrator = createOrchestrator(new DummyQuery("dummy", RESULT_FACTORY.string("Hello, world!")));
+        var orchestrator = createOrchestrator(new DummyQuery("dummy", QueryResult.string("Hello, world!")));
         var updates = orchestrator.runFor(changelogFor(RESET));
 
         assertThat(updates).hasSize(1);
@@ -80,7 +78,7 @@ class DefaultQueryOrchestratorTest
             -->
             <!--/query-->
             """.formatted(formatProperty));
-        var orchestrator = createOrchestrator(new DummyQuery("dummy", RESULT_FACTORY.string("Hello, world!")));
+        var orchestrator = createOrchestrator(new DummyQuery("dummy", QueryResult.string("Hello, world!")));
         var updates = orchestrator.runFor(changelogFor(RESET));
 
         assertThat(updates).hasSize(1);
@@ -100,7 +98,7 @@ class DefaultQueryOrchestratorTest
             -->
             <!--/query-->
             """);
-        var orchestrator = createOrchestrator(new DummyQuery("dummy", RESULT_FACTORY.string("Hello, world!")));
+        var orchestrator = createOrchestrator(new DummyQuery("dummy", QueryResult.string("Hello, world!")));
         var updates = orchestrator.runFor(changelogFor(RESET));
 
         assertThat(updates).hasSize(1);
@@ -117,7 +115,7 @@ class DefaultQueryOrchestratorTest
             -->
             <!--/query-->
             """);
-        var orchestrator = createOrchestrator(new DummyQuery("dummy", RESULT_FACTORY.string("Hello, world!")));
+        var orchestrator = createOrchestrator(new DummyQuery("dummy", QueryResult.string("Hello, world!")));
         var updates = orchestrator.runFor(changelogFor(RESET));
 
         assertThat(updates).hasSize(1);
@@ -142,7 +140,7 @@ class DefaultQueryOrchestratorTest
         formatterRegistry.replaceDynamicFormatters(Set.of(new CustomFormatter(customFormat)));
         var orchestrator = createOrchestratorWithFormatterRegistry(
             formatterRegistry,
-            new DummyQuery("dummy", RESULT_FACTORY.string("Hello, world!"))
+            new DummyQuery("dummy", QueryResult.string("Hello, world!"))
         );
         var updates = orchestrator.runFor(changelogFor(RESET));
 
@@ -207,7 +205,7 @@ class DefaultQueryOrchestratorTest
     {
         var catalog = createQueryCatalog(Set.of(queries));
         return new DefaultQueryOrchestrator(
-            vault, catalog, formatterRegistry, RESULT_FACTORY, Collections::emptyMap);
+            vault, catalog, formatterRegistry, Collections::emptyMap);
     }
 
     private static final class DummyQuery

@@ -6,18 +6,17 @@ import nl.ulso.curator.change.Changelog;
 import java.util.Map;
 
 import static java.lang.System.lineSeparator;
+import static nl.ulso.curator.query.QueryResult.string;
 
 final class HelpQuery
     implements Query
 {
     private final QueryCatalog catalog;
-    private final QueryResultFactory resultFactory;
 
     @Inject
-    HelpQuery(QueryCatalog catalog, QueryResultFactory resultFactory)
+    HelpQuery(QueryCatalog catalog)
     {
         this.catalog = catalog;
-        this.resultFactory = resultFactory;
     }
 
     @Override
@@ -76,6 +75,6 @@ final class HelpQuery
                     .append(config.get(name))
                     .append(lineSeparator()));
         }
-        return resultFactory.string(builder.toString());
+        return string(builder.toString());
     }
 }

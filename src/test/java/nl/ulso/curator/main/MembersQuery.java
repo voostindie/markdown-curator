@@ -8,18 +8,17 @@ import nl.ulso.curator.vault.*;
 import java.util.*;
 
 import static java.util.Comparator.comparing;
+import static nl.ulso.curator.query.QueryResult.unorderedList;
 
 public class MembersQuery
     implements Query
 {
     private final Vault vault;
-    private final QueryResultFactory resultFactory;
 
     @Inject
-    public MembersQuery(Vault vault, QueryResultFactory resultFactory)
+    public MembersQuery(Vault vault)
     {
         this.vault = vault;
-        this.resultFactory = resultFactory;
     }
 
     @Override
@@ -52,7 +51,7 @@ public class MembersQuery
         var band = definition.configuration().string("artist", definition.document().name());
         var finder = new MemberFinder(band);
         vault.accept(finder);
-        return resultFactory.unorderedList(finder.members.stream()
+        return unorderedList(finder.members.stream()
             .map(row -> "[[" + row.get("Name") + "]]").toList());
     }
 

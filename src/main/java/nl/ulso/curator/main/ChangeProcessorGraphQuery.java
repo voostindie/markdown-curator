@@ -15,6 +15,7 @@ import static java.lang.String.join;
 import static java.lang.System.lineSeparator;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toSet;
+import static nl.ulso.curator.query.QueryResult.string;
 
 /// Generates a Mermaid diagram of the change processors configured for the vault and their
 /// relationships. Mostly for debugging purposes.
@@ -40,14 +41,11 @@ final class ChangeProcessorGraphQuery
     private static final String INDENT = "    ";
 
     private final DefaultChangeProcessorOrchestrator orchestrator;
-    private final QueryResultFactory queryResultFactory;
 
     @Inject
-    ChangeProcessorGraphQuery(
-        DefaultChangeProcessorOrchestrator orchestrator, QueryResultFactory queryResultFactory)
+    ChangeProcessorGraphQuery(DefaultChangeProcessorOrchestrator orchestrator)
     {
         this.orchestrator = orchestrator;
-        this.queryResultFactory = queryResultFactory;
     }
 
     @Override
@@ -115,7 +113,7 @@ final class ChangeProcessorGraphQuery
             }
         }
         builder.append("```").append(lineSeparator());
-        return queryResultFactory.string(builder.toString());
+        return string(builder.toString());
     }
 
     private Orientation resolveOrientation(Dictionary configuration)

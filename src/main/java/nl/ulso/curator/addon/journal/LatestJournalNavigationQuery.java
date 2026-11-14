@@ -16,10 +16,9 @@ final class LatestJournalNavigationQuery
     extends NavigationQueryTemplate
 {
     @Inject
-    LatestJournalNavigationQuery(
-        Journal journal, QueryResultFactory resultFactory, JournalMessages messages)
+    LatestJournalNavigationQuery(Journal journal, JournalMessages messages)
     {
-        super(journal, resultFactory, messages);
+        super(journal, messages);
     }
 
     @Override
@@ -66,11 +65,11 @@ final class LatestJournalNavigationQuery
         var prefix = definition.configuration().string("prefix", "");
         var postfix = definition.configuration().string("postfix", "");
         return journal.latest()
-            .map(daily -> resultFactory.string(
+            .map(daily -> QueryResult.string(
                 prefix +
                 "[[" + daily.date() + "|" + messages.journalLatest() + "]]" +
                 postfix)
             )
-            .orElse(resultFactory.empty());
+            .orElse(QueryResult.empty());
     }
 }
