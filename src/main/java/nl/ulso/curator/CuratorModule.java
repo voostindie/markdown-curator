@@ -7,6 +7,7 @@ import dagger.multibindings.IntoSet;
 import dagger.multibindings.Multibinds;
 import jakarta.inject.Named;
 import nl.ulso.curator.addon.alfred.AlfredExtensionModule;
+import nl.ulso.curator.addon.backlink.BacklinkExtensionModule;
 import nl.ulso.curator.addon.journal.JournalExtensionModule;
 import nl.ulso.curator.addon.omnifocus.OmniFocusExtensionModule;
 import nl.ulso.curator.addon.project.ProjectExtensionModule;
@@ -44,8 +45,8 @@ import java.util.Set;
 /// [ExtensionFactory]s. Extensions are sets of change processors, queries, query result formatters
 /// and trackers that are loaded and unloaded at runtime, as configured in the first YAML code block
 /// of the configuration document. See [ExtensionFactory]. All built-in extensions (`project`,
-/// `journal`, `projectjournal`, `omnifocus` and `alfred`) are registered by this module; they only
-/// have to be enabled in the configuration document.
+/// `journal`, `projectjournal`, `omnifocus`, `alfred` and `backlinks`) are registered by this
+/// module; they only have to be enabled in the configuration document.
 /// The same code block holds the settings of the curator itself, like the `delay` before queries
 /// run after a change, and the `locale` for translations in query output.
 /// - Include other modules and their configurations to extend the functionality of the curator.
@@ -55,7 +56,8 @@ import java.util.Set;
     JournalExtensionModule.class,
     ProjectJournalExtensionModule.class,
     OmniFocusExtensionModule.class,
-    AlfredExtensionModule.class
+    AlfredExtensionModule.class,
+    BacklinkExtensionModule.class
 })
 public abstract class CuratorModule
 {

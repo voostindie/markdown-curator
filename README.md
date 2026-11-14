@@ -227,7 +227,7 @@ As an example of a custom change processor, see the built-in `Journal` or `Proje
 
 ### Load and unload extensions at runtime
 
-Statically registered change processors and queries are fixed when the application starts. An *extension* is a set of change processors, queries, query result formatters and measurement trackers that can be loaded into and unloaded from a running curator, as configured in a document in the vault. The built-in project, journal, project journal, OmniFocus and Alfred modules are all extensions.
+Statically registered change processors and queries are fixed when the application starts. An *extension* is a set of change processors, queries, query result formatters and measurement trackers that can be loaded into and unloaded from a running curator, as configured in a document in the vault. The built-in project, journal, project journal, OmniFocus, Alfred and backlinks modules are all extensions.
 
 To enable extensions in your curator:
 
@@ -237,7 +237,7 @@ To enable extensions in your curator:
 @Provides @Named(CuratorModule.CONFIGURATION_DOCUMENT_KEY) static String configurationDocument() { return "CONFIG"; }
 ```
 
-- All built-in extensions (`project`, `journal`, `projectjournal`, `omnifocus` and `alfred`) are registered by the `CuratorModule`, so there's nothing to include for those. To make a custom extension available, include its module in your curator module.
+- All built-in extensions (`project`, `journal`, `projectjournal`, `omnifocus`, `alfred` and `backlinks`) are registered by the `CuratorModule`, so there's nothing to include for those. To make a custom extension available, include its module in your curator module.
 - Enable extensions in the first YAML code block (language `yaml` or `yml`) of the configuration document, either as a list of names, or as a map of names to their settings. The front matter and any other code blocks in the document are ignored, so you're free to document your configuration around it:
 
 ````markdown
@@ -610,6 +610,23 @@ This is all that's needed to get the extension to work. Suddenly the `projects` 
 #### `omnifocus`
 
 The `omnifocus` query has no configuration. Stick it in a document and watch a report appear in it, comparing your vault with OmniFocus. It lists all projects in the one and not in the other, and vice versa.
+
+### Backlinks module
+
+The Backlinks module lists the documents that link to a document. Backlinks are a familiar feature of editors like Obsidian, but they're only visible inside the editor. With this module they become part of the document itself.
+
+To keep memory usage low, the module tracks backlinks only for the documents that are actually targeted by a `backlinks` query anywhere in the vault. Adding the query to a document is enough to start tracking backlinks to it; removing the last query for a document drops them again.
+
+Backlinks support is an extension named `backlinks`. It has no settings and requires no other extensions. The `CuratorModule` makes it available; enable it in the configuration document:
+
+```yaml
+extensions:
+  backlinks:
+```
+
+#### `backlinks`
+
+The `backlinks` query generates a list of links to all documents that link to the selected document, sorted by name, ignoring emojis. The selected document defaults to the document the query is in; use the `document` setting to select another one.
 
 ## Reminders
 

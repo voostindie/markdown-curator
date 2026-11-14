@@ -54,6 +54,11 @@ public class FolderStub
         return document;
     }
 
+    public Optional<Document> removeDocument(String name)
+    {
+        return Optional.ofNullable(documents.remove(name));
+    }
+
     public Document resolveDocumentInPath(String path)
     {
         int index = 0;
