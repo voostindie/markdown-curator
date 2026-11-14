@@ -123,15 +123,9 @@ final class DefaultCurator
     }
 
     @Override
-    public boolean supports(QueryResult queryResult, OutputFormat outputFormat)
+    public FormattedResult formatResult(QueryResult result, OutputFormat format)
     {
-        return queryOrchestrator.supports(queryResult, outputFormat);
-    }
-
-    @Override
-    public String format(QueryResult result, OutputFormat format)
-    {
-        return queryOrchestrator.format(result, format);
+        return queryOrchestrator.formatResult(result, format);
     }
 
     /// This method is synchronized to ensure it doesn't run concurrently with

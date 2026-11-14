@@ -11,6 +11,8 @@ import org.junit.jupiter.api.*;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 
+import static nl.ulso.curator.server.Result.notAcceptable;
+
 import static nl.ulso.curator.query.OutputFormat.JSON;
 import static nl.ulso.curator.query.OutputFormat.MARKDOWN;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -22,6 +24,7 @@ class JettyRequestHandlerTest
     private AtomicReference<Dictionary> capturedPathParams;
     private AtomicReference<Dictionary> capturedQueryParams;
     private AtomicReference<OutputFormat> capturedOutputFormat;
+    private AtomicReference<Set<OutputFormat>> availableFormats;
 
     @BeforeEach
     void setUp()
@@ -34,6 +37,7 @@ class JettyRequestHandlerTest
         capturedPathParams = new AtomicReference<>();
         capturedQueryParams = new AtomicReference<>();
         capturedOutputFormat = new AtomicReference<>();
+        availableFormats = new AtomicReference<>(Set.of(JSON, MARKDOWN));
 
         var dummyProcessor = new RequestProcessor()
         {
@@ -47,11 +51,18 @@ class JettyRequestHandlerTest
             public Result process(
                 Dictionary pathParameters,
                 Dictionary queryParameters,
-                OutputFormat requestedOutputFormat)
+                ContentNegotiation contentNegotiation)
             {
                 capturedPathParams.set(pathParameters);
                 capturedQueryParams.set(queryParameters);
-                capturedOutputFormat.set(requestedOutputFormat);
+                var available = availableFormats.get();
+                var selected = contentNegotiation.select(available, JSON);
+                capturedOutputFormat.set(selected.orElse(null));
+                if (selected.isEmpty())
+                {
+                    return notAcceptable(contentNegotiation.describeFailure(available));
+                }
+                var requestedOutputFormat = selected.get();
 
                 if ("empty".equals(pathParameters.string("id", "")))
                 {
@@ -72,7 +83,7 @@ class JettyRequestHandlerTest
         var handler = new PathMappingsHandler();
         handler.addMapping(
             new UriTemplatePathSpec(dummyProcessor.pathTemplate()),
-            new JettyRequestHandler(dummyProcessor, Set.of(JSON, MARKDOWN))
+            new JettyRequestHandler(dummyProcessor)
         );
         server.setHandler(handler);
         server.start();
@@ -130,7 +141,7 @@ class JettyRequestHandlerTest
     }
 
     @Test
-    void getRequestWithUnknownAcceptHeaderDefaultsToJson()
+    void getRequestWithUnknownAcceptHeaderIsNotAcceptable()
         throws Exception
     {
         var response = connector.getResponse("""
@@ -141,10 +152,95 @@ class JettyRequestHandlerTest
             """);
 
         assertThat(response).contains(
+            "HTTP/1.1 406 Not Acceptable",
+            "Content-Type: text/markdown; charset=UTF-8",
+            "image/png"
+        );
+        assertThat(capturedOutputFormat.get()).isNull();
+    }
+
+    @Test
+    void getRequestWithWildcardAcceptHeaderUsesJson()
+        throws Exception
+    {
+        var response = connector.getResponse("""
+            GET /test/wildcard HTTP/1.1
+            Host: localhost
+            Accept: text/html,application/xhtml+xml,*/*;q=0.8
+            
+            """);
+
+        assertThat(response).contains(
             "HTTP/1.1 200 OK",
             "Content-Type: application/json; charset=UTF-8"
         );
-        assertThat(capturedOutputFormat.get()).isEqualTo(JSON);
+    }
+
+    @Test
+    void getRequestHonorsQualityValues()
+        throws Exception
+    {
+        var response = connector.getResponse("""
+            GET /test/quality HTTP/1.1
+            Host: localhost
+            Accept: application/json;q=0.5, text/markdown
+            
+            """);
+
+        assertThat(response).contains("Content-Type: text/markdown; charset=UTF-8");
+        assertThat(capturedOutputFormat.get()).isEqualTo(MARKDOWN);
+    }
+
+    @Test
+    void getRequestCombinesMultipleAcceptHeaders()
+        throws Exception
+    {
+        var response = connector.getResponse("""
+            GET /test/multiple HTTP/1.1
+            Host: localhost
+            Accept: image/png
+            Accept: text/markdown
+            
+            """);
+
+        assertThat(response).contains("Content-Type: text/markdown; charset=UTF-8");
+    }
+
+    @Test
+    void getRequestWithExplicitFormatParameterOverridesAcceptHeader()
+        throws Exception
+    {
+        var response = connector.getResponse("""
+            GET /test/explicit?_format=Markdown HTTP/1.1
+            Host: localhost
+            Accept: application/json
+            
+            """);
+
+        assertThat(response).contains("Content-Type: text/markdown; charset=UTF-8");
+        assertThat(capturedOutputFormat.get()).isEqualTo(MARKDOWN);
+    }
+
+    @Test
+    void formatAddedAfterStartupIsNegotiated()
+        throws Exception
+    {
+        var csv = new OutputFormat("csv", "text/csv");
+        availableFormats.set(Set.of(JSON, MARKDOWN, csv));
+
+        var response = connector.getResponse("""
+            GET /test/dynamic HTTP/1.1
+            Host: localhost
+            Accept: text/csv
+            
+            """);
+
+        assertThat(response).contains(
+            "HTTP/1.1 200 OK",
+            "Content-Type: text/csv; charset=UTF-8",
+            "processed:dynamic"
+        );
+        assertThat(capturedOutputFormat.get()).isEqualTo(csv);
     }
 
     @Test

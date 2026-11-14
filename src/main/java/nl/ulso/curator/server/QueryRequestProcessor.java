@@ -9,6 +9,8 @@ import nl.ulso.dictionary.Dictionary;
 
 import java.util.Map;
 
+import static nl.ulso.curator.query.OutputFormat.JSON;
+import static nl.ulso.curator.server.Result.notAcceptable;
 import static nl.ulso.curator.server.Result.ok;
 import static nl.ulso.curator.server.Result.serverError;
 import static nl.ulso.curator.vault.Document.EMPTY_DOCUMENT;
@@ -17,6 +19,10 @@ import static nl.ulso.curator.vault.Document.EMPTY_DOCUMENT;
 ///
 /// Any query that is available can be executed through here. The configuration for the query
 /// that is normally configured in a document can be passed as query parameters instead.
+///
+/// The output format is negotiated against the formats the curator supports at the time of the
+/// request, which includes the formats of its active extensions; JSON is the default. If the
+/// selected format doesn't support the result of the query, the result is in Markdown instead.
 @Singleton
 final class QueryRequestProcessor
     extends CuratorRequestProcessorTemplate
@@ -38,18 +44,21 @@ final class QueryRequestProcessor
         Curator curator,
         Dictionary pathParameters,
         Dictionary queryParameters,
-        OutputFormat outputFormat)
+        ContentNegotiation contentNegotiation)
     {
-        var query = curator.query(pathParameters.string("query", "help"));
-        var definition = createQueryDefinition(query, queryParameters);
+        var availableFormats = curator.outputFormats();
+        var outputFormat = contentNegotiation.select(availableFormats, JSON);
+        if (outputFormat.isEmpty())
+        {
+            return notAcceptable(contentNegotiation.describeFailure(availableFormats));
+        }
         try
         {
+            var query = curator.query(pathParameters.string("query", "help"));
+            var definition = createQueryDefinition(query, queryParameters);
             var result = query.run(definition);
-            if (!curator.supports(result, outputFormat))
-            {
-                return serverError("Unsupported output format for this query.");
-            }
-            return ok(outputFormat, curator.format(result, outputFormat));
+            var formatted = curator.formatResult(result, outputFormat.get());
+            return ok(formatted.outputFormat(), formatted.output());
         }
         catch (RuntimeException e)
         {

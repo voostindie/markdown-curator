@@ -109,7 +109,7 @@ class DefaultQueryOrchestratorTest
     }
 
     @Test
-    void unknownOutputFormatFallsBackToMarkdown()
+    void unknownOutputFormatIsReportedAsError()
     {
         vault.addDocument("test", """
             <!--query:dummy
@@ -122,7 +122,54 @@ class DefaultQueryOrchestratorTest
 
         assertThat(updates).hasSize(1);
         var output = updates.iterator().next().queryOutputs().getFirst();
+        assertThat(output.content())
+            .contains("Error")
+            .contains("Unknown output format 'unknown'. Available formats: json, markdown.")
+            .doesNotContain("```");
+    }
+
+    @Test
+    void customFormatFallsBackToUnfencedMarkdownForUnsupportedResultType()
+    {
+        vault.addDocument("test", """
+            <!--query:dummy
+            _format: custom
+            -->
+            <!--/query-->
+            """);
+        var customFormat = new OutputFormat("custom", "text/custom");
+        var formatterRegistry = createQueryResultFormatterRegistry();
+        formatterRegistry.replaceDynamicFormatters(Set.of(new CustomFormatter(customFormat)));
+        var orchestrator = createOrchestratorWithFormatterRegistry(
+            formatterRegistry,
+            new DummyQuery("dummy", RESULT_FACTORY.string("Hello, world!"))
+        );
+        var updates = orchestrator.runFor(changelogFor(RESET));
+
+        assertThat(updates).hasSize(1);
+        var output = updates.iterator().next().queryOutputs().getFirst();
         assertThat(output.content()).isEqualTo("Hello, world!");
+    }
+
+    @Test
+    void inlineCustomFormatIsNotCodeFenced()
+    {
+        vault.addDocument("test", """
+            <!--query:dummy
+            _format: Custom
+            -->
+            <!--/query-->
+            """);
+        var customFormat = new OutputFormat("custom", "text/custom", true);
+        var orchestrator = createOrchestratorWithFormatterRegistry(
+            createQueryResultFormatterRegistry(Set.of(new CustomFormatter(customFormat))),
+            new DummyQuery("dummy", new CustomResult("custom content"))
+        );
+        var updates = orchestrator.runFor(changelogFor(RESET));
+
+        assertThat(updates).hasSize(1);
+        var output = updates.iterator().next().queryOutputs().getFirst();
+        assertThat(output.content()).isEqualTo("CUSTOM: custom content");
     }
 
     @Test
@@ -159,7 +206,8 @@ class DefaultQueryOrchestratorTest
         QueryResultFormatterRegistry formatterRegistry, Query... queries)
     {
         var catalog = createQueryCatalog(Set.of(queries));
-        return new DefaultQueryOrchestrator(vault, catalog, formatterRegistry, Collections::emptyMap);
+        return new DefaultQueryOrchestrator(
+            vault, catalog, formatterRegistry, RESULT_FACTORY, Collections::emptyMap);
     }
 
     private static final class DummyQuery

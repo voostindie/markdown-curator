@@ -26,6 +26,7 @@ import static nl.ulso.curator.main.CuratorSettings.DEFAULT_LOCALE;
 /// - All extensions that are available to the curator, whether they are active, and why the last
 /// configuration was rejected, if it was.
 /// - All queries that are currently available, built-in and from active extensions.
+/// - All output formats that are currently available, built-in and from active extensions.
 ///
 /// The [QueryCatalog] is injected through a [Provider] because the catalog itself is built from
 /// all queries, including this one.
@@ -36,6 +37,7 @@ final class ConfigurationQuery
     private final CuratorSettings settings;
     private final ExtensionRegistry registry;
     private final Provider<QueryCatalog> queryCatalogProvider;
+    private final DynamicQueryResultFormatterRegistry formatterRegistry;
     private final QueryResultFactory queryResultFactory;
     private final String configurationDocumentName;
 
@@ -45,12 +47,14 @@ final class ConfigurationQuery
         CuratorSettings settings,
         ExtensionRegistry registry,
         Provider<QueryCatalog> queryCatalogProvider,
+        DynamicQueryResultFormatterRegistry formatterRegistry,
         QueryResultFactory queryResultFactory,
         @Named(CONFIGURATION_DOCUMENT_KEY) Optional<String> configurationDocumentName)
     {
         this.settings = settings;
         this.registry = registry;
         this.queryCatalogProvider = queryCatalogProvider;
+        this.formatterRegistry = formatterRegistry;
         this.queryResultFactory = queryResultFactory;
         this.configurationDocumentName = configurationDocumentName.orElse(null);
     }
@@ -65,7 +69,7 @@ final class ConfigurationQuery
     public String description()
     {
         return "Shows the curator settings, all available extensions with their status and " +
-               "dependencies, and all available queries.";
+               "dependencies, and all available queries and output formats.";
     }
 
     @Override
@@ -99,6 +103,8 @@ final class ConfigurationQuery
         appendExtensions(builder);
         builder.append(lineSeparator());
         appendQueries(builder);
+        builder.append(lineSeparator());
+        appendOutputFormats(builder);
         return queryResultFactory.string(builder.toString());
     }
 
@@ -185,6 +191,31 @@ final class ConfigurationQuery
             }
             builder.append(lineSeparator());
         });
+    }
+
+    /// Lists all output formats, with their MIME type, whether they're embedded inline or in a
+    /// fenced code block, and where they come from.
+    private void appendOutputFormats(StringBuilder builder)
+    {
+        builder.append("### Output formats").append(lineSeparator()).append(lineSeparator());
+        var staticFormats = formatterRegistry.staticOutputFormats();
+        var providers = registry.status().outputFormatProviders();
+        formatterRegistry.outputFormats().stream()
+            .sorted(comparing(OutputFormat::name))
+            .forEach(format -> {
+                builder.append("- **").append(format.name()).append("**: `")
+                    .append(format.mimeType()).append("`, ")
+                    .append(format.inline() ? "inline" : "fenced");
+                if (!staticFormats.contains(format))
+                {
+                    var names = providers.get(format.name());
+                    if (names != null && !names.isEmpty())
+                    {
+                        builder.append(", from ").append(String.join(", ", names));
+                    }
+                }
+                builder.append(lineSeparator());
+            });
     }
 
     private static void appendDetail(StringBuilder builder, String label, String value)

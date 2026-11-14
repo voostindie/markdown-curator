@@ -21,6 +21,11 @@ public record Result(Status status, OutputFormat outputFormat, Optional<String> 
         return new Result(Status.NOT_FOUND, OutputFormat.MARKDOWN, Optional.of(errorMessage));
     }
 
+    public static Result notAcceptable(String errorMessage)
+    {
+        return new Result(Status.NOT_ACCEPTABLE, OutputFormat.MARKDOWN, Optional.of(errorMessage));
+    }
+
     public static Result serverError(String errorMessage)
     {
         return new Result(Status.SERVER_ERROR, OutputFormat.MARKDOWN, Optional.of(errorMessage));

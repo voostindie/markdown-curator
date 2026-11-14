@@ -5,6 +5,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 
 import static nl.ulso.curator.server.Status.CLIENT_ERROR;
+import static nl.ulso.curator.server.Status.NOT_ACCEPTABLE;
 import static nl.ulso.curator.server.Status.NOT_FOUND;
 import static nl.ulso.curator.server.Status.OK;
 import static nl.ulso.curator.server.Status.SERVER_ERROR;
@@ -17,6 +18,7 @@ class StatusTest
         "OK, 200",
         "CLIENT_ERROR, 400",
         "NOT_FOUND, 404",
+        "NOT_ACCEPTABLE, 406",
         "SERVER_ERROR, 500"
     })
     void httpStatusCodesMatchExpectedValues(Status status, int expectedCode)
@@ -32,6 +34,7 @@ class StatusTest
             OK,
             CLIENT_ERROR,
             NOT_FOUND,
+            NOT_ACCEPTABLE,
             SERVER_ERROR
         );
     }

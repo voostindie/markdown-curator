@@ -290,13 +290,21 @@ final class DefaultChangeProcessorOrchestrator
     }
 
     /// Drops extensions from the generation until all change processors - static and from
-    /// extensions - can be put in order, and all queries have unique names. Extensions are dropped
-    /// if:
+    /// extensions - can be put in order, all queries have unique names, and all output formats are
+    /// unambiguous. Extensions are dropped if:
     ///
     /// - One of their change processors consumes nothing, or produces a reserved payload type.
     /// - One of their queries has a name that is already taken.
+    /// - One of their output formats has a name that is already taken by a different format.
     /// - One of their change processors consumes or requires a payload type that nothing produces.
     /// - One of their change processors is part of a dependency cycle.
+    ///
+    /// Conflicting queries and output formats are determined anew in every round, against the
+    /// extensions that are still in the generation, and they are only dropped once the change
+    /// processors of all other extensions can be ordered. That way an extension that loses a
+    /// conflict to an extension that is dropped later, for a different reason, is not dropped
+    /// needlessly. The change processors of extensions that lose a conflict are left out of the
+    /// ordering in every round, so they can't cause other extensions to be dropped.
     ///
     /// @return the ordered list of change processors, excluding the reserved ones.
     private List<ChangeProcessor> fitExtensions(Generation generation)
@@ -315,17 +323,26 @@ final class DefaultChangeProcessorOrchestrator
                     generation.drop(entry.getKey(), e.getMessage());
                 }
             }
-            extensionRegistry.dropConflictingQueries(generation);
+            var conflicts = extensionRegistry.findConflicts(generation);
+            var excluded = new HashSet<String>();
+            conflicts.keySet().forEach(name -> excluded.addAll(generation.withDependents(name)));
             var processors = new LinkedHashSet<>(staticProcessors);
             var owners = new HashMap<ChangeProcessor, String>();
-            generation.extensions().forEach((name, extension) ->
+            generation.extensions().forEach((name, extension) -> {
+                if (excluded.contains(name))
+                {
+                    return;
+                }
                 extension.changeProcessors().forEach(processor -> {
                     processors.add(processor);
                     owners.put(processor, name);
-                }));
+                });
+            });
             try
             {
-                return orderChangeProcessors(processors);
+                var ordered = orderChangeProcessors(processors);
+                conflicts.forEach(generation::drop);
+                return ordered;
             }
             catch (UnorderableChangeProcessorsException e)
             {

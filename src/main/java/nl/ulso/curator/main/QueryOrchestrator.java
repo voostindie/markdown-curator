@@ -17,7 +17,7 @@ interface QueryOrchestrator
 
     Set<OutputFormat> outputFormats();
 
-    boolean supports(QueryResult result, OutputFormat format);
-
-    String format(QueryResult result, OutputFormat format);
+    /// Formats the result in the requested format; see
+    /// [QueryResultFormatterRegistry#formatResult(QueryResult, OutputFormat)].
+    FormattedResult formatResult(QueryResult result, OutputFormat format);
 }

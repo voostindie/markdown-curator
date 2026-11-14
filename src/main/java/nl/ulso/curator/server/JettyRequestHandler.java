@@ -1,6 +1,5 @@
 package nl.ulso.curator.server;
 
-import nl.ulso.curator.query.OutputFormat;
 import nl.ulso.dictionary.Dictionary;
 import org.eclipse.jetty.http.HttpHeader;
 import org.eclipse.jetty.http.HttpMethod;
@@ -12,16 +11,17 @@ import org.eclipse.jetty.util.Callback;
 import org.slf4j.Logger;
 import org.slf4j.MDC;
 
-import java.util.Set;
-
-import static nl.ulso.curator.query.OutputFormat.JSON;
+import static nl.ulso.curator.server.ContentNegotiation.FORMAT_PARAMETER;
 import static nl.ulso.dictionary.Dictionary.mapDictionary;
 import static org.eclipse.jetty.server.Request.extractQueryParameters;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /// Handles GET requests with Jetty.
 ///
-/// Wraps a [RequestProcessor] and executes its [RequestProcessor#process] method.
+/// Wraps a [RequestProcessor] and executes its [RequestProcessor#process] method. The handler
+/// doesn't select the output format itself: it collects what the client asks for in a
+/// [ContentNegotiation], and leaves the selection to the processor, which knows the formats that
+/// are available at that moment.
 final class JettyRequestHandler
     extends Handler.Abstract.NonBlocking
 {
@@ -29,12 +29,10 @@ final class JettyRequestHandler
     private static final String CHARSET_UTF_8 = "; charset=UTF-8";
 
     private final RequestProcessor request;
-    private final Set<OutputFormat> availableOutputFormats;
 
-    JettyRequestHandler(RequestProcessor request, Set<OutputFormat> availableOutputFormats)
+    JettyRequestHandler(RequestProcessor request)
     {
         this.request = request;
-        this.availableOutputFormats = availableOutputFormats;
     }
 
     @Override
@@ -49,8 +47,8 @@ final class JettyRequestHandler
         LOGGER.info("Handling request: '{}'.", request.getHttpURI().getPath());
         var pathParameters = resolvePathParameters(request);
         var queryParameters = resolveQueryParameters(request);
-        var requestedOutputFormat = resolveOutputFormat(request);
-        var result = this.request.process(pathParameters, queryParameters, requestedOutputFormat);
+        var contentNegotiation = resolveContentNegotiation(request, queryParameters);
+        var result = this.request.process(pathParameters, queryParameters, contentNegotiation);
         response.setStatus(result.status().httpStatusCode());
         result.output().ifPresent(
             output ->
@@ -63,23 +61,15 @@ final class JettyRequestHandler
         return true;
     }
 
-    /// Rudimentary form of content negotiation: JSON is the default, but this can be overridden by
-    /// matching the mime types in the Accept header on the mime types of the available output
-    /// formats.
-    ///
-    /// Note that the requested output format is not guaranteed to be used in the response:
-    /// [RequestProcessor]s might ignore the requested output format.
-    private OutputFormat resolveOutputFormat(Request request)
+    /// Collects the output formats the client asks for: by name through the `_format` query
+    /// parameter, or by MIME type through the `Accept` header. All values of the header are taken
+    /// into account, including quality values.
+    private ContentNegotiation resolveContentNegotiation(
+        Request request, Dictionary queryParameters)
     {
-        var header = request.getHeaders().get(HttpHeader.ACCEPT);
-        if (header == null)
-        {
-            return JSON;
-        }
-        return availableOutputFormats.stream()
-            .filter(outputFormat -> header.startsWith(outputFormat.mimeType()))
-            .findFirst()
-            .orElse(JSON);
+        var acceptValues = request.getHeaders().getValuesList(HttpHeader.ACCEPT);
+        var accept = acceptValues.isEmpty() ? null : String.join(",", acceptValues);
+        return ContentNegotiation.of(accept, queryParameters.string(FORMAT_PARAMETER, null));
     }
 
     private Dictionary resolvePathParameters(Request request)

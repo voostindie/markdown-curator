@@ -38,7 +38,8 @@ class DocumentRequestProcessorTest
     void missingDocumentNameQueryParamReturnsClientError()
     {
         var pathParams = mapDictionary(Map.of("curator", "testCurator"));
-        var result = processor.process(pathParams, emptyDictionary(), MARKDOWN);
+        var result = processor.process(pathParams, emptyDictionary(),
+            ContentNegotiation.of(MARKDOWN));
         assertThat(result.status()).isEqualTo(CLIENT_ERROR);
         assertThat(result.output()).contains("Document name is missing in the query parameters.");
     }
@@ -48,7 +49,7 @@ class DocumentRequestProcessorTest
     {
         var pathParams = mapDictionary(Map.of("curator", "testCurator"));
         var queryParams = mapDictionary(Map.of("name", "NonExistentDoc"));
-        var result = processor.process(pathParams, queryParams, MARKDOWN);
+        var result = processor.process(pathParams, queryParams, ContentNegotiation.of(MARKDOWN));
         assertThat(result.status()).isEqualTo(NOT_FOUND);
         assertThat(result.output()).contains("Document not found: NonExistentDoc");
     }
@@ -83,7 +84,7 @@ class DocumentRequestProcessorTest
         var pathParams = mapDictionary(Map.of("curator", "testCurator"));
         var queryParams = mapDictionary(Map.of("name", "Doc1"));
 
-        var result = processor.process(pathParams, queryParams, MARKDOWN);
+        var result = processor.process(pathParams, queryParams, ContentNegotiation.of(MARKDOWN));
 
         assertThat(result.status()).isEqualTo(OK);
         assertThat(result.outputFormat()).isEqualTo(MARKDOWN);
@@ -131,7 +132,7 @@ class DocumentRequestProcessorTest
         var pathParams = mapDictionary(Map.of("curator", "testCurator"));
         var queryParams = mapDictionary(Map.of("name", "Doc1"));
 
-        var result = processor.process(pathParams, queryParams, JSON);
+        var result = processor.process(pathParams, queryParams, ContentNegotiation.of(JSON));
 
         assertThat(result.status()).isEqualTo(OK);
         assertThat(result.outputFormat()).isEqualTo(JSON);

@@ -357,6 +357,144 @@ class ExtensionLoadingTest
         softly.assertThat(formatterRegistry.supports(shout, OutputFormat.MARKDOWN)).isFalse();
     }
 
+    /// Adds extensions that introduce output formats; not in the default set, to keep the other
+    /// tests simple.
+    private void addOutputFormatExtensions()
+    {
+        factories.put("csv", factory((_, _) ->
+            extension(new DocumentRecorder("csv")).withFormatters(new ShoutFormatter(CSV))));
+        factories.put("csv-too", factory((_, _) ->
+            extension(new DocumentRecorder("csv2")).withFormatters(new ShoutFormatter(CSV))));
+        factories.put("csv-clash", factory((_, _) ->
+            extension(new DocumentRecorder("csv3")).withFormatters(
+                new ShoutFormatter(new OutputFormat("csv", "application/csv")))));
+        factories.put("markdown-clash", factory((_, _) ->
+            extension(new DocumentRecorder("md")).withFormatters(
+                new ShoutFormatter(new OutputFormat("markdown", "text/plain")))));
+    }
+
+    @Test
+    void registerAndUnregisterOutputFormats()
+    {
+        addOutputFormatExtensions();
+        configure("  csv:");
+        startUp();
+        var shout = new Shout("hello");
+        softly.assertThat(formatterRegistry.outputFormats()).contains(CSV);
+        softly.assertThat(formatterRegistry.outputFormat("csv")).contains(CSV);
+        var formatted = formatterRegistry.formatResult(shout, CSV);
+        softly.assertThat(formatted.outputFormat()).isEqualTo(CSV);
+        softly.assertThat(formatted.output()).isEqualTo("csv:HELLO!");
+        configurationChanged("  recorder:");
+        softly.assertThat(formatterRegistry.outputFormats()).doesNotContain(CSV);
+        softly.assertThat(formatterRegistry.outputFormat("csv")).isEmpty();
+    }
+
+    @Test
+    void extensionsCanShareAnIdenticalOutputFormat()
+    {
+        addOutputFormatExtensions();
+        configure("  csv:\n  csv-too:");
+        startUp();
+        softly.assertThat(registry.status().active()).containsExactly("csv", "csv-too");
+        softly.assertThat(registry.status().outputFormatProviders())
+            .containsEntry("csv", new TreeSet<>(List.of("csv", "csv-too")));
+    }
+
+    @Test
+    void dropExtensionWithClashingOutputFormat()
+    {
+        addOutputFormatExtensions();
+        configure("  csv:\n  csv-clash:");
+        startUp();
+        softly.assertThat(registry.status().active()).containsExactly("csv");
+        assertFailure("csv-clash",
+            "Output format(s) already in use with a different definition: csv.");
+        softly.assertThat(formatterRegistry.outputFormat("csv")).contains(CSV);
+    }
+
+    @Test
+    void dropExtensionThatRedefinesBuiltInOutputFormat()
+    {
+        addOutputFormatExtensions();
+        configure("  markdown-clash:");
+        startUp();
+        softly.assertThat(registry.status().active()).isEmpty();
+        assertFailure("markdown-clash",
+            "Output format(s) already in use with a different definition: markdown.");
+        softly.assertThat(formatterRegistry.outputFormat("markdown"))
+            .contains(OutputFormat.MARKDOWN);
+    }
+
+    // Extensions are created in alphabetical order, providers before consumers; the names in the
+    // conflict tests below are chosen to get a specific order.
+
+    @Test
+    void conflictLoserIsLoadedWhenWinnerIsDroppedForAnotherReason()
+    {
+        addOutputFormatExtensions();
+        factories.put("a-csv-orphan", factory((_, _) ->
+            extension(new ChangeProcessorStub(98).consuming(Integer.class))
+                .withFormatters(new ShoutFormatter(CSV))));
+        configure("  a-csv-orphan:\n  csv-clash:");
+        startUp();
+        assertFailure("a-csv-orphan", "Integer");
+        softly.assertThat(registry.status().active()).containsExactly("csv-clash");
+        softly.assertThat(registry.status().failures()).doesNotContainKey("csv-clash");
+        softly.assertThat(formatterRegistry.outputFormat("csv"))
+            .contains(new OutputFormat("csv", "application/csv"));
+    }
+
+    @Test
+    void extensionThatLosesOneConflictClaimsNothing()
+    {
+        addOutputFormatExtensions();
+        factories.put("d-both", factory((_, _) ->
+            extension(new DocumentRecorder("d-both"))
+                .withQueries(new QueryStub("shared"))
+                .withFormatters(new ShoutFormatter(new OutputFormat("csv", "application/csv")))));
+        factories.put("e-shared", factory((_, _) ->
+            extension(new DocumentRecorder("shared")).withQueries(new QueryStub("shared"))));
+        configure("  csv:\n  d-both:\n  e-shared:");
+        startUp();
+        softly.assertThat(registry.status().active()).containsExactly("csv", "e-shared");
+        assertFailure("d-both",
+            "Output format(s) already in use with a different definition: csv.");
+        softly.assertThat(catalog.query("shared")).isInstanceOf(QueryStub.class);
+    }
+
+    @Test
+    void extensionWithMultipleConflictsReportsAll()
+    {
+        addOutputFormatExtensions();
+        factories.put("d-both", factory((_, _) ->
+            extension(new DocumentRecorder("d-both"))
+                .withQueries(new QueryStub("static"))
+                .withFormatters(new ShoutFormatter(new OutputFormat("csv", "application/csv")))));
+        configure("  csv:\n  d-both:");
+        startUp();
+        assertFailure("d-both", "Query name(s) already in use: static.");
+        assertFailure("d-both",
+            "Output format(s) already in use with a different definition: csv.");
+    }
+
+    @Test
+    void dependentsOfConflictLoserAreDropped()
+    {
+        addOutputFormatExtensions();
+        factories.put("consumer", factory((_, _) -> extension(new DocumentRecorder("c")))
+            .requiring(Greeter.class));
+        factories.put("provider", factory((_, _) ->
+            extension(new DocumentRecorder("p"))
+                .withFormatters(new ShoutFormatter(new OutputFormat("csv", "application/csv")))
+                .withService(Greeter.class, () -> "Hello")).providing(Greeter.class));
+        configure("  csv:\n  consumer:\n  provider:");
+        startUp();
+        softly.assertThat(registry.status().active()).containsExactly("csv");
+        assertFailure("provider", "Output format(s) already in use");
+        assertFailure("consumer", "Requires services of extension 'provider'");
+    }
+
     @Test
     void stagedExtensionsAreOnlyActivatedOnReset()
     {
@@ -729,12 +867,25 @@ class ExtensionLoadingTest
         softly.assertThat(output).contains("### Queries\n\nNo queries are available.\n");
     }
 
+    @Test
+    void configurationQueryReportsOutputFormats()
+    {
+        addOutputFormatExtensions();
+        configure("  csv:");
+        startUp();
+        var output = runConfigurationQuery();
+        softly.assertThat(output).contains("### Output formats\n\n" +
+                                           "- **csv**: `text/csv`, fenced, from csv\n" +
+                                           "- **json**: `application/json`, fenced\n" +
+                                           "- **markdown**: `text/markdown`, inline\n");
+    }
+
     private String runConfigurationQuery()
     {
         var query = new ConfigurationQuery(
-            settings, registry, () -> catalog, createQueryResultFactory(),
+            settings, registry, () -> catalog, formatterRegistry, createQueryResultFactory(),
             Optional.of(CONFIGURATION_DOCUMENT));
-        return createQueryResultFormatterRegistry()
+        return formatterRegistry
             .format(query.run(emptyQueryBlock()), OutputFormat.MARKDOWN);
     }
 
@@ -743,9 +894,23 @@ class ExtensionLoadingTest
     {
     }
 
+    static final OutputFormat CSV = new OutputFormat("csv", "text/csv");
+
     static final class ShoutFormatter
         implements QueryResultFormatter<Shout>
     {
+        private final OutputFormat outputFormat;
+
+        ShoutFormatter()
+        {
+            this(OutputFormat.MARKDOWN);
+        }
+
+        ShoutFormatter(OutputFormat outputFormat)
+        {
+            this.outputFormat = outputFormat;
+        }
+
         @Override
         public Class<Shout> queryResultType()
         {
@@ -755,13 +920,16 @@ class ExtensionLoadingTest
         @Override
         public OutputFormat outputFormat()
         {
-            return OutputFormat.MARKDOWN;
+            return outputFormat;
         }
 
         @Override
         public String format(Shout result)
         {
-            return result.text().toUpperCase(Locale.ROOT) + "!";
+            var shout = result.text().toUpperCase(Locale.ROOT) + "!";
+            return outputFormat.equals(OutputFormat.MARKDOWN)
+                   ? shout
+                   : outputFormat.name() + ":" + shout;
         }
     }
 

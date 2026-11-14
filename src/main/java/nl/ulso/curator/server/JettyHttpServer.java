@@ -1,17 +1,13 @@
 package nl.ulso.curator.server;
 
 import jakarta.inject.Inject;
-import nl.ulso.curator.Curator;
-import nl.ulso.curator.query.OutputFormat;
 import org.eclipse.jetty.http.pathmap.UriTemplatePathSpec;
 import org.eclipse.jetty.server.*;
 import org.eclipse.jetty.server.handler.PathMappingsHandler;
 import org.eclipse.jetty.util.thread.QueuedThreadPool;
 import org.slf4j.Logger;
 
-import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import static org.eclipse.jetty.util.VirtualThreads.getDefaultVirtualThreadsExecutor;
 import static org.slf4j.LoggerFactory.getLogger;
@@ -25,12 +21,10 @@ public class JettyHttpServer
     private final Server server;
 
     @Inject
-    JettyHttpServer(
-        Map<String, Curator> curators, Set<RequestProcessor> requestProcessors, int serverPort)
+    JettyHttpServer(Set<RequestProcessor> requestProcessors, int serverPort)
     {
         this.server = createServer(serverPort);
-        var availableOutputFormats = collectOutputFormats(curators);
-        configureServer(requestProcessors, availableOutputFormats);
+        configureServer(requestProcessors);
     }
 
     private Server createServer(int serverPort)
@@ -49,22 +43,15 @@ public class JettyHttpServer
         return httpServer;
     }
 
-    private Set<OutputFormat> collectOutputFormats(Map<String, Curator> curators)
-    {
-        return curators.values().stream()
-            .flatMap(curator -> curator.outputFormats().stream())
-            .collect(Collectors.toSet());
-    }
-
-    private void configureServer(
-        Set<RequestProcessor> requestProcessors,
-        Set<OutputFormat> availableOutputFormats)
+    /// Output formats are not fixed at startup: request processors negotiate them per request, so
+    /// that formats introduced by extensions that are loaded later are served as well.
+    private void configureServer(Set<RequestProcessor> requestProcessors)
     {
         var handler = new PathMappingsHandler();
         requestProcessors.forEach(processor ->
             handler.addMapping(
                 new UriTemplatePathSpec(processor.pathTemplate()),
-                new JettyRequestHandler(processor, availableOutputFormats)
+                new JettyRequestHandler(processor)
             ));
         server.setHandler(handler);
 

@@ -28,7 +28,8 @@ class CuratorListRequestProcessorTest
             "books", dummyCurator,
             "Articles", dummyCurator
         ));
-        var result = processor.process(emptyDictionary(), emptyDictionary(), JSON);
+        var result = processor.process(emptyDictionary(), emptyDictionary(),
+            ContentNegotiation.of(JSON));
         assertThat(result.status()).isEqualTo(OK);
         assertThat(result.outputFormat()).isEqualTo(JSON);
         assertThat(result.output()).contains("{\"curators\":[\"articles\",\"books\",\"music\"]}");
@@ -38,7 +39,8 @@ class CuratorListRequestProcessorTest
     void processWithEmptyCuratorsMap()
     {
         var processor = new CuratorListRequestProcessor(Map.of());
-        var result = processor.process(emptyDictionary(), emptyDictionary(), JSON);
+        var result = processor.process(emptyDictionary(), emptyDictionary(),
+            ContentNegotiation.of(JSON));
         assertThat(result.status()).isEqualTo(OK);
         assertThat(result.outputFormat()).isEqualTo(JSON);
         assertThat(result.output()).contains("{\"curators\":[]}");

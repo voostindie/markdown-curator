@@ -1,16 +1,16 @@
 package nl.ulso.curator.server;
 
-import nl.ulso.curator.query.OutputFormat;
 import nl.ulso.dictionary.Dictionary;
-
-import java.util.Optional;
 
 /// Simple abstraction for handling GET requests.
 ///
 /// Unlike in a traditional web server, none of the request details - headers, URI, and so on - are
 /// made available through this interface. These are all handled by the underlying server
-/// implementation. All an implementation can do is generate a [String] output in the requested
-/// [OutputFormat], based on the incoming path and query parameters.
+/// implementation. All an implementation can do is generate a [String] output based on the incoming
+/// path and query parameters, in the output format it selects through the [ContentNegotiation].
+///
+/// Selecting the output format is up to the implementation, because only the implementation knows
+/// which formats it can produce: these can differ per curator, and can change at runtime.
 public interface RequestProcessor
 {
     /// @return path template for this request handler, e.g. `/queries/{query}`. Each of the path
@@ -18,9 +18,10 @@ public interface RequestProcessor
     String pathTemplate();
 
     /// Process the request, looking only at path and query parameters, and return a result in the
-    /// requested [OutputFormat]; if no result can be generated, return an empty [Optional].
+    /// output format selected through the content negotiation. If none of the requested formats
+    /// can be produced, return [Result#notAcceptable(String)].
     Result process(
         Dictionary pathParameters,
         Dictionary queryParameters,
-        OutputFormat requestedOutputFormat);
+        ContentNegotiation contentNegotiation);
 }

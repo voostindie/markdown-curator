@@ -20,20 +20,23 @@ import static jakarta.json.Json.createValue;
 import static nl.ulso.curator.query.OutputFormat.JSON;
 import static nl.ulso.curator.query.OutputFormat.MARKDOWN;
 import static nl.ulso.curator.server.Result.clientError;
+import static nl.ulso.curator.server.Result.notAcceptable;
 import static nl.ulso.curator.server.Result.ok;
 import static nl.ulso.json.JsonToString.jsonToString;
 
 /// Outputs the content of a document as it lives in memory. Most notably: output from queries is
 /// not present!
 ///
-/// This processor supports both Markdown and JSON output. The JSON output is probably more useful,
-/// at it outputs the document as an array of document fragments, where each fragment can be of a
-/// different type.
+/// This processor supports both Markdown and JSON output; JSON is the default. The JSON output is
+/// probably more useful, at it outputs the document as an array of document fragments, where each
+/// fragment can be of a different type. Output formats introduced by extensions don't apply here:
+/// they format query results, not documents.
 @Singleton
 final class DocumentRequestProcessor
     extends CuratorRequestProcessorTemplate
 {
     private static final Logger LOGGER = LoggerFactory.getLogger(DocumentRequestProcessor.class);
+    private static final List<OutputFormat> DOCUMENT_FORMATS = List.of(JSON, MARKDOWN);
 
     @Inject
     DocumentRequestProcessor(Map<String, Curator> curators)
@@ -52,8 +55,13 @@ final class DocumentRequestProcessor
         Curator curator,
         Dictionary pathParameters,
         Dictionary queryParameters,
-        OutputFormat outputFormat)
+        ContentNegotiation contentNegotiation)
     {
+        var outputFormat = contentNegotiation.select(DOCUMENT_FORMATS, JSON);
+        if (outputFormat.isEmpty())
+        {
+            return notAcceptable(contentNegotiation.describeFailure(DOCUMENT_FORMATS));
+        }
         var documentName = queryParameters.string("name", null);
         if (documentName == null)
         {
@@ -63,8 +71,8 @@ final class DocumentRequestProcessor
         return curator.vault().findDocument(documentName)
             .map(document ->
             {
-                var writer = outputFormat.equals(MARKDOWN) ? new MarkdownWriter()
-                                                           : new JsonWriter();
+                var writer = outputFormat.get().equals(MARKDOWN) ? new MarkdownWriter()
+                                                                 : new JsonWriter();
                 document.accept(writer);
                 return ok(writer.outputFormat(), writer.asString());
             })

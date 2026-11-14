@@ -1,7 +1,6 @@
 package nl.ulso.curator.server;
 
 import nl.ulso.curator.Curator;
-import nl.ulso.curator.query.OutputFormat;
 import nl.ulso.dictionary.Dictionary;
 
 import java.util.*;
@@ -38,7 +37,7 @@ public abstract class CuratorRequestProcessorTemplate
     public final Result process(
         Dictionary pathParameters,
         Dictionary queryParameters,
-        OutputFormat requestedOutputFormat)
+        ContentNegotiation contentNegotiation)
     {
         var curatorName = pathParameters.string(CURATOR_PARAMETER, "").toLowerCase();
         if (curatorName.isBlank())
@@ -50,12 +49,15 @@ public abstract class CuratorRequestProcessorTemplate
         {
             return clientError("Curator not found: " + curatorName);
         }
-        return process(curator, pathParameters, queryParameters, requestedOutputFormat);
+        return process(curator, pathParameters, queryParameters, contentNegotiation);
     }
 
+    /// Processes the request for a specific curator. Content negotiation happens here, after the
+    /// curator is known, because the output formats that are available differ per curator: they
+    /// depend on the extensions it has loaded.
     protected abstract Result process(
         Curator curator,
         Dictionary pathParameters,
         Dictionary queryParameters,
-        OutputFormat format);
+        ContentNegotiation contentNegotiation);
 }

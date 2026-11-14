@@ -7,6 +7,7 @@ import nl.ulso.curator.vault.Vault;
 import nl.ulso.curator.vault.VaultStub;
 
 import java.util.*;
+import java.util.concurrent.CopyOnWriteArraySet;
 
 import static java.util.Collections.unmodifiableSet;
 import static nl.ulso.curator.query.OutputFormat.JSON;
@@ -18,7 +19,7 @@ public class CuratorStub
     private final Vault vault;
     private final Map<String, Query> queries;
     private final Set<OutputFormat> outputFormats;
-    private boolean failSupports = false;
+    private volatile boolean fallBackToMarkdown = false;
 
     public CuratorStub()
     {
@@ -34,7 +35,7 @@ public class CuratorStub
     {
         this.vault = vault;
         this.queries = queries;
-        this.outputFormats = new HashSet<>(outputFormats);
+        this.outputFormats = new CopyOnWriteArraySet<>(outputFormats);
     }
 
     public void registerQuery(Query query)
@@ -42,9 +43,23 @@ public class CuratorStub
         queries.put(query.name(), query);
     }
 
-    public void setFailSupports(boolean failSupports)
+    /// Adds an output format at runtime, like an extension that is loaded.
+    public void addOutputFormat(OutputFormat outputFormat)
     {
-        this.failSupports = failSupports;
+        outputFormats.add(outputFormat);
+    }
+
+    /// Removes an output format at runtime, like an extension that is unloaded.
+    public void removeOutputFormat(OutputFormat outputFormat)
+    {
+        outputFormats.remove(outputFormat);
+    }
+
+    /// Simulates that no output format supports the query results, so that formatting falls back
+    /// to Markdown.
+    public void setFallBackToMarkdown(boolean fallBackToMarkdown)
+    {
+        this.fallBackToMarkdown = fallBackToMarkdown;
     }
 
     @Override
@@ -77,18 +92,12 @@ public class CuratorStub
     }
 
     @Override
-    public boolean supports(QueryResult queryResult, OutputFormat outputFormat)
+    public FormattedResult formatResult(QueryResult result, OutputFormat format)
     {
-        if (failSupports)
+        if (fallBackToMarkdown || !outputFormats.contains(format))
         {
-            return false;
+            return new FormattedResult(MARKDOWN, "formatted:" + MARKDOWN.name());
         }
-        return outputFormats.contains(outputFormat);
-    }
-
-    @Override
-    public String format(QueryResult result, OutputFormat format)
-    {
-        return "formatted:" + format.name();
+        return new FormattedResult(format, "formatted:" + format.name());
     }
 }

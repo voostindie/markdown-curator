@@ -1,7 +1,5 @@
 package nl.ulso.curator.server;
 
-import nl.ulso.curator.query.OutputFormat;
-import nl.ulso.curator.vault.VaultStub;
 import nl.ulso.dictionary.Dictionary;
 import org.eclipse.jetty.server.Server;
 import org.junit.jupiter.api.Tag;
@@ -14,7 +12,6 @@ import java.util.Map;
 import java.util.Set;
 
 import static nl.ulso.curator.query.OutputFormat.JSON;
-import static nl.ulso.curator.query.OutputFormat.MARKDOWN;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @Tag("integration-test")
@@ -24,11 +21,6 @@ class JettyHttpServerTest
     void instantiateAndStartServer()
         throws Exception
     {
-        var curator1 =
-            new CuratorStub(new VaultStub(), Map.of(), Set.of(JSON));
-        var curator2 =
-            new CuratorStub(new VaultStub(), Map.of(), Set.of(MARKDOWN));
-
         var dummyProcessor = new RequestProcessor()
         {
             @Override
@@ -41,14 +33,13 @@ class JettyHttpServerTest
             public Result process(
                 Dictionary pathParameters,
                 Dictionary queryParameters,
-                OutputFormat requestedOutputFormat)
+                ContentNegotiation contentNegotiation)
             {
                 return Result.ok(JSON, "{}");
             }
         };
 
         var httpServer = new JettyHttpServer(
-            Map.of("curator1", curator1, "curator2", curator2),
             Set.of(dummyProcessor),
             findRandomOpenPortOnAllLocalInterfaces()
         );
@@ -70,8 +61,8 @@ class JettyHttpServerTest
         throws Exception
     {
         var port = findRandomOpenPortOnAllLocalInterfaces();
-        var server1 = new JettyHttpServer(Map.of(), Set.of(), port);
-        var server2 = new JettyHttpServer(Map.of(), Set.of(), port);
+        var server1 = new JettyHttpServer(Set.of(), port);
+        var server2 = new JettyHttpServer(Set.of(), port);
         Server jettyServer1 = getUnderlyingServer(server1);
         Server jettyServer2 = getUnderlyingServer(server2);
 

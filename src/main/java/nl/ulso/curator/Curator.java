@@ -19,9 +19,12 @@ public interface Curator
 
     Query query(String queryName);
 
+    /// @return all output formats currently available in this curator: the built-in ones and those
+    /// introduced by the active extensions. This set changes as extensions are loaded and unloaded.
     Set<OutputFormat> outputFormats();
 
-    boolean supports(QueryResult queryResult, OutputFormat outputFormat);
-
-    String format(QueryResult result, OutputFormat format);
+    /// Formats a query result in the requested output format. If the format has no formatter for
+    /// the type of query result, the result is formatted as [OutputFormat#MARKDOWN] instead; the
+    /// returned [FormattedResult] tells which format the output is actually in.
+    FormattedResult formatResult(QueryResult result, OutputFormat format);
 }

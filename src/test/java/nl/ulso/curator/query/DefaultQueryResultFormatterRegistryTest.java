@@ -27,15 +27,83 @@ class DefaultQueryResultFormatterRegistryTest
     }
 
     @Test
-    void unknownOutputFormat()
+    void unknownOutputFormatFallsBackToMarkdown()
     {
-        var output = registry.format(
+        var formatted = registry.formatResult(
             new StringResult("unknown"),
             new OutputFormat("UNKNOWN", "application/unknown")
         );
-        assertThat(output)
+        assertThat(formatted.outputFormat()).isEqualTo(MARKDOWN);
+        assertThat(formatted.output()).isEqualTo("unknown");
+    }
+
+    @Test
+    void unsupportedResultTypeInNewFormatFallsBackToMarkdown()
+    {
+        var format = new OutputFormat("dummy", "application/x-dummy");
+        registry.replaceDynamicFormatters(Set.of(new DummyFormatter(format, "dummy")));
+        var formatted = registry.formatResult(new StringResult("Hello"), format);
+        assertThat(registry.supports(new StringResult("Hello"), format)).isFalse();
+        assertThat(formatted.outputFormat()).isEqualTo(MARKDOWN);
+        assertThat(formatted.output()).isEqualTo("Hello");
+    }
+
+    @Test
+    void supportedResultTypeInNewFormatIsFormattedInThatFormat()
+    {
+        var format = new OutputFormat("dummy", "application/x-dummy");
+        registry.replaceDynamicFormatters(Set.of(new DummyFormatter(format, "dummy")));
+        var formatted = registry.formatResult(new DummyQueryResult(), format);
+        assertThat(formatted.outputFormat()).isEqualTo(format);
+        assertThat(formatted.output()).isEqualTo("dummy");
+    }
+
+    @Test
+    void unsupportedResultTypeWithoutMarkdownFallbackIsAnError()
+    {
+        var format = new OutputFormat("other", "application/x-other");
+        var formatted = registry.formatResult(new DummyQueryResult(), format);
+        assertThat(formatted.outputFormat()).isEqualTo(MARKDOWN);
+        assertThat(formatted.output())
             .contains("Error")
-            .contains("No output formatter for 'UNKNOWN'");
+            .contains("No output formatter for 'other'");
+    }
+
+    @Test
+    void outputFormatsAreLookedUpByNameCaseInsensitively()
+    {
+        var format = new OutputFormat("dummy", "application/x-dummy");
+        registry.replaceDynamicFormatters(Set.of(new DummyFormatter(format, "dummy")));
+        assertThat(registry.outputFormat("DUMMY")).contains(format);
+        assertThat(registry.outputFormat(" Markdown ")).contains(MARKDOWN);
+        assertThat(registry.outputFormat("unknown")).isEmpty();
+        assertThat(registry.outputFormat(null)).isEmpty();
+    }
+
+    @Test
+    void requestedFormatIsResolvedByName()
+    {
+        var formatted = registry.formatResult(
+            new StringResult("Hello"), new OutputFormat("markdown", "text/plain"));
+        assertThat(formatted.outputFormat()).isSameAs(MARKDOWN);
+    }
+
+    @Test
+    void conflictingDynamicFormatIsIgnored()
+    {
+        var conflicting = new OutputFormat("markdown", "text/x-markdown");
+        registry.replaceDynamicFormatters(Set.of(new DummyFormatter(conflicting, "conflict")));
+        assertThat(registry.outputFormats()).containsExactly(MARKDOWN);
+        assertThat(registry.supports(new DummyQueryResult(), MARKDOWN)).isFalse();
+    }
+
+    @Test
+    void staticOutputFormatsDoNotChange()
+    {
+        var format = new OutputFormat("dummy", "application/x-dummy");
+        registry.replaceDynamicFormatters(Set.of(new DummyFormatter(format, "dummy")));
+        assertThat(registry.staticOutputFormats()).containsExactly(MARKDOWN);
+        assertThat(registry.outputFormats()).containsExactly(MARKDOWN, format);
     }
 
     @Test
@@ -75,7 +143,7 @@ class DefaultQueryResultFormatterRegistryTest
     }
 
     @Test
-    void stringResulFromNewMimeType()
+    void stringResultFromUnknownFormatWithMarkdownMimeType()
     {
         var output = registry.format(
             new StringResult("Hello, world"),

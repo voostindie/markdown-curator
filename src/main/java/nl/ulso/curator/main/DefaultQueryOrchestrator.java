@@ -16,6 +16,7 @@ import static java.lang.Thread.currentThread;
 import static java.util.Collections.emptyList;
 import static java.util.concurrent.Executors.newVirtualThreadPerTaskExecutor;
 import static java.util.stream.Collectors.groupingBy;
+import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toSet;
 import static nl.ulso.curator.change.Change.isCreateOrUpdate;
 import static nl.ulso.curator.change.Change.isPayloadType;
@@ -37,6 +38,7 @@ final class DefaultQueryOrchestrator
     private final Vault vault;
     private final QueryCatalog queryCatalog;
     private final QueryResultFormatterRegistry queryResultFormatterRegistry;
+    private final QueryResultFactory queryResultFactory;
     private final FrontMatterRewriteResolver frontMatterRewriteResolver;
     private final ExecutorService parallelExecutor;
 
@@ -45,11 +47,13 @@ final class DefaultQueryOrchestrator
         Vault vault,
         QueryCatalog queryCatalog,
         QueryResultFormatterRegistry queryResultFormatterRegistry,
+        QueryResultFactory queryResultFactory,
         FrontMatterRewriteResolver frontMatterRewriteResolver)
     {
         this.vault = vault;
         this.queryCatalog = queryCatalog;
         this.queryResultFormatterRegistry = queryResultFormatterRegistry;
+        this.queryResultFactory = queryResultFactory;
         this.frontMatterRewriteResolver = frontMatterRewriteResolver;
         this.parallelExecutor = newVirtualThreadPerTaskExecutor();
     }
@@ -96,15 +100,9 @@ final class DefaultQueryOrchestrator
     }
 
     @Override
-    public boolean supports(QueryResult result, OutputFormat format)
+    public FormattedResult formatResult(QueryResult result, OutputFormat format)
     {
-        return queryResultFormatterRegistry.supports(result, format);
-    }
-
-    //    @Override
-    public String format(QueryResult result, OutputFormat format)
-    {
-        return queryResultFormatterRegistry.format(result, format);
+        return queryResultFormatterRegistry.formatResult(result, format);
     }
 
     /// Find all documents in the vault that are impacted by the changelog.
@@ -214,7 +212,7 @@ final class DefaultQueryOrchestrator
                     );
                     return;
                 }
-                var output = formatResult(queryBlock, result);
+                var output = renderOutput(queryBlock, result);
                 var hash = shortHashOf(output);
                 var isChanged = !queryBlock.outputHash().contentEquals(hash);
                 writeQueue.add(new QueryOutput(queryBlock, output, hash, isChanged));
@@ -224,29 +222,51 @@ final class DefaultQueryOrchestrator
         return writeQueue;
     }
 
-    private String formatResult(QueryBlock queryBlock, QueryResult result)
+    /// Formats the result of the query in a query block in the format requested by the block, and
+    /// wraps it in a fenced code block if that format isn't inline. Result types that the format
+    /// doesn't support fall back to Markdown, which is inline.
+    ///
+    /// If the query block requests a format that doesn't exist - for example because the extension
+    /// that provides it isn't loaded - the output is an error message, so that the user can see
+    /// what's wrong.
+    private String renderOutput(QueryBlock queryBlock, QueryResult result)
     {
-        var format = resolveOutputFormat(queryBlock);
-        var output = queryResultFormatterRegistry.format(result, format);
-        if (format != MARKDOWN)
+        var requestedFormat = queryBlock.configuration().string(FORMAT_OVERRIDE_PROPERTY, null);
+        final FormattedResult formatted;
+        if (requestedFormat == null || requestedFormat.isBlank())
+        {
+            formatted = queryResultFormatterRegistry.formatResult(result, MARKDOWN);
+        }
+        else
+        {
+            formatted = queryResultFormatterRegistry.outputFormat(requestedFormat)
+                .map(format -> queryResultFormatterRegistry.formatResult(result, format))
+                .orElseGet(() -> unknownOutputFormat(queryBlock, requestedFormat));
+        }
+        var output = formatted.output();
+        var format = formatted.outputFormat();
+        if (!format.inline())
         {
             output = "```" + format.name() + "\n" + output + "\n```";
         }
         return output;
     }
 
-    private OutputFormat resolveOutputFormat(QueryDefinition queryDefinition)
+    private FormattedResult unknownOutputFormat(QueryBlock queryBlock, String requestedFormat)
     {
-        var format = queryDefinition.configuration().string(FORMAT_OVERRIDE_PROPERTY, null);
-        if (format == null)
-        {
-            return MARKDOWN;
-        }
-        return outputFormats().stream()
-            .filter(outputFormat -> outputFormat.name().equalsIgnoreCase(format))
-            .findFirst()
-            .orElse(MARKDOWN);
-
+        var available = outputFormats().stream()
+            .map(OutputFormat::name)
+            .sorted()
+            .collect(joining(", "));
+        LOGGER.warn("Unknown output format '{}' in query '{}' in document '{}'. " +
+                    "Available formats: {}.",
+            requestedFormat, queryBlock.queryName(), queryBlock.document().name(), available
+        );
+        return queryResultFormatterRegistry.formatResult(
+            queryResultFactory.error("Unknown output format '" + requestedFormat.strip() +
+                                     "'. Available formats: " + available + "."),
+            MARKDOWN
+        );
     }
 
     private List<QueryBlock> findAllQueryBlocksIn(Set<Document> documents)

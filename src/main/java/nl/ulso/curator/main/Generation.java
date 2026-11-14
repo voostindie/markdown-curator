@@ -80,6 +80,30 @@ final class Generation
                 "Requires services of extension '" + name + "', which was dropped."));
     }
 
+    /// @return the extension with the given name, plus all extensions in this generation that
+    /// (indirectly) require its services; these are the extensions that [#drop(String, String)]
+    /// would drop, without dropping them.
+    Set<String> withDependents(String name)
+    {
+        var result = new LinkedHashSet<String>();
+        var pending = new ArrayDeque<String>();
+        pending.add(name);
+        while (!pending.isEmpty())
+        {
+            var current = pending.remove();
+            if (!extensions.containsKey(current) || !result.add(current))
+            {
+                continue;
+            }
+            dependencies.entrySet().stream()
+                .filter(entry -> entry.getValue().contains(current))
+                .map(Map.Entry::getKey)
+                .sorted()
+                .forEach(pending::add);
+        }
+        return result;
+    }
+
     void start()
     {
         if (started)
