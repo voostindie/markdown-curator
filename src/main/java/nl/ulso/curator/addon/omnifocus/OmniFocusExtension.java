@@ -7,6 +7,7 @@ import nl.ulso.curator.addon.project.ProjectRepository;
 import nl.ulso.curator.extension.Extension;
 import nl.ulso.curator.extension.ExtensionModule;
 import nl.ulso.curator.extension.ExtensionScope;
+import nl.ulso.dictionary.Dictionary;
 
 import java.util.Map;
 
@@ -20,7 +21,7 @@ public interface OmniFocusExtension
     interface Factory
     {
         OmniFocusExtension create(
-            @BindsInstance OmniFocusSettings settings,
+            @BindsInstance Dictionary configuration,
             @BindsInstance ProjectRepository projectRepository,
             @BindsInstance Map<String, ProjectAttributeDefinition> attributeDefinitions);
     }

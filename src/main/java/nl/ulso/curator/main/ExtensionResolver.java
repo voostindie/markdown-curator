@@ -286,7 +286,12 @@ final class ExtensionResolver
             }
             catch (RuntimeException e)
             {
-                LOGGER.error("Could not create extension '{}'.", name, e);
+                // An IllegalArgumentException signals invalid configuration: the message tells
+                // the user what to fix, so a stack trace is noise. Anything else is likely a bug.
+                if (!(e instanceof IllegalArgumentException))
+                {
+                    LOGGER.error("Could not create extension '{}'.", name, e);
+                }
                 fail(failures, name, "Could not create extension: " + e.getMessage());
                 candidates.remove(name);
                 return Optional.empty();

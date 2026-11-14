@@ -78,7 +78,7 @@ final class ProjectExtensionFactory
     public Extension create(Dictionary configuration, ExtensionContext context)
     {
         return factory.create(
-            new ProjectSettings(configuration.string(FOLDER, "Projects")),
+            configuration,
             byFrontMatterProperty(context.contributionsTo(PROJECT_ATTRIBUTES))
         );
     }

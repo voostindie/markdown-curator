@@ -5,6 +5,7 @@ import dagger.Subcomponent;
 import nl.ulso.curator.extension.Extension;
 import nl.ulso.curator.extension.ExtensionModule;
 import nl.ulso.curator.extension.ExtensionScope;
+import nl.ulso.dictionary.Dictionary;
 
 /// The journal as an extension; see [JournalModule].
 @ExtensionScope
@@ -15,6 +16,6 @@ public interface JournalExtension
     @Subcomponent.Factory
     interface Factory
     {
-        JournalExtension create(@BindsInstance JournalSettings settings);
+        JournalExtension create(@BindsInstance Dictionary configuration);
     }
 }

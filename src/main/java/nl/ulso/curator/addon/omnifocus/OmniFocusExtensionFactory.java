@@ -5,11 +5,9 @@ import nl.ulso.curator.addon.project.ProjectRepository;
 import nl.ulso.curator.extension.*;
 import nl.ulso.dictionary.Dictionary;
 
-import java.nio.file.Path;
 import java.util.*;
 
 import static nl.ulso.curator.addon.omnifocus.OmniFocusProjectAttributeValueProducer.OMNIFOCUS_URL_ATTRIBUTE;
-import static nl.ulso.curator.addon.omnifocus.OmniFocusSettings.DEFAULT_DATABASE;
 import static nl.ulso.curator.addon.project.ProjectAttributeDefinition.PROJECT_ATTRIBUTES;
 import static nl.ulso.curator.addon.project.ProjectAttributeDefinition.byFrontMatterProperty;
 import static nl.ulso.curator.addon.project.ProjectAttributeDefinition.newAttributeDefinition;
@@ -76,27 +74,11 @@ final class OmniFocusExtensionFactory
     @Override
     public Extension create(Dictionary configuration, ExtensionContext context)
     {
+        OmniFocusSettings.validate(configuration);
         return factory.create(
-            settingsFrom(configuration),
+            configuration,
             context.service(ProjectRepository.class),
             byFrontMatterProperty(context.contributionsTo(PROJECT_ATTRIBUTES))
-        );
-    }
-
-    static OmniFocusSettings settingsFrom(Dictionary configuration)
-    {
-        var folder = configuration.string(FOLDER, null);
-        if (folder == null || folder.isBlank())
-        {
-            throw new IllegalArgumentException("Setting '" + FOLDER + "' is required.");
-        }
-        var excludedPrefixes = List.copyOf(configuration.listOfStrings(EXCLUDE_PREFIXES));
-        var excludedNames = Set.copyOf(configuration.listOfStrings(EXCLUDE));
-        var database = configuration.string(DATABASE, null);
-        return new OmniFocusSettings(folder, name ->
-            excludedPrefixes.stream().noneMatch(name::startsWith) &&
-            !excludedNames.contains(name),
-            database == null || database.isBlank() ? DEFAULT_DATABASE : Path.of(database)
         );
     }
 }

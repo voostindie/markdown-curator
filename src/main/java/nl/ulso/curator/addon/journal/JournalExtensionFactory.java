@@ -59,11 +59,6 @@ final class JournalExtensionFactory
     @Override
     public Extension create(Dictionary configuration, ExtensionContext context)
     {
-        return factory.create(new JournalSettings(
-            configuration.string(FOLDER, "Journal"),
-            configuration.string(MARKERS_FOLDER, "Markers"),
-            configuration.string(ACTIVITIES_SECTION, "Activities"),
-            configuration.string(PROJECTS_FOLDER, "Projects")
-        ));
+        return factory.create(configuration);
     }
 }

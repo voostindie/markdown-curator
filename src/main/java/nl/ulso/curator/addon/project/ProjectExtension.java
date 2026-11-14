@@ -5,6 +5,7 @@ import dagger.Subcomponent;
 import nl.ulso.curator.extension.Extension;
 import nl.ulso.curator.extension.ExtensionModule;
 import nl.ulso.curator.extension.ExtensionScope;
+import nl.ulso.dictionary.Dictionary;
 
 import java.util.Map;
 
@@ -18,7 +19,7 @@ public interface ProjectExtension
     interface Factory
     {
         ProjectExtension create(
-            @BindsInstance ProjectSettings settings,
+            @BindsInstance Dictionary configuration,
             @BindsInstance Map<String, ProjectAttributeDefinition> attributeDefinitions);
     }
 }

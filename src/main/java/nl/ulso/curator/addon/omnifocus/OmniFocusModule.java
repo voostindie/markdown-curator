@@ -2,12 +2,15 @@ package nl.ulso.curator.addon.omnifocus;
 
 import dagger.Binds;
 import dagger.Module;
+import dagger.Provides;
 import dagger.multibindings.IntoSet;
 import nl.ulso.curator.change.ChangeProcessor;
 import nl.ulso.curator.extension.ExtensionBinding;
+import nl.ulso.curator.extension.ExtensionScope;
 import nl.ulso.curator.extension.ExtensionLifecycle;
 import nl.ulso.curator.query.Query;
 import nl.ulso.curator.statistics.MeasurementTracker;
+import nl.ulso.dictionary.Dictionary;
 
 /// Bindings of the OmniFocus extension, which extends the project extension with functionality
 /// related to [OmniFocus](https://www.omnigroup.com/omnifocus).
@@ -36,6 +39,13 @@ import nl.ulso.curator.statistics.MeasurementTracker;
 @Module
 abstract class OmniFocusModule
 {
+    @Provides
+    @ExtensionScope
+    static OmniFocusSettings provideOmniFocusSettings(Dictionary configuration)
+    {
+        return OmniFocusSettings.from(configuration);
+    }
+
     @Binds
     abstract OmniFocusRepository bindOmniFocusRepository(DefaultOmniFocusRepository repository);
 

@@ -5,9 +5,11 @@ import dagger.Module;
 import dagger.multibindings.IntoSet;
 import nl.ulso.curator.change.ChangeProcessor;
 import nl.ulso.curator.extension.ExtensionBinding;
+import nl.ulso.curator.extension.ExtensionScope;
 import nl.ulso.curator.extension.ServiceRegistration;
 import nl.ulso.curator.query.Query;
 import nl.ulso.curator.statistics.MeasurementTracker;
+import nl.ulso.dictionary.Dictionary;
 
 import static nl.ulso.curator.extension.ServiceRegistration.service;
 
@@ -30,6 +32,13 @@ import static nl.ulso.curator.extension.ServiceRegistration.service;
 @Module
 abstract class ProjectModule
 {
+    @Provides
+    @ExtensionScope
+    static ProjectSettings provideProjectSettings(Dictionary configuration)
+    {
+        return ProjectSettings.from(configuration);
+    }
+
     @Binds
     abstract ProjectMessages bindProjectMessages(ResourceBundleProjectMessages messages);
 

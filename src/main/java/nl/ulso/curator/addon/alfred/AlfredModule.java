@@ -5,6 +5,7 @@ import dagger.Module;
 import dagger.Provides;
 import dagger.multibindings.IntoSet;
 import nl.ulso.curator.extension.ExtensionBinding;
+import nl.ulso.curator.extension.ExtensionScope;
 import nl.ulso.curator.query.Query;
 import nl.ulso.dictionary.Dictionary;
 
@@ -17,6 +18,7 @@ import nl.ulso.dictionary.Dictionary;
 abstract class AlfredModule
 {
     @Provides
+    @ExtensionScope
     static AlfredSettings provideAlfredSettings(Dictionary configuration)
     {
         return AlfredSettings.from(configuration);
