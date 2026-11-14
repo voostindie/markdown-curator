@@ -1,6 +1,7 @@
 package nl.ulso.curator.addon.project;
 
-import nl.ulso.curator.extension.ServiceRegistry;
+import nl.ulso.curator.extension.ExtensionPoint;
+import nl.ulso.curator.extension.ExtensionContext;
 
 import java.util.Collection;
 import java.util.HashMap;
@@ -16,9 +17,10 @@ import java.util.function.UnaryOperator;
 /// - Extensible: their values can be resolved in more than one way.
 /// - Persistent: values are stored in the front matter of the underlying project documents.
 ///
-/// Attribute definitions are an extension point: extensions contribute them through
+/// Attribute definitions are contributed to the [#PROJECT_ATTRIBUTES] extension point, which the
+/// project extension owns. Extensions contribute them through
 /// [nl.ulso.curator.extension.ExtensionFactory#contributions(nl.ulso.dictionary.Dictionary)], and
-/// collect them through [ServiceRegistry#all(Class)]. The project extension
+/// collect them through [ExtensionContext#contributionsTo(ExtensionPoint)]. The project extension
 /// contributes the following default attribute definitions:
 ///
 /// - [#LAST_MODIFIED].
@@ -33,6 +35,10 @@ public interface ProjectAttributeDefinition
     String LEAD = "lead";
     String PRIORITY = "priority";
     String STATUS = "status";
+
+    /// The extension point for project attribute definitions, owned by the project extension.
+    ExtensionPoint<ProjectAttributeDefinition> PROJECT_ATTRIBUTES =
+        ExtensionPoint.extensionPoint("project attributes", ProjectAttributeDefinition.class);
 
     /// Defines a new attribute definition.
     ///

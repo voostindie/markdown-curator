@@ -24,16 +24,16 @@ import static org.assertj.core.api.Assertions.assertThat;
 /// Verifies that the recommended way of building extensions - Dagger subcomponents - works.
 class ExtensionSubcomponentTest
 {
-    private static final ServiceRegistry NO_SERVICES = new ServiceRegistry()
+    private static final ExtensionContext EMPTY_CONTEXT = new ExtensionContext()
     {
         @Override
-        public <T> T get(Class<T> type)
+        public <T> T service(Class<T> type)
         {
             throw new IllegalStateException("No services");
         }
 
         @Override
-        public <T> java.util.List<T> all(Class<T> type)
+        public <T> java.util.List<T> contributionsTo(ExtensionPoint<T> extensionPoint)
         {
             return java.util.List.of();
         }
@@ -57,7 +57,7 @@ class ExtensionSubcomponentTest
     void extensionExposesOnlyItsOwnBindings()
     {
         var extension = component.extensionFactories().get("greeting")
-            .create(emptyDictionary(), NO_SERVICES);
+            .create(emptyDictionary(), EMPTY_CONTEXT);
         assertThat(extension.queries()).hasSize(1).first().isInstanceOf(GreetingQuery.class);
         assertThat(extension.changeProcessors()).hasSize(1)
             .first().isInstanceOf(GreetingProcessor.class);
@@ -75,7 +75,7 @@ class ExtensionSubcomponentTest
     void extensionUsesConfigurationAndParentBindings()
     {
         var extension = component.extensionFactories().get("greeting")
-            .create(mapDictionary(Map.of("name", "extension")), NO_SERVICES);
+            .create(mapDictionary(Map.of("name", "extension")), EMPTY_CONTEXT);
         var query = (GreetingQuery) extension.queries().iterator().next();
         assertThat(query.greeting()).isEqualTo("Hello, extension!");
     }
@@ -84,8 +84,8 @@ class ExtensionSubcomponentTest
     void extensionScopeIsPerInstance()
     {
         var factory = component.extensionFactories().get("greeting");
-        var extension1 = factory.create(emptyDictionary(), NO_SERVICES);
-        var extension2 = factory.create(emptyDictionary(), NO_SERVICES);
+        var extension1 = factory.create(emptyDictionary(), EMPTY_CONTEXT);
+        var extension2 = factory.create(emptyDictionary(), EMPTY_CONTEXT);
         var query1 = (GreetingQuery) extension1.queries().iterator().next();
         var processor1 = extension1.changeProcessors().iterator().next();
         var processor2 = extension2.changeProcessors().iterator().next();
@@ -161,7 +161,7 @@ class ExtensionSubcomponentTest
         }
 
         @Override
-        public Extension create(Dictionary configuration, ServiceRegistry serviceRegistry)
+        public Extension create(Dictionary configuration, ExtensionContext context)
         {
             return factory.create(new GreetingSettings(configuration.string("name", "world")));
         }

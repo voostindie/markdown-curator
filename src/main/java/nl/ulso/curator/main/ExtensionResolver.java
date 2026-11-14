@@ -277,12 +277,12 @@ final class ExtensionResolver
         {
             var name = candidate.name();
             var factory = candidate.factory();
-            var services = new ExtensionServiceRegistry(
+            var context = new DefaultExtensionContext(
                 name, factory.requires(), publishedServices, contributions);
             final Extension extension;
             try
             {
-                extension = factory.create(candidate.configuration(), services);
+                extension = factory.create(candidate.configuration(), context);
             }
             catch (RuntimeException e)
             {
@@ -329,16 +329,16 @@ final class ExtensionResolver
         failures.put(name, reason);
     }
 
-    /// The services available to a single extension while it is being created.
-    private final class ExtensionServiceRegistry
-        implements ServiceRegistry
+    /// The context of a single extension while it is being created.
+    private final class DefaultExtensionContext
+        implements ExtensionContext
     {
         private final String extensionName;
         private final Set<Class<?>> required;
         private final Map<Class<?>, Object> publishedServices;
         private final List<Contribution> contributions;
 
-        ExtensionServiceRegistry(
+        DefaultExtensionContext(
             String extensionName,
             Set<Class<?>> required,
             Map<Class<?>, Object> publishedServices,
@@ -351,7 +351,7 @@ final class ExtensionResolver
         }
 
         @Override
-        public <T> T get(Class<T> type)
+        public <T> T service(Class<T> type)
         {
             if (!required.contains(type))
             {
@@ -369,11 +369,11 @@ final class ExtensionResolver
         }
 
         @Override
-        public <T> List<T> all(Class<T> type)
+        public <T> List<T> contributionsTo(ExtensionPoint<T> extensionPoint)
         {
             return contributions.stream()
-                .filter(contribution -> contribution.type().equals(type))
-                .map(contribution -> type.cast(contribution.value()))
+                .filter(contribution -> contribution.extensionPoint().equals(extensionPoint))
+                .map(contribution -> extensionPoint.type().cast(contribution.value()))
                 .toList();
         }
     }

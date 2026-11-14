@@ -2,13 +2,13 @@ package nl.ulso.curator.addon.projectjournal;
 
 import jakarta.inject.Inject;
 import nl.ulso.curator.addon.journal.Journal;
-import nl.ulso.curator.addon.project.ProjectAttributeDefinition;
 import nl.ulso.curator.addon.project.ProjectRepository;
 import nl.ulso.curator.extension.*;
 import nl.ulso.dictionary.Dictionary;
 
 import java.util.Set;
 
+import static nl.ulso.curator.addon.project.ProjectAttributeDefinition.PROJECT_ATTRIBUTES;
 import static nl.ulso.curator.addon.project.ProjectAttributeDefinition.byFrontMatterProperty;
 
 /// Creates the project journal extension, which has no settings. It requires both the project and
@@ -37,12 +37,12 @@ final class ProjectJournalExtensionFactory
     }
 
     @Override
-    public Extension create(Dictionary configuration, ServiceRegistry serviceRegistry)
+    public Extension create(Dictionary configuration, ExtensionContext context)
     {
         return factory.create(
-            serviceRegistry.get(ProjectRepository.class),
-            serviceRegistry.get(Journal.class),
-            byFrontMatterProperty(serviceRegistry.all(ProjectAttributeDefinition.class))
+            context.service(ProjectRepository.class),
+            context.service(Journal.class),
+            byFrontMatterProperty(context.contributionsTo(PROJECT_ATTRIBUTES))
         );
     }
 }

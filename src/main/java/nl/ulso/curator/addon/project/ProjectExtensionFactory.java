@@ -9,7 +9,6 @@ import java.time.LocalDate;
 import java.util.*;
 
 import static nl.ulso.curator.addon.project.ProjectAttributeDefinition.*;
-import static nl.ulso.curator.extension.Contribution.contribution;
 
 /// Creates the project extension:
 ///
@@ -64,23 +63,23 @@ final class ProjectExtensionFactory
     public List<Contribution> contributions(Dictionary configuration)
     {
         return List.of(
-            contribution(ProjectAttributeDefinition.class,
+            PROJECT_ATTRIBUTES.contribute(
                 newAttributeDefinition(LocalDate.class, LAST_MODIFIED, Object::toString)),
-            contribution(ProjectAttributeDefinition.class,
+            PROJECT_ATTRIBUTES.contribute(
                 newAttributeDefinition(Document.class, LEAD, d -> ((Document) d).link())),
-            contribution(ProjectAttributeDefinition.class,
+            PROJECT_ATTRIBUTES.contribute(
                 newAttributeDefinition(Integer.class, PRIORITY)),
-            contribution(ProjectAttributeDefinition.class,
+            PROJECT_ATTRIBUTES.contribute(
                 newAttributeDefinition(String.class, STATUS))
         );
     }
 
     @Override
-    public Extension create(Dictionary configuration, ServiceRegistry serviceRegistry)
+    public Extension create(Dictionary configuration, ExtensionContext context)
     {
         return factory.create(
             new ProjectSettings(configuration.string(FOLDER, "Projects")),
-            byFrontMatterProperty(serviceRegistry.all(ProjectAttributeDefinition.class))
+            byFrontMatterProperty(context.contributionsTo(PROJECT_ATTRIBUTES))
         );
     }
 }

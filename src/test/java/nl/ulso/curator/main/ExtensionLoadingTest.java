@@ -18,7 +18,7 @@ import java.util.*;
 
 import static nl.ulso.curator.change.Change.isPayloadType;
 import static nl.ulso.curator.change.Reset.RESET;
-import static nl.ulso.curator.extension.Contribution.contribution;
+import static nl.ulso.curator.extension.ExtensionPoint.extensionPoint;
 import static nl.ulso.curator.extension.ServiceRegistration.service;
 import static nl.ulso.curator.main.ExtensionFactoryStub.factory;
 import static nl.ulso.curator.main.ExtensionStub.extension;
@@ -56,10 +56,13 @@ class ExtensionLoadingTest
         String greet();
     }
 
-    /// Extension point for testing.
+    /// Value type for the test extension point.
     record Topping(String name)
     {
     }
+
+    /// Extension point for testing.
+    private static final ExtensionPoint<Topping> TOPPINGS = extensionPoint("toppings", Topping.class);
 
     /// Records the lifecycle of an extension.
     static final class LifecycleRecorder
@@ -587,8 +590,8 @@ class ExtensionLoadingTest
     void providerIsCreatedBeforeConsumerAndServiceIsInjected()
     {
         var greetings = new ArrayList<String>();
-        factories.put("a-consumer", factory((_, services) -> {
-            greetings.add(services.get(Greeter.class).greet());
+        factories.put("a-consumer", factory((_, context) -> {
+            greetings.add(context.service(Greeter.class).greet());
             return extension(new DocumentRecorder("consumer"));
         }).requiring(Greeter.class));
         factories.put("z-provider", factory((_, _) ->
@@ -605,8 +608,8 @@ class ExtensionLoadingTest
     {
         var greetings = new ArrayList<String>();
         curatorServices.add(service(Greeter.class, () -> "Hi"));
-        factories.put("consumer", factory((_, services) -> {
-            greetings.add(services.get(Greeter.class).greet());
+        factories.put("consumer", factory((_, context) -> {
+            greetings.add(context.service(Greeter.class).greet());
             return extension(new DocumentRecorder("consumer"));
         }).requiring(Greeter.class));
         configure("  consumer:");
@@ -720,8 +723,8 @@ class ExtensionLoadingTest
     void dropExtensionThatGetsUndeclaredService()
     {
         curatorServices.add(service(Greeter.class, () -> "Hi"));
-        factories.put("sneaky", factory((_, services) -> {
-            services.get(Greeter.class);
+        factories.put("sneaky", factory((_, context) -> {
+            context.service(Greeter.class);
             return extension(new DocumentRecorder("s"));
         }));
         configure("  sneaky:");
@@ -736,17 +739,17 @@ class ExtensionLoadingTest
     {
         var toppings = new ArrayList<Topping>();
         // The pizza owns the extension point and provides a service...
-        factories.put("pizza", factory((_, services) -> {
-            toppings.addAll(services.all(Topping.class));
+        factories.put("pizza", factory((_, context) -> {
+            toppings.addAll(context.contributionsTo(TOPPINGS));
             return extension(new DocumentRecorder("pizza"))
                 .withService(Greeter.class, () -> "Pizza!");
         }).providing(Greeter.class));
         // ...that the cheese requires, while contributing to the extension point.
-        factories.put("cheese", factory((_, services) -> {
-            services.get(Greeter.class);
+        factories.put("cheese", factory((_, context) -> {
+            context.service(Greeter.class);
             return extension(new DocumentRecorder("cheese"));
-        }).requiring(Greeter.class).contributing(Topping.class, new Topping("cheese")));
-        curatorContributions.add(contribution(Topping.class, new Topping("tomato")));
+        }).requiring(Greeter.class).contributing(TOPPINGS, new Topping("cheese")));
+        curatorContributions.add(TOPPINGS.contribute(new Topping("tomato")));
         configure("  pizza:\n  cheese:");
         startUp();
         softly.assertThat(registry.status().active()).containsExactly("cheese", "pizza");
@@ -758,14 +761,14 @@ class ExtensionLoadingTest
     void contributionsOfDroppedExtensionsAreNotCollected()
     {
         var toppings = new ArrayList<Topping>();
-        factories.put("pizza", factory((_, services) -> {
+        factories.put("pizza", factory((_, context) -> {
             toppings.clear();
-            toppings.addAll(services.all(Topping.class));
+            toppings.addAll(context.contributionsTo(TOPPINGS));
             return extension(new DocumentRecorder("pizza"));
         }));
         factories.put("anchovies", factory((_, _) -> {
             throw new IllegalStateException("Nobody likes anchovies");
-        }).contributing(Topping.class, new Topping("anchovies")));
+        }).contributing(TOPPINGS, new Topping("anchovies")));
         configure("  pizza:\n  anchovies:");
         startUp();
         softly.assertThat(registry.status().active()).containsExactly("pizza");

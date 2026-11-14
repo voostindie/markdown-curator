@@ -27,7 +27,7 @@ import static java.util.Collections.emptySet;
 /// require and provide are resolved, and their [Contribution]s are collected. Extensions whose
 /// requirements can't be met are dropped.
 /// 2. The remaining extensions are created, providers before consumers, through
-/// [#create(Dictionary, ServiceRegistry)].
+/// [#create(Dictionary, ExtensionContext)].
 ///
 /// @see nl.ulso.curator.CuratorModule#CONFIGURATION_DOCUMENT_KEY
 public interface ExtensionFactory
@@ -43,7 +43,7 @@ public interface ExtensionFactory
     }
 
     /// @return The types of services this extension needs from the curator or other extensions;
-    /// available through [ServiceRegistry#get(Class)].
+    /// available through [ExtensionContext#service(Class)].
     default Set<Class<?>> requires()
     {
         return emptySet();
@@ -56,8 +56,8 @@ public interface ExtensionFactory
         return emptySet();
     }
 
-    /// Returns the contributions of this extension to extension points of other extensions. This
-    /// method is called before any extension is created.
+    /// Returns the contributions of this extension to [ExtensionPoint]s, typically owned by other
+    /// extensions. This method is called before any extension is created.
     ///
     /// @param configuration the configuration of the extension.
     /// @return the contributions; empty by default.
@@ -70,8 +70,9 @@ public interface ExtensionFactory
     ///
     /// @param configuration the configuration of the extension, from the configuration document;
     ///                      may be empty.
-    /// @param serviceRegistry      the serviceRegistry this extension requires and all contributions.
+    /// @param context       the services this extension requires, and all contributions to
+    ///                      extension points.
     /// @return a new extension.
     /// @throws RuntimeException if the extension can't be created; it's then dropped.
-    Extension create(Dictionary configuration, ServiceRegistry serviceRegistry);
+    Extension create(Dictionary configuration, ExtensionContext context);
 }

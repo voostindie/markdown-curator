@@ -285,8 +285,8 @@ Changes to the settings apply immediately. A change of the `locale` changes the 
 Extensions interact in three ways:
 
 - **Payload types** in the changelog, exactly like statically configured change processors.
-- **Services**: an extension can provide services to other extensions, and require services from them. There's only ever one provider of a service. Extensions declare what they provide and require in their factory; the curator creates providers before their consumers. The factory gets the required services through `Services.get` and passes them into the subcomponent with `@BindsInstance`, so that the classes in the extension can inject them as usual. Extensions publish services by binding a `ServiceRegistration` into a set.
-- **Contributions** (the whiteboard pattern): an extension can own an extension point - a type - that other extensions contribute values to. The owner collects all of them through `Services.all`. Contributions are collected from all factories before any extension is created, so they don't impose an order: the OmniFocus extension contributes a project attribute definition to the project extension, while requiring the project extension's `ProjectRepository`.
+- **Services**: an extension can provide services to other extensions, and require services from them. There's only ever one provider of a service. Extensions declare what they provide and require in their factory; the curator creates providers before their consumers. The factory gets the required services through `ExtensionContext.service` and passes them into the subcomponent with `@BindsInstance`, so that the classes in the extension can inject them as usual. Extensions publish services by binding a `ServiceRegistration` into a set.
+- **Contributions** (the whiteboard pattern): an extension can own an `ExtensionPoint` - a typed constant it declares - that other extensions contribute values to, through `extensionPoint.contribute(value)`. The owner collects all of them through `ExtensionContext.contributionsTo(extensionPoint)`. Contributions are collected from all factories before any extension is created, so they don't impose an order: the OmniFocus extension contributes a project attribute definition to the project extension, while requiring the project extension's `ProjectRepository`.
 
 The curator itself can publish services and contributions too, by binding a `ServiceRegistration` or `Contribution` into a set in its module. Extensions can also inject anything the curator binds, like the `Vault`. Infrastructure that is shared with static code, like the `NewDayAlarm` and JavaScript for Automation, is best kept that way: the module of the extension includes the module that binds it. Note that a type that the curator binds can't be passed into an extension with `@BindsInstance` as well; Dagger reports that as a duplicate binding.
 
@@ -487,7 +487,7 @@ extensions:
     folder: Projects    # Where project notes are kept; this is the default
 ```
 
-The extension provides the `ProjectRepository` and `ProjectAttributeRepository` services to other extensions. The set of project attributes is an extension point: other extensions can contribute a `ProjectAttributeDefinition`.
+The extension provides the `ProjectRepository` and `ProjectAttributeRepository` services to other extensions. The set of project attributes is an extension point, `ProjectAttributeDefinition.PROJECT_ATTRIBUTES`: other extensions can contribute a `ProjectAttributeDefinition` to it.
 
 #### `projectlist`
 

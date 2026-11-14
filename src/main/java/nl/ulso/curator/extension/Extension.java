@@ -21,7 +21,7 @@ import java.util.Set;
 ///
 /// Extensions can inject anything from the curator they are loaded into, but the curator cannot
 /// inject anything from an extension. Extensions interact with each other through payload types in
-/// the changelog, through [ServiceRegistration]s and through [Contribution]s.
+/// the changelog, through [ServiceRegistration]s and through [Contribution]s to [ExtensionPoint]s.
 ///
 /// @see ExtensionFactory
 public interface Extension

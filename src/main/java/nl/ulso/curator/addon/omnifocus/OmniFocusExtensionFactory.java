@@ -1,7 +1,6 @@
 package nl.ulso.curator.addon.omnifocus;
 
 import jakarta.inject.Inject;
-import nl.ulso.curator.addon.project.ProjectAttributeDefinition;
 import nl.ulso.curator.addon.project.ProjectRepository;
 import nl.ulso.curator.extension.*;
 import nl.ulso.dictionary.Dictionary;
@@ -9,11 +8,11 @@ import nl.ulso.dictionary.Dictionary;
 import java.nio.file.Path;
 import java.util.*;
 
-import static nl.ulso.curator.addon.omnifocus.OmniFocusSettings.DEFAULT_DATABASE;
 import static nl.ulso.curator.addon.omnifocus.OmniFocusProjectAttributeValueProducer.OMNIFOCUS_URL_ATTRIBUTE;
+import static nl.ulso.curator.addon.omnifocus.OmniFocusSettings.DEFAULT_DATABASE;
+import static nl.ulso.curator.addon.project.ProjectAttributeDefinition.PROJECT_ATTRIBUTES;
 import static nl.ulso.curator.addon.project.ProjectAttributeDefinition.byFrontMatterProperty;
 import static nl.ulso.curator.addon.project.ProjectAttributeDefinition.newAttributeDefinition;
-import static nl.ulso.curator.extension.Contribution.contribution;
 
 /// Creates the OmniFocus extension. It requires the project extension, and contributes the
 /// `omnifocus` project attribute: the URL of the project in OmniFocus.
@@ -70,17 +69,17 @@ final class OmniFocusExtensionFactory
     @Override
     public List<Contribution> contributions(Dictionary configuration)
     {
-        return List.of(contribution(ProjectAttributeDefinition.class,
+        return List.of(PROJECT_ATTRIBUTES.contribute(
             newAttributeDefinition(String.class, OMNIFOCUS_URL_ATTRIBUTE)));
     }
 
     @Override
-    public Extension create(Dictionary configuration, ServiceRegistry serviceRegistry)
+    public Extension create(Dictionary configuration, ExtensionContext context)
     {
         return factory.create(
             settingsFrom(configuration),
-            serviceRegistry.get(ProjectRepository.class),
-            byFrontMatterProperty(serviceRegistry.all(ProjectAttributeDefinition.class))
+            context.service(ProjectRepository.class),
+            byFrontMatterProperty(context.contributionsTo(PROJECT_ATTRIBUTES))
         );
     }
 
@@ -97,6 +96,7 @@ final class OmniFocusExtensionFactory
         return new OmniFocusSettings(folder, name ->
             excludedPrefixes.stream().noneMatch(name::startsWith) &&
             !excludedNames.contains(name),
-            database == null || database.isBlank() ? DEFAULT_DATABASE : Path.of(database));
+            database == null || database.isBlank() ? DEFAULT_DATABASE : Path.of(database)
+        );
     }
 }

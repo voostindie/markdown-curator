@@ -10,18 +10,18 @@ import java.util.function.BiFunction;
 final class ExtensionFactoryStub
     implements ExtensionFactory
 {
-    private final BiFunction<Dictionary, ServiceRegistry, Extension> creator;
+    private final BiFunction<Dictionary, ExtensionContext, Extension> creator;
     private final Set<Class<?>> requires = new HashSet<>();
     private final Set<Class<?>> provides = new HashSet<>();
     private final List<Contribution> contributions = new ArrayList<>();
     private final Map<String, String> settings = new HashMap<>();
 
-    private ExtensionFactoryStub(BiFunction<Dictionary, ServiceRegistry, Extension> creator)
+    private ExtensionFactoryStub(BiFunction<Dictionary, ExtensionContext, Extension> creator)
     {
         this.creator = creator;
     }
 
-    static ExtensionFactoryStub factory(BiFunction<Dictionary, ServiceRegistry, Extension> creator)
+    static ExtensionFactoryStub factory(BiFunction<Dictionary, ExtensionContext, Extension> creator)
     {
         return new ExtensionFactoryStub(creator);
     }
@@ -38,9 +38,9 @@ final class ExtensionFactoryStub
         return this;
     }
 
-    <T> ExtensionFactoryStub contributing(Class<T> type, T value)
+    <T> ExtensionFactoryStub contributing(ExtensionPoint<T> extensionPoint, T value)
     {
-        contributions.add(Contribution.contribution(type, value));
+        contributions.add(extensionPoint.contribute(value));
         return this;
     }
 
@@ -81,8 +81,8 @@ final class ExtensionFactoryStub
     }
 
     @Override
-    public Extension create(Dictionary configuration, ServiceRegistry serviceRegistry)
+    public Extension create(Dictionary configuration, ExtensionContext context)
     {
-        return creator.apply(configuration, serviceRegistry);
+        return creator.apply(configuration, context);
     }
 }
