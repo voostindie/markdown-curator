@@ -46,6 +46,7 @@ class ExtensionLoadingTest
     private Set<ServiceRegistration> curatorServices;
     private Set<Contribution> curatorContributions;
     private ExtensionRegistry registry;
+    private CuratorSettings settings;
     private DefaultChangeProcessorOrchestrator orchestrator;
 
     /// Simple service for testing.
@@ -114,10 +115,11 @@ class ExtensionLoadingTest
             return;
         }
         registry = newExtensionRegistry(catalog, factories);
+        settings = new CuratorSettings();
         var resolver = new ExtensionResolver(factories, curatorServices, curatorContributions);
         var loader =
             new ConfigurationLoader(Optional.of(CONFIGURATION_DOCUMENT), vault, resolver, registry,
-                new CuratorSettings());
+                settings);
         orchestrator = new DefaultChangeProcessorOrchestrator(
             Set.of(new VaultInitializer(vault), loader),
             new NullStatistics(),
@@ -654,23 +656,69 @@ class ExtensionLoadingTest
     // Reporting
 
     @Test
-    void extensionsQueryReportsStatus()
+    void configurationQueryReportsExtensionStatus()
     {
         factories.put("consumer", factory((_, _) -> extension(new DocumentRecorder("c")))
             .requiring(Greeter.class));
         configure("  recorder:\n    folder: a\n  bogus:\n  consumer:");
         startUp();
-        var query = new ExtensionsQuery(
-            registry, createQueryResultFactory(), Optional.of(CONFIGURATION_DOCUMENT));
-        var output = createQueryResultFormatterRegistry()
-            .format(query.run(emptyQueryBlock()), OutputFormat.MARKDOWN);
+        var output = runConfigurationQuery();
         softly.assertThat(output).contains("- 🟢 **recorder**: Stub");
-        softly.assertThat(output).contains("    - settings: folder");
-        softly.assertThat(output).contains("- ⚪️️ **query**: Stub");
+        softly.assertThat(output).contains("    - settings:\n        - `folder`: Setting folder\n");
+        softly.assertThat(output).contains("- ⚪️️**query**: Stub");
         softly.assertThat(output).contains("- 🔴 **bogus**");
         softly.assertThat(output).contains("    - not loaded: Unknown extension.");
         softly.assertThat(output).contains("- 🔴 **consumer**: Stub");
         softly.assertThat(output).contains("    - requires: Greeter");
+    }
+
+    @Test
+    void configurationQueryReportsDefaultSettings()
+    {
+        configure("  recorder:");
+        startUp();
+        var output = runConfigurationQuery();
+        softly.assertThat(output).contains("- **delay**: 3 seconds (default)");
+        softly.assertThat(output).contains("- **locale**: en-US (English (United States)) (default)");
+    }
+
+    @Test
+    void configurationQueryReportsConfiguredSettings()
+    {
+        vault.addDocument(CONFIGURATION_DOCUMENT,
+            "```yaml\ndelay: 1\nlocale: nl-NL\nextensions:\n  recorder:\n```\n");
+        startUp();
+        var output = runConfigurationQuery();
+        softly.assertThat(output).contains("- **delay**: 1 second\n");
+        softly.assertThat(output).contains("- **locale**: nl-NL (Dutch (Netherlands))\n");
+        softly.assertThat(output).contains("- 🟢 **recorder**: Stub");
+    }
+
+    @Test
+    void configurationQueryReportsAvailableQueries()
+    {
+        configure("  query:");
+        startUp();
+        var output = runConfigurationQuery();
+        softly.assertThat(output).contains("### Queries\n\n- **dynamic**: Stub\n");
+    }
+
+    @Test
+    void configurationQueryReportsNoQueries()
+    {
+        configure("  recorder:");
+        startUp();
+        var output = runConfigurationQuery();
+        softly.assertThat(output).contains("### Queries\n\nNo queries are available.\n");
+    }
+
+    private String runConfigurationQuery()
+    {
+        var query = new ConfigurationQuery(
+            settings, registry, () -> catalog, createQueryResultFactory(),
+            Optional.of(CONFIGURATION_DOCUMENT));
+        return createQueryResultFormatterRegistry()
+            .format(query.run(emptyQueryBlock()), OutputFormat.MARKDOWN);
     }
 
     record QueryStub(String name)

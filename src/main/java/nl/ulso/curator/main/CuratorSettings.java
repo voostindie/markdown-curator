@@ -5,7 +5,7 @@ import jakarta.inject.Singleton;
 
 import java.util.Locale;
 
-import static java.util.Locale.ENGLISH;
+import static java.util.Locale.US;
 import static java.util.Objects.requireNonNull;
 
 /// Holds the settings of the curator itself, as read from the configuration document by the
@@ -21,7 +21,7 @@ final class CuratorSettings
     static final int DEFAULT_DELAY_IN_SECONDS = 3;
 
     /// Default locale for translations in query output.
-    static final String DEFAULT_LOCALE = ENGLISH.toLanguageTag();
+    static final String DEFAULT_LOCALE = US.toLanguageTag();
 
     private volatile int delayInSeconds;
     private volatile Locale locale;

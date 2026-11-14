@@ -158,6 +158,11 @@ public class Application
             return;
         }
         var curators = createCurators(factories);
+        if (curators.isEmpty())
+        {
+            LOGGER.error("None of the curators could be created. Nothing to do!");
+            return;
+        }
         if (enableHttpServer)
         {
             runEmbeddedHttpServer(curators);
@@ -219,6 +224,16 @@ public class Application
                 catch (Exception e)
                 {
                     LOGGER.error("Could not create curator '{}'.", curatorName, e);
+                }
+                catch (LinkageError e)
+                {
+                    // Typically a NoSuchMethodError or NoClassDefFoundError: the curator was
+                    // compiled against another version of the markdown-curator than the one on the
+                    // classpath. Without catching it here, the error disappears silently in the
+                    // executor.
+                    LOGGER.error("Could not create curator '{}', because it doesn't match this " +
+                                 "version of the Markdown Curator. Rebuild it from scratch, " +
+                                 "for example with 'mvn clean package'.", curatorName, e);
                 }
                 if (curator != null)
                 {

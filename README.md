@@ -252,7 +252,7 @@ extensions:
 
 Whenever the `extensions` property in that code block changes, the curator loads the new set of extensions and performs a complete refresh, exactly like touching the watch document does.
 
-Extensions that can't be loaded are left out, together with the extensions that depend on them; the others are loaded. Reasons for an extension not to load are: it's unknown, it has unsupported settings, it requires a service that no other loaded extension provides, its change processors consume a payload type nobody produces, or its queries have names that are already taken. Use the `extensions` query to see which extensions are available and active, what they require and provide, what settings they support, and why extensions weren't loaded. Only if the configuration can't be parsed at all is it rejected as a whole, keeping the current extensions.
+Extensions that can't be loaded are left out, together with the extensions that depend on them; the others are loaded. Reasons for an extension not to load are: it's unknown, it has unsupported settings, it requires a service that no other loaded extension provides, its change processors consume a payload type nobody produces, or its queries have names that are already taken. Use the `configuration` query to see which extensions are available and active, what they require and provide, what settings they support, and why extensions weren't loaded. Only if the configuration can't be parsed at all is it rejected as a whole, keeping the current extensions.
 
 #### Curator settings
 
@@ -310,6 +310,10 @@ This will write information on the selected query (in this case: `timeline`), in
 ### Built-in queries
 
 Built-in queries are always available and cannot be disabled.
+
+#### `configuration`
+
+This query shows the active configuration of the curator: the settings in effect, like the `delay` and the `locale` (invalid settings are ignored, so these might differ from what's in the configuration document), and all available extensions: whether they are active, what they require and provide, what settings they support (with a description of each), and why they weren't loaded, if they weren't; and all queries that are currently available, with their descriptions. It's typically placed in the configuration document itself.
 
 #### `list`
 

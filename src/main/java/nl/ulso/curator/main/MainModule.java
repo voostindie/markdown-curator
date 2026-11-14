@@ -49,7 +49,7 @@ public abstract class MainModule
 
     @Binds
     @IntoSet
-    abstract Query bindExtensionsQuery(ExtensionsQuery extensionsQuery);
+    abstract Query bindConfigurationQuery(ConfigurationQuery configurationQuery);
 
     @Binds
     @IntoSet

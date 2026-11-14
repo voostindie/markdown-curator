@@ -122,6 +122,15 @@ class ApplicationTest
     }
 
     @Test
+    void createCuratorsFactoryThrowsLinkageError()
+    {
+        var factory = new LinkageErrorCuratorFactory();
+        var application = new Application(new StubPidManager(false, true), false);
+        var curators = application.createCurators(List.of(factory));
+        assertThat(curators).isEmpty();
+    }
+
+    @Test
     void createCuratorsInterrupted()
     {
         var factory = new MusicCuratorFactory();
@@ -208,6 +217,21 @@ class ApplicationTest
         public Curator createCurator()
         {
             throw new RuntimeException("Creation failed intentionally");
+        }
+    }
+
+    private static class LinkageErrorCuratorFactory implements CuratorFactory
+    {
+        @Override
+        public String name()
+        {
+            return "outdated";
+        }
+
+        @Override
+        public Curator createCurator()
+        {
+            throw new NoSuchMethodError("Compiled against another version, intentionally");
         }
     }
 

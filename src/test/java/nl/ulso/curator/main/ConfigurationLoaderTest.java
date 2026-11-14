@@ -181,10 +181,10 @@ class ConfigurationLoaderTest
     @Test
     void defaultLocaleIsEnglish()
     {
-        softly.assertThat(DEFAULT_LOCALE).isEqualTo(Locale.ENGLISH.toLanguageTag());
+        softly.assertThat(DEFAULT_LOCALE).isEqualTo(Locale.US.toLanguageTag());
         configure("extensions:");
         startUp();
-        softly.assertThat(settings.locale()).isEqualTo(Locale.ENGLISH);
+        softly.assertThat(settings.locale()).isEqualTo(Locale.US);
     }
 
     @ParameterizedTest
