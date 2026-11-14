@@ -171,12 +171,23 @@ class ExtensionLoadingTest
     }
 
     @Test
-    void loadExtensionsFromList()
+    void loadExtensionWithoutConfiguration()
     {
-        configure("  - recorder");
+        configure("  recorder:");
         startUp();
         assertThat(recorders).hasSize(1);
         softly.assertThat(recorders.getFirst().name()).isEqualTo("DocumentRecorder-none");
+    }
+
+    @Test
+    void rejectListOfExtensions()
+    {
+        configure("  - recorder");
+        startUp();
+        softly.assertThat(recorders).isEmpty();
+        softly.assertThat(registry.status().active()).isEmpty();
+        softly.assertThat(registry.status().lastError()).hasValueSatisfying(error ->
+            softly.assertThat(error).contains("must be a map"));
     }
 
     @Test
@@ -230,7 +241,7 @@ class ExtensionLoadingTest
         vault.addDocument(CONFIGURATION_DOCUMENT, """
             ```yml
             extensions:
-              - recorder
+              recorder:
             ```
             """);
         startUp();

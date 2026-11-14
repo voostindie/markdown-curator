@@ -26,8 +26,8 @@ import static org.slf4j.LoggerFactory.getLogger;
 ///
 /// The configuration is read from the `extensions` property in the first YAML code block (a code
 /// block with language `yaml` or `yml`) in the configuration document; other code blocks and the
-/// front matter are ignored. The property is either a list of extension names, or a map of
-/// extension names to their configuration:
+/// front matter are ignored. The property must be a map of extension names to their
+/// configuration; an extension without configuration has an empty value:
 ///
 /// ````markdown
 /// ```yaml
@@ -228,12 +228,10 @@ final class ExtensionLoader
             {
                 // No extensions configured.
             }
-            case Collection<?> list -> list.forEach(name ->
-                result.put(String.valueOf(name), emptyDictionary()));
             case Dictionary dictionary -> dictionary.propertyNames().forEach(name ->
                 result.put(name, toDictionary(name, dictionary.getProperty(name).orElse(null))));
             default -> throw new IllegalArgumentException(
-                "Property '" + EXTENSIONS_PROPERTY + "' must be a list or a map.");
+                "Property '" + EXTENSIONS_PROPERTY + "' must be a map.");
         }
         return result;
     }
