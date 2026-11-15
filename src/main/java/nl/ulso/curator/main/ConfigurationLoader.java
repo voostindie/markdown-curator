@@ -271,9 +271,9 @@ final class ConfigurationLoader
 
         private static boolean isYaml(CodeBlock codeBlock)
         {
-            var info = codeBlock.language().strip();
-            var language = info.split("\\s+", 2)[0];
-            return language.equalsIgnoreCase("yaml") || language.equalsIgnoreCase("yml");
+            var language = codeBlock.language();
+            return language.equalsIgnoreCase("yaml")
+                   || language.equalsIgnoreCase("yml");
         }
     }
 
@@ -299,9 +299,7 @@ final class ConfigurationLoader
         }
         catch (RuntimeException e)
         {
-            LOGGER.error("Rejecting the extension configuration. Keeping the current extensions.",
-                e
-            );
+            LOGGER.error("Rejecting the extension configuration. Keeping the current extensions.");
             registry.reject(e.getMessage());
             return false;
         }
